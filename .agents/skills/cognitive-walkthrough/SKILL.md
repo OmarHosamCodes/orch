@@ -16,7 +16,6 @@ Combine with "Nielsen Heuristics" for general usability, "Don Norman Principles"
 ## When to Use This Skill
 
 Invoke this skill when:
-
 - Analyzing specific user tasks (e.g., "complete checkout", "upload a file")
 - Evaluating learnability for first-time users
 - Identifying points of confusion in a flow
@@ -43,25 +42,21 @@ Cognitive Walkthrough evaluates **four key questions** at each step:
 ### For Each Action in the Task:
 
 **Q1: Will users try to achieve the right effect?**
-
 - Do users understand what they need to do next?
 - Is the goal of this step clear?
 - Does it match their mental model of the task?
 
 **Q2: Will users notice that the correct action is available?**
-
 - Is the control/action visible?
 - Can users find what they need to interact with?
 - Is it discoverable without hunting?
 
 **Q3: Will users associate the correct action with the effect they're trying to achieve?**
-
 - Does the control's appearance/label suggest it will do what they want?
 - Is there a clear connection between action and goal?
 - Are affordances and signifiers clear?
 
 **Q4: If the correct action is performed, will users see that progress is being made?**
-
 - Is there immediate feedback?
 - Does the system confirm the action succeeded?
 - Can users tell they're closer to their goal?
@@ -136,36 +131,30 @@ For **each action**, answer the 4 cognitive questions:
 **Current State:** [What they see/where they are]
 
 ### Q1: Will users try to achieve the right effect?
-
 - **Analysis**: [Will users know what to do next?]
 - **Issues**: [Problems if any]
 - **Rating**: ✅ Clear / ⚠️ Unclear / ❌ Confusing
 
 ### Q2: Will users notice the correct action is available?
-
 - **Analysis**: [Is the control visible/findable?]
 - **Issues**: [Problems if any]
 - **Rating**: ✅ Visible / ⚠️ Somewhat hidden / ❌ Hidden
 
 ### Q3: Will users associate action with intended effect?
-
 - **Analysis**: [Does the control suggest what it does?]
 - **Issues**: [Problems if any]
 - **Rating**: ✅ Clear / ⚠️ Ambiguous / ❌ Misleading
 
 ### Q4: Will users see progress is being made?
-
 - **Analysis**: [Is there feedback after the action?]
 - **Issues**: [Problems if any]
 - **Rating**: ✅ Clear feedback / ⚠️ Delayed/weak / ❌ No feedback
 
 ### Critical Issues Found:
-
 - [Issue 1]
 - [Issue 2]
 
 ### Recommendations:
-
 - [Specific improvement 1]
 - [Specific improvement 2]
 
@@ -218,17 +207,14 @@ Create comprehensive walkthrough report (see format below).
 ## Executive Summary
 
 ### Task Success Prediction
-
 **Estimated Success Rate (First Attempt)**: [X]% of target users
 
 ### Critical Findings
-
 1. [Most critical issue]
 2. [Second critical issue]
 3. [Third critical issue]
 
 ### Overall Assessment
-
 [2-3 sentence summary of learnability]
 
 ---
@@ -236,7 +222,6 @@ Create comprehensive walkthrough report (see format below).
 ## User Context
 
 ### Target User Profile
-
 - **Experience Level**: [Novice/Intermediate/Expert]
 - **Domain Knowledge**: [Description]
 - **Technical Proficiency**: [Low/Medium/High]
@@ -245,7 +230,6 @@ Create comprehensive walkthrough report (see format below).
 - **Prior Experience**: [What they already know]
 
 ### Task Definition
-
 **Goal**: [What user wants to accomplish]
 **Success Criteria**: [How to know they succeeded]
 **Starting Point**: [Where task begins]
@@ -260,36 +244,30 @@ Create comprehensive walkthrough report (see format below).
 **Current State**: User just arrived at homepage
 
 #### Q1: Will users try to achieve the right effect?
-
 - **Analysis**: Users typically look for "Sign Up", "Register", or "Create Account" in header/nav
 - **Issues**: None expected - standard mental model
 - **Rating**: ✅ Clear
 
 #### Q2: Will users notice the correct action is available?
-
 - **Analysis**: "Sign Up" button is in top-right corner of header (standard location)
 - **Issues**: Small text (12px), low contrast (#999 on #FFF = 2.8:1)
 - **Rating**: ⚠️ Somewhat hidden
 
 #### Q3: Will users associate action with intended effect?
-
 - **Analysis**: "Sign Up" is standard terminology, clearly indicates account creation
 - **Issues**: None
 - **Rating**: ✅ Clear
 
 #### Q4: Will users see progress is being made?
-
 - **Analysis**: N/A - no action taken yet (just viewing)
 - **Issues**: N/A
 - **Rating**: N/A
 
 #### Critical Issues:
-
 - **Low contrast on "Sign Up" button** - WCAG fail, hard to see
 - Button is small (24px height) - mobile users may struggle
 
 #### Recommendations:
-
 1. Increase contrast to 4.5:1 minimum (WCAG AA)
 2. Increase button size to 44px (touch target guideline)
 3. Consider more prominent placement or visual weight
@@ -305,7 +283,6 @@ Create comprehensive walkthrough report (see format below).
 ### Critical Blockers (Users likely to fail)
 
 **1. Action 7: Create password with complexity requirements**
-
 - **Problem**: Password requirements not shown until after submission fails
 - **Impact**: Users guess rules, get frustrated by repeated errors
 - **Affected Users**: 70-80% of novices
@@ -314,7 +291,6 @@ Create comprehensive walkthrough report (see format below).
 - **Recommendation**: Show requirements inline before user types
 
 **2. Action 12: Find "Add to Wishlist" button**
-
 - **Problem**: Icon-only button (heart icon) with no label, not obvious
 - **Impact**: Users don't see it or don't understand what it does
 - **Affected Users**: 50-60% of first-time users
@@ -334,11 +310,11 @@ Create comprehensive walkthrough report (see format below).
 
 ## Success Probability by User Type
 
-| User Type        | Estimated Success Rate | Time to Complete | Confidence                |
-| ---------------- | ---------------------- | ---------------- | ------------------------- |
-| **Novice**       | 45%                    | 8-12 minutes     | Low frustration tolerance |
-| **Intermediate** | 75%                    | 4-6 minutes      | Moderate confidence       |
-| **Expert**       | 95%                    | 2-3 minutes      | High efficiency           |
+| User Type | Estimated Success Rate | Time to Complete | Confidence |
+|-----------|------------------------|------------------|------------|
+| **Novice** | 45% | 8-12 minutes | Low frustration tolerance |
+| **Intermediate** | 75% | 4-6 minutes | Moderate confidence |
+| **Expert** | 95% | 2-3 minutes | High efficiency |
 
 **Target**: Novices should have ≥80% success rate with ≤5 minutes time.
 
@@ -349,19 +325,16 @@ Create comprehensive walkthrough report (see format below).
 ## Cognitive Load Assessment
 
 ### Memory Burden
-
 - **Items to remember**: [List what users must recall]
 - **Rating**: Low / Medium / High
 - **Issue**: [If high, explain why]
 
 ### Decision Points
-
 - **Choices users make**: [Number and complexity]
 - **Rating**: Low / Medium / High
 - **Issue**: [Unnecessary decisions increase cognitive load]
 
 ### Error Recovery
-
 - **How easy to fix mistakes**: [Analysis]
 - **Rating**: Easy / Moderate / Difficult
 - **Issue**: [Problems with undo/back/reset]
@@ -373,19 +346,16 @@ Create comprehensive walkthrough report (see format below).
 ### Phase 1: Critical Fixes (1-2 weeks)
 
 **1. Show password requirements inline (Action 7)**
-
 - **Why**: Eliminates #1 failure point
 - **Impact**: +25% success rate for novices
 - **Effort**: Low (4 hours)
 
 **2. Add text label to wishlist button (Action 12)**
-
 - **Why**: Makes feature discoverable
 - **Impact**: +15% task completion
 - **Effort**: Low (2 hours)
 
 **3. Increase "Sign Up" button contrast (Action 1)**
-
 - **Why**: Accessibility + discoverability
 - **Impact**: +10% users find starting point
 - **Effort**: Low (1 hour)
@@ -411,7 +381,6 @@ Create comprehensive walkthrough report (see format below).
 Based on walkthrough findings, consider these alternative approaches:
 
 ### Alternative 1: Progressive Disclosure for Signup
-
 **Current**: All fields shown at once
 **Proposed**: Step-by-step (email → password → confirm)
 **Pros**: Reduces cognitive load, clearer feedback per step
@@ -419,7 +388,6 @@ Based on walkthrough findings, consider these alternative approaches:
 **Recommendation**: A/B test with target users
 
 ### Alternative 2: Social Sign-Up
-
 **Current**: Email/password only
 **Proposed**: Add "Sign up with Google/Apple"
 **Pros**: Faster, no password to remember
@@ -432,13 +400,13 @@ Based on walkthrough findings, consider these alternative approaches:
 
 ## Comparison to Best Practices
 
-| Practice                         | Current Implementation | Recommendation            |
-| -------------------------------- | ---------------------- | ------------------------- |
-| Password requirements visibility | Hidden until error     | Show inline before typing |
-| Button sizing (mobile)           | 24px                   | 44px minimum              |
-| Color contrast                   | 2.8:1 (WCAG fail)      | 4.5:1 (WCAG AA)           |
-| Error messages                   | Generic                | Specific and actionable   |
-| Confirmation feedback            | Weak                   | Clear success messages    |
+| Practice | Current Implementation | Recommendation |
+|----------|------------------------|----------------|
+| Password requirements visibility | Hidden until error | Show inline before typing |
+| Button sizing (mobile) | 24px | 44px minimum |
+| Color contrast | 2.8:1 (WCAG fail) | 4.5:1 (WCAG AA) |
+| Error messages | Generic | Specific and actionable |
+| Confirmation feedback | Weak | Clear success messages |
 
 ---
 
@@ -481,27 +449,22 @@ Based on walkthrough findings, consider these alternative approaches:
 ## Key Principles of Cognitive Walkthrough
 
 ### 1. Focus on Learnability
-
 - Emphasis on first-time use, not expert performance
 - "Can users figure it out?" vs. "Is it efficient?"
 
 ### 2. Question-Driven Analysis
-
 - The 4 questions provide structured evaluation
 - Every action is scrutinized from user perspective
 
 ### 3. Task-Specific
-
 - Evaluates actual user goals, not general interface
 - Deep dive vs. broad sweep
 
 ### 4. Theory-Grounded
-
 - Based on cognitive psychology (information processing theory)
 - Simulates human problem-solving process
 
 ### 5. Predictive Method
-
 - Identifies issues before user testing
 - Generates testable hypotheses
 
@@ -512,35 +475,30 @@ Based on walkthrough findings, consider these alternative approaches:
 ### Typical Issues Discovered:
 
 **Discoverability Problems:**
-
 - Hidden buttons or controls
 - Unlabeled icons
 - Non-standard locations
 - Poor visual hierarchy
 
 **Unclear Affordances:**
-
 - Links that don't look clickable
 - Buttons that look disabled
 - Confusing icon meanings
 - Misleading labels
 
 **Feedback Failures:**
-
 - No confirmation after actions
 - Unclear error messages
 - No progress indicators
 - Silent failures
 
 **Mental Model Mismatches:**
-
 - Unexpected behavior
 - Counter-intuitive flows
 - Inconsistent patterns
 - Violates conventions
 
 **Cognitive Load:**
-
 - Too many choices
 - Requiring memory of previous screens
 - Complex multi-step processes
@@ -553,14 +511,12 @@ Based on walkthrough findings, consider these alternative approaches:
 Measure walkthrough effectiveness:
 
 **Before Walkthrough:**
-
 - Baseline task completion rate
 - Average time on task
 - Error rate
 - User satisfaction scores
 
 **After Implementing Fixes:**
-
 - Improved completion rate (target: +20-40%)
 - Reduced time on task (target: -30-50%)
 - Lower error rate (target: -40-60%)
@@ -571,14 +527,12 @@ Measure walkthrough effectiveness:
 ## Combining with Other Methods
 
 **Use cognitive walkthrough when:**
-
 - You have specific tasks to evaluate
 - You need deep, granular insights
 - You're early in design (pre-user testing)
 - You want to predict first-use issues
 
 **Complement with:**
-
 - **Nielsen Heuristics**: General usability issues
 - **Don Norman Principles**: Intuitive design assessment
 - **WCAG Audit**: Accessibility compliance
