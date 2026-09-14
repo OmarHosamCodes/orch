@@ -21,7 +21,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | --- | ---: |
 | golden-feature | 932 |
 | server-operation | 12 |
-| shared-infrastructure | 375 |
+| shared-infrastructure | 377 |
 | static-presentation | 17 |
 
 ## Counts by domain
@@ -32,7 +32,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | agent | 126 |
 | api-platform | 13 |
 | architecture | 4 |
-| auth | 13 |
+| auth | 15 |
 | billing | 140 |
 | ci | 2 |
 | clients | 13 |
@@ -1264,6 +1264,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/tsconfig.json` | api-platform | build-config | shared-infrastructure | api-platform | Cross-cutting api-platform build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/auth/package.json` | auth | dependency-config | shared-infrastructure | identity-domain | Cross-cutting auth dependency-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, database access, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/auth/src/index.ts` | auth | domain-service | shared-infrastructure | identity-domain | Cross-cutting auth domain-service support rather than a feature-owned business workflow. | content: database access, exported declarations; structure: source role and exported behavior |
+| `packages/auth/src/trusted-proxies.test.ts` | auth | test | shared-infrastructure | identity-domain | Cross-cutting auth test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
+| `packages/auth/src/trusted-proxies.ts` | auth | domain-service | shared-infrastructure | identity-domain | Cross-cutting auth domain-service support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/auth/tsconfig.json` | auth | build-config | shared-infrastructure | identity-domain | Cross-cutting auth build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/config/package.json` | configuration | dependency-config | shared-infrastructure | platform-configuration | Cross-cutting configuration dependency-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/config/src/assert-never.ts` | configuration | domain-contract | shared-infrastructure | platform-configuration | Cross-cutting configuration domain-contract support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |

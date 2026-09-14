@@ -6,6 +6,8 @@ import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
+import { AUTH_IP_ADDRESS_HEADERS, AUTH_TRUSTED_PROXY_CIDRS } from "./trusted-proxies";
+
 const polarClient = new Polar({
   accessToken: env.POLAR_ACCESS_TOKEN,
   server: env.POLAR_SERVER,
@@ -96,10 +98,9 @@ export const auth = betterAuth({
       secure: env.BETTER_AUTH_URL.startsWith("https://"),
       httpOnly: true,
     },
-    // Cloudflare sits in front of Railway; trust CF's connecting IP rather than
-    // a client-spoofable X-Forwarded-For chain.
     ipAddress: {
-      ipAddressHeaders: ["cf-connecting-ip", "x-real-ip"],
+      ipAddressHeaders: [...AUTH_IP_ADDRESS_HEADERS],
+      trustedProxies: [...AUTH_TRUSTED_PROXY_CIDRS],
     },
   },
   plugins: [
