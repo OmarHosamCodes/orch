@@ -21,7 +21,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | --- | ---: |
 | golden-feature | 932 |
 | server-operation | 12 |
-| shared-infrastructure | 377 |
+| shared-infrastructure | 378 |
 | static-presentation | 17 |
 
 ## Counts by domain
@@ -34,7 +34,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | architecture | 4 |
 | auth | 15 |
 | billing | 140 |
-| ci | 2 |
+| ci | 3 |
 | clients | 13 |
 | configuration | 3 |
 | dashboard | 7 |
@@ -65,8 +65,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `.env.example` | repository | runtime-config | shared-infrastructure | developer-experience | Cross-cutting repository runtime-config support rather than a feature-owned business workflow. | content: environment contract; structure: recognized build, test, database, runtime, or package config |
 | `.github/workflows/ci.yml` | ci | ci-config | shared-infrastructure | developer-experience | Cross-cutting ci ci-config support rather than a feature-owned business workflow. | content: YAML service or workflow configuration, GitHub Actions workflow jobs; structure: CI workflow path |
 | `.github/workflows/perf.yml` | ci | ci-config | shared-infrastructure | developer-experience | Cross-cutting ci ci-config support rather than a feature-owned business workflow. | content: YAML service or workflow configuration, GitHub Actions workflow jobs; structure: CI workflow path |
+| `.github/workflows/railway-config.yml` | ci | ci-config | shared-infrastructure | developer-experience | Cross-cutting ci ci-config support rather than a feature-owned business workflow. | content: YAML service or workflow configuration, GitHub Actions workflow jobs; structure: CI workflow path |
 | `.oxfmtrc.json` | repository | quality-config | shared-infrastructure | developer-experience | Cross-cutting repository quality-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
 | `.oxlintrc.json` | repository | quality-config | shared-infrastructure | developer-experience | Cross-cutting repository quality-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
+| `.railway/railway.ts` | deployment | runtime-config | shared-infrastructure | platform-operations | Cross-cutting deployment runtime-config support rather than a feature-owned business workflow. | content: exported declarations; structure: recognized build, test, database, runtime, or package config |
 | `.railwayignore` | deployment | runtime-config | shared-infrastructure | platform-operations | Cross-cutting deployment runtime-config support rather than a feature-owned business workflow. | content: environment contract; structure: recognized build, test, database, runtime, or package config |
 | `apps/server/.env.example` | server-platform | runtime-config | shared-infrastructure | server-platform | Cross-cutting server-platform runtime-config support rather than a feature-owned business workflow. | content: environment contract; structure: recognized build, test, database, runtime, or package config |
 | `apps/server/package.json` | server-platform | dependency-config | shared-infrastructure | server-platform | Cross-cutting server-platform dependency-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, database access, package or task configuration; structure: recognized build, test, database, runtime, or package config |
@@ -1386,7 +1388,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/workspace/src/tiers.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/workspace/src/types.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/workspace/tsconfig.json` | workspace | build-config | shared-infrastructure | workspace-domain | Cross-cutting workspace build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
-| `railway.toml` | deployment | runtime-config | shared-infrastructure | platform-operations | Cross-cutting deployment runtime-config support rather than a feature-owned business workflow. | content: TOML configuration; structure: recognized build, test, database, runtime, or package config |
 | `scripts/check-conventions.mjs` | architecture | architecture-tooling | shared-infrastructure | architecture | Cross-cutting architecture architecture-tooling support rather than a feature-owned business workflow. | content: database access, oRPC procedures or clients, TanStack Query orchestration; structure: source-controlled script path |
 | `scripts/check-golden-file-inventory.mjs` | architecture | architecture-tooling | shared-infrastructure | architecture | Cross-cutting architecture architecture-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling, exported declarations; structure: source-controlled script path |
 | `scripts/check-realtime-registry.mjs` | architecture | architecture-tooling | shared-infrastructure | architecture | Cross-cutting architecture architecture-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling; structure: source-controlled script path |

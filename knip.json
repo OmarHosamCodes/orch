@@ -9,9 +9,10 @@
         "scripts/generate-golden-file-inventory.mjs",
         "scripts/perf/run-benchmarks.mjs",
         "scripts/railway-start.mjs",
-        "scripts/test-setup.ts"
+        "scripts/test-setup.ts",
+        ".railway/railway.ts"
       ],
-      "project": ["scripts/**/*.{ts,mjs}"]
+      "project": ["scripts/**/*.{ts,mjs}", ".railway/**/*.ts"]
     },
     "apps/web": {
       "entry": [

@@ -48,6 +48,7 @@ export function initBrowserSentry(router: AnyRouter): void {
     tracePropagationTargets: [
       "localhost",
       /^https:\/\/orch\.school-of-marketing\.com/,
+      /^https:\/\/brainiac\.school-of-marketing\.com/,
       /^https:\/\/web-orch\.up\.railway\.app/,
       /^\//,
     ],

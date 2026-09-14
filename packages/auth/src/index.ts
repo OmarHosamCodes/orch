@@ -15,6 +15,9 @@ const polarClient = new Polar({
 
 const loginErrorUrl = new URL("/login", primaryCorsOrigin).toString();
 const isSplitDeployment = new URL(primaryCorsOrigin).origin !== new URL(env.BETTER_AUTH_URL).origin;
+const shouldShareSchoolOfMarketingCookies = new URL(env.BETTER_AUTH_URL).hostname.endsWith(
+  ".school-of-marketing.com",
+);
 
 function schedulePolarCustomerSetup(user: { id: string; email: string; name: string }) {
   void (async () => {
@@ -93,6 +96,9 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   advanced: {
+    ...(shouldShareSchoolOfMarketingCookies
+      ? { crossSubDomainCookies: { enabled: true, domain: ".school-of-marketing.com" } }
+      : {}),
     defaultCookieAttributes: {
       sameSite: isSplitDeployment ? "none" : "lax",
       secure: env.BETTER_AUTH_URL.startsWith("https://"),

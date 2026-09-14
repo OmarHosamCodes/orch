@@ -41,7 +41,6 @@ const rootConfigurationFiles = new Set([
   "knip.json",
   "nixpacks.toml",
   "package.json",
-  "railway.toml",
   "tsconfig.json",
   "turbo.json",
 ]);
@@ -334,6 +333,14 @@ export async function collectInventoryPaths() {
     }
     paths.add(path);
   }
+  for (const file of await collectTree(join(root, ".railway"))) {
+    const path = normalizePath(relative(root, file));
+    if (!/[.](?:ts|md)$/.test(path)) {
+      scopeErrors.push(`Unsupported Railway IaC artifact requires a scope decision: ${path}`);
+      continue;
+    }
+    paths.add(path);
+  }
   for (const file of await collectTree(join(root, "apps/web/perf"))) {
     const path = normalizePath(relative(root, file));
     if (![".json", ".mjs"].includes(extname(path))) {
@@ -368,7 +375,10 @@ function inferMigrationDomain(contents) {
     ["clients", /^agency_ops_client(?:$|_contact$)/i],
     ["reports", /^agency_ops_saved_report$/i],
     ["resourcing", /^agency_ops_(?:department|member_capacity|tenure.*)$/i],
-    ["task-management", /^agency_ops_(?:project_task.*|task_thread.*|task_blueprint.*|task_message.*|task_attachment.*)$/i],
+    [
+      "task-management",
+      /^agency_ops_(?:project_task.*|task_thread.*|task_blueprint.*|task_message.*|task_attachment.*)$/i,
+    ],
     ["projects", /^agency_ops_(?:project|project_journey.*|journey.*)$/i],
     ["workspace", /^(?:workspace_marketplace.*|dashboard_workspace)$/i],
     ["agent", /^dashboard_conversation.*$/i],
@@ -471,8 +481,9 @@ function inferDatabaseDomain(path, contents) {
 
 function inferConfigurationDomain(path) {
   if (path.startsWith(".github/workflows/")) return "ci";
+  if (path.startsWith(".railway/")) return "deployment";
   if (path.startsWith("apps/web/perf/")) return "performance";
-  if (/^(?:nixpacks|railway)[.]toml$|^[.]railwayignore$/.test(path)) return "deployment";
+  if (/^(?:nixpacks)[.]toml$|^[.]railwayignore$/.test(path)) return "deployment";
   if (path.startsWith("apps/web/")) return "web-platform";
   if (path.startsWith("apps/server/")) return "server-platform";
   if (path.startsWith("packages/db/")) return "database-platform";
@@ -497,6 +508,7 @@ function isConfiguration(path) {
   return (
     rootConfigurationFiles.has(path) ||
     path.startsWith(".github/workflows/") ||
+    path.startsWith(".railway/") ||
     path.startsWith("apps/web/perf/") ||
     (exactRuntimeArtifacts.has(path) && path !== "apps/web/public/sw.js") ||
     isWorkspaceConfiguration(path)
