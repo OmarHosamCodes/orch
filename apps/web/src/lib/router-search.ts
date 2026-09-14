@@ -83,13 +83,11 @@ export function validateProjectSearch(search: Record<string, unknown>): {
 export function validateLoginSearch(search: Record<string, unknown>): {
   redirect?: string;
   error?: string;
-  mode?: string;
   checkout_id?: string;
 } {
   return {
     redirect: optionalSafeRedirectPath(optionalString(search.redirect)),
     error: optionalString(search.error),
-    mode: optionalString(search.mode),
     checkout_id: optionalString(search.checkout_id),
   };
 }

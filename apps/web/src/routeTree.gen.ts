@@ -8,520 +8,523 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as AuthenticatedRouteImport } from "./routes/_authenticated";
-import { Route as DashboardRouteImport } from "./routes/dashboard";
-import { Route as LoginRouteImport } from "./routes/login";
-import { Route as PrivacyRouteImport } from "./routes/privacy";
-import { Route as TermsRouteImport } from "./routes/terms";
-import { Route as AuthenticatedAgencyChromeRouteImport } from "./routes/_authenticated/_agency-chrome";
-import { Route as AuthenticatedCanvasRouteImport } from "./routes/_authenticated/canvas";
-import { Route as AuthenticatedAgencyMeRouteImport } from "./routes/_authenticated/agency.me";
-import { Route as AuthenticatedBillingSuccessRouteImport } from "./routes/_authenticated/billing.success";
-import { Route as AuthenticatedNodeIdRouteImport } from "./routes/_authenticated/node.$id";
-import { Route as AuthenticatedObjectIdRouteImport } from "./routes/_authenticated/object.$id";
-import { Route as AuthenticatedAgencyChromeAgencyIndexRouteImport } from "./routes/_authenticated/_agency-chrome/agency.index";
-import { Route as AuthenticatedAgencyChromeAgencyDashboardRouteImport } from "./routes/_authenticated/_agency-chrome/agency.dashboard";
-import { Route as AuthenticatedAgencyChromeAgencyManagementRouteImport } from "./routes/_authenticated/_agency-chrome/agency.management";
-import { Route as AuthenticatedAgencyMembersUserIdRouteImport } from "./routes/_authenticated/agency.members.$userId";
-import { Route as AuthenticatedAgencyChromeAgencyClientsIndexRouteImport } from "./routes/_authenticated/_agency-chrome/agency.clients.index";
-import { Route as AuthenticatedAgencyChromeAgencyClientsClientIdRouteImport } from "./routes/_authenticated/_agency-chrome/agency.clients.$clientId";
-import { Route as AuthenticatedAgencyChromeAgencyManagementMoneyRouteImport } from "./routes/_authenticated/_agency-chrome/agency.management.money";
-import { Route as AuthenticatedAgencyChromeAgencyManagementPeopleRouteImport } from "./routes/_authenticated/_agency-chrome/agency.management.people";
-import { Route as AuthenticatedAgencyChromeAgencyManagementResourcingRouteImport } from "./routes/_authenticated/_agency-chrome/agency.management.resourcing";
-import { Route as AuthenticatedAgencyChromeAgencyProjectsIndexRouteImport } from "./routes/_authenticated/_agency-chrome/agency.projects.index";
-import { Route as AuthenticatedAgencyChromeAgencyProjectsProjectIdRouteImport } from "./routes/_authenticated/_agency-chrome/agency.projects.$projectId";
-import { Route as AuthenticatedAgencyChromeAgencyReportsIndexRouteImport } from "./routes/_authenticated/_agency-chrome/agency.reports.index";
-import { Route as AuthenticatedAgencyChromeAgencyReportsReportIdRouteImport } from "./routes/_authenticated/_agency-chrome/agency.reports.$reportId";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAgencyChromeRouteImport } from './routes/_authenticated/_agency-chrome'
+import { Route as AuthenticatedCanvasRouteImport } from './routes/_authenticated/canvas'
+import { Route as AuthenticatedAgencyMeRouteImport } from './routes/_authenticated/agency.me'
+import { Route as AuthenticatedBillingSuccessRouteImport } from './routes/_authenticated/billing.success'
+import { Route as AuthenticatedNodeIdRouteImport } from './routes/_authenticated/node.$id'
+import { Route as AuthenticatedObjectIdRouteImport } from './routes/_authenticated/object.$id'
+import { Route as AuthenticatedAgencyChromeAgencyIndexRouteImport } from './routes/_authenticated/_agency-chrome/agency.index'
+import { Route as AuthenticatedAgencyChromeAgencyDashboardRouteImport } from './routes/_authenticated/_agency-chrome/agency.dashboard'
+import { Route as AuthenticatedAgencyChromeAgencyManagementRouteImport } from './routes/_authenticated/_agency-chrome/agency.management'
+import { Route as AuthenticatedAgencyMembersUserIdRouteImport } from './routes/_authenticated/agency.members.$userId'
+import { Route as AuthenticatedAgencyChromeAgencyClientsIndexRouteImport } from './routes/_authenticated/_agency-chrome/agency.clients.index'
+import { Route as AuthenticatedAgencyChromeAgencyClientsClientIdRouteImport } from './routes/_authenticated/_agency-chrome/agency.clients.$clientId'
+import { Route as AuthenticatedAgencyChromeAgencyManagementMoneyRouteImport } from './routes/_authenticated/_agency-chrome/agency.management.money'
+import { Route as AuthenticatedAgencyChromeAgencyManagementPeopleRouteImport } from './routes/_authenticated/_agency-chrome/agency.management.people'
+import { Route as AuthenticatedAgencyChromeAgencyManagementResourcingRouteImport } from './routes/_authenticated/_agency-chrome/agency.management.resourcing'
+import { Route as AuthenticatedAgencyChromeAgencyProjectsIndexRouteImport } from './routes/_authenticated/_agency-chrome/agency.projects.index'
+import { Route as AuthenticatedAgencyChromeAgencyProjectsProjectIdRouteImport } from './routes/_authenticated/_agency-chrome/agency.projects.$projectId'
+import { Route as AuthenticatedAgencyChromeAgencyReportsIndexRouteImport } from './routes/_authenticated/_agency-chrome/agency.reports.index'
+import { Route as AuthenticatedAgencyChromeAgencyReportsReportIdRouteImport } from './routes/_authenticated/_agency-chrome/agency.reports.$reportId'
 
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: "/_authenticated",
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
-  id: "/dashboard",
-  path: "/dashboard",
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
-  id: "/privacy",
-  path: "/privacy",
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const TermsRoute = TermsRouteImport.update({
-  id: "/terms",
-  path: "/terms",
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
-} as any);
-const AuthenticatedAgencyChromeRoute = AuthenticatedAgencyChromeRouteImport.update({
-  id: "/_agency-chrome",
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
+const AuthenticatedAgencyChromeRoute =
+  AuthenticatedAgencyChromeRouteImport.update({
+    id: '/_agency-chrome',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCanvasRoute = AuthenticatedCanvasRouteImport.update({
-  id: "/canvas",
-  path: "/canvas",
+  id: '/canvas',
+  path: '/canvas',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedAgencyMeRoute = AuthenticatedAgencyMeRouteImport.update({
-  id: "/agency/me",
-  path: "/agency/me",
+  id: '/agency/me',
+  path: '/agency/me',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedBillingSuccessRoute = AuthenticatedBillingSuccessRouteImport.update({
-  id: "/billing/success",
-  path: "/billing/success",
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
+const AuthenticatedBillingSuccessRoute =
+  AuthenticatedBillingSuccessRouteImport.update({
+    id: '/billing/success',
+    path: '/billing/success',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedNodeIdRoute = AuthenticatedNodeIdRouteImport.update({
-  id: "/node/$id",
-  path: "/node/$id",
+  id: '/node/$id',
+  path: '/node/$id',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedObjectIdRoute = AuthenticatedObjectIdRouteImport.update({
-  id: "/object/$id",
-  path: "/object/$id",
+  id: '/object/$id',
+  path: '/object/$id',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedAgencyChromeAgencyIndexRoute =
   AuthenticatedAgencyChromeAgencyIndexRouteImport.update({
-    id: "/agency/",
-    path: "/agency/",
+    id: '/agency/',
+    path: '/agency/',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyDashboardRoute =
   AuthenticatedAgencyChromeAgencyDashboardRouteImport.update({
-    id: "/agency/dashboard",
-    path: "/agency/dashboard",
+    id: '/agency/dashboard',
+    path: '/agency/dashboard',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyManagementRoute =
   AuthenticatedAgencyChromeAgencyManagementRouteImport.update({
-    id: "/agency/management",
-    path: "/agency/management",
+    id: '/agency/management',
+    path: '/agency/management',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
-const AuthenticatedAgencyMembersUserIdRoute = AuthenticatedAgencyMembersUserIdRouteImport.update({
-  id: "/agency/members/$userId",
-  path: "/agency/members/$userId",
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
+  } as any)
+const AuthenticatedAgencyMembersUserIdRoute =
+  AuthenticatedAgencyMembersUserIdRouteImport.update({
+    id: '/agency/members/$userId',
+    path: '/agency/members/$userId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAgencyChromeAgencyClientsIndexRoute =
   AuthenticatedAgencyChromeAgencyClientsIndexRouteImport.update({
-    id: "/agency/clients/",
-    path: "/agency/clients/",
+    id: '/agency/clients/',
+    path: '/agency/clients/',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyClientsClientIdRoute =
   AuthenticatedAgencyChromeAgencyClientsClientIdRouteImport.update({
-    id: "/agency/clients/$clientId",
-    path: "/agency/clients/$clientId",
+    id: '/agency/clients/$clientId',
+    path: '/agency/clients/$clientId',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyManagementMoneyRoute =
   AuthenticatedAgencyChromeAgencyManagementMoneyRouteImport.update({
-    id: "/money",
-    path: "/money",
+    id: '/money',
+    path: '/money',
     getParentRoute: () => AuthenticatedAgencyChromeAgencyManagementRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyManagementPeopleRoute =
   AuthenticatedAgencyChromeAgencyManagementPeopleRouteImport.update({
-    id: "/people",
-    path: "/people",
+    id: '/people',
+    path: '/people',
     getParentRoute: () => AuthenticatedAgencyChromeAgencyManagementRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyManagementResourcingRoute =
   AuthenticatedAgencyChromeAgencyManagementResourcingRouteImport.update({
-    id: "/resourcing",
-    path: "/resourcing",
+    id: '/resourcing',
+    path: '/resourcing',
     getParentRoute: () => AuthenticatedAgencyChromeAgencyManagementRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyProjectsIndexRoute =
   AuthenticatedAgencyChromeAgencyProjectsIndexRouteImport.update({
-    id: "/agency/projects/",
-    path: "/agency/projects/",
+    id: '/agency/projects/',
+    path: '/agency/projects/',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute =
   AuthenticatedAgencyChromeAgencyProjectsProjectIdRouteImport.update({
-    id: "/agency/projects/$projectId",
-    path: "/agency/projects/$projectId",
+    id: '/agency/projects/$projectId',
+    path: '/agency/projects/$projectId',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyReportsIndexRoute =
   AuthenticatedAgencyChromeAgencyReportsIndexRouteImport.update({
-    id: "/agency/reports/",
-    path: "/agency/reports/",
+    id: '/agency/reports/',
+    path: '/agency/reports/',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 const AuthenticatedAgencyChromeAgencyReportsReportIdRoute =
   AuthenticatedAgencyChromeAgencyReportsReportIdRouteImport.update({
-    id: "/agency/reports/$reportId",
-    path: "/agency/reports/$reportId",
+    id: '/agency/reports/$reportId',
+    path: '/agency/reports/$reportId',
     getParentRoute: () => AuthenticatedAgencyChromeRoute,
-  } as any);
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/privacy": typeof PrivacyRoute;
-  "/terms": typeof TermsRoute;
-  "/canvas": typeof AuthenticatedCanvasRoute;
-  "/agency/me": typeof AuthenticatedAgencyMeRoute;
-  "/billing/success": typeof AuthenticatedBillingSuccessRoute;
-  "/node/$id": typeof AuthenticatedNodeIdRoute;
-  "/object/$id": typeof AuthenticatedObjectIdRoute;
-  "/agency/dashboard": typeof AuthenticatedAgencyChromeAgencyDashboardRoute;
-  "/agency/management": typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren;
-  "/agency/members/$userId": typeof AuthenticatedAgencyMembersUserIdRoute;
-  "/agency/": typeof AuthenticatedAgencyChromeAgencyIndexRoute;
-  "/agency/clients/$clientId": typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute;
-  "/agency/management/money": typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute;
-  "/agency/management/people": typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute;
-  "/agency/management/resourcing": typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute;
-  "/agency/projects/$projectId": typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute;
-  "/agency/reports/$reportId": typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute;
-  "/agency/clients/": typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute;
-  "/agency/projects/": typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute;
-  "/agency/reports/": typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute;
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/canvas': typeof AuthenticatedCanvasRoute
+  '/agency/me': typeof AuthenticatedAgencyMeRoute
+  '/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/node/$id': typeof AuthenticatedNodeIdRoute
+  '/object/$id': typeof AuthenticatedObjectIdRoute
+  '/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
+  '/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
+  '/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
+  '/agency/': typeof AuthenticatedAgencyChromeAgencyIndexRoute
+  '/agency/clients/$clientId': typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute
+  '/agency/management/money': typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute
+  '/agency/management/people': typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute
+  '/agency/management/resourcing': typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute
+  '/agency/projects/$projectId': typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute
+  '/agency/reports/$reportId': typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute
+  '/agency/clients/': typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute
+  '/agency/projects/': typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute
+  '/agency/reports/': typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/privacy": typeof PrivacyRoute;
-  "/terms": typeof TermsRoute;
-  "/canvas": typeof AuthenticatedCanvasRoute;
-  "/agency/me": typeof AuthenticatedAgencyMeRoute;
-  "/billing/success": typeof AuthenticatedBillingSuccessRoute;
-  "/node/$id": typeof AuthenticatedNodeIdRoute;
-  "/object/$id": typeof AuthenticatedObjectIdRoute;
-  "/agency/dashboard": typeof AuthenticatedAgencyChromeAgencyDashboardRoute;
-  "/agency/management": typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren;
-  "/agency/members/$userId": typeof AuthenticatedAgencyMembersUserIdRoute;
-  "/agency": typeof AuthenticatedAgencyChromeAgencyIndexRoute;
-  "/agency/clients/$clientId": typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute;
-  "/agency/management/money": typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute;
-  "/agency/management/people": typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute;
-  "/agency/management/resourcing": typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute;
-  "/agency/projects/$projectId": typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute;
-  "/agency/reports/$reportId": typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute;
-  "/agency/clients": typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute;
-  "/agency/projects": typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute;
-  "/agency/reports": typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute;
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/canvas': typeof AuthenticatedCanvasRoute
+  '/agency/me': typeof AuthenticatedAgencyMeRoute
+  '/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/node/$id': typeof AuthenticatedNodeIdRoute
+  '/object/$id': typeof AuthenticatedObjectIdRoute
+  '/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
+  '/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
+  '/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
+  '/agency': typeof AuthenticatedAgencyChromeAgencyIndexRoute
+  '/agency/clients/$clientId': typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute
+  '/agency/management/money': typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute
+  '/agency/management/people': typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute
+  '/agency/management/resourcing': typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute
+  '/agency/projects/$projectId': typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute
+  '/agency/reports/$reportId': typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute
+  '/agency/clients': typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute
+  '/agency/projects': typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute
+  '/agency/reports': typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/_authenticated": typeof AuthenticatedRouteWithChildren;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/privacy": typeof PrivacyRoute;
-  "/terms": typeof TermsRoute;
-  "/_authenticated/_agency-chrome": typeof AuthenticatedAgencyChromeRouteWithChildren;
-  "/_authenticated/canvas": typeof AuthenticatedCanvasRoute;
-  "/_authenticated/agency/me": typeof AuthenticatedAgencyMeRoute;
-  "/_authenticated/billing/success": typeof AuthenticatedBillingSuccessRoute;
-  "/_authenticated/node/$id": typeof AuthenticatedNodeIdRoute;
-  "/_authenticated/object/$id": typeof AuthenticatedObjectIdRoute;
-  "/_authenticated/_agency-chrome/agency/dashboard": typeof AuthenticatedAgencyChromeAgencyDashboardRoute;
-  "/_authenticated/_agency-chrome/agency/management": typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren;
-  "/_authenticated/agency/members/$userId": typeof AuthenticatedAgencyMembersUserIdRoute;
-  "/_authenticated/_agency-chrome/agency/": typeof AuthenticatedAgencyChromeAgencyIndexRoute;
-  "/_authenticated/_agency-chrome/agency/clients/$clientId": typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute;
-  "/_authenticated/_agency-chrome/agency/management/money": typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute;
-  "/_authenticated/_agency-chrome/agency/management/people": typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute;
-  "/_authenticated/_agency-chrome/agency/management/resourcing": typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute;
-  "/_authenticated/_agency-chrome/agency/projects/$projectId": typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute;
-  "/_authenticated/_agency-chrome/agency/reports/$reportId": typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute;
-  "/_authenticated/_agency-chrome/agency/clients/": typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute;
-  "/_authenticated/_agency-chrome/agency/projects/": typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute;
-  "/_authenticated/_agency-chrome/agency/reports/": typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_authenticated/_agency-chrome': typeof AuthenticatedAgencyChromeRouteWithChildren
+  '/_authenticated/canvas': typeof AuthenticatedCanvasRoute
+  '/_authenticated/agency/me': typeof AuthenticatedAgencyMeRoute
+  '/_authenticated/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/_authenticated/node/$id': typeof AuthenticatedNodeIdRoute
+  '/_authenticated/object/$id': typeof AuthenticatedObjectIdRoute
+  '/_authenticated/_agency-chrome/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
+  '/_authenticated/_agency-chrome/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
+  '/_authenticated/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
+  '/_authenticated/_agency-chrome/agency/': typeof AuthenticatedAgencyChromeAgencyIndexRoute
+  '/_authenticated/_agency-chrome/agency/clients/$clientId': typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute
+  '/_authenticated/_agency-chrome/agency/management/money': typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute
+  '/_authenticated/_agency-chrome/agency/management/people': typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute
+  '/_authenticated/_agency-chrome/agency/management/resourcing': typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute
+  '/_authenticated/_agency-chrome/agency/projects/$projectId': typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute
+  '/_authenticated/_agency-chrome/agency/reports/$reportId': typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute
+  '/_authenticated/_agency-chrome/agency/clients/': typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute
+  '/_authenticated/_agency-chrome/agency/projects/': typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute
+  '/_authenticated/_agency-chrome/agency/reports/': typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/dashboard"
-    | "/login"
-    | "/privacy"
-    | "/terms"
-    | "/canvas"
-    | "/agency/me"
-    | "/billing/success"
-    | "/node/$id"
-    | "/object/$id"
-    | "/agency/dashboard"
-    | "/agency/management"
-    | "/agency/members/$userId"
-    | "/agency/"
-    | "/agency/clients/$clientId"
-    | "/agency/management/money"
-    | "/agency/management/people"
-    | "/agency/management/resourcing"
-    | "/agency/projects/$projectId"
-    | "/agency/reports/$reportId"
-    | "/agency/clients/"
-    | "/agency/projects/"
-    | "/agency/reports/";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/canvas'
+    | '/agency/me'
+    | '/billing/success'
+    | '/node/$id'
+    | '/object/$id'
+    | '/agency/dashboard'
+    | '/agency/management'
+    | '/agency/members/$userId'
+    | '/agency/'
+    | '/agency/clients/$clientId'
+    | '/agency/management/money'
+    | '/agency/management/people'
+    | '/agency/management/resourcing'
+    | '/agency/projects/$projectId'
+    | '/agency/reports/$reportId'
+    | '/agency/clients/'
+    | '/agency/projects/'
+    | '/agency/reports/'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/dashboard"
-    | "/login"
-    | "/privacy"
-    | "/terms"
-    | "/canvas"
-    | "/agency/me"
-    | "/billing/success"
-    | "/node/$id"
-    | "/object/$id"
-    | "/agency/dashboard"
-    | "/agency/management"
-    | "/agency/members/$userId"
-    | "/agency"
-    | "/agency/clients/$clientId"
-    | "/agency/management/money"
-    | "/agency/management/people"
-    | "/agency/management/resourcing"
-    | "/agency/projects/$projectId"
-    | "/agency/reports/$reportId"
-    | "/agency/clients"
-    | "/agency/projects"
-    | "/agency/reports";
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/canvas'
+    | '/agency/me'
+    | '/billing/success'
+    | '/node/$id'
+    | '/object/$id'
+    | '/agency/dashboard'
+    | '/agency/management'
+    | '/agency/members/$userId'
+    | '/agency'
+    | '/agency/clients/$clientId'
+    | '/agency/management/money'
+    | '/agency/management/people'
+    | '/agency/management/resourcing'
+    | '/agency/projects/$projectId'
+    | '/agency/reports/$reportId'
+    | '/agency/clients'
+    | '/agency/projects'
+    | '/agency/reports'
   id:
-    | "__root__"
-    | "/"
-    | "/_authenticated"
-    | "/dashboard"
-    | "/login"
-    | "/privacy"
-    | "/terms"
-    | "/_authenticated/_agency-chrome"
-    | "/_authenticated/canvas"
-    | "/_authenticated/agency/me"
-    | "/_authenticated/billing/success"
-    | "/_authenticated/node/$id"
-    | "/_authenticated/object/$id"
-    | "/_authenticated/_agency-chrome/agency/dashboard"
-    | "/_authenticated/_agency-chrome/agency/management"
-    | "/_authenticated/agency/members/$userId"
-    | "/_authenticated/_agency-chrome/agency/"
-    | "/_authenticated/_agency-chrome/agency/clients/$clientId"
-    | "/_authenticated/_agency-chrome/agency/management/money"
-    | "/_authenticated/_agency-chrome/agency/management/people"
-    | "/_authenticated/_agency-chrome/agency/management/resourcing"
-    | "/_authenticated/_agency-chrome/agency/projects/$projectId"
-    | "/_authenticated/_agency-chrome/agency/reports/$reportId"
-    | "/_authenticated/_agency-chrome/agency/clients/"
-    | "/_authenticated/_agency-chrome/agency/projects/"
-    | "/_authenticated/_agency-chrome/agency/reports/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/dashboard'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/_authenticated/_agency-chrome'
+    | '/_authenticated/canvas'
+    | '/_authenticated/agency/me'
+    | '/_authenticated/billing/success'
+    | '/_authenticated/node/$id'
+    | '/_authenticated/object/$id'
+    | '/_authenticated/_agency-chrome/agency/dashboard'
+    | '/_authenticated/_agency-chrome/agency/management'
+    | '/_authenticated/agency/members/$userId'
+    | '/_authenticated/_agency-chrome/agency/'
+    | '/_authenticated/_agency-chrome/agency/clients/$clientId'
+    | '/_authenticated/_agency-chrome/agency/management/money'
+    | '/_authenticated/_agency-chrome/agency/management/people'
+    | '/_authenticated/_agency-chrome/agency/management/resourcing'
+    | '/_authenticated/_agency-chrome/agency/projects/$projectId'
+    | '/_authenticated/_agency-chrome/agency/reports/$reportId'
+    | '/_authenticated/_agency-chrome/agency/clients/'
+    | '/_authenticated/_agency-chrome/agency/projects/'
+    | '/_authenticated/_agency-chrome/agency/reports/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren;
-  DashboardRoute: typeof DashboardRoute;
-  LoginRoute: typeof LoginRoute;
-  PrivacyRoute: typeof PrivacyRoute;
-  TermsRoute: typeof TermsRoute;
+  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/_authenticated": {
-      id: "/_authenticated";
-      path: "";
-      fullPath: "/";
-      preLoaderRoute: typeof AuthenticatedRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/dashboard": {
-      id: "/dashboard";
-      path: "/dashboard";
-      fullPath: "/dashboard";
-      preLoaderRoute: typeof DashboardRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/privacy": {
-      id: "/privacy";
-      path: "/privacy";
-      fullPath: "/privacy";
-      preLoaderRoute: typeof PrivacyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/terms": {
-      id: "/terms";
-      path: "/terms";
-      fullPath: "/terms";
-      preLoaderRoute: typeof TermsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/_authenticated/_agency-chrome": {
-      id: "/_authenticated/_agency-chrome";
-      path: "";
-      fullPath: "/";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/canvas": {
-      id: "/_authenticated/canvas";
-      path: "/canvas";
-      fullPath: "/canvas";
-      preLoaderRoute: typeof AuthenticatedCanvasRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/agency/me": {
-      id: "/_authenticated/agency/me";
-      path: "/agency/me";
-      fullPath: "/agency/me";
-      preLoaderRoute: typeof AuthenticatedAgencyMeRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/billing/success": {
-      id: "/_authenticated/billing/success";
-      path: "/billing/success";
-      fullPath: "/billing/success";
-      preLoaderRoute: typeof AuthenticatedBillingSuccessRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/node/$id": {
-      id: "/_authenticated/node/$id";
-      path: "/node/$id";
-      fullPath: "/node/$id";
-      preLoaderRoute: typeof AuthenticatedNodeIdRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/object/$id": {
-      id: "/_authenticated/object/$id";
-      path: "/object/$id";
-      fullPath: "/object/$id";
-      preLoaderRoute: typeof AuthenticatedObjectIdRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/": {
-      id: "/_authenticated/_agency-chrome/agency/";
-      path: "/agency";
-      fullPath: "/agency/";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyIndexRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/dashboard": {
-      id: "/_authenticated/_agency-chrome/agency/dashboard";
-      path: "/agency/dashboard";
-      fullPath: "/agency/dashboard";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyDashboardRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/management": {
-      id: "/_authenticated/_agency-chrome/agency/management";
-      path: "/agency/management";
-      fullPath: "/agency/management";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/agency/members/$userId": {
-      id: "/_authenticated/agency/members/$userId";
-      path: "/agency/members/$userId";
-      fullPath: "/agency/members/$userId";
-      preLoaderRoute: typeof AuthenticatedAgencyMembersUserIdRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/clients/": {
-      id: "/_authenticated/_agency-chrome/agency/clients/";
-      path: "/agency/clients";
-      fullPath: "/agency/clients/";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyClientsIndexRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/clients/$clientId": {
-      id: "/_authenticated/_agency-chrome/agency/clients/$clientId";
-      path: "/agency/clients/$clientId";
-      fullPath: "/agency/clients/$clientId";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyClientsClientIdRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/management/money": {
-      id: "/_authenticated/_agency-chrome/agency/management/money";
-      path: "/money";
-      fullPath: "/agency/management/money";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementMoneyRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/management/people": {
-      id: "/_authenticated/_agency-chrome/agency/management/people";
-      path: "/people";
-      fullPath: "/agency/management/people";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementPeopleRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/management/resourcing": {
-      id: "/_authenticated/_agency-chrome/agency/management/resourcing";
-      path: "/resourcing";
-      fullPath: "/agency/management/resourcing";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementResourcingRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/projects/": {
-      id: "/_authenticated/_agency-chrome/agency/projects/";
-      path: "/agency/projects";
-      fullPath: "/agency/projects/";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyProjectsIndexRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/projects/$projectId": {
-      id: "/_authenticated/_agency-chrome/agency/projects/$projectId";
-      path: "/agency/projects/$projectId";
-      fullPath: "/agency/projects/$projectId";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/reports/": {
-      id: "/_authenticated/_agency-chrome/agency/reports/";
-      path: "/agency/reports";
-      fullPath: "/agency/reports/";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyReportsIndexRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
-    "/_authenticated/_agency-chrome/agency/reports/$reportId": {
-      id: "/_authenticated/_agency-chrome/agency/reports/$reportId";
-      path: "/agency/reports/$reportId";
-      fullPath: "/agency/reports/$reportId";
-      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyReportsReportIdRouteImport;
-      parentRoute: typeof AuthenticatedAgencyChromeRoute;
-    };
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_agency-chrome': {
+      id: '/_authenticated/_agency-chrome'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/canvas': {
+      id: '/_authenticated/canvas'
+      path: '/canvas'
+      fullPath: '/canvas'
+      preLoaderRoute: typeof AuthenticatedCanvasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/agency/me': {
+      id: '/_authenticated/agency/me'
+      path: '/agency/me'
+      fullPath: '/agency/me'
+      preLoaderRoute: typeof AuthenticatedAgencyMeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/billing/success': {
+      id: '/_authenticated/billing/success'
+      path: '/billing/success'
+      fullPath: '/billing/success'
+      preLoaderRoute: typeof AuthenticatedBillingSuccessRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/node/$id': {
+      id: '/_authenticated/node/$id'
+      path: '/node/$id'
+      fullPath: '/node/$id'
+      preLoaderRoute: typeof AuthenticatedNodeIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/object/$id': {
+      id: '/_authenticated/object/$id'
+      path: '/object/$id'
+      fullPath: '/object/$id'
+      preLoaderRoute: typeof AuthenticatedObjectIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_agency-chrome/agency/': {
+      id: '/_authenticated/_agency-chrome/agency/'
+      path: '/agency'
+      fullPath: '/agency/'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/dashboard': {
+      id: '/_authenticated/_agency-chrome/agency/dashboard'
+      path: '/agency/dashboard'
+      fullPath: '/agency/dashboard'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyDashboardRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/management': {
+      id: '/_authenticated/_agency-chrome/agency/management'
+      path: '/agency/management'
+      fullPath: '/agency/management'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/agency/members/$userId': {
+      id: '/_authenticated/agency/members/$userId'
+      path: '/agency/members/$userId'
+      fullPath: '/agency/members/$userId'
+      preLoaderRoute: typeof AuthenticatedAgencyMembersUserIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_agency-chrome/agency/clients/': {
+      id: '/_authenticated/_agency-chrome/agency/clients/'
+      path: '/agency/clients'
+      fullPath: '/agency/clients/'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/clients/$clientId': {
+      id: '/_authenticated/_agency-chrome/agency/clients/$clientId'
+      path: '/agency/clients/$clientId'
+      fullPath: '/agency/clients/$clientId'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyClientsClientIdRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/management/money': {
+      id: '/_authenticated/_agency-chrome/agency/management/money'
+      path: '/money'
+      fullPath: '/agency/management/money'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementMoneyRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute
+    }
+    '/_authenticated/_agency-chrome/agency/management/people': {
+      id: '/_authenticated/_agency-chrome/agency/management/people'
+      path: '/people'
+      fullPath: '/agency/management/people'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementPeopleRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute
+    }
+    '/_authenticated/_agency-chrome/agency/management/resourcing': {
+      id: '/_authenticated/_agency-chrome/agency/management/resourcing'
+      path: '/resourcing'
+      fullPath: '/agency/management/resourcing'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyManagementResourcingRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeAgencyManagementRoute
+    }
+    '/_authenticated/_agency-chrome/agency/projects/': {
+      id: '/_authenticated/_agency-chrome/agency/projects/'
+      path: '/agency/projects'
+      fullPath: '/agency/projects/'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyProjectsIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/projects/$projectId': {
+      id: '/_authenticated/_agency-chrome/agency/projects/$projectId'
+      path: '/agency/projects/$projectId'
+      fullPath: '/agency/projects/$projectId'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/reports/': {
+      id: '/_authenticated/_agency-chrome/agency/reports/'
+      path: '/agency/reports'
+      fullPath: '/agency/reports/'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
+    '/_authenticated/_agency-chrome/agency/reports/$reportId': {
+      id: '/_authenticated/_agency-chrome/agency/reports/$reportId'
+      path: '/agency/reports/$reportId'
+      fullPath: '/agency/reports/$reportId'
+      preLoaderRoute: typeof AuthenticatedAgencyChromeAgencyReportsReportIdRouteImport
+      parentRoute: typeof AuthenticatedAgencyChromeRoute
+    }
   }
 }
 
 interface AuthenticatedAgencyChromeAgencyManagementRouteChildren {
-  AuthenticatedAgencyChromeAgencyManagementMoneyRoute: typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute;
-  AuthenticatedAgencyChromeAgencyManagementPeopleRoute: typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute;
-  AuthenticatedAgencyChromeAgencyManagementResourcingRoute: typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute;
+  AuthenticatedAgencyChromeAgencyManagementMoneyRoute: typeof AuthenticatedAgencyChromeAgencyManagementMoneyRoute
+  AuthenticatedAgencyChromeAgencyManagementPeopleRoute: typeof AuthenticatedAgencyChromeAgencyManagementPeopleRoute
+  AuthenticatedAgencyChromeAgencyManagementResourcingRoute: typeof AuthenticatedAgencyChromeAgencyManagementResourcingRoute
 }
 
 const AuthenticatedAgencyChromeAgencyManagementRouteChildren: AuthenticatedAgencyChromeAgencyManagementRouteChildren =
@@ -532,56 +535,60 @@ const AuthenticatedAgencyChromeAgencyManagementRouteChildren: AuthenticatedAgenc
       AuthenticatedAgencyChromeAgencyManagementPeopleRoute,
     AuthenticatedAgencyChromeAgencyManagementResourcingRoute:
       AuthenticatedAgencyChromeAgencyManagementResourcingRoute,
-  };
+  }
 
 const AuthenticatedAgencyChromeAgencyManagementRouteWithChildren =
   AuthenticatedAgencyChromeAgencyManagementRoute._addFileChildren(
     AuthenticatedAgencyChromeAgencyManagementRouteChildren,
-  );
+  )
 
 interface AuthenticatedAgencyChromeRouteChildren {
-  AuthenticatedAgencyChromeAgencyDashboardRoute: typeof AuthenticatedAgencyChromeAgencyDashboardRoute;
-  AuthenticatedAgencyChromeAgencyManagementRoute: typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren;
-  AuthenticatedAgencyChromeAgencyIndexRoute: typeof AuthenticatedAgencyChromeAgencyIndexRoute;
-  AuthenticatedAgencyChromeAgencyClientsClientIdRoute: typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute;
-  AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute: typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute;
-  AuthenticatedAgencyChromeAgencyReportsReportIdRoute: typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute;
-  AuthenticatedAgencyChromeAgencyClientsIndexRoute: typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute;
-  AuthenticatedAgencyChromeAgencyProjectsIndexRoute: typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute;
-  AuthenticatedAgencyChromeAgencyReportsIndexRoute: typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute;
+  AuthenticatedAgencyChromeAgencyDashboardRoute: typeof AuthenticatedAgencyChromeAgencyDashboardRoute
+  AuthenticatedAgencyChromeAgencyManagementRoute: typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
+  AuthenticatedAgencyChromeAgencyIndexRoute: typeof AuthenticatedAgencyChromeAgencyIndexRoute
+  AuthenticatedAgencyChromeAgencyClientsClientIdRoute: typeof AuthenticatedAgencyChromeAgencyClientsClientIdRoute
+  AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute: typeof AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute
+  AuthenticatedAgencyChromeAgencyReportsReportIdRoute: typeof AuthenticatedAgencyChromeAgencyReportsReportIdRoute
+  AuthenticatedAgencyChromeAgencyClientsIndexRoute: typeof AuthenticatedAgencyChromeAgencyClientsIndexRoute
+  AuthenticatedAgencyChromeAgencyProjectsIndexRoute: typeof AuthenticatedAgencyChromeAgencyProjectsIndexRoute
+  AuthenticatedAgencyChromeAgencyReportsIndexRoute: typeof AuthenticatedAgencyChromeAgencyReportsIndexRoute
 }
 
-const AuthenticatedAgencyChromeRouteChildren: AuthenticatedAgencyChromeRouteChildren = {
-  AuthenticatedAgencyChromeAgencyDashboardRoute: AuthenticatedAgencyChromeAgencyDashboardRoute,
-  AuthenticatedAgencyChromeAgencyManagementRoute:
-    AuthenticatedAgencyChromeAgencyManagementRouteWithChildren,
-  AuthenticatedAgencyChromeAgencyIndexRoute: AuthenticatedAgencyChromeAgencyIndexRoute,
-  AuthenticatedAgencyChromeAgencyClientsClientIdRoute:
-    AuthenticatedAgencyChromeAgencyClientsClientIdRoute,
-  AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute:
-    AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute,
-  AuthenticatedAgencyChromeAgencyReportsReportIdRoute:
-    AuthenticatedAgencyChromeAgencyReportsReportIdRoute,
-  AuthenticatedAgencyChromeAgencyClientsIndexRoute:
-    AuthenticatedAgencyChromeAgencyClientsIndexRoute,
-  AuthenticatedAgencyChromeAgencyProjectsIndexRoute:
-    AuthenticatedAgencyChromeAgencyProjectsIndexRoute,
-  AuthenticatedAgencyChromeAgencyReportsIndexRoute:
-    AuthenticatedAgencyChromeAgencyReportsIndexRoute,
-};
+const AuthenticatedAgencyChromeRouteChildren: AuthenticatedAgencyChromeRouteChildren =
+  {
+    AuthenticatedAgencyChromeAgencyDashboardRoute:
+      AuthenticatedAgencyChromeAgencyDashboardRoute,
+    AuthenticatedAgencyChromeAgencyManagementRoute:
+      AuthenticatedAgencyChromeAgencyManagementRouteWithChildren,
+    AuthenticatedAgencyChromeAgencyIndexRoute:
+      AuthenticatedAgencyChromeAgencyIndexRoute,
+    AuthenticatedAgencyChromeAgencyClientsClientIdRoute:
+      AuthenticatedAgencyChromeAgencyClientsClientIdRoute,
+    AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute:
+      AuthenticatedAgencyChromeAgencyProjectsProjectIdRoute,
+    AuthenticatedAgencyChromeAgencyReportsReportIdRoute:
+      AuthenticatedAgencyChromeAgencyReportsReportIdRoute,
+    AuthenticatedAgencyChromeAgencyClientsIndexRoute:
+      AuthenticatedAgencyChromeAgencyClientsIndexRoute,
+    AuthenticatedAgencyChromeAgencyProjectsIndexRoute:
+      AuthenticatedAgencyChromeAgencyProjectsIndexRoute,
+    AuthenticatedAgencyChromeAgencyReportsIndexRoute:
+      AuthenticatedAgencyChromeAgencyReportsIndexRoute,
+  }
 
-const AuthenticatedAgencyChromeRouteWithChildren = AuthenticatedAgencyChromeRoute._addFileChildren(
-  AuthenticatedAgencyChromeRouteChildren,
-);
+const AuthenticatedAgencyChromeRouteWithChildren =
+  AuthenticatedAgencyChromeRoute._addFileChildren(
+    AuthenticatedAgencyChromeRouteChildren,
+  )
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAgencyChromeRoute: typeof AuthenticatedAgencyChromeRouteWithChildren;
-  AuthenticatedCanvasRoute: typeof AuthenticatedCanvasRoute;
-  AuthenticatedAgencyMeRoute: typeof AuthenticatedAgencyMeRoute;
-  AuthenticatedBillingSuccessRoute: typeof AuthenticatedBillingSuccessRoute;
-  AuthenticatedNodeIdRoute: typeof AuthenticatedNodeIdRoute;
-  AuthenticatedObjectIdRoute: typeof AuthenticatedObjectIdRoute;
-  AuthenticatedAgencyMembersUserIdRoute: typeof AuthenticatedAgencyMembersUserIdRoute;
+  AuthenticatedAgencyChromeRoute: typeof AuthenticatedAgencyChromeRouteWithChildren
+  AuthenticatedCanvasRoute: typeof AuthenticatedCanvasRoute
+  AuthenticatedAgencyMeRoute: typeof AuthenticatedAgencyMeRoute
+  AuthenticatedBillingSuccessRoute: typeof AuthenticatedBillingSuccessRoute
+  AuthenticatedNodeIdRoute: typeof AuthenticatedNodeIdRoute
+  AuthenticatedObjectIdRoute: typeof AuthenticatedObjectIdRoute
+  AuthenticatedAgencyMembersUserIdRoute: typeof AuthenticatedAgencyMembersUserIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -592,11 +599,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNodeIdRoute: AuthenticatedNodeIdRoute,
   AuthenticatedObjectIdRoute: AuthenticatedObjectIdRoute,
   AuthenticatedAgencyMembersUserIdRoute: AuthenticatedAgencyMembersUserIdRoute,
-};
+}
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
-);
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -605,16 +612,16 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

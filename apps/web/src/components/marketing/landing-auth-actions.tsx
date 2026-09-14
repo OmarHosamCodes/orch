@@ -36,13 +36,13 @@ export function LandingAuthActions({
   return (
     <div className={cn("flex flex-wrap items-center gap-3", className)}>
       <Button asChild size="lg" className="h-12 px-6 text-base">
-        <Link to="/login?mode=sign-up">
-          Get started
+        <Link to="/login">
+          Continue
           <ArrowRight className="size-4" />
         </Link>
       </Button>
       <Button asChild variant="ghost" size="lg" className="h-12 px-6 text-base">
-        <Link to="/login?mode=sign-in">Sign in</Link>
+        <Link to="/login">Sign in</Link>
       </Button>
       {showPricing ? (
         <a
