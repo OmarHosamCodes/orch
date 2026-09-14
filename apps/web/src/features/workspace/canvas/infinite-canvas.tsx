@@ -30,7 +30,6 @@ import { WorkspaceFlowEdge } from "@/features/workspace/canvas/workspace-flow-ed
 import { WorkspaceFlowNode } from "@/features/workspace/canvas/workspace-flow-node";
 import { Button } from "@/ui/button";
 import { useCanvasKeyboard } from "@/features/workspace/canvas/use-canvas-keyboard";
-import { useTheme } from "@/stores/theme";
 import type { CanvasNodeModel } from "@/features/workspace/canvas/canvas-types";
 import {
   applyFlowChangesToWorkspaceNodes,
@@ -116,7 +115,6 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
   ) {
     const shellRef = useRef<HTMLDivElement | null>(null);
     const hasFittedRef = useRef(false);
-    const { isDark } = useTheme();
     const reactFlow = useReactFlow();
     const { zoomIn, zoomOut, fitView, screenToFlowPosition, getZoom } = reactFlow;
     const [zoomPercent, setZoomPercent] = useState(100);
@@ -363,7 +361,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
             edges={flowEdges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            colorMode={isDark ? "dark" : "light"}
+            colorMode="dark"
             onNodesChange={handleNodesChange}
             onSelectionChange={handleSelectionChange}
             onConnect={handleConnect}
@@ -416,7 +414,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
               variant={BackgroundVariant.Dots}
               gap={28}
               size={1}
-              color={isDark ? "oklch(0.55 0.01 285 / 0.35)" : "oklch(0.55 0.01 285 / 0.2)"}
+              color="oklch(0.55 0.01 285 / 0.35)"
             />
 
             <Panel position="bottom-left" className="!mb-8 !ml-4">

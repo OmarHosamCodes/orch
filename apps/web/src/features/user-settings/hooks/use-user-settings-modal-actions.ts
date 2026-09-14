@@ -17,7 +17,6 @@ import { authClient } from "@/lib/auth-client";
 import { getServerUrl } from "@/lib/env";
 import { getUserAvatarPublicUrl } from "@/lib/user-avatar-url";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
-import { useTheme } from "@/stores/theme";
 
 import { useUserSettingsModalState, type UserSettingsPane } from "./use-user-settings-modal-state";
 
@@ -34,7 +33,6 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
   const router = useRouter();
   const session = authClient.useSession();
   const { tier, isPro, checkout, openPortal } = useBilling();
-  const { isDark, toggle: toggleTheme } = useTheme();
   const teamId = useTeamStore((s) => s.selectedTeamId) ?? "";
   const preferencesQuery = useAgencyNotificationPreferencesQuery(
     teamId,
@@ -194,7 +192,6 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
     savingName: state.savingName,
     uploadingImage: state.uploadingImage,
     signingOut: state.signingOut,
-    isDark,
     tier,
     isPro,
     hasTeam: Boolean(teamId),
@@ -206,7 +203,6 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
     onNameDraftChange: handleNameDraftChange,
     onSaveName: () => void saveName(),
     onPickImage: pickImage,
-    onToggleTheme: toggleTheme,
     onBillingAction: handleBillingAction,
     onSignOut: () => void signOut(),
     onTogglePreferenceChannel: togglePreferenceChannel,

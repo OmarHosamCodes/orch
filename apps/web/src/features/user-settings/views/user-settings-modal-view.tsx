@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { CreditCard, Loader2, LogOut, Moon, Settings2, Sun } from "lucide-react";
+import { CreditCard, Loader2, LogOut, Settings2 } from "lucide-react";
 
 import { AgencySettingsDialogShell } from "@/features/shared/agency-settings-dialog-shell";
 import type {
@@ -71,7 +71,6 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
     userId,
     pane,
     signingOut,
-    isDark,
     tier,
     isPro,
     hasTeam,
@@ -80,7 +79,6 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
     notificationPreferencesSaving,
     onOpenChange,
     onPaneChange,
-    onToggleTheme,
     onBillingAction,
     onSignOut,
     onTogglePreferenceChannel,
@@ -118,18 +116,6 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
     >
       {activePane === "preferences" ? (
         <div className="mt-6 flex flex-col gap-8">
-          <div className="flex flex-col">
-            <SettingsRow
-              label="Appearance"
-              description={isDark ? "Dark mode is on." : "Light mode is on."}
-            >
-              <Button type="button" size="sm" variant="outline" onClick={onToggleTheme}>
-                {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                {isDark ? "Light mode" : "Dark mode"}
-              </Button>
-            </SettingsRow>
-          </div>
-
           <div className="flex flex-col gap-3">
             <div>
               <h3 className="text-sm font-semibold text-foreground">Notifications</h3>

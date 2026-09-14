@@ -196,10 +196,7 @@ try {
 `;
 
 const STYLES = `
-:root { color-scheme: light dark; --aiui-fg: #0b0d10; --aiui-muted: #6b7280; --aiui-line: rgba(0,0,0,.12); --aiui-card: rgba(0,0,0,.02); --aiui-danger: #dc2626; }
-@media (prefers-color-scheme: dark) {
-  :root { --aiui-fg: #e8eaed; --aiui-muted: #9aa1ab; --aiui-line: rgba(255,255,255,.14); --aiui-card: rgba(255,255,255,.04); }
-}
+:root { color-scheme: dark; --aiui-fg: #e8eaed; --aiui-muted: #9aa1ab; --aiui-line: rgba(255,255,255,.14); --aiui-card: rgba(255,255,255,.04); --aiui-danger: #f87171; }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 12px; font: 13px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--aiui-fg); background: transparent; }
 .aiui-stack { display: flex; flex-direction: column; }

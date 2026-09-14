@@ -95,6 +95,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --orch-grain-image: none;
+  --orch-grain-size: 256px 256px;
   --motion-duration-fast: 120ms;
   --motion-duration-base: 180ms;
   --motion-duration-panel: 220ms;
@@ -107,91 +109,7 @@
   --motion-ease-rail: cubic-bezier(0.32, 0.72, 0, 1);
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Vercel theme (tweakcn) — light */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(0.99 0 0);
-  --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0 0 0);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0 0);
-  --secondary-foreground: oklch(0 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.44 0 0);
-  --accent: oklch(0.94 0 0);
-  --accent-foreground: oklch(0 0 0);
-  --destructive: oklch(0.63 0.19 23.03);
-  --destructive-foreground: oklch(1 0 0);
-  /* State colors darkened for light mode: they render as small text (chips,
-   * billable markers) and must hold ~4.5:1 on white. Dark mode keeps brighter values. */
-  --success: oklch(0.55 0.15 150);
-  --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.56 0.15 55);
-  --warning-foreground: oklch(0.99 0 0);
-  --info: oklch(0.55 0.21 255);
-  --info-foreground: oklch(0.99 0 0);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.94 0 0);
-  --ring: oklch(0 0 0);
-  --chart-1: oklch(0.81 0.17 75.35);
-  --chart-2: oklch(0.55 0.22 264.53);
-  --chart-3: oklch(0.72 0 0);
-  --chart-4: oklch(0.92 0 0);
-  --chart-5: oklch(0.56 0 0);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(0 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.94 0 0);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0 0 0);
-
-  --font-sans: "Poppins", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "IBM Plex Serif", ui-serif, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --shadow-blur: 2px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.18;
-  --shadow-color: hsl(0 0% 0%);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 1px;
-  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-sm: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow-md: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
-  --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
-  --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
-  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
-  --tracking-normal: 0em;
-  --letter-spacing: 0em;
-  --spacing: 0.25rem;
-
-  /* Custom tokens alias base theme (follow light/dark automatically). */
-  --inverted: var(--foreground);
-  --inverted-foreground: var(--background);
-  --marketing-ink: var(--background);
-  --marketing-ink-foreground: var(--foreground);
-  --marketing-ink-muted: var(--muted-foreground);
-  --marketing-ink-border: var(--border);
-  --marketing-paper: var(--background);
-  --marketing-surface: var(--card);
-  --marketing-surface-elevated: var(--secondary);
-  --marketing-accent-glow: color-mix(in oklab, var(--chart-2) 12%, transparent);
-
-  --agency-search-highlight-bg: color-mix(in oklab, var(--primary) 24%, transparent);
-  --agency-search-highlight-ring: color-mix(in oklab, var(--primary) 20%, transparent);
-  --agency-search-highlight-glow: color-mix(in oklab, var(--primary) 16%, transparent);
-  --aui-success: oklch(0.6 0.15 149);
-  --aui-warning: oklch(0.68 0.16 70);
-}
-
-.dark {
-  /* Vercel theme (tweakcn) — dark */
+  /* Orch dark theme — the only supported appearance. */
   --background: oklch(0 0 0);
   --foreground: oklch(1 0 0);
   --card: oklch(0.14 0 0);
@@ -249,9 +167,20 @@
   --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
   --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
   --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
+  --tracking-normal: 0em;
   --letter-spacing: 0em;
   --spacing: 0.25rem;
 
+  /* Custom tokens alias the dark base theme. */
+  --inverted: var(--foreground);
+  --inverted-foreground: var(--background);
+  --marketing-ink: var(--background);
+  --marketing-ink-foreground: var(--foreground);
+  --marketing-ink-muted: var(--muted-foreground);
+  --marketing-ink-border: var(--border);
+  --marketing-paper: var(--background);
+  --marketing-surface: var(--card);
+  --marketing-surface-elevated: var(--secondary);
   --marketing-accent-glow: color-mix(in oklab, var(--chart-2) 18%, transparent);
 
   --agency-search-highlight-bg: color-mix(in oklab, var(--chart-1) 50%, transparent);
@@ -859,6 +788,27 @@ body {
   background: var(--color-default);
 }
 
+/* Grain belongs to each painted surface, never to a layer above its content. */
+:where(
+  .orch-grain-surface,
+  .bg-background,
+  .bg-default,
+  .bg-sidebar,
+  .bg-card,
+  .bg-popover,
+  .bg-muted,
+  .bg-secondary,
+  .bg-elevated,
+  .app-shell__chrome-surface,
+  .app-shell__rail,
+  .app-shell__context-bar,
+  .app-shell__drawer-static
+) {
+  background-image: var(--orch-grain-image);
+  background-repeat: repeat;
+  background-size: var(--orch-grain-size);
+}
+
 .app-shell__context-bar-left {
   display: flex;
   min-width: 0;
@@ -1286,8 +1236,8 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 }
 /*
  * Same collision for `default`: it is a surface token (bg-default = card).
- * Without this pin, `text-default` paints in the card fill color — white-on-white
- * in light mode and near-black-on-black in dark mode — which washes out every
+ * Without this pin, `text-default` paints in the card fill color against the
+ * dark card surface, which washes out every
  * inherited label and input inside the app shell.
  */
 :where(html) .text-default {
@@ -1296,7 +1246,7 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 /*
  * Same collision for `default`: it is a surface token (bg-default = card), but
  * border-default / divide-default mean the default hairline. Without this pin the
- * borders paint in the card color: invisible white-on-white in the light theme.
+ * borders paint in the card color: invisible against the dark surface.
  */
 :where(html) .border-default {
   border-color: var(--color-border);

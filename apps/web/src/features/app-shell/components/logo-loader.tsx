@@ -5,7 +5,6 @@ import { logoLoaderStatus } from "@/features/app-shell/components/logo-loader-st
 import { getBrandAssetHref, getLogoAnimationHref } from "@/lib/favicon";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/stores/theme";
 
 type LogoLoaderProps = {
   label?: string;
@@ -13,7 +12,6 @@ type LogoLoaderProps = {
 };
 
 export function LogoLoader({ label = "Opening Orch", placement = "page" }: LogoLoaderProps) {
-  const { theme } = useTheme();
   const reducedMotion = usePrefersReducedMotion();
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -26,9 +24,7 @@ export function LogoLoader({ label = "Opening Orch", placement = "page" }: LogoL
   }, []);
 
   const status = logoLoaderStatus(label, elapsedMs);
-  const markHref = reducedMotion
-    ? getBrandAssetHref("favicon", theme)
-    : getLogoAnimationHref(theme);
+  const markHref = reducedMotion ? getBrandAssetHref("favicon") : getLogoAnimationHref();
 
   const body = (
     <div
