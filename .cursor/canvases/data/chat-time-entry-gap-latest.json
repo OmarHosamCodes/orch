@@ -1,0 +1,29 @@
+{
+  "previewOnly": true,
+  "generatedAtUtc": "2026-07-24T16:00:37.401Z",
+  "userEmail": "omarhosamcodes@gmail.com",
+  "timezone": "UTC+3",
+  "window": {
+    "startUtc": "2026-07-17T16:00:37.058Z",
+    "endUtc": "2026-07-24T16:00:37.058Z",
+    "startLocal": "2026-07-17 19:00:37",
+    "endLocal": "2026-07-24 19:00:37"
+  },
+  "blockers": [
+    {
+      "area": "transcripts",
+      "message": "Indexed transcriptsDir not mounted in this environment: /home/omar/.cursor/projects/home-omar-Projects-brainiac/agent-transcripts",
+      "railwayHint": "Indexed transcriptsDir not mounted in this environment: /home/omar/.cursor/projects/home-omar-Projects-brainiac/agent-transcripts"
+    },
+    {
+      "area": "railway-postgres",
+      "message": "Railway MCP is not configured in this agent environment; DATABASE_URL/POSTGRES_URL is unset; `railway run` failed or is unauthorized.",
+      "detail": "Unauthorized. Please login with `railway login`",
+      "target": "Internal Tools / Brainiac / Postgres-EEa9"
+    }
+  ],
+  "daily": [],
+  "proposedAdds": [],
+  "totals": null,
+  "note": "Report blocked — no metrics invented. Fix blockers and re-run scripts/chat-time-entry-gap-report.mjs"
+}
