@@ -33,11 +33,7 @@
         "tw-animate-css",
         "tw-shimmer",
         "shadcn"
-      ],
-      "ignoreIssues": {
-        "src/components/assistant-ui/**": ["exports", "types"],
-        "src/components/elements/**": ["exports", "types"]
-      }
+      ]
     },
     "apps/server": {
       "entry": [
