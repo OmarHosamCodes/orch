@@ -1,8 +1,8 @@
 import { Check, ChevronDown, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import type { AgencyTaskGroupRowViewModel } from "@/features/task-management/hooks/use-agency-task-group-row";
 import type { RenderAgencyTaskRow } from "@/features/task-management/hooks/use-agency-task-row";
-import { AgencyTaskRatePopover } from "@/features/task-management/task-list/agency-task-rate-popover";
 import {
   agencyFocusRingClass,
   agencyTaskRowCheckboxCheckedClass,
@@ -32,9 +32,14 @@ function memberStatusLabel(status: MemberStatus) {
 type AgencyTaskGroupRowViewProps = {
   viewModel: AgencyTaskGroupRowViewModel;
   renderTaskRow: RenderAgencyTaskRow;
+  renderRateControl?: (task: AgencyProjectTask) => ReactNode;
 };
 
-export function AgencyTaskGroupRowView({ viewModel, renderTaskRow }: AgencyTaskGroupRowViewProps) {
+export function AgencyTaskGroupRowView({
+  viewModel,
+  renderTaskRow,
+  renderRateControl,
+}: AgencyTaskGroupRowViewProps) {
   const {
     group,
     mode,
@@ -56,21 +61,10 @@ export function AgencyTaskGroupRowView({ viewModel, renderTaskRow }: AgencyTaskG
     singleInstanceTrackingState,
     instanceRows,
     onToggleExpanded,
-    canEditTaskRate = false,
-    isRowPending: isRowPendingFn,
   } = viewModel;
 
   function rateControl(task: AgencyProjectTask) {
-    if (mode !== "project" || !teamId) return null;
-    return (
-      <AgencyTaskRatePopover
-        teamId={teamId}
-        task={task}
-        canEdit={canEditTaskRate}
-        disabled={isRowPendingFn?.(task.id) ?? false}
-        quietUntilHover
-      />
-    );
+    return renderRateControl?.(task) ?? null;
   }
 
   if (singleInstance && mode === "work") {
