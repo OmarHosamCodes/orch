@@ -1,5 +1,5 @@
 import type { AgencyTimeEntry } from "@orch/api/schemas/agency-ops";
-import { isWasteLabel } from "@orch/api/routers/agency-ops/shared/waste-helpers";
+import { isWasteLabel, resolveEntryWaste } from "@orch/api/routers/agency-ops/shared/waste-helpers";
 import {
   joinedTimeEntryLinkUrls,
   mergeTimeEntryLinkRecords,
@@ -312,18 +312,16 @@ export function isReportEntryWaste(
 ): boolean {
   if ("entries" in entry) {
     if (entry.entries.length === 0) {
-      return isAnyWasteSource(
-        reportEntryWasteSources({
-          projectName: entry.projectName,
-          taskTitle: entry.taskTitle,
-          taskIsWaste: entry.taskIsWaste,
-          isWaste: false,
-        }),
-      );
+      return resolveEntryWaste({
+        projectName: entry.projectName,
+        taskTitle: entry.taskTitle,
+        taskIsWaste: entry.taskIsWaste,
+        isWaste: false,
+      });
     }
-    return entry.entries.every((item) => isAnyWasteSource(reportEntryWasteSources(item)));
+    return entry.entries.every((item) => resolveEntryWaste(item));
   }
-  return isAnyWasteSource(reportEntryWasteSources(entry));
+  return resolveEntryWaste(entry);
 }
 
 export function isReportEntryWasteVisible(
