@@ -1,4 +1,1 @@
-export {
-  AgencyProjectCreateDialogContainer as AgencyProjectCreateDialog,
-  type AgencyProjectCreateDialogProps,
-} from "./containers/agency-project-create-dialog-container";
+export { AgencyProjectCreateDialogContainer as AgencyProjectCreateDialog } from "./containers/agency-project-create-dialog-container";

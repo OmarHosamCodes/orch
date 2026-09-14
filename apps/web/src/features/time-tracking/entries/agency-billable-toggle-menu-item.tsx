@@ -20,9 +20,7 @@ export function AgencyBillableToggleMenuItem({
       disabled={disabled}
       onClick={onToggle}
     >
-      <span
-        className={cn("size-3.5 text-center text-xs font-semibold", isBillable && "text-info")}
-      >
+      <span className={cn("size-3.5 text-center text-xs font-semibold", isBillable && "text-info")}>
         $
       </span>
       {isBillable ? "Billable" : "Non-billable"}

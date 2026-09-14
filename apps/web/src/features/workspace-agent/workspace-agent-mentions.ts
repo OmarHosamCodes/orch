@@ -6,7 +6,7 @@ export type WorkspaceAgentActiveMention = {
   end: number;
 };
 
-export type WorkspaceAgentComposerTriggerKind = "at" | "slash";
+type WorkspaceAgentComposerTriggerKind = "at" | "slash";
 
 export type WorkspaceAgentComposerTrigger = {
   kind: WorkspaceAgentComposerTriggerKind;

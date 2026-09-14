@@ -17,9 +17,6 @@ import {
 import { Button } from "@/ui/button";
 import type { TenureQuarterMonth } from "@/features/resourcing/tenure-utils";
 import { cn } from "@/lib/utils";
-
-export { RangePresetChooser };
-export type { RangePreset };
 export { rangePresetLabel, rangePresets } from "@/features/shared/command-bar/range-preset-chooser";
 
 type AgencyTimeRangeCommandBarProps = {

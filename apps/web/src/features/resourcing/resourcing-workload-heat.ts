@@ -6,42 +6,34 @@ import {
   startOfWeekUtc as startOfWeekUtcShared,
 } from "@orch/api/routers/agency-ops/resourcing/work-schedule";
 
-/** @deprecated Prefer standardWeekHoursFromSchedule — kept for callers expecting 40h Mon–Fri. */
-export const STANDARD_WEEK_HOURS = standardWeekHours(
+const STANDARD_WEEK_HOURS = standardWeekHours(
   DEFAULT_WORK_SCHEDULE.requiredDailyHours,
   DEFAULT_WORK_SCHEDULE.weekendDurationDays,
 );
-export const CAPACITY_WEEKS_MAX = 12;
+const CAPACITY_WEEKS_MAX = 12;
 
 export type ResourcingPeriodGrain = "week" | "month" | "quarter" | "year";
 
 export type WorkloadHeatTone = "empty" | "low" | "mid" | "high" | "full";
 
-export function standardWeekHoursFromSchedule(input: {
-  requiredDailyHours: number;
-  weekendDurationDays: number;
-}): number {
-  return standardWeekHours(input.requiredDailyHours, input.weekendDurationDays);
-}
-
-export function startOfWeekUtc(
+function startOfWeekUtc(
   date: Date,
   weekStartsOn: number = DEFAULT_WORK_SCHEDULE.weekStartsOn,
 ): Date {
   return startOfWeekUtcShared(date, weekStartsOn);
 }
 
-export function startOfMonthUtc(date: Date): Date {
+function startOfMonthUtc(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 }
 
-export function startOfQuarterUtc(date: Date): Date {
+function startOfQuarterUtc(date: Date): Date {
   const month = date.getUTCMonth();
   const quarterStartMonth = Math.floor(month / 3) * 3;
   return new Date(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1));
 }
 
-export function startOfYearUtc(date: Date): Date {
+function startOfYearUtc(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
 }
 
@@ -127,7 +119,7 @@ export function shiftPeriodAnchor(
   }
 }
 
-export function hoursFromSeconds(seconds: number): number {
+function hoursFromSeconds(seconds: number): number {
   if (seconds <= 0) return 0;
   return Math.round(seconds / 3600);
 }
@@ -148,23 +140,15 @@ export function workloadDisplayHours(input: {
  */
 export function workloadHeatTone(
   hours: number,
-  standardWeekHours: number = STANDARD_WEEK_HOURS,
+  standardWeekHoursValue: number = STANDARD_WEEK_HOURS,
 ): WorkloadHeatTone {
   if (hours <= 0) return "empty";
-  const scale = standardWeekHours / STANDARD_WEEK_HOURS;
+  const scale = standardWeekHoursValue / STANDARD_WEEK_HOURS;
   if (hours < 15 * scale) return "low";
   if (hours < 28 * scale) return "mid";
   if (hours < 36 * scale) return "high";
   return "full";
 }
-
-export const WORKLOAD_HEAT_TONE_CLASS: Record<WorkloadHeatTone, string> = {
-  empty: "bg-muted text-dimmed",
-  low: "bg-error/15 text-error",
-  mid: "bg-warning/20 text-warning",
-  high: "bg-success/15 text-success",
-  full: "bg-success/25 text-success",
-};
 
 export type MonthWeekGroup = {
   key: string;
@@ -188,45 +172,6 @@ export function groupWeekStartsByMonth(weekStarts: string[]): MonthWeekGroup[] {
   return groups;
 }
 
-export function periodLabel(anchor: Date, grain: ResourcingPeriodGrain): string {
-  switch (grain) {
-    case "week": {
-      const end = new Date(anchor);
-      end.setUTCDate(end.getUTCDate() + 7 * weeksForGrain("week") - 1);
-      const startLabel = anchor.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      });
-      const endLabel = end.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      });
-      return `${startLabel} to ${endLabel}`;
-    }
-    case "month": {
-      const ref = calendarRefFromWeekAnchor(anchor);
-      return ref.toLocaleString(undefined, {
-        month: "long",
-        year: "numeric",
-        timeZone: "UTC",
-      });
-    }
-    case "quarter": {
-      const ref = calendarRefFromWeekAnchor(anchor);
-      const q = Math.floor(ref.getUTCMonth() / 3) + 1;
-      return `Q${q} ${ref.getUTCFullYear()}`;
-    }
-    case "year":
-      return String(calendarRefFromWeekAnchor(anchor).getUTCFullYear());
-    default: {
-      const _exhaustive: never = grain;
-      return _exhaustive;
-    }
-  }
-}
-
 export function teamWeekUtilizationPct(
   members: Array<{ capacitySeconds: number; loggedSeconds: number; bookedSeconds: number }>,
 ): number | null {
@@ -245,21 +190,4 @@ export function addDaysToDateKey(dateKey: string, days: number): string {
   const date = new Date(Date.UTC(year!, month! - 1, day!));
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
-}
-
-export function weekStartIsoToDateKey(weekStartIso: string): string {
-  return weekStartIso.slice(0, 10);
-}
-
-export function periodWindowDateKeys(weekStarts: string[]): { fromDate: string; toDate: string } {
-  const first = weekStarts[0];
-  const last = weekStarts[weekStarts.length - 1];
-  if (!first || !last) {
-    const today = new Date().toISOString().slice(0, 10);
-    return { fromDate: today, toDate: today };
-  }
-  return {
-    fromDate: weekStartIsoToDateKey(first),
-    toDate: addDaysToDateKey(weekStartIsoToDateKey(last), 6),
-  };
 }

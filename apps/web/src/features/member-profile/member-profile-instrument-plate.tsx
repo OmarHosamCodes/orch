@@ -146,19 +146,12 @@ const WEEK_BAR_MAX_HEIGHT = 14;
 const WEEK_BAR_BASE_Y = 22;
 
 /** Dynamic week bars for gauge dossier (ratios 0–1, up to 7). */
-export function WeekBarsGlyph({
-  ratios,
-  className,
-}: {
-  ratios: number[];
-  className?: string;
-}) {
+export function WeekBarsGlyph({ ratios, className }: { ratios: number[]; className?: string }) {
   const bars = ratios.slice(0, WEEK_BAR_COUNT);
   while (bars.length < WEEK_BAR_COUNT) {
     bars.unshift(0);
   }
-  const totalWidth =
-    WEEK_BAR_COUNT * WEEK_BAR_WIDTH + (WEEK_BAR_COUNT - 1) * WEEK_BAR_GAP;
+  const totalWidth = WEEK_BAR_COUNT * WEEK_BAR_WIDTH + (WEEK_BAR_COUNT - 1) * WEEK_BAR_GAP;
   const startX = (64 - totalWidth) / 2;
 
   return (

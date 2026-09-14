@@ -25,8 +25,6 @@ import {
 } from "@/features/shared/stores/agency-ops";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
-
-export type { MoneyCohortAllocationsSelection } from "@/features/money/hooks/use-agency-money-settings";
 export type {
   MoneyStatsCardViewModel,
   MoneyStatsMetricSelection,

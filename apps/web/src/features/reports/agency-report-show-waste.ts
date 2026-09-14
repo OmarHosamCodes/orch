@@ -18,7 +18,7 @@ export const DEFAULT_AGENCY_REPORT_SHOW_WASTE: AgencyReportShowWaste = {
 
 const sourceSet = new Set<string>(AGENCY_REPORT_SHOW_WASTE_SOURCES);
 
-export function isAgencyReportShowWasteSource(value: string): value is AgencyReportShowWasteSource {
+function isAgencyReportShowWasteSource(value: string): value is AgencyReportShowWasteSource {
   return sourceSet.has(value);
 }
 
@@ -46,5 +46,3 @@ export function parseShowWasteParam(value: string | null): AgencyReportShowWaste
 export function serializeShowWasteParam(showWaste: AgencyReportShowWaste): string {
   return AGENCY_REPORT_SHOW_WASTE_SOURCES.filter((source) => showWaste[source]).join(",");
 }
-
-export { isWasteLabel } from "@orch/api/routers/agency-ops/shared/waste-helpers";

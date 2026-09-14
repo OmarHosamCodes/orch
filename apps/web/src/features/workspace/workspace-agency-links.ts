@@ -4,7 +4,7 @@ export function agencyProjectHref(projectId: string) {
   return `/agency/projects/${projectId}`;
 }
 
-export function agencyTaskHref(projectId: string, taskId: string) {
+function agencyTaskHref(projectId: string, taskId: string) {
   return `/agency/projects/${projectId}?taskId=${encodeURIComponent(taskId)}`;
 }
 

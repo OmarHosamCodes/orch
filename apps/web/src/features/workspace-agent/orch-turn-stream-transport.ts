@@ -11,7 +11,7 @@ import {
   type OrchUIMessageChunk,
 } from "@/features/workspace-agent/orch-ui-message";
 
-export type OrchTurnTransportBody = Omit<AgentChatTurnInput, "content" | "attachments"> & {
+type OrchTurnTransportBody = Omit<AgentChatTurnInput, "content" | "attachments"> & {
   content?: string;
   attachments?: AgentTextAttachment[];
 };

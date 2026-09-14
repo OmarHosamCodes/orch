@@ -1,9 +1,9 @@
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-export type AgencySyncState = "loading" | "syncing" | "synced" | "error";
+type AgencySyncState = "loading" | "syncing" | "synced" | "error";
 
-export type AgencySyncErrorDetail = {
+type AgencySyncErrorDetail = {
   label: string;
   message: string;
 };
@@ -128,10 +128,6 @@ export function resolveAgencySyncDetails(
     activeLabels: [],
     errors: [],
   };
-}
-
-export function useAgencySyncStatus(teamId: string): AgencySyncState {
-  return useAgencySyncDetails(teamId).state;
 }
 
 export function useAgencySyncDetails(teamId: string): AgencySyncDetails {

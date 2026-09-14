@@ -34,12 +34,6 @@ export function sortProjectsByClientThenName<T extends ProjectWithClient & { nam
   return clientSort || left.name.localeCompare(right.name);
 }
 
-export function projectSearchableText(project: { name: string; clientName: string }): string {
-  return [project.name, project.clientName, `${project.clientName} · ${project.name}`]
-    .join(" ")
-    .toLowerCase();
-}
-
 type UseAgencyChooserOpenStateOptions = {
   controlledOpen?: boolean;
   onOpenChange?: (open: boolean) => void;

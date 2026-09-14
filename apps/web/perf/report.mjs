@@ -242,5 +242,3 @@ export async function writeBaselineFromReport(report, baselinePath) {
   await writeFile(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`, "utf8");
   return baseline;
 }
-
-export { scoreToGrade };

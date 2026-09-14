@@ -20,7 +20,7 @@ export type AgencyFilterOption = {
   searchText?: string;
 };
 
-export type AgencyFilterOptionSection = {
+type AgencyFilterOptionSection = {
   sectionLabel: string;
   options: AgencyFilterOption[];
 };

@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 
-export type WorkspaceBlockEditorComponent = ComponentType<{
+type WorkspaceBlockEditorComponent = ComponentType<{
   block: WorkspaceBlock;
   tabId: string;
 }>;
@@ -232,7 +232,7 @@ export type WorkspaceBlockRegistryEntry = {
   addGroup: "primary" | "secondary" | null;
 };
 
-export const workspaceBlockRegistry = {
+const workspaceBlockRegistry = {
   "task-list": {
     component: WorkspaceTaskListBlockEditor,
     label: "Task list",

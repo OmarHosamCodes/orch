@@ -65,8 +65,10 @@ export function resolveCalendarDayActions(input: {
   const canEditOffDays = input.isSelf || input.isManager;
   if (canEditOffDays) {
     actions.push({ kind: "select_range" }, { kind: "add_off_day" });
-    if ((input.status === "leave" || (input.status === "holiday" && input.isManager)) &&
-      input.leaveId) {
+    if (
+      (input.status === "leave" || (input.status === "holiday" && input.isManager)) &&
+      input.leaveId
+    ) {
       actions.push({ kind: "remove_off_day", leaveId: input.leaveId });
     }
   }

@@ -13,7 +13,7 @@ import { LucideIcon } from "@/lib/lucide-icon";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 
-export function agencyCrumbItemId(segment: AgencySegmentId): string {
+function agencyCrumbItemId(segment: AgencySegmentId): string {
   return `agency-crumb-item-${segment}`;
 }
 

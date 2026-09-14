@@ -30,11 +30,7 @@ function quarterPeriodTarget(
   if (!match) return null;
   const fiscalYear = Number(match[1]);
   const fiscalQuarter = Number(match[2]) as FiscalQuarter;
-  const range = getFiscalQuarterRange(
-    toFiscalCalendar(fiscalCalendar),
-    fiscalYear,
-    fiscalQuarter,
-  );
+  const range = getFiscalQuarterRange(toFiscalCalendar(fiscalCalendar), fiscalYear, fiscalQuarter);
   const from = formatUtcDateKey(range.start);
   const lastInclusive = new Date(range.end.getTime() - 86_400_000);
   const to = formatUtcDateKey(lastInclusive);

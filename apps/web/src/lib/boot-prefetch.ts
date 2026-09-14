@@ -7,13 +7,7 @@ import { getRequestHeader } from "@tanstack/react-start/server";
 import { loadBootShellChrome, type BootShellChrome } from "@/lib/boot-chrome";
 import { resolveSsrApiOrigin } from "@/lib/ssr-api-origin";
 
-export type {
-  BootActiveTimer,
-  BootNotificationList,
-  BootShellChrome,
-  BootTeams,
-  BootUnreadCount,
-} from "@/lib/boot-chrome";
+export type { BootShellChrome } from "@/lib/boot-chrome";
 
 function createServerOrpcClient(cookie: string): AppRouterClient {
   const link = new RPCLink({

@@ -1,7 +1,7 @@
 import type { AgentScopeRef } from "@orch/agent/types";
 import { create } from "zustand";
 
-export type OrchPresence = "dock" | "thread";
+type OrchPresence = "dock" | "thread";
 
 type WorkspaceAgentUiState = {
   expanded: boolean;

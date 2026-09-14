@@ -1,7 +1,4 @@
-export function formatDuration(
-  seconds: number,
-  style: "clock" | "short" | "units" = "clock",
-) {
+export function formatDuration(seconds: number, style: "clock" | "short" | "units" = "clock") {
   const safeSeconds = Math.max(0, Math.round(seconds));
   const hourCount = Math.floor(safeSeconds / 3_600);
   const minuteCount = Math.floor((safeSeconds % 3_600) / 60);

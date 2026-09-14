@@ -231,23 +231,6 @@ export function featuredNotificationBody(notification: NotificationRecord) {
   }
 }
 
-/** Inbox row quick-action kind (shared with featured CTA where applicable). */
-export function notificationQuickAction(
-  notification: NotificationRecord,
-): "start-timer" | "reply" | null {
-  if (
-    notification.type === "task.assigned" &&
-    notification.payload.taskId &&
-    notification.payload.projectId
-  ) {
-    return "start-timer";
-  }
-  if (notification.type === "task.message" && notification.payload.taskId) {
-    return "reply";
-  }
-  return null;
-}
-
 export function buildMemberAlertOrchPrompt(input: {
   title: string;
   body: string;

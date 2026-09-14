@@ -72,38 +72,6 @@ export function isTaskOverdue(iso: string | null): boolean {
   return date.setHours(23, 59, 59, 999) < Date.now();
 }
 
-export type TaskDueDateDraft = {
-  date: string;
-  time: string;
-};
-
-function pad2(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-export function taskDueDateToDraft(iso: string | null | undefined): TaskDueDateDraft {
-  if (!iso) {
-    return { date: "", time: "" };
-  }
-
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) {
-    return taskDueDateToDraft(null);
-  }
-
-  return {
-    date: `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`,
-    time: `${pad2(parsed.getHours())}:${pad2(parsed.getMinutes())}`,
-  };
-}
-
-export function taskDueDateDraftToIso(draft: TaskDueDateDraft): string | null {
-  if (!draft.date || !draft.time) return null;
-  const parsed = new Date(`${draft.date}T${draft.time}`);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toISOString();
-}
-
 function sortTasksByUrgency(tasks: AgencyProjectTask[]): AgencyProjectTask[] {
   return [...tasks].sort((left, right) => {
     const leftOverdue = isTaskOverdue(left.dueDate) ? 0 : 1;

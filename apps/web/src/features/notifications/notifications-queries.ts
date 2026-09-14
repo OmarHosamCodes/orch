@@ -8,8 +8,6 @@ import { withAgencySyncQueryOptions } from "@/features/shared/agency-query-optio
 import { useAgencyLiveConnectionState } from "@/features/shared/live/agency-live-connection";
 import { NOTIFICATION_LIST_LIMIT } from "@/features/notifications/notification-list-limit";
 
-export { NOTIFICATION_LIST_LIMIT };
-
 export type NotificationPreferenceType =
   | "task.assigned"
   | "task.message"
@@ -22,14 +20,6 @@ export type NotificationPreferenceItem = {
   type: NotificationPreferenceType;
   inApp: boolean;
   push: boolean;
-};
-
-export type NotificationDeliverySettings = {
-  timezone: string;
-  quietHoursStart: string | null;
-  quietHoursEnd: string | null;
-  focusUntil: string | null;
-  focusMode: boolean;
 };
 
 function notificationListQueryKey(teamId: string) {

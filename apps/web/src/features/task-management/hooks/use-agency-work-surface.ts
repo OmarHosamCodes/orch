@@ -57,5 +57,3 @@ export function useAgencyWorkSurface({ teamId, onSegmentChange }: UseAgencyWorkS
 
   return { view, thread };
 }
-
-export type AgencyWorkSurfaceViewModel = ReturnType<typeof useAgencyWorkSurface>;

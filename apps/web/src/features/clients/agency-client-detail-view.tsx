@@ -443,10 +443,7 @@ export function AgencyClientDetailView({
                           className="min-w-0 flex-1"
                         />
                         <Select value={editCurrencyDraft} onValueChange={setEditCurrencyDraft}>
-                          <SelectTrigger
-                            aria-label="Rate currency"
-                            className="w-[5.5rem] shrink-0"
-                          >
+                          <SelectTrigger aria-label="Rate currency" className="w-[5.5rem] shrink-0">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

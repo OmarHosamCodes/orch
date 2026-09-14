@@ -297,10 +297,6 @@ export function setAgencyTimeTrackingUserId(userId: string | null) {
   cachedUserId = userId ?? "unknown-user";
 }
 
-export function getAgencyTimeTrackingUserId() {
-  return cachedUserId;
-}
-
 function getCurrentUserId() {
   return cachedUserId;
 }
@@ -2193,14 +2189,6 @@ export const useAgencyTimeTrackingStore = create<AgencyTimeTrackingState>((set, 
     () => get() as AgencyTimeTrackingState,
   ),
 }));
-
-export function setTrackerTagIds(teamId: string, tagIds: string[]) {
-  useAgencyTimeTrackingStore.getState().setTrackerTagIds(teamId, tagIds);
-}
-
-export function setTrackerIsBillable(teamId: string, isBillable: boolean) {
-  useAgencyTimeTrackingStore.getState().setTrackerIsBillable(teamId, isBillable);
-}
 
 export function useTrackerDraft(teamId: string) {
   return useAgencyTimeTrackingStore((s) =>

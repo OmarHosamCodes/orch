@@ -57,7 +57,7 @@ import {
   useAgencyOpsStore,
 } from "@/features/shared/stores/agency-ops";
 
-export type AgencySegmentSurfaceFilters =
+type AgencySegmentSurfaceFilters =
   | { kind: "timeRange"; applied: AgencyTimeRangeFilters }
   | { kind: "list"; applied: AgencyListFiltersApplied }
   | { kind: "none"; applied: null };

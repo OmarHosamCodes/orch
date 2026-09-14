@@ -84,7 +84,7 @@ function collapseKeyFor(entry: TimeEntryRecord): string {
   return `${taskKey}||${entry.description ?? ""}`;
 }
 
-export function collapseDuplicatesWithinDay(entries: TimeEntryRecord[]): CollapsedEntryGroup[] {
+function collapseDuplicatesWithinDay(entries: TimeEntryRecord[]): CollapsedEntryGroup[] {
   const map = new Map<string, CollapsedEntryGroup>();
 
   for (const entry of entries) {
@@ -139,7 +139,7 @@ export function flattenCollapsedGroupsForBulkEdit(
   });
 }
 
-export function groupEntriesByDay(entries: TimeEntryRecord[]): TimeEntryDayGroup[] {
+function groupEntriesByDay(entries: TimeEntryRecord[]): TimeEntryDayGroup[] {
   const byDay = new Map<string, TimeEntryRecord[]>();
 
   for (const entry of entries) {

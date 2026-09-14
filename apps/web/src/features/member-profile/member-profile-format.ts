@@ -46,7 +46,10 @@ export function todayKey(utcOffsetMinutes: number) {
   return `${y}-${m}-${day}`;
 }
 
-export function formatDayParts(dateKey: string, today: string): { title: string; subtitle: string } {
+export function formatDayParts(
+  dateKey: string,
+  today: string,
+): { title: string; subtitle: string } {
   const date = new Date(`${dateKey}T12:00:00.000Z`);
   const weekday = date.toLocaleDateString(undefined, {
     weekday: "long",

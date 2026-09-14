@@ -1,5 +1,4 @@
 export const SHELL_LOGO_ANIMATION_MS = 4000;
-export const SHELL_BOOT_TIMEOUT_MS = 15_000;
 export const SHELL_CONTENT_IN_MS = 120;
 
 let bootStartedAt: number | null = null;

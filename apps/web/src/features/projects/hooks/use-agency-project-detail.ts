@@ -22,7 +22,7 @@ import {
 } from "@/features/workspace/workspace-agency-links";
 import { useWorkspaceStore } from "@/features/workspace/workspace-local-state";
 
-export type ActivitySort = "newest" | "oldest" | "longest";
+type ActivitySort = "newest" | "oldest" | "longest";
 
 export type AgencyProjectDetailViewModel = {
   teamId: string;

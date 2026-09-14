@@ -83,9 +83,7 @@ function buildCardViewModel(card: MoneyStatsCardWithSource): MoneyStatsCardViewM
   };
 }
 
-export type MoneyScoreboardPartyNavigate = Partial<
-  Record<"party" | "status" | "expense", string | null>
->;
+type MoneyScoreboardPartyNavigate = Partial<Record<"party" | "status" | "expense", string | null>>;
 
 type UseAgencyMoneyScoreboardArgs = {
   teamId: string;

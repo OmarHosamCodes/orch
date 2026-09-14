@@ -15,7 +15,7 @@ import {
   LEGACY_AGENCY_SEGMENT_MAP,
 } from "@/features/shared/agency-segments";
 
-export const AGENCY_PRESERVED_SEARCH_KEYS = [
+const AGENCY_PRESERVED_SEARCH_KEYS = [
   "from",
   "to",
   "fields",

@@ -6,10 +6,7 @@ const SEGMENT_STARTS: readonly [number, number, number] = [0, 3, 6];
 export function normalizeDurationShape(value: string): string {
   const parts = value.trim().split(":");
   const digits = (index: number) =>
-    (parts[index] ?? "")
-      .replace(/\D/g, "")
-      .padStart(2, "0")
-      .slice(-2);
+    (parts[index] ?? "").replace(/\D/g, "").padStart(2, "0").slice(-2);
   return `${digits(0)}:${digits(1)}:${digits(2)}`;
 }
 
@@ -36,11 +33,7 @@ export function moveDurationSegment(
 
 function segmentDigits(value: string): [string[], string[], string[]] {
   const shape = normalizeDurationShape(value);
-  return [
-    shape.slice(0, 2).split(""),
-    shape.slice(3, 5).split(""),
-    shape.slice(6, 8).split(""),
-  ];
+  return [shape.slice(0, 2).split(""), shape.slice(3, 5).split(""), shape.slice(6, 8).split("")];
 }
 
 function digitsToDuration(segments: [string[], string[], string[]]): string {

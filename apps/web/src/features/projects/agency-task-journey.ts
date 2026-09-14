@@ -2,7 +2,6 @@ import type {
   AgencyProjectJourney,
   AgencyProjectJourneyStep,
   AgencyProjectTask,
-  AgencyProjectTaskKind,
 } from "@/features/task-management/agency-work";
 
 export type JourneyProgressSummary = {
@@ -16,12 +15,6 @@ export function isJourneyAnchorTask(task: Pick<AgencyProjectTask, "taskKind">): 
 
 export function isJourneyMilestoneTask(task: Pick<AgencyProjectTask, "taskKind">): boolean {
   return task.taskKind === "journey_milestone";
-}
-
-export function isJourneyTaskKind(
-  taskKind: AgencyProjectTaskKind | undefined,
-): taskKind is "journey_anchor" | "journey_milestone" {
-  return taskKind === "journey_anchor" || taskKind === "journey_milestone";
 }
 
 export function dedupeAssignees<
@@ -68,19 +61,7 @@ export function shouldShowJourneyAnchorForDiscovery(
   );
 }
 
-export function collectMilestoneAssigneesForProject(
-  tasks: AgencyProjectTask[],
-  projectId: string,
-): AgencyProjectTask["assignees"] {
-  const merged: AgencyProjectTask["assignees"] = [];
-  for (const task of tasks) {
-    if (task.projectId !== projectId || !isJourneyMilestoneTask(task)) continue;
-    merged.push(...task.assignees);
-  }
-  return dedupeAssignees(merged);
-}
-
-export function resolveJourneyStepForTask(
+function resolveJourneyStepForTask(
   journey: AgencyProjectJourney | undefined,
   taskId: string,
 ): AgencyProjectJourneyStep | null {
@@ -88,7 +69,7 @@ export function resolveJourneyStepForTask(
   return journey.steps.find((step) => step.taskId === taskId) ?? null;
 }
 
-export function resolveActiveJourneyStep(
+function resolveActiveJourneyStep(
   journey: AgencyProjectJourney | undefined,
 ): AgencyProjectJourneyStep | null {
   if (!journey) return null;
@@ -108,16 +89,6 @@ export function resolveFocusedJourneyStep(
     return resolveJourneyStepForTask(journey, task.id);
   }
   return resolveActiveJourneyStep(journey);
-}
-
-export function sumStepHoursFromEntries(
-  entries: Array<{ taskId: string | null; durationSeconds: number }>,
-  stepTaskId: string | null | undefined,
-): number {
-  if (!stepTaskId) return 0;
-  return entries
-    .filter((entry) => entry.taskId === stepTaskId)
-    .reduce((sum, entry) => sum + entry.durationSeconds, 0);
 }
 
 /** Mirrors removeStep unlink semantics: null journeyStepId, preserve entry rows. */

@@ -3,7 +3,7 @@ type OrpcErrorShape = {
   error?: { code?: string };
 };
 
-export function getOrpcErrorCode(error: unknown): string | null {
+function getOrpcErrorCode(error: unknown): string | null {
   if (typeof error !== "object" || error === null) return null;
   const known = error as OrpcErrorShape;
   return known.error?.code ?? known.code ?? null;

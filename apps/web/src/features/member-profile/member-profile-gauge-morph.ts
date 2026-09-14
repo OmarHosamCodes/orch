@@ -7,8 +7,6 @@ export function memberProfileGaugeLayoutId(key: StatPlateKey): string {
   return `member-profile-gauge-${key}`;
 }
 
-export const MEMBER_PROFILE_GAUGE_MORPH_MS = 480;
-
 export const memberProfileGaugeMorphTransition: Transition = {
   type: "spring",
   stiffness: 320,

@@ -37,13 +37,16 @@ describe("assistant-ui catalog", () => {
     expect(listMountedAssistantUiItems()).not.toContain("elements-launcher-bubble");
   });
 
-  test("installs website-capable source files and leaves launchers on disk unmounted", () => {
+  test("installs live website-capable source files and does not keep demo chrome", () => {
     const webRoot = `${import.meta.dir}/../../`;
     expect(existsSync(`${webRoot}components/assistant-ui/thread.tsx`)).toBe(true);
-    expect(existsSync(`${webRoot}components/assistant-ui/assistant-modal.tsx`)).toBe(true);
-    expect(existsSync(`${webRoot}components/elements/launcher-bubble.tsx`)).toBe(true);
+    expect(existsSync(`${webRoot}components/assistant-ui/assistant-modal.tsx`)).toBe(false);
+    expect(existsSync(`${webRoot}components/elements/launcher-bubble.tsx`)).toBe(false);
     expect(existsSync(`${webRoot}components/elements/composer.tsx`)).toBe(true);
     expect(existsSync(`${webRoot}components/elements/computer-use.tsx`)).toBe(false);
-    expect(ASSISTANT_UI_WEBSITE_ITEMS.length).toBeGreaterThan(100);
+    expect(ASSISTANT_UI_WEBSITE_ITEMS).toContain("thread");
+    expect(ASSISTANT_UI_WEBSITE_ITEMS).toContain("elements-composer");
+    expect(ASSISTANT_UI_WEBSITE_ITEMS).not.toContain("elements-quota-banner");
+    expect(ASSISTANT_UI_WEBSITE_ITEMS).not.toContain("follow-up-suggestions");
   });
 });

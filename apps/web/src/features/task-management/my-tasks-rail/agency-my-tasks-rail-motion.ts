@@ -4,7 +4,7 @@ import type { Transition, Variants } from "motion/react";
 export const RAIL_EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
 /** Matches `--motion-ease-emphasized` in index.css. */
-export const RAIL_EASE_EMPHASIZED: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const RAIL_EASE_EMPHASIZED: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 /**
  * Seconds — align with `--motion-duration-*` in `apps/web/src/index.css`.
@@ -30,7 +30,7 @@ export const RAIL_HOLD_MS = {
 } as const;
 
 export const RAIL_STAGGER_CAP = 8;
-export const RAIL_STAGGER_STEP = 0.04;
+const RAIL_STAGGER_STEP = 0.04;
 
 export const railTapScale = { scale: 0.98 } as const;
 
@@ -40,7 +40,7 @@ export const railFastTransition: Transition = {
   ease: RAIL_EASE,
 };
 
-export const railBaseTransition: Transition = {
+const railBaseTransition: Transition = {
   type: "tween",
   duration: RAIL_MS.base,
   ease: RAIL_EASE,

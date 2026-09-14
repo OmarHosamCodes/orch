@@ -3,7 +3,6 @@ import {
   defaultKnowledgePlacementSize,
   knowledgeChipLabel,
   type KnowledgeObjectType,
-  type KnowledgeRelationType,
 } from "@orch/workspace";
 
 export const knowledgeCreateKinds = [
@@ -245,8 +244,4 @@ export function buildPinPlacementAction(input: {
 
 export function pinChipLabel(objectType: KnowledgePinKind): string {
   return knowledgeChipLabel(objectType);
-}
-
-export function isLinkRelationType(value: string): value is KnowledgeRelationType {
-  return knowledgeLinkRelationTypes.includes(value as (typeof knowledgeLinkRelationTypes)[number]);
 }

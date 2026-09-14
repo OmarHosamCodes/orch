@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export type RangePreset = "tenure" | "today" | "week" | "month" | "last30" | "custom";
 
-export const RANGE_LABEL: Record<RangePreset, string> = {
+const RANGE_LABEL: Record<RangePreset, string> = {
   tenure: "Tenure",
   today: "Today",
   week: "This week",

@@ -27,7 +27,7 @@ export type MyTasksComposerExisting = {
   estimateMinutes?: number | null;
 };
 
-export function isOnMyTasks(input: {
+function isOnMyTasks(input: {
   taskId: string;
   actorUserId: string;
   railHasTask: boolean;

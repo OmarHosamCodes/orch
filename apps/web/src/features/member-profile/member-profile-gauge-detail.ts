@@ -10,18 +10,18 @@ import type { StreakSegmentState } from "@/features/member-profile/member-profil
 
 const ROW_CAP = 7;
 
-export type GaugeDetailStat = {
+type GaugeDetailStat = {
   label: string;
   value: string;
 };
 
-export type GaugeDetailRow = {
+type GaugeDetailRow = {
   label: string;
   meta?: string;
   date?: string;
 };
 
-export type GaugeDetailPrimaryAction =
+type GaugeDetailPrimaryAction =
   | { kind: "add_off_day"; label: string }
   | { kind: "focus_day"; label: string; date: string };
 
@@ -76,7 +76,7 @@ export type GaugeDetailModel = {
   streakSegments?: StreakSegmentState[];
 };
 
-export type GaugeLeaveEntry = {
+type GaugeLeaveEntry = {
   id: string;
   startDate: string;
   endDate: string;
@@ -91,14 +91,14 @@ export type GaugeDayHours = {
   totalSeconds: number;
 };
 
-export type GaugeCalendarDay = {
+type GaugeCalendarDay = {
   date: string;
   inMonth: boolean;
   status: "present" | "leave" | "holiday" | "weekend" | "empty";
   dayLabel: string;
 };
 
-export type GaugeWasteDay = {
+type GaugeWasteDay = {
   date: string;
   label: string;
   hoursLabel: string;
@@ -106,7 +106,7 @@ export type GaugeWasteDay = {
   entryCount: number;
 };
 
-export type GaugeHoursBreakdown = {
+type GaugeHoursBreakdown = {
   paidSeconds: number;
   internalSeconds: number;
 };

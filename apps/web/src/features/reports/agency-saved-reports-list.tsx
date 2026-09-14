@@ -3,4 +3,3 @@ export {
   SavedReportsListBodyContainer as SavedReportsListBody,
   SavedReportsListSkeletonContainer as SavedReportsListSkeleton,
 } from "./containers/agency-saved-reports-list-container";
-export type { SavedReportsListBodyContainerProps as SavedReportsListBodyProps } from "./containers/agency-saved-reports-list-container";

@@ -147,8 +147,7 @@ export function getAgencyTimerStartBlockedMessage(input: {
   );
 }
 
-export const AGENCY_TIMER_STOP_DESCRIPTION_REQUIRED =
-  "Add a description before stopping the timer.";
+const AGENCY_TIMER_STOP_DESCRIPTION_REQUIRED = "Add a description before stopping the timer.";
 export const AGENCY_TIMER_STOP_TASK_REQUIRED = "Choose a task before stopping the timer.";
 
 export function getAgencyTimerStopBlockedMessage(input: {

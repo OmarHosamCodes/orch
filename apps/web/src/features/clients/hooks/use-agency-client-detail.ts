@@ -22,13 +22,13 @@ import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export type AgencyClientDetailProject = {
+type AgencyClientDetailProject = {
   id: string;
   name: string;
   deletedAt: string | null;
 };
 
-export type AgencyClientDetailInvoice = {
+type AgencyClientDetailInvoice = {
   id: string;
   number: string;
   status: string;

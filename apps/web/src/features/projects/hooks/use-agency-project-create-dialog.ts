@@ -18,7 +18,7 @@ export type AgencyClientOption = {
   name: string;
 };
 
-export type MilestoneDraft = {
+type MilestoneDraft = {
   key: string;
   title: string;
   assignedToTeam: boolean;

@@ -1439,4 +1439,3 @@ export function useWorkspaceAgent() {
 }
 
 export type WorkspaceAgentViewModel = ReturnType<typeof useWorkspaceAgent>;
-export type WorkspaceAgentScopeChip = AgentScopeRef;

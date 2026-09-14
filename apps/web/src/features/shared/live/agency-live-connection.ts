@@ -455,8 +455,6 @@ export function subscribeAgencyLive(
   };
 }
 
-export { isAgencyLiveConnected } from "@/features/shared/live/agency-live-connected";
-
 export function getAgencyLiveConnectionState(teamId: string): AgencyLiveConnectionState {
   return teamConnections.get(teamId)?.state ?? "connecting";
 }
@@ -485,7 +483,7 @@ export function useAgencyLiveConnectionState(teamId: string): AgencyLiveConnecti
   );
 }
 
-export function teardownAllAgencyLiveConnections() {
+function teardownAllAgencyLiveConnections() {
   for (const teamId of [...teamConnections.keys()]) {
     teardownTeamConnection(teamId);
     teamConnections.delete(teamId);

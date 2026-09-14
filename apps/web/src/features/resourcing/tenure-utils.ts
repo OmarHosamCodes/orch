@@ -3,25 +3,12 @@ import {
   fiscalQuarterLabel,
   getFiscalQuarterForDate,
   getFiscalQuarterRange,
-  getTenureMonthForDate,
-  getTenureMonthByStartKey,
   resolveProfilePeriodMonth,
   shiftProfilePeriodMonth,
-  shiftTenureMonthStart,
   toFiscalCalendar,
-  type ProfilePeriodMonth,
-  type TenureMonthRange,
 } from "@orch/api/routers/agency-ops/resourcing/tenure-engine";
 
-export type { ProfilePeriodMonth, TenureMonthRange };
-export {
-  getTenureMonthForDate,
-  getTenureMonthByStartKey,
-  resolveProfilePeriodMonth,
-  shiftProfilePeriodMonth,
-  shiftTenureMonthStart,
-  toFiscalCalendar,
-};
+export { resolveProfilePeriodMonth, shiftProfilePeriodMonth };
 
 export type TenurePolicyCalendar = {
   fiscalYearStartMonth: number;
@@ -200,38 +187,6 @@ export function getCurrentTenurePeriodRange(
   };
 }
 
-export function tenureStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    intern: "Intern",
-    waived: "Waived",
-    met: "Met",
-    missed: "Missed",
-    "on-track": "On track",
-    "at-risk": "At risk",
-    "in-progress": "In progress",
-    skipped: "Skipped",
-  };
-  return labels[status] ?? status;
-}
-
-export function tenureStatusClass(status: string): string {
-  switch (status) {
-    case "met":
-    case "on-track":
-      return "text-success";
-    case "at-risk":
-      return "text-warning";
-    case "missed":
-      return "text-error";
-    default:
-      return "text-muted";
-  }
-}
-
-export function formatTenureHours(hours: number): string {
-  return hours.toFixed(1);
-}
-
 /** e.g. 6 → `6h`, 6.75 → `6h 45m` */
 export function formatHoursMinutes(hours: number): string {
   const totalMinutes = Math.round(hours * 60);
@@ -240,16 +195,6 @@ export function formatHoursMinutes(hours: number): string {
   if (m <= 0) return `${h}h`;
   if (h <= 0) return `${m}m`;
   return `${h}h ${m}m`;
-}
-
-export function formatUtcDate(dateIso: string): string {
-  return new Date(dateIso).toLocaleDateString(undefined, { timeZone: "UTC" });
-}
-
-export function formatPeriodEndExclusive(exclusiveEndIso: string): string {
-  const end = new Date(exclusiveEndIso);
-  end.setUTCDate(end.getUTCDate() - 1);
-  return end.toLocaleDateString(undefined, { timeZone: "UTC" });
 }
 
 export const FISCAL_MONTHS = [

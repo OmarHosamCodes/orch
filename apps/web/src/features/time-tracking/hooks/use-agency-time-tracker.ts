@@ -69,9 +69,9 @@ import type { AgencyTagOption } from "@/features/time-tracking/choosers/agency-t
 
 const emptyElapsedDraft = "";
 
-export type AgencyTrackerMode = "timer" | "manual";
+type AgencyTrackerMode = "timer" | "manual";
 
-export type AgencyManualTimeDraft = {
+type AgencyManualTimeDraft = {
   date: string;
   startTime: string;
   endTime: string;

@@ -13,7 +13,6 @@ import {
   useAgencyOptimisticStore,
   type AgencyOptimisticActiveTimer,
   type AgencyOptimisticClient,
-  type AgencyOptimisticContact,
   type AgencyOptimisticProject,
   type AgencyOptimisticTask,
   type AgencyOptimisticTimeEntry,
@@ -26,7 +25,7 @@ type ListQueryData<T> = {
   total?: number;
 };
 
-export function useMergedAgencyListQuery<T extends { id: string }, TData extends ListQueryData<T>>(
+function useMergedAgencyListQuery<T extends { id: string }, TData extends ListQueryData<T>>(
   query: UseQueryResult<TData, Error>,
   overlay: AgencyListOverlay<T>,
   options: {
@@ -143,60 +142,6 @@ export function useMergedAgencyActiveTimerQuery(
     }
     return { timer: timerOverlay };
   }, [query.data, timerOverlay]);
-
-  return { ...query, data: mergedData };
-}
-
-export function useMergedAgencyContactQuery<TData extends AgencyOptimisticContact | null>(
-  query: UseQueryResult<TData, Error>,
-  teamId: string,
-  clientId: string,
-) {
-  const contactKey = `${teamId}:${clientId}`;
-  const contactOverlay = useAgencyOptimisticStore((state) => state.contacts[contactKey]);
-
-  const mergedData = useMemo(() => {
-    if (!contactOverlay) return query.data;
-    return contactOverlay as TData;
-  }, [query.data, contactOverlay]);
-
-  return { ...query, data: mergedData };
-}
-
-type CapacityWeek = {
-  weekStart: string;
-  members: Array<{
-    userId: string;
-    userName: string;
-    capacitySeconds: number;
-    bookedSeconds: number;
-    loggedSeconds: number;
-  }>;
-};
-
-export function useMergedAgencyCapacityQuery(
-  query: UseQueryResult<{ weeks: CapacityWeek[] }, Error>,
-  teamId: string,
-) {
-  const capacityCells = useAgencyOptimisticStore((state) => state.capacityCells);
-
-  const mergedData = useMemo(() => {
-    if (!query.data) return query.data;
-
-    const weeks = query.data.weeks.map((week) => ({
-      ...week,
-      members: week.members.map((member) => {
-        const key = `${teamId}:${week.weekStart}:${member.userId}`;
-        const overlaySeconds = capacityCells[key];
-        if (overlaySeconds === undefined) {
-          return member;
-        }
-        return { ...member, capacitySeconds: overlaySeconds };
-      }),
-    }));
-
-    return { weeks };
-  }, [query.data, capacityCells, teamId]);
 
   return { ...query, data: mergedData };
 }

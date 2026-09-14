@@ -178,7 +178,7 @@ function matchesObligationStatus(
   }
 }
 
-export function moneyBillLineFromClientObligation(
+function moneyBillLineFromClientObligation(
   source: MoneyObligationClientSource,
 ): MoneyBillObligationLine {
   const currency = source.currency ?? "USD";
@@ -231,7 +231,7 @@ export function moneyBillLineFromClientObligation(
   };
 }
 
-export function moneyBillLineFromMemberObligation(
+function moneyBillLineFromMemberObligation(
   source: MoneyObligationMemberSource,
 ): MoneyBillObligationLine {
   const currency = source.currency ?? "USD";
@@ -470,7 +470,7 @@ export function moneyBillComposeHueId(row: MoneyBillComposeDisplayRow): string |
   }
 }
 
-export type MoneyBillComposeSectionId = "clients" | "team" | "adjustments";
+type MoneyBillComposeSectionId = "clients" | "team" | "adjustments";
 
 export type MoneyBillComposeSection = {
   id: MoneyBillComposeSectionId;

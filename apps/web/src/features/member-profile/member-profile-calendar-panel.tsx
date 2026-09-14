@@ -176,7 +176,9 @@ function MemberProfileCalendarDayCell({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{dayButton}</DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-44">
-        <DropdownMenuItem onSelect={() => onOpenOffDayRangeSelect(day.date)}>Select</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onOpenOffDayRangeSelect(day.date)}>
+          Select
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => onOpenAddOffDay(day.date)}>Add off day</DropdownMenuItem>
         {(day.status === "leave" || day.status === "holiday") && day.leaveId ? (
           <>

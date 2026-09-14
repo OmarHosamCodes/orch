@@ -3,12 +3,12 @@ import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 import { PROJECT_PALETTE } from "@/features/shared/project-palette";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 
-export type AgencyTaskChooserProjectCreateClientOption = {
+type AgencyTaskChooserProjectCreateClientOption = {
   id: string;
   name: string;
 };
 
-export type AgencyTaskChooserProjectCreateTemplateOption = {
+type AgencyTaskChooserProjectCreateTemplateOption = {
   id: string;
   name: string;
   milestoneCount: number;

@@ -14,7 +14,7 @@ function applyThemeDom(theme: ThemePreference): void {
   setFaviconTheme(theme);
 }
 
-export const useThemeStore = create<ThemeState>((set, get) => ({
+const useThemeStore = create<ThemeState>((set, get) => ({
   theme: resolveInitialTheme(),
   setTheme: (theme) => {
     setTheme(theme);

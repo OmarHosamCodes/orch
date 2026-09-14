@@ -5,7 +5,7 @@ import {
   proposalPreviewLines,
 } from "@/features/workspace-agent/proposal-change-preview";
 
-export type AgencyProposalCardViewModel = {
+type AgencyProposalCardViewModel = {
   proposalId: string;
   label: string;
   before: unknown;

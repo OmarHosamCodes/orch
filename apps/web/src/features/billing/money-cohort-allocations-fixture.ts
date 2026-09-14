@@ -2,7 +2,7 @@
 
 export type MoneyCohortRuleId = "profit-loss-share" | "rent-allowance" | "device-compensation";
 
-export type MoneyCalcOptionId =
+type MoneyCalcOptionId =
   | "roi-variables"
   | "charity"
   | "profit-loss-share"

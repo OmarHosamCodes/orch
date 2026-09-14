@@ -5,7 +5,7 @@ import type { ServerWebSocket } from "@orpc/server/bun-ws";
 import type { Context } from "@orch/api/context";
 import { createWebSocketContext } from "./ws-context";
 
-export const wsRpcHandler = new RPCHandler(appRouter);
+const wsRpcHandler = new RPCHandler(appRouter);
 
 export type AgencyWebSocketData = {
   request: Request;

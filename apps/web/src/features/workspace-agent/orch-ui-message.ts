@@ -493,17 +493,6 @@ export function getMessageText(message: UIMessage): string {
     .join("");
 }
 
-export function getMessageAttachments(message: OrchUIMessage): Array<{
-  filename: string;
-  mediaType: string;
-  previewUrl?: string;
-}> {
-  return message.parts.flatMap((part) => {
-    if (part.type !== "data-orchAttachment") return [];
-    return [part.data];
-  });
-}
-
 export function getMessageArtifacts(message: OrchUIMessage): AiUiArtifact[] {
   return message.parts.flatMap((part) => {
     if (part.type !== "data-orchArtifact") return [];

@@ -1,10 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export function getProsConsWeightButtonClass(
-  list: "pros" | "cons",
-  currentWeight: number,
-  value: number,
-) {
+function getProsConsWeightButtonClass(list: "pros" | "cons", currentWeight: number, value: number) {
   const isActive = value <= currentWeight;
 
   if (list === "pros") {

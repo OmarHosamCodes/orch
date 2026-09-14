@@ -171,8 +171,3 @@ export function buildAgencyTaskChooserSections(input: {
     clientGroups,
   };
 }
-
-export function isTaskFavorited(taskId: string, favoriteTaskIds: ReadonlySet<string> | string[]) {
-  if (Array.isArray(favoriteTaskIds)) return favoriteTaskIds.includes(taskId);
-  return favoriteTaskIds.has(taskId);
-}

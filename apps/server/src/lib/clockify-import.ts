@@ -29,7 +29,7 @@ export type ScrapeManifest = {
 
 export type ClockifyMember = ScrapeManifest["members"][number];
 
-export type ParsedClockifyEntry = {
+type ParsedClockifyEntry = {
   clockifyEntryId: string;
   clockifyUserId: string;
   description: string;
@@ -131,19 +131,19 @@ function slugify(value: string): string {
     .slice(0, 64);
 }
 
-export function clockifyClientId(clockifyId: string): string {
+function clockifyClientId(clockifyId: string): string {
   return `clockify-client-${clockifyId}`;
 }
 
-export function clockifyProjectId(clockifyId: string): string {
+function clockifyProjectId(clockifyId: string): string {
   return `clockify-project-${clockifyId}`;
 }
 
-export function clockifyTaskId(clockifyId: string): string {
+function clockifyTaskId(clockifyId: string): string {
   return `clockify-task-${clockifyId}`;
 }
 
-export function clockifyEntryId(clockifyId: string): string {
+function clockifyEntryId(clockifyId: string): string {
   return `clockify-entry-${clockifyId}`;
 }
 

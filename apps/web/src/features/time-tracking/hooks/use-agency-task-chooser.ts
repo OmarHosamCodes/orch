@@ -48,12 +48,12 @@ type AgencyTask = Pick<
   "id" | "projectId" | "title" | "status" | "assignedToTeam" | "assignees"
 >;
 
-export type AgencyTaskChooserClientOption = {
+type AgencyTaskChooserClientOption = {
   id: string;
   name: string;
 };
 
-export type AgencyTaskChooserTriggerFormat = "task-only" | "project-client" | "task-client";
+type AgencyTaskChooserTriggerFormat = "task-only" | "project-client" | "task-client";
 
 export type UseAgencyTaskChooserOptions = {
   teamId: string;
@@ -293,7 +293,8 @@ export function useAgencyTaskChooser(
     const visibleTaskCount =
       sections.favorites.reduce((sum, entry) => sum + entry.tasks.length, 0) +
       sections.clientGroups.reduce(
-        (sum, group) => sum + group.projects.reduce((inner, entry) => inner + entry.tasks.length, 0),
+        (sum, group) =>
+          sum + group.projects.reduce((inner, entry) => inner + entry.tasks.length, 0),
         0,
       );
     fetch("http://127.0.0.1:7426/ingest/ccff2d3d-07dc-43a2-9258-da9208dfd805", {

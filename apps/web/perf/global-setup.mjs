@@ -47,7 +47,7 @@ export async function runGlobalSetup({
 /**
  * @param {string} [storageStatePathArg]
  */
-export async function writeStorageStateMarker(storageStatePathArg = storageStatePath) {
+async function writeStorageStateMarker(storageStatePathArg = storageStatePath) {
   await writeFile(
     resolve(perfDir, ".auth", "session.json"),
     JSON.stringify({ storageStatePath: storageStatePathArg }, null, 2),
@@ -55,4 +55,4 @@ export async function writeStorageStateMarker(storageStatePathArg = storageState
   );
 }
 
-export { storageStatePath, DEFAULT_EMAIL, DEFAULT_PASSWORD };
+export { storageStatePath };

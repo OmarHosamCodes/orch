@@ -57,10 +57,6 @@ function ruleFixture(ruleId: MoneyCohortRuleId): MoneyCohortRuleFixture {
   );
 }
 
-export function isCustomMoneyRuleId(ruleId: string): boolean {
-  return !isSystemRuleId(ruleId);
-}
-
 /** Custom rule ids from persisted labels (plus any non-system enabled ids). */
 export function listCustomMoneyRuleIds(rules: MoneySettingsRulesState | undefined): string[] {
   const ids = new Set<string>();
@@ -92,7 +88,7 @@ export function resolveRuleCohort(
   return "";
 }
 
-export function resolveRuleMemberIds(
+function resolveRuleMemberIds(
   rules: MoneySettingsRulesState | undefined,
   ruleId: string,
 ): string[] {

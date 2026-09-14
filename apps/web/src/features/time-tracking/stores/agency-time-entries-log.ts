@@ -31,5 +31,3 @@ export const useAgencyTimeEntriesLogStore = create<AgencyTimeEntriesLogState>((s
       expandedGroupKeys: new Set(),
     }),
 }));
-
-export { DEFAULT_PAGE_SIZE };

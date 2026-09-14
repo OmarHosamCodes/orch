@@ -16,7 +16,7 @@ export const ORCH_PRESENCE_EXPANDED_RADIUS_PX = 16;
 export const ORCH_PRESENCE_MORPH_MS = 560;
 
 /** Emphasized decelerate — same family as `--motion-ease-emphasized`. */
-export const ORCH_PRESENCE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const ORCH_PRESENCE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 /**
  * Shared-layout spring: soft mass, high damping (no bounce), confident travel.

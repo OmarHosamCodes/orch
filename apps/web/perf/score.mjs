@@ -19,7 +19,7 @@ export function scoreToGrade(score, gradeThresholds) {
  * @param {string} grade
  * @param {string} minGrade
  */
-export function gradeMeetsMinimum(grade, minGrade) {
+function gradeMeetsMinimum(grade, minGrade) {
   return GRADE_ORDER.indexOf(grade) <= GRADE_ORDER.indexOf(minGrade);
 }
 

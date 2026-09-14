@@ -1,7 +1,7 @@
 import type { Transition, Variants } from "motion/react";
 
 /** Matches `--motion-ease-out` in index.css (ease-out-quart). */
-export const CHOOSER_EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
+const CHOOSER_EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
 /** Seconds — align with `--motion-duration-fast|base|panel`. */
 export const CHOOSER_MS = {
@@ -10,16 +10,10 @@ export const CHOOSER_MS = {
   panel: 0.22,
 } as const;
 
-export const CHOOSER_STAGGER_CAP = 8;
-export const CHOOSER_STAGGER_STEP = 0.05;
+const CHOOSER_STAGGER_CAP = 8;
+const CHOOSER_STAGGER_STEP = 0.05;
 
 export const chooserTapScale = { scale: 0.98 } as const;
-
-export const chooserFastTransition: Transition = {
-  type: "tween",
-  duration: CHOOSER_MS.fast,
-  ease: CHOOSER_EASE,
-};
 
 export const chooserBaseTransition: Transition = {
   type: "tween",
@@ -27,7 +21,7 @@ export const chooserBaseTransition: Transition = {
   ease: CHOOSER_EASE,
 };
 
-export const chooserCollapseTransition: Transition = {
+const chooserCollapseTransition: Transition = {
   type: "tween",
   duration: CHOOSER_MS.base,
   ease: CHOOSER_EASE,
@@ -97,6 +91,6 @@ export const chooserSelectFlashTransition: Transition = {
   ease: CHOOSER_EASE,
 };
 
-export function chooserStaggerIndex(index: number): number {
+function chooserStaggerIndex(index: number): number {
   return Math.min(index, CHOOSER_STAGGER_CAP - 1);
 }

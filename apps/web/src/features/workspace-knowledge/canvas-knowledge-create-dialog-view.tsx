@@ -31,13 +31,13 @@ import { Separator } from "@/ui/separator";
 import { Textarea } from "@/ui/textarea";
 import { cn } from "@/lib/utils";
 
-export type KnowledgeCreateTargetOption = {
+type KnowledgeCreateTargetOption = {
   id: string;
   label: string;
   objectType: string;
 };
 
-export type CanvasKnowledgeUnplacedItem = {
+type CanvasKnowledgeUnplacedItem = {
   id: string;
   chip: string;
   title: string;

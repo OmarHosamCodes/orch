@@ -2579,18 +2579,9 @@ export const useAgencyOpsStore = create<AgencyOpsState>((set, get) => ({
 }));
 
 export {
-  selectIsCapacityMutationPending,
   selectIsClientMutationPending,
   selectIsContactMutationPending,
   selectIsCreatingTask,
   selectIsInvoiceMutationPending,
   selectIsProjectMutationPending,
-  selectIsRateMutationPending,
-  selectIsTaskMutationPending,
-  selectIsTaskRowPending,
 } from "@/features/shared/stores/agency-ops-selectors";
-
-export {
-  toggleAgencyFavorite,
-  type ToggleFavoritePayload,
-} from "@/features/shared/stores/agency-favorites";

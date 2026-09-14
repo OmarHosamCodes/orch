@@ -120,9 +120,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
           <div className={agencyTimeTrackerRailCellClass}>
             <AgencyTimeEntryLinkHoverTrigger
               links={view.activeTimer ? view.timerLinks : []}
-              disabled={
-                !view.activeTimer || view.isTimerMutationPending || !view.teamId
-              }
+              disabled={!view.activeTimer || view.isTimerMutationPending || !view.teamId}
               saving={view.isTimerMutationPending}
               hoverRevealClassName="opacity-100"
               buttonClassName={agencyTimeTrackerIconActionClass}
@@ -384,11 +382,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
 
       {showStatusRow ? (
         <div className="px-1">
-          <p
-            id="agency-timer-stop-blocker"
-            className="min-w-0 text-xs text-warning"
-            role="alert"
-          >
+          <p id="agency-timer-stop-blocker" className="min-w-0 text-xs text-warning" role="alert">
             {view.stopButtonHint}
           </p>
         </div>

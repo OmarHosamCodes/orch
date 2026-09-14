@@ -167,16 +167,3 @@ export function projectHueStyle(projectId: string | null | undefined, colorHueId
     "--project-hue-soft-dark": hue.darkSoft,
   } as Record<string, string>;
 }
-
-/** Soft pill background + hue text for project badges. */
-export function projectHuePillStyle(
-  projectId: string | null | undefined,
-  isDark: boolean,
-  colorHueId?: number | null,
-) {
-  const hue = projectHueFor(projectId, colorHueId);
-  return {
-    backgroundColor: isDark ? hue.darkSoft : hue.lightSoft,
-    color: isDark ? hue.dark : hue.light,
-  };
-}

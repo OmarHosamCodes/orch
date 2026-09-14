@@ -41,7 +41,7 @@ export type PeopleGuidedHrDraft = {
   leaveAllowancePeriod: "year" | "quarter" | "month";
 };
 
-export type PeopleGuidedDepartmentOption = {
+type PeopleGuidedDepartmentOption = {
   id: string;
   name: string;
 };
@@ -61,7 +61,7 @@ export type PeopleGuidedTenureDraft = {
   notes: string;
 };
 
-export type PeopleGuidedStep = {
+type PeopleGuidedStep = {
   id: PeopleConfigStepId;
   label: string;
   done: boolean;

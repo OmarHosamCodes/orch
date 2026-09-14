@@ -9,20 +9,20 @@ import { type AgencyReportShowWaste } from "@/features/reports/agency-report-sho
 
 export type AgencyReportEntry = AgencyTimeEntry;
 
-export type AgencyReportWasteSources = {
+type AgencyReportWasteSources = {
   projects: boolean;
   tasks: boolean;
   entries: boolean;
 };
 
-export type ProjectGroup = {
+type ProjectGroup = {
   projectId: string;
   projectName: string;
   rows: AgencyReportEntry[];
   totalSeconds: number;
 };
 
-export type ClientGroup = {
+type ClientGroup = {
   clientId: string;
   clientName: string;
   projects: ProjectGroup[];
@@ -45,7 +45,7 @@ export type AggregatedReportRow = {
   entries: AgencyReportEntry[];
 };
 
-export type AggregatedProjectGroup = {
+type AggregatedProjectGroup = {
   projectId: string;
   projectName: string;
   rows: AggregatedReportRow[];
@@ -59,13 +59,13 @@ export type DisplayClientGroup = {
   totalSeconds: number;
 };
 
-export function sortRowsByStartedAt(rows: AgencyReportEntry[]): AgencyReportEntry[] {
+function sortRowsByStartedAt(rows: AgencyReportEntry[]): AgencyReportEntry[] {
   return [...rows].sort(
     (left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime(),
   );
 }
 
-export function groupEntriesByClient(entries: AgencyReportEntry[]): ClientGroup[] {
+function groupEntriesByClient(entries: AgencyReportEntry[]): ClientGroup[] {
   const byClient = new Map<
     string,
     {
@@ -124,7 +124,7 @@ export type ReportRowAggregationOptions = {
   mergeSameTaskNames?: boolean;
 };
 
-export function normalizeReportTaskTitle(taskTitle: string | null | undefined): string {
+function normalizeReportTaskTitle(taskTitle: string | null | undefined): string {
   return (taskTitle ?? "").trim();
 }
 
@@ -139,7 +139,7 @@ export function reportRowAggregationKey(
 }
 
 /** Join unique assignees in entry order with a middle-dot separator. */
-export function joinedReportRowAssignees(
+function joinedReportRowAssignees(
   entries: readonly Pick<AgencyReportEntry, "userId" | "userName">[],
 ): { userId: string; userName: string } {
   const first = entries[0]!;
@@ -160,7 +160,7 @@ export function joinedReportRowAssignees(
 }
 
 /** Join non-empty trimmed descriptions in entry order, unique, with a middle-dot separator. */
-export function joinedReportRowDescriptions(
+function joinedReportRowDescriptions(
   entries: readonly Pick<AgencyReportEntry, "description">[],
 ): string {
   const parts: string[] = [];
@@ -175,9 +175,7 @@ export function joinedReportRowDescriptions(
 }
 
 /** Join unique link URLs in entry order with a middle-dot separator. */
-export function joinedReportRowLinks(
-  entries: readonly Pick<AgencyReportEntry, "links">[],
-): string {
+export function joinedReportRowLinks(entries: readonly Pick<AgencyReportEntry, "links">[]): string {
   return joinedTimeEntryLinkUrls(entries);
 }
 
@@ -246,7 +244,7 @@ export function aggregateSimilarReportRows(
 }
 
 /** Same-name tasks within a project — used to keep similar rows consecutive. */
-export function reportSimilarTaskKey(row: Pick<AggregatedReportRow, "taskTitle">): string {
+function reportSimilarTaskKey(row: Pick<AggregatedReportRow, "taskTitle">): string {
   return normalizeReportTaskTitle(row.taskTitle).toLocaleLowerCase();
 }
 
@@ -291,7 +289,7 @@ export function groupEntriesForDisplay(
   }));
 }
 
-export function reportEntryWasteSources(
+function reportEntryWasteSources(
   entry: Pick<AgencyReportEntry, "projectName" | "taskTitle" | "taskIsWaste" | "isWaste">,
 ): AgencyReportWasteSources {
   return {
@@ -301,7 +299,7 @@ export function reportEntryWasteSources(
   };
 }
 
-export function isAnyWasteSource(sources: AgencyReportWasteSources): boolean {
+function isAnyWasteSource(sources: AgencyReportWasteSources): boolean {
   return sources.projects || sources.tasks || sources.entries;
 }
 
@@ -324,7 +322,7 @@ export function isReportEntryWaste(
   return resolveEntryWaste(entry);
 }
 
-export function isReportEntryWasteVisible(
+function isReportEntryWasteVisible(
   entry: Pick<AgencyReportEntry, "projectName" | "taskTitle" | "taskIsWaste" | "isWaste">,
   showWaste: AgencyReportShowWaste,
 ): boolean {

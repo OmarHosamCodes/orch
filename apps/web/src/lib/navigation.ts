@@ -14,7 +14,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type NavigateOptions = {
+type NavigateOptions = {
   replace?: boolean;
   state?: unknown;
 };

@@ -11,7 +11,7 @@ export type PeopleConfigSignals = {
 
 export type PeopleConfigBadge = "Incomplete" | "Override" | "Inactive" | null;
 
-export const PEOPLE_CONFIG_STEPS = [
+const PEOPLE_CONFIG_STEPS = [
   { id: "identity", label: "Identity" },
   { id: "employment", label: "Employment" },
   { id: "leave", label: "Off days" },

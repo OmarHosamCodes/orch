@@ -34,12 +34,6 @@ export function moneyBillTableShowsWaste(rows: ReadonlyArray<{ wasteAmount: numb
   return rows.some((row) => row.wasteAmount > 0);
 }
 
-export function moneyBillTableShowsHours(
-  groups: ReadonlyArray<{ durationSeconds: number }>,
-): boolean {
-  return groups.some((group) => group.durationSeconds > 0);
-}
-
 export function moneyBillTableShowsCarry(
   groups: ReadonlyArray<{ lines: ReadonlyArray<{ isCarry: boolean }> }>,
 ): boolean {
