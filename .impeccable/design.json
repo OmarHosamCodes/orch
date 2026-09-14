@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-16T07:07:00Z",
+  "generatedAt": "2026-09-14T19:00:00Z",
   "title": "Design System: Orch",
   "extensions": {
     "colorMeta": {
@@ -302,7 +302,7 @@
       "kind": "button",
       "refersTo": "button-outline",
       "description": "Secondary CTA. Hairline border, background surface.",
-      "html": "<button class=\"ds-btn-outline\">See pricing</button>",
+      "html": "<button class=\"ds-btn-outline\">Sign in</button>",
       "css": ".ds-btn-outline { background: var(--background); color: var(--foreground); font-family: var(--font-sans); font-weight: 500; font-size: 0.875rem; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.8); cursor: pointer; } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 30%, transparent); }"
     },
     {
@@ -338,6 +338,14 @@
       "css": ".ds-badge { display: inline-flex; align-items: center; height: 20px; padding: 2px 8px; border-radius: calc(var(--radius) * 1.8); background: var(--secondary); color: var(--muted-foreground); font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500; white-space: nowrap; }"
     },
     {
+      "name": "Global Grain",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Shared ambient texture painted into route and shell surfaces. Static 256px pixel noise published through --orch-grain-image.",
+      "html": "<div class=\"ds-grain-surface\" aria-hidden=\"true\"></div>",
+      "css": ".ds-grain-surface { background-image: var(--orch-grain-image); background-repeat: repeat; background-size: 256px 256px; }"
+    },
+    {
       "name": "App Shell Rail Link",
       "kind": "nav",
       "refersTo": null,
@@ -356,13 +364,14 @@
   ],
   "narrative": {
     "northStar": "Quiet instrument, photographic depth",
-    "overview": "Orch is a dual-register system. Marketing is dark and cinematic: large type, generous air, aurora atmosphere reserved for the hero. Product shares one cool zinc family across light and dark — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.\n\nShipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. Inspiration (synthesize, don't copy): Apple whitespace, Linear surface ladder, Vercel hero atmosphere only.\n\nThe system rejects category defaults. No purple gradient heroes, no animated orbs as brand, no gradient text, no glassmorphism-as-default, no AI neon. The agent is a tool. The canvas is the product.",
+    "overview": "Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained WebThreads field. Product shares one cool zinc family across light and dark — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.\n\nShipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. A shared static grain layer adds material presence across all routes without tinting surfaces.\n\nThe system rejects category defaults. No purple gradient heroes, no animated orbs as brand, no gradient text, no glassmorphism-as-default, no AI neon. The agent is a tool. The canvas is the product.",
     "keyCharacteristics": [
       "Restrained color: zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome (`--primary` black in light, white in dark).",
       "Typographic hierarchy carries the system. `--font-sans`: Poppins for Latin, IBM Plex Sans Arabic for Arabic glyphs; IBM Plex Mono for tool traces and metrics.",
       "Surface ladder, not flat paper. Background → card → secondary/muted → border. Soft shadows only for true float (dialogs, popovers) via the theme shadow scale.",
       "Radii from `--radius` (`0.5rem`): controls use `rounded-2xl` (~14px); cards/dialogs use `radius-4xl` capped at 24px; dense tables pin `radius-dense` at 8px.",
-      "Marketing may use aurora/mesh and blur-text reveals; product stays quiet. `prefers-reduced-motion` is mandatory."
+      "Marketing stays focused: the root route is a single hero with one ambient WebThreads field and direct auth actions; product stays quiet. `prefers-reduced-motion` is mandatory.",
+      "Global grain is ambient texture: every route receives a static, pointer-transparent 256px pixel-noise tile at low opacity."
     ],
     "rules": [
       {
@@ -382,8 +391,13 @@
       },
       {
         "name": "The Marketing Atmosphere Exception",
-        "body": "Soft aurora/mesh glow on the dark hero is allowed once. It is not a product pattern.",
+        "body": "One restrained WebThreads field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.",
         "section": "colors"
+      },
+      {
+        "name": "The Global Grain Rule",
+        "body": "Use the shared --orch-grain-image token on painted background and shell surfaces. Keep it static and subtle; never place a grain overlay above content or add route-specific noise layers.",
+        "section": "elevation"
       },
       {
         "name": "The Bilingual Stack Rule",
@@ -422,6 +436,7 @@
       "Do use Poppins + IBM Plex Sans Arabic (`--font-sans`) and IBM Plex Mono for system-reported truth.",
       "Do keep control radii on the `--radius` scale (`rounded-2xl` controls, `radius-4xl` cards); use full pills only for intentionally circular chrome (e.g. mobile nav trigger).",
       "Do put product nav in the rail/top-bar; make tool traces selectable and plain-prose-shaped.",
+      "Do keep the root landing to one clear hero action and let the global grain remain a quiet background texture.",
       "Do respect `prefers-reduced-motion` for shell, marketing, and feedback animations."
     ],
     "donts": [
@@ -429,6 +444,7 @@
       "Don't flood product UI with violet wallpaper or gradient text.",
       "Don't use liquid glass / `ui-liquid-glass-*` for overlays or Canvas chrome; use opaque shadcn surfaces + hairlines.",
       "Don't wrap everything in a card; nested cards are always wrong.",
+      "Don't add a second grain/noise overlay to an individual route; use the shared --orch-grain-image surface token.",
       "Don't put an uppercase eyebrow on every section or orchestrate entrance sequences in product surfaces.",
       "Don't use side-stripe active indicators — use text + soft tint, or the quiet thread line for nested routes.",
       "Don't use em dashes in copy or UI text."
