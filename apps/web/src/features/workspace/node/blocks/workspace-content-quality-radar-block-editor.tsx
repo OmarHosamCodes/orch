@@ -205,7 +205,7 @@ export function WorkspaceContentQualityRadarBlockEditor({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
-        <section className="rounded-xl border border-muted bg-muted p-5">
+        <section className="rounded-surface border border-muted bg-muted p-surface">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Radar view</p>
@@ -284,7 +284,7 @@ export function WorkspaceContentQualityRadarBlockEditor({
             </svg>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-muted bg-background p-4">
+          <div className="mt-4 rounded-surface border border-muted bg-background p-surface">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-toned">
               Focus next
             </p>
@@ -292,7 +292,7 @@ export function WorkspaceContentQualityRadarBlockEditor({
               {focusDimensions.map((dimension) => (
                 <article
                   key={dimension}
-                  className="rounded-xl border border-muted bg-background p-3"
+                  className="rounded-surface border border-muted bg-background p-surface"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold text-foreground">
@@ -314,7 +314,7 @@ export function WorkspaceContentQualityRadarBlockEditor({
           </div>
         </section>
 
-        <section className="rounded-xl border border-muted bg-background p-5">
+        <section className="rounded-surface border border-muted bg-background p-surface">
           <div className="mb-5">
             <p className="text-sm font-semibold text-foreground">Dimension controls</p>
             <p className="text-sm text-toned">
@@ -325,7 +325,10 @@ export function WorkspaceContentQualityRadarBlockEditor({
 
           <div className="grid gap-4 md:grid-cols-2">
             {WORKSPACE_CONTENT_QUALITY_DIMENSIONS.map((dimension) => (
-              <article key={dimension} className="rounded-2xl border border-muted bg-muted p-4">
+              <article
+                key={dimension}
+                className="rounded-surface border border-muted bg-muted p-surface"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">
                     {workspaceContentQualityDimensionLabels[dimension]}

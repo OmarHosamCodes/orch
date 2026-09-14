@@ -253,7 +253,7 @@ export function WorkspaceAssumptionTrackerBlockEditor({
           {visibleAssumptions.map((assumption) => (
             <article
               key={assumption.id}
-              className="rounded-xl border border-muted bg-background p-4"
+              className="rounded-surface border border-muted bg-background p-surface"
             >
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

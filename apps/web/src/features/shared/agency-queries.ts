@@ -23,6 +23,7 @@ import { useAgencyOptimisticStore } from "@/features/shared/stores/agency-optimi
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import { isAgencyTimeEntriesListQueryKey } from "@/features/shared/agency-query-cache";
 import { ensureAgencyTaskChooserCatalog } from "@/features/shared/agency-task-chooser-catalog";
+import { AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE } from "@/features/time-tracking/stores/agency-time-entries-log";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import type { AgencyProjectTask } from "@orch/api/schemas/agency-ops";
 
@@ -98,7 +99,12 @@ export async function ensureAgencyWorkBootQueries(
     queryClient.ensureQueryData(
       prefetchAgencySyncQueryOptions(
         orpc.agencyOps.timeEntries.listMine.queryOptions({
-          input: { teamId, page: 1, pageSize: 20 },
+          input: {
+            teamId,
+            page: 1,
+            pageSize: AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE,
+            utcOffsetMinutes: new Date().getTimezoneOffset(),
+          },
         }),
         "hot",
       ),

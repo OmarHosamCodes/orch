@@ -13,7 +13,7 @@ import { ExpenseStripGlyph } from "@/features/money/money-expense-strip-glyphs";
 import { moneyBaseTransition } from "@/features/money/money-motion";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ function ExpenseTable({
 
   return (
     <div className="px-4 pt-4">
-      <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
+      <div className="overflow-x-auto rounded-surface border border-default/55 bg-default">
         <Table className="min-w-[48rem]" aria-label="Expenses">
           <TableHeader className="border-b border-default/50">
             <TableRow>
@@ -133,63 +133,8 @@ function ExpenseTable({
 
 function ExpenseTableSkeleton() {
   return (
-    <div className="px-4 pt-4" aria-busy="true" aria-label="Loading expenses">
-      <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
-        <Table className="min-w-[48rem]">
-          <TableHeader className="border-b border-default/50">
-            <TableRow>
-              {["Expense", "Kind", "Status", "Due", "Amount", "Remaining", "Actions"].map(
-                (column) => (
-                  <TableHead
-                    key={column}
-                    scope="col"
-                    className={
-                      column === "Amount" || column === "Remaining" || column === "Actions"
-                        ? "text-right"
-                        : undefined
-                    }
-                  >
-                    {column}
-                  </TableHead>
-                ),
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 4 }, (_, index) => (
-              <TableRow key={index} className="border-b border-default last:border-b-0">
-                <TableCell>
-                  <div className="flex items-center gap-2.5">
-                    <Skeleton className="size-9 shrink-0 rounded-xl" />
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-28 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Skeleton className="h-7 w-16 rounded-2xl" />
-                    <Skeleton className="size-7 rounded-2xl" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="px-4 pt-4">
+      <SurfaceShimmer className="min-h-64" label="Loading expenses" />
     </div>
   );
 }

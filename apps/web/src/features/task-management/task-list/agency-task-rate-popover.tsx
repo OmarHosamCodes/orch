@@ -198,7 +198,7 @@ export function AgencyTaskRatePopover({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-64 gap-3 rounded-2xl p-3"
+        className="w-64 gap-3 rounded-surface p-surface"
         onClick={(event) => event.stopPropagation()}
         onOpenAutoFocus={(event) => {
           if (!canEdit) event.preventDefault();

@@ -70,7 +70,7 @@ export function WorkspaceNodeBlockRenderer({
     <div
       ref={rootRef}
       data-block-id={block.id}
-      className="group relative flex flex-col gap-5 rounded-xl border border-border bg-default p-6 transition-colors duration-200 hover:border-muted-foreground/30"
+      className="group relative flex flex-col gap-5 rounded-surface border border-border bg-default p-surface transition-colors duration-200 hover:border-muted-foreground/30"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">

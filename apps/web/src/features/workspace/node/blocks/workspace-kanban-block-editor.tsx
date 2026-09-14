@@ -123,7 +123,7 @@ export function WorkspaceKanbanBlockEditor({
           <section
             key={column.id}
             className={cn(
-              "flex min-w-[300px] max-w-[300px] flex-col rounded-xl border border-muted bg-background p-4",
+              "flex min-w-[300px] max-w-[300px] flex-col rounded-surface border border-muted bg-background p-surface",
               dragOverColumnId === column.id ? "ring-2 ring-primary/20" : "",
             )}
             onDragOver={(event) => onColumnDragOver(column.id, event)}
@@ -166,7 +166,7 @@ export function WorkspaceKanbanBlockEditor({
                   key={card.id}
                   draggable
                   className={cn(
-                    "group relative flex flex-col rounded-xl border border-muted bg-background p-4",
+                    "group relative flex flex-col rounded-surface border border-muted bg-background p-surface",
                     draggingCardId === card.id
                       ? "pointer-events-none opacity-40"
                       : "cursor-grab active:cursor-grabbing",

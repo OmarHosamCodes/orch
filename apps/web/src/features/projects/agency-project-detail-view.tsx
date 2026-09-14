@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import {
   agencyErrorPanelClass,
   agencyFocusRingClass,
@@ -122,13 +122,7 @@ export function AgencyProjectDetailView({
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-28 rounded-2xl" />
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <Skeleton className="h-80 rounded-2xl" />
-            <Skeleton className="h-80 rounded-2xl" />
-          </div>
-        </div>
+        <SurfaceShimmer className="min-h-96" label="Loading project" />
       ) : isError ? (
         <div className={agencyErrorPanelClass} role="alert">
           <AlertTriangle className="mx-auto size-5 text-error" />
@@ -149,7 +143,7 @@ export function AgencyProjectDetailView({
         <>
           {isTrashed ? (
             <div
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-default bg-elevated px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-surface border border-default bg-card px-surface py-3"
               role="status"
             >
               <p className="text-sm text-highlighted">

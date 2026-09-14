@@ -255,7 +255,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
               <section
                 key={bucket}
                 className={cn(
-                  "flex w-[320px] shrink-0 snap-start flex-col rounded-xl border p-4",
+                  "flex w-[320px] shrink-0 snap-start flex-col rounded-surface border p-surface",
                   bucketClasses.column,
                   dragOverBucket === bucket ? "ring-2 ring-primary/30" : "",
                 )}
@@ -332,7 +332,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                       key={deal.id}
                       draggable
                       className={cn(
-                        "group relative rounded-xl border border-muted bg-background p-5",
+                        "group relative rounded-surface border border-muted bg-background p-surface",
                         draggingDealId === deal.id
                           ? "pointer-events-none scale-95 opacity-40 grayscale"
                           : "cursor-grab active:cursor-grabbing",
@@ -510,7 +510,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                   ))}
 
                   {dealsByBucket[bucket].length === 0 ? (
-                    <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-background p-8 text-center">
+                    <div className="flex h-full flex-col items-center justify-center rounded-surface border border-dashed border-muted bg-background p-surface text-center">
                       <p className="text-sm font-semibold text-muted-foreground">
                         No {workspaceSalesForecastBucketLabels[bucket]} deals yet.
                       </p>

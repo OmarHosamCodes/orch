@@ -67,7 +67,7 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
                 "pointer-events-auto origin-bottom overflow-hidden text-card-foreground",
                 expanded
                   ? cn(
-                      "flex w-full flex-col rounded-2xl border border-border bg-card shadow-lg",
+                      "flex w-full flex-col rounded-surface border border-border bg-card shadow-lg",
                       showArtifactSplit ? "max-w-[1200px]" : "max-w-[960px]",
                     )
                   : cn(

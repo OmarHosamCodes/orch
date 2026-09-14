@@ -1,6 +1,6 @@
 import { agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 
 import { type AgencyMoneySurfaceViewModel } from "./hooks/use-agency-money-surface";
 import {
@@ -27,13 +27,7 @@ export function MoneyStatsSection({
   periodFx?: AgencyMoneySurfaceViewModel["periodFx"];
 }) {
   if (status === "loading") {
-    return (
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
-        {[1, 2, 3, 4].map((item) => (
-          <Skeleton key={item} className="min-h-[15.5rem] rounded-xl" />
-        ))}
-      </section>
-    );
+    return <SurfaceShimmer className="min-h-[15.5rem]" label="Loading period stats" />;
   }
 
   if (status === "error") {

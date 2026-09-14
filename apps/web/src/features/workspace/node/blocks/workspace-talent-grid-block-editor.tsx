@@ -306,7 +306,10 @@ export function WorkspaceTalentGridBlockEditor({
             const boxDescription = getBoxDescription(boxKey);
 
             return (
-              <article key={member.id} className="rounded-xl border border-muted bg-background p-4">
+              <article
+                key={member.id}
+                className="rounded-surface border border-muted bg-background p-surface"
+              >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <Input

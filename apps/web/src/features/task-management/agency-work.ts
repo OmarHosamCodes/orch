@@ -38,7 +38,6 @@ type AgencyWorkSurfaceReadyProps = {
 };
 
 export type AgencyWorkSurfaceView =
-  | { status: "loading" }
   | { status: "error"; message: string; onRetry: () => void }
   | {
       status: "empty";

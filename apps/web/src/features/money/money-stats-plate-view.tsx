@@ -129,7 +129,7 @@ export function MoneyStatsPlate({
     <article
       className={cn(
         instrumentPlateSurfaceClass(),
-        "flex min-h-[15.5rem] flex-col gap-2 rounded-xl border px-4 py-3.5 transition-colors",
+        "flex min-h-[15.5rem] flex-col gap-2 rounded-surface border px-surface py-3.5 transition-colors",
         "animate-in fade-in fill-mode-both duration-300 motion-reduce:animate-none",
       )}
       style={{ animationDelay: `${staggerIndex * 40}ms` }}
@@ -139,7 +139,7 @@ export function MoneyStatsPlate({
         <span className={plateHintClass}>{destinationHint}</span>
       </header>
 
-      <div className="flex min-h-[5.5rem] flex-1 flex-col justify-center gap-2.5 rounded-lg bg-muted/15 px-3 py-4">
+      <div className="flex min-h-[5.5rem] flex-1 flex-col justify-center gap-2.5 rounded-surface bg-card px-3 py-surface">
         <div className={cn("h-14 w-full shrink-0 transition-colors duration-300 sm:h-16", ink)}>
           <MoneyStatsPlateGlyph glyph={card.glyph} className="h-full w-full" />
         </div>

@@ -11,7 +11,7 @@ import { Button } from "@/ui/button";
 import { agencyFocusRingClass, agencyWorkMetaClass } from "@/features/shared/agency-ui";
 
 /** Profile panels: shadcn surface tokens + theme radius. */
-const profilePanelClass = "rounded-xl border border-border bg-card";
+const profilePanelClass = "rounded-surface border border-border bg-card";
 
 type CalendarDayStatus = "present" | "leave" | "holiday" | "weekend" | "empty";
 

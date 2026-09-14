@@ -35,7 +35,7 @@ import {
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { TooltipProvider } from "@/ui/tooltip";
 
 import type { AgencyClientDetailViewModel } from "./hooks/use-agency-client-detail";
@@ -187,16 +187,7 @@ export function AgencyClientDetailView({
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-28 rounded-2xl" />
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Skeleton className="h-28 rounded-2xl" />
-              <Skeleton className="h-28 rounded-2xl" />
-              <Skeleton className="h-28 rounded-2xl" />
-              <Skeleton className="h-28 rounded-2xl" />
-            </div>
-            <Skeleton className="h-64 rounded-2xl" />
-          </div>
+          <SurfaceShimmer className="min-h-96" label="Loading client" />
         ) : isError ? (
           <div className={agencyErrorPanelClass} role="alert">
             <AlertTriangle className="mx-auto size-5 text-error" />
@@ -217,7 +208,7 @@ export function AgencyClientDetailView({
           <>
             {isArchived ? (
               <div
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-default bg-elevated px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-surface border border-default bg-card px-surface py-3"
                 role="status"
               >
                 <p className="text-sm text-highlighted">

@@ -188,7 +188,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-muted bg-background p-5">
+      <div className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-primary">
@@ -295,7 +295,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <section className="rounded-xl border border-muted bg-background p-5">
+        <section className="rounded-surface border border-muted bg-background p-surface">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
@@ -314,7 +314,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
             {(summary?.suggestedNextActions ?? []).map((item) => (
               <li
                 key={`${block.id}-${item.task.id}`}
-                className="rounded-2xl border border-muted bg-muted p-4"
+                className="rounded-surface border border-muted bg-card p-surface"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
@@ -365,7 +365,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-xl border border-muted bg-background p-5">
+          <section className="rounded-surface border border-muted bg-background p-surface">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
@@ -382,7 +382,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
               {(summary?.domainBreakdown ?? []).map((domain) => (
                 <div
                   key={domain.label}
-                  className="rounded-2xl border border-muted bg-background p-4"
+                  className="rounded-surface border border-muted bg-background p-surface"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-bold text-foreground">{domain.label}</p>
@@ -404,7 +404,7 @@ export function WorkspaceTimeOrchestratorBlockEditor({
             </div>
           </section>
 
-          <section className="rounded-xl border border-muted bg-background p-5">
+          <section className="rounded-surface border border-muted bg-background p-surface">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
@@ -476,7 +476,10 @@ export function WorkspaceTimeOrchestratorBlockEditor({
         )}
       >
         {visibleQuadrants.map((quadrant) => (
-          <section key={quadrant.key} className="rounded-xl border border-muted bg-background p-5">
+          <section
+            key={quadrant.key}
+            className="rounded-surface border border-muted bg-background p-surface"
+          >
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-foreground">{quadrant.label}</p>

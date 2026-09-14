@@ -20,8 +20,7 @@ import { type MoneyBillAdjustmentRow } from "@/features/billing/money-bills-rows
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/tabs";
 import {
   DropdownMenu,
@@ -75,58 +74,8 @@ function ActiveBillFilterChip({
 
 function BillsTableSkeleton() {
   return (
-    <div className="px-4 pt-4" aria-busy="true" aria-label="Loading this period's bills">
-      <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
-        <Table className="min-w-[48rem]">
-          <TableHeader className="border-b border-default/50">
-            <TableRow>
-              {["Party", "Status", "Period", "Total", "Remaining", "Actions"].map((column) => (
-                <TableHead
-                  key={column}
-                  scope="col"
-                  className={
-                    column === "Total" || column === "Remaining" || column === "Actions"
-                      ? "text-right"
-                      : undefined
-                  }
-                >
-                  {column}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 4 }, (_, index) => (
-              <TableRow key={index} className="border-b border-default last:border-b-0">
-                <TableCell>
-                  <div className="flex items-center gap-2.5">
-                    <Skeleton className="size-9 shrink-0 rounded-xl" />
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-24 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Skeleton className="h-7 w-16 rounded-2xl" />
-                    <Skeleton className="size-7 rounded-2xl" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="px-4 pt-4">
+      <SurfaceShimmer className="min-h-64" label="Loading this period's bills" />
     </div>
   );
 }
@@ -399,7 +348,7 @@ function BillsSection({
         ) : null}
 
         {showEmpty ? (
-          <div className="mx-4 mt-4 flex flex-col items-center gap-2 rounded-2xl border border-default bg-default px-5 py-8 text-center">
+          <div className="mx-4 mt-4 flex flex-col items-center gap-2 rounded-surface border border-default bg-default px-surface py-surface text-center">
             <Receipt className="size-6 text-muted" aria-hidden />
             <p className="text-sm font-semibold text-highlighted">
               <AgencySearchHighlight text={bills.emptyCopy.title} query={bills.searchTerm} />

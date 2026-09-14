@@ -8,7 +8,7 @@ import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Separator } from "@/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/ui/sheet";
-import { Skeleton } from "@/ui/skeleton";
+import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { PanelLeftIcon } from "lucide-react";
 
@@ -562,7 +562,7 @@ function SidebarMenuSkeleton({
   });
 
   return (
-    <div
+    <SkeletonGroup
       data-slot="sidebar-menu-skeleton"
       data-sidebar="menu-skeleton"
       className={cn("flex h-8 items-center gap-2 rounded-xl px-2", className)}
@@ -578,7 +578,7 @@ function SidebarMenuSkeleton({
           } as React.CSSProperties
         }
       />
-    </div>
+    </SkeletonGroup>
   );
 }
 

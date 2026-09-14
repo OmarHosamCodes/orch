@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { ComposerMenuItem } from "@/components/elements/composer";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 type WorkspaceAgentToolMenuViewProps = {
@@ -94,13 +94,7 @@ function groupToolsByCategory(tools: AgentToolCatalogEntry[]) {
 
 export function WorkspaceAgentToolMenuView({ tools, loading }: WorkspaceAgentToolMenuViewProps) {
   if (loading && tools.length === 0) {
-    return (
-      <div className="flex flex-col gap-0.5 px-1">
-        <Skeleton className="h-7 w-40" />
-        <Skeleton className="h-7 w-48" />
-        <Skeleton className="h-7 w-44" />
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-24 mx-1" label="Loading tools" />;
   }
 
   if (tools.length === 0) {

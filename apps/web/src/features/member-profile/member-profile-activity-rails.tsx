@@ -284,7 +284,7 @@ export function MemberProfileActivityRails({
 
   return (
     <>
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <section className="overflow-hidden rounded-surface border border-border bg-card">
         <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
           <h2 className="text-sm font-semibold tracking-tight text-foreground">
             Activity & reviews

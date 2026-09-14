@@ -40,7 +40,7 @@ export function WorkspaceAiPromptBlockEditor({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-background p-5">
+      <div className="rounded-surface border border-border bg-background p-surface">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-toned">
@@ -111,7 +111,7 @@ export function WorkspaceAiPromptBlockEditor({
               {contextModeLabel}
             </Badge>
           </div>
-          <div className="rounded-xl border border-border bg-muted p-6">
+          <div className="rounded-surface border border-border bg-card p-surface">
             <div className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap text-foreground">
               {block.latestOutput}
             </div>
@@ -134,7 +134,10 @@ export function WorkspaceAiPromptBlockEditor({
           </div>
           <div className="grid gap-3">
             {block.outputHistory.map((entry) => (
-              <div key={entry.id} className="rounded-xl border border-border bg-background p-4">
+              <div
+                key={entry.id}
+                className="rounded-surface border border-border bg-background p-surface"
+              >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-toned">
                     {formatDateTime(entry.createdAt)}

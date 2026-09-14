@@ -1,5 +1,5 @@
 import { Input } from "@/ui/input";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import {
   formatRelativeReportTime,
   type SavedReportListItem,
@@ -97,11 +97,5 @@ export function SavedReportsListBodyView({
 }
 
 export function SavedReportsListSkeletonView() {
-  return (
-    <div className="space-y-2 p-2">
-      {Array.from({ length: 4 }, (_, index) => (
-        <Skeleton key={index} className="h-10 w-full rounded-dense" />
-      ))}
-    </div>
-  );
+  return <SurfaceShimmer className="min-h-40 m-2" label="Loading saved reports" />;
 }

@@ -14,7 +14,8 @@ import { Checkbox } from "@/ui/checkbox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
+import { ShellLiquidBadge } from "@/features/app-shell/shell-liquid-badge";
 import { cn } from "@/lib/utils";
 
 type AgencyNotificationsViewProps = {
@@ -120,7 +121,7 @@ function InboxNotificationRow({
     <li>
       <article
         className={cn(
-          "rounded-xl border border-transparent px-2.5 py-2.5 transition-colors",
+          "rounded-surface border border-transparent px-2.5 py-2.5 transition-colors",
           needsAction && unread && "border-border/60 bg-card",
           !needsAction && unread && "bg-muted/40",
           !unread && "opacity-70",
@@ -229,7 +230,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
           type="button"
           variant="ghost"
           size="icon"
-          className="relative size-8 rounded-full text-muted hover:text-highlighted"
+          className="relative size-8 shrink-0 rounded-full text-muted hover:bg-sidebar-accent hover:text-highlighted"
           aria-label={
             view.badgeCount > 0
               ? `Notifications, ${view.badgeCount} needing attention`
@@ -237,11 +238,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
           }
         >
           <Bell className="size-4" aria-hidden />
-          {view.badgeCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
-              {view.badgeLabel}
-            </span>
-          ) : null}
+          <ShellLiquidBadge visible={view.badgeCount > 0}>{view.badgeLabel}</ShellLiquidBadge>
         </Button>
       </PopoverTrigger>
 
@@ -285,9 +282,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
         {view.showSettings ? (
           view.preferencesPending ? (
             <div className="space-y-2 px-3 py-3">
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
+              <SurfaceShimmer className="min-h-44" label="Loading notification settings" />
             </div>
           ) : (
             <div className="max-h-[420px] space-y-3 overflow-y-auto px-3 py-3">
@@ -403,10 +398,8 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
             </div>
           )
         ) : view.listPending ? (
-          <div className="space-y-2 px-3 py-3">
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <Skeleton className="h-14 w-full rounded-xl" />
+          <div className="px-3 py-3">
+            <SurfaceShimmer className="min-h-44" label="Loading notifications" />
           </div>
         ) : view.items.length === 0 ? (
           <div className="px-4 py-8 text-center">

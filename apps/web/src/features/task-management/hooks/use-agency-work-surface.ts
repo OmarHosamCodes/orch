@@ -34,8 +34,6 @@ export function useAgencyWorkSurface({ teamId, onSegmentChange }: UseAgencyWorkS
       message: getErrorMessage(projectsQuery.error, "Try refreshing."),
       onRetry: () => void projectsQuery.refetch(),
     };
-  } else if (projectsQuery.isPending) {
-    view = { status: "loading" };
   } else {
     const showEmptyProjects =
       projectsQuery.isSuccess && projects.length === 0 && !projectsQuery.isFetching;

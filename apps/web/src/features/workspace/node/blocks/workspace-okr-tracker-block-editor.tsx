@@ -148,7 +148,7 @@ export function WorkspaceOkrTrackerBlockEditor({
               <article
                 key={objective.id}
                 className={cn(
-                  "overflow-hidden rounded-xl border border-l-4 border-muted bg-background p-4 transition-colors",
+                  "overflow-hidden rounded-surface border border-l-4 border-muted bg-background p-surface transition-colors",
                   getHealthClasses(health),
                 )}
               >

@@ -59,7 +59,7 @@ function WorkspaceFlowNodeComponent({ id, selected, data }: NodeProps<WorkspaceF
 
       <div
         className={cn(
-          "flex h-full w-full min-h-0 flex-col overflow-hidden rounded-2xl border border-default bg-default",
+          "flex h-full w-full min-h-0 flex-col overflow-hidden rounded-surface border border-default bg-default",
           isFrame && "bg-muted/40",
           selected && "ring-2 ring-primary/40",
         )}

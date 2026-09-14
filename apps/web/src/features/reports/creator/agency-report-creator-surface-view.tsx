@@ -1,14 +1,11 @@
 import { AlertTriangle, BarChart2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import {
-  AgencyReportCreatorHeader,
-  AgencyReportCreatorHeaderSkeleton,
-} from "@/features/reports/creator/agency-report-creator-header";
+import { AgencyReportCreatorHeader } from "@/features/reports/creator/agency-report-creator-header";
 import { AgencyReportHourMetricsRow } from "@/features/reports/agency-report-hour-metrics-row";
 import { AgencyReportCreatorTable } from "@/features/reports/creator/agency-report-creator-table";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import type { AgencyReportCreatorSurfaceViewModel } from "./hooks/use-agency-report-creator-surface";
 
@@ -31,13 +28,8 @@ export function AgencyReportCreatorSurfaceView({
     );
   }
 
-  if (vm.isPending) {
-    return (
-      <div className="agency-report-creator space-y-4">
-        <AgencyReportCreatorHeaderSkeleton />
-        <Skeleton className="h-64 w-full rounded-dense" />
-      </div>
-    );
+  if (vm.isPending || (vm.report && vm.rangeReady && vm.entriesQueryPending)) {
+    return <SurfaceShimmer className="min-h-80" label="Loading report" />;
   }
 
   if (vm.isError || !vm.report) {
@@ -96,14 +88,6 @@ export function AgencyReportCreatorSurfaceView({
           <BarChart2 className="mx-auto size-7 text-muted" />
           <p className="mt-4 text-sm font-semibold text-highlighted">Dates are missing.</p>
           <p className="mt-1 text-xs text-muted">This report needs a date range to show hours.</p>
-        </div>
-      ) : vm.entriesQueryPending ? (
-        <div className="overflow-hidden rounded-dense border border-default bg-default">
-          {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="border-b border-default px-4 py-3">
-              <Skeleton className="h-4 w-full max-w-md" />
-            </div>
-          ))}
         </div>
       ) : vm.entriesQueryError ? (
         <div className={agencyErrorPanelClass} role="alert">

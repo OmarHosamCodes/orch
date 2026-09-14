@@ -18,7 +18,6 @@ import {
 } from "@/ui/dropdown-menu";
 import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
 import {
   formatRelativeReportTime,
   formatReportHeaderMeta,
@@ -370,7 +369,7 @@ export function AgencyReportCreatorHeader({
 
   return (
     <>
-      <header className="rounded-dense border border-default bg-elevated px-3 py-3 sm:px-4">
+      <header className="rounded-surface border border-default bg-card p-surface">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-2">
             <Button
@@ -456,27 +455,5 @@ export function AgencyReportCreatorHeader({
         </DialogContent>
       </Dialog>
     </>
-  );
-}
-
-export function AgencyReportCreatorHeaderSkeleton() {
-  return (
-    <div className="rounded-dense border border-default bg-elevated px-3 py-3 sm:px-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-2">
-          <Skeleton className="size-9 shrink-0 rounded-dense" />
-          <div className="min-w-0 flex-1 flex flex-col gap-2">
-            <Skeleton className="h-5 w-48 max-w-full" />
-            <Skeleton className="h-3 w-full max-w-md" />
-            <Skeleton className="h-3 w-40" />
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 pl-10 sm:pl-0">
-          <Skeleton className="h-9 w-20 rounded-dense" />
-          <Skeleton className="h-9 w-24 rounded-dense" />
-          <Skeleton className="h-9 w-28 rounded-dense" />
-        </div>
-      </div>
-    </div>
   );
 }

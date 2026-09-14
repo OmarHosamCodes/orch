@@ -25,7 +25,7 @@ import {
 } from "@/ui/dialog";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
 
 const LEAVE_TYPES = [
@@ -243,17 +243,10 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
       ) : null}
 
       {isActivityPending ? (
-        <div className="flex flex-col gap-4">
-          <Skeleton className="h-24 w-full rounded-2xl" />
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-            <Skeleton className="h-[28rem] w-full rounded-2xl" />
-            <Skeleton className="h-[28rem] w-full rounded-2xl" />
-          </div>
-          <Skeleton className="h-40 w-full rounded-2xl" />
-        </div>
+        <SurfaceShimmer className="min-h-[36rem]" label="Loading team presence" />
       ) : isActivityError ? null : (
         <>
-          <section className="border-default bg-card grid shrink-0 gap-4 rounded-2xl border px-5 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <section className="border-default bg-card grid shrink-0 gap-4 rounded-surface border px-surface py-surface sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div className="flex items-start gap-4 sm:items-center">
               <div className="border-default bg-muted/50 grid size-14 shrink-0 place-items-center rounded-xl border">
                 <strong className="text-highlighted font-mono text-xl font-medium leading-none tabular-nums">
@@ -289,7 +282,7 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
 
           <div className="grid shrink-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
             <div className="flex min-w-0 flex-col gap-4">
-              <section className="border-default bg-card overflow-hidden rounded-2xl border">
+              <section className="border-default bg-card overflow-hidden rounded-surface border">
                 <header className="border-default flex flex-wrap items-start gap-3 border-b px-4 py-3.5">
                   <div className="min-w-0">
                     <h2 className={agencyWorkTitleClass}>{focusMonthLabel} presence</h2>
@@ -398,7 +391,7 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
                 </div>
               </section>
 
-              <section className="border-default bg-card overflow-hidden rounded-2xl border">
+              <section className="border-default bg-card overflow-hidden rounded-surface border">
                 <header className="border-default flex flex-wrap items-start gap-3 border-b px-4 py-3.5">
                   <div className="min-w-0">
                     <h2 className={agencyWorkTitleClass}>Nearby days</h2>
@@ -479,7 +472,7 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
               className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"
               aria-label="Selected day and upcoming off days"
             >
-              <section className="border-default bg-card rounded-2xl border p-4">
+              <section className="border-default bg-card rounded-surface border p-surface">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className={agencyWorkTitleClass}>{selectedDayLabel}</h2>
@@ -523,17 +516,14 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
                 </div>
               </section>
 
-              <section className="border-default bg-card overflow-hidden rounded-2xl border">
+              <section className="border-default bg-card overflow-hidden rounded-surface border">
                 <header className="border-default border-b px-4 py-3.5">
                   <h2 className={agencyWorkTitleClass}>Upcoming off days</h2>
                   <p className={agencyWorkMetaClass}>Next exceptions needing coverage</p>
                 </header>
                 <div className="px-4 py-1">
                   {isLeavePending ? (
-                    <div className="flex flex-col gap-2 py-3">
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                    </div>
+                    <SurfaceShimmer className="min-h-24 my-3" label="Loading off days" />
                   ) : agenda.length === 0 ? (
                     <p className={cn(agencyWorkMetaClass, "py-4")}>
                       No upcoming off days in this window.
@@ -567,7 +557,7 @@ export function AgencyResourcingWorkloadView({ viewModel }: AgencyResourcingWork
             </aside>
           </div>
 
-          <section className="border-default bg-card shrink-0 overflow-hidden rounded-2xl border">
+          <section className="border-default bg-card shrink-0 overflow-hidden rounded-surface border">
             <header className="border-default flex flex-wrap items-start gap-3 border-b px-4 py-3.5">
               <div className="min-w-0">
                 <h2 className={agencyWorkTitleClass}>Person availability</h2>

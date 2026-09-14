@@ -56,12 +56,12 @@ import {
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 /** Profile panels: shadcn surface tokens + theme radius (not hardcoded 2rem / Nuxt aliases). */
-const profilePanelClass = "rounded-xl border border-border bg-card";
+const profilePanelClass = "rounded-surface border border-border bg-card";
 
 function safeHttpUrl(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
@@ -255,13 +255,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
   }
 
   if (viewModel.loading && !profile) {
-    return (
-      <div className="mx-auto grid max-w-7xl gap-4 p-6 lg:grid-cols-[240px_minmax(0,1fr)_minmax(17.5rem,20rem)]">
-        <Skeleton className="h-80 w-full" />
-        <Skeleton className="h-[28rem] w-full" />
-        <Skeleton className="h-80 w-full" />
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-[32rem]" label="Loading member profile" />;
   }
 
   if (viewModel.error && !profile) {
@@ -283,7 +277,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-5 p-surface">
         <div
           className={cn(agencyCommandBarShellClass, "relative w-full overflow-hidden")}
           aria-busy={viewModel.refreshing || undefined}
@@ -328,7 +322,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
 
         <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)_minmax(17.5rem,20rem)] xl:items-start">
           <aside className="space-y-4 max-xl:order-1">
-            <section className={cn(profilePanelClass, "p-4")}>
+            <section className={cn(profilePanelClass, "p-surface")}>
               <div className="flex items-start justify-between gap-2">
                 <div className="relative">
                   <AgencyMemberAvatar
@@ -463,7 +457,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
               )}
             </section>
 
-            <section className={cn(profilePanelClass, "p-4")}>
+            <section className={cn(profilePanelClass, "p-surface")}>
               <h2 className={agencyWorkTitleClass}>Personal info</h2>
               <div className="mt-1 divide-y divide-border">
                 <PersonalRow
@@ -510,7 +504,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
             <MemberProfileAlertsPanel alerts={viewModel.alerts} />
 
             {profile.timeline.length === 0 ? (
-              <section className={cn(profilePanelClass, "p-4 sm:p-5")}>
+              <section className={cn(profilePanelClass, "p-surface")}>
                 <div className="flex items-center justify-between gap-2">
                   <h2 className={agencyWorkTitleClass}>Activity & reviews</h2>
                   {profile.canAddReview ? (

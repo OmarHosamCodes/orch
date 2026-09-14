@@ -4,7 +4,7 @@ import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { shouldShowAssigneeStackPlus } from "@/features/shared/choosers/agency-member-stack";
 import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import type { AgencyMemberChooserViewModel } from "@/features/shared/choosers/use-agency-member-chooser";
 import {
   agencyAvatarStackRingClass,
@@ -193,11 +193,11 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
         </div>
         <div className="max-h-[24rem] overflow-x-hidden overflow-y-auto px-2 py-2">
           {loading ? (
-            <div className="space-y-2 px-3 py-1">
+            <SkeletonGroup className="space-y-2 px-3 py-1">
               {[1, 2, 3].map((rowIndex) => (
                 <Skeleton key={rowIndex} className="h-8 rounded-lg" />
               ))}
-            </div>
+            </SkeletonGroup>
           ) : (
             <>
               {showTeamOption ? (

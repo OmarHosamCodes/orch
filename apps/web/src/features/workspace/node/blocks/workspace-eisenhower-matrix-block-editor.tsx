@@ -540,7 +540,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-muted bg-muted p-5">
+      <section className="rounded-surface border border-muted bg-muted p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-primary">
@@ -675,7 +675,10 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         {visibleQuadrants.map((quadrant) => (
           <article
             key={quadrant.key}
-            className={cn("rounded-xl border border-muted p-5", getQuadrantClassName(quadrant.key))}
+            className={cn(
+              "rounded-surface border border-muted p-surface",
+              getQuadrantClassName(quadrant.key),
+            )}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -706,7 +709,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                 {quadrant.tasks.map((item) => (
                   <article
                     key={getCollectedTaskKey(item)}
-                    className="rounded-xl border border-muted bg-background p-4"
+                    className="rounded-surface border border-muted bg-background p-surface"
                   >
                     <div className="flex items-start gap-3">
                       <BlockCheckbox
@@ -757,7 +760,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         ))}
       </div>
 
-      <section className="rounded-xl border border-muted bg-background p-6">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -802,7 +805,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         )}
       </section>
 
-      <section className="rounded-xl border border-muted bg-background p-6">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -849,7 +852,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
             {summary.prioritizedTasks.map((item) => (
               <article
                 key={getCollectedTaskKey(item)}
-                className="rounded-xl border border-muted bg-background p-4"
+                className="rounded-surface border border-muted bg-background p-surface"
               >
                 <div className="grid gap-4 xl:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,0.7fr)]">
                   <div className="flex items-start pt-2">
@@ -1014,7 +1017,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         )}
       </section>
 
-      <section className="rounded-xl border border-muted bg-background p-5">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -1034,7 +1037,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         </div>
 
         <div
-          className="prose prose-sm dark:prose-invert mt-6 max-w-none rounded-xl border border-muted bg-background p-5 text-sm leading-relaxed text-toned shadow-sm"
+          className="prose prose-sm dark:prose-invert mt-6 max-w-none rounded-surface border border-muted bg-background p-surface text-sm leading-relaxed text-toned shadow-sm"
           dangerouslySetInnerHTML={{
             __html: renderSimpleMarkdown(
               block.latestBattlePlan ||

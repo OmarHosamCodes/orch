@@ -162,7 +162,7 @@ function SchemaNode({ node }: { node: UiSchemaNode }) {
                 ) : null}
               </>
             );
-            const className = "block overflow-hidden rounded-xl border border-border bg-card";
+            const className = "block overflow-hidden rounded-surface border border-border bg-card";
             return item.href ? (
               <a
                 key={`${item.src}-${i}`}

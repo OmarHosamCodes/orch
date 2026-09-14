@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { AgencyProjectsVirtualTable } from "@/features/projects/agency-projects-virtual-table";
 import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import { type AgencyProjectsTableViewModel } from "./hooks/use-agency-projects-table";
@@ -48,15 +48,7 @@ export function AgencyProjectsTableView({
   } = viewModel;
 
   if (isLoading) {
-    return (
-      <div className="agency-projects overflow-hidden rounded-2xl border border-default bg-default">
-        {[1, 2, 3, 4, 5, 6].map((rowIndex) => (
-          <div key={rowIndex} className="border-b border-default px-4 py-4 last:border-b-0">
-            <Skeleton className="h-4 w-full" />
-          </div>
-        ))}
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-80" label="Loading projects" />;
   }
 
   if (isError) {
@@ -103,7 +95,7 @@ export function AgencyProjectsTableView({
   return (
     <>
       {filteredProjects.length === 0 ? (
-        <div className="rounded-2xl border border-default bg-default p-8 text-center">
+        <div className="rounded-surface border border-default bg-default p-surface text-center">
           <p className="text-sm font-bold text-highlighted">No projects match.</p>
           <p className="mt-1 text-xs text-muted">Try a different search or trash filter.</p>
         </div>

@@ -3,7 +3,7 @@ import { AlertTriangle, BarChart2 } from "lucide-react";
 import { AgencyReportHourMetricsRow } from "@/features/reports/agency-report-hour-metrics-row";
 import { AgencyReportsTable } from "@/features/reports/agency-reports-table";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import type { AgencyReportsSurfaceViewModel } from "./hooks/use-agency-reports-surface";
 
@@ -13,24 +13,7 @@ export type AgencyReportsSurfaceViewProps = {
 
 export function AgencyReportsSurfaceView({ vm }: AgencyReportsSurfaceViewProps) {
   if (vm.isPending) {
-    return (
-      <div className="space-y-2" aria-hidden="true">
-        <div className="flex items-baseline justify-between px-1">
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <div className="overflow-hidden rounded-dense border border-default/55 bg-default">
-          <div className="border-b border-default/50 bg-elevated/45 px-4 py-2.5">
-            <Skeleton className="h-3 w-64" />
-          </div>
-          {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="border-b border-default/40 px-4 py-3 last:border-b-0">
-              <Skeleton className="h-4 w-full max-w-md" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-80" label="Loading reports" />;
   }
 
   if (vm.isError) {

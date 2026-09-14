@@ -296,7 +296,10 @@ export function WorkspaceCustomBlockEditor({
 
       <div className="grid gap-4 sm:grid-cols-2">
         {template.fields.map((field) => (
-          <article key={field.id} className="space-y-3 rounded-xl border border-muted p-4">
+          <article
+            key={field.id}
+            className="space-y-3 rounded-surface border border-muted p-surface"
+          >
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-foreground">{field.label}</p>
               <Badge variant="secondary" className="rounded-full capitalize">
@@ -393,7 +396,7 @@ export function WorkspaceCustomBlockEditor({
               <p className="text-sm font-semibold text-foreground">Recent runs</p>
               <div className="grid gap-2">
                 {block.outputHistory.slice(0, 3).map((entry) => (
-                  <article key={entry.id} className="rounded-xl border border-muted p-3">
+                  <article key={entry.id} className="rounded-surface border border-muted p-surface">
                     <p className="text-[11px] text-muted-foreground">
                       {formatDateTime(entry.createdAt)}
                     </p>

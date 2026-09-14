@@ -32,7 +32,7 @@ import { ASSIGNEE_STACK_MAX_WIDTH_PX } from "@/features/shared/choosers/agency-m
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/ui/sheet";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -243,11 +243,7 @@ function RailPanel({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3 pt-1.5">
         {view.isLoading ? (
-          <div className="flex flex-col gap-2 px-1" aria-busy="true" aria-label="Loading tasks">
-            <Skeleton className="h-12 w-full rounded-md" />
-            <Skeleton className="h-12 w-full rounded-md" />
-            <Skeleton className="h-12 w-full rounded-md" />
-          </div>
+          <SurfaceShimmer className="min-h-40 mx-1" label="Loading tasks" />
         ) : view.errorMessage ? (
           <div className={cn(agencyErrorPanelClass, "mx-1 my-2 p-4")} role="alert">
             <p className="text-sm font-medium text-foreground">Tasks did not load</p>

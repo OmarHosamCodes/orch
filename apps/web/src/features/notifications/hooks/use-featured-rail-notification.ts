@@ -2,7 +2,6 @@ import type { NotificationRecord } from "@orch/api/schemas/notifications";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@/lib/navigation";
 
-import { useAppShellStore } from "@/features/app-shell/app-shell-store";
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import {
   useAgencyNotificationsQuery,
@@ -22,15 +21,8 @@ import { useTeamStore } from "@/features/team/team-store";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import { useWorkspaceAgentStore } from "@/features/workspace-agent/stores/workspace-agent-store";
 
-export type FeaturedRailNotificationInput = {
-  /** Mobile drawer is always wide enough for the card. */
-  forceExpanded?: boolean;
-};
-
-export function useFeaturedRailNotification(input: FeaturedRailNotificationInput = {}) {
+export function useFeaturedRailNotification() {
   const teamId = useTeamStore((s) => s.selectedTeamId) ?? "";
-  const railPinned = useAppShellStore((s) => s.railPinned);
-  const expanded = input.forceExpanded || railPinned;
   const navigate = useNavigate();
   const requestOpenInbox = useNotificationsInboxUiStore((s) => s.requestOpen);
   const startTimer = useAgencyTimeTrackingStore((state) => state.startTimer);
@@ -62,7 +54,6 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
       ? featuredNotificationCta(featured)
       : { kind: "open" as const, label: "Open" };
   const moreCount = Math.max(0, count - 1);
-  const badgeLabel = count > 9 ? "9+" : String(count);
   const actorName = featured?.actorName?.trim() || "Team";
   const actorAvatar = featured?.actorAvatar ?? null;
   const relativeTime = featured ? formatRelativeTime(featured.createdAt) : "";
@@ -125,13 +116,11 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
 
   return {
     teamId,
-    expanded,
     isAppUpdate,
     featured,
     count,
     moreCount,
     moreLabel,
-    badgeLabel,
     title,
     body,
     ctaLabel: cta.label,

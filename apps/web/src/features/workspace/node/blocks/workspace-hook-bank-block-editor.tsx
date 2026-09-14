@@ -244,7 +244,10 @@ export function WorkspaceHookBankBlockEditor({
       ) : (
         <div className="space-y-3">
           {sortedHooks.map((hook) => (
-            <article key={hook.id} className="rounded-xl border border-muted bg-background p-4">
+            <article
+              key={hook.id}
+              className="rounded-surface border border-muted bg-background p-surface"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-3">
                   <div>

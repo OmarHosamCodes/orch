@@ -26,7 +26,7 @@ import {
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import {
   agencyInputPlaceholderClass,
   agencyTaskChooserCreateActionClass,
@@ -314,11 +314,11 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 className="max-h-[min(24rem,60vh)] overflow-y-auto [overflow-anchor:none] px-1.5 py-2"
               >
                 {loading ? (
-                  <div className="space-y-1.5 px-1 py-1">
+                  <SkeletonGroup className="space-y-1.5 px-1 py-1">
                     {[1, 2, 3, 4, 5].map((rowIndex) => (
                       <Skeleton key={rowIndex} className="h-8 rounded-lg" />
                     ))}
-                  </div>
+                  </SkeletonGroup>
                 ) : (
                   <AnimatePresence mode="wait" initial={false}>
                     {isEmpty ? (

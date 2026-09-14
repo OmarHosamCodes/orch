@@ -25,10 +25,10 @@ import {
 } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
 
-const profilePanelClass = "rounded-xl border border-border bg-card";
+const profilePanelClass = "rounded-surface border border-border bg-card";
 
 type AlertItem = MemberProfileAlertsViewModel["items"][number];
 
@@ -136,10 +136,7 @@ export function MemberProfileAlertsPanel({ alerts }: Props) {
             </Button>
           </div>
         ) : alerts.loading ? (
-          <div className="mt-3 space-y-2" aria-label="Loading alerts">
-            <Skeleton className="h-[4.75rem] w-full rounded-xl" />
-            <Skeleton className="h-[4.75rem] w-full rounded-xl" />
-          </div>
+          <SurfaceShimmer className="mt-3 min-h-[10rem]" label="Loading alerts" />
         ) : alerts.items.length === 0 ? (
           <div className="mt-3 space-y-1 py-2">
             <p className="text-sm font-medium text-foreground">No open alerts</p>

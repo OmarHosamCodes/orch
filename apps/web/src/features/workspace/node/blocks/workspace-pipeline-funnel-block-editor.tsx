@@ -122,7 +122,7 @@ export function WorkspacePipelineFunnelBlockEditor({
         ) : null}
       </div>
 
-      <div className="rounded-xl border border-muted bg-background p-4">
+      <div className="rounded-surface border border-muted bg-background p-surface">
         <div className="space-y-2.5">
           {summary.stageSummaries.map((stage) => (
             <div key={stage.stage} className="flex justify-center">
@@ -178,7 +178,10 @@ export function WorkspacePipelineFunnelBlockEditor({
         ) : (
           <div className="space-y-3">
             {sortedDeals.map((deal) => (
-              <article key={deal.id} className="rounded-xl border border-muted bg-background p-4">
+              <article
+                key={deal.id}
+                className="rounded-surface border border-muted bg-background p-surface"
+              >
                 <div className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
                   <div className="min-w-0">
                     <Input

@@ -55,7 +55,7 @@ export function Workspace2x2MatrixBlockEditor({
 
       <div className="grid gap-4 lg:grid-cols-2">
         {quadrants.map((quadrantKey) => (
-          <article key={quadrantKey} className="rounded-xl border border-muted p-4">
+          <article key={quadrantKey} className="rounded-surface border border-muted p-surface">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="text-xs text-muted-foreground">

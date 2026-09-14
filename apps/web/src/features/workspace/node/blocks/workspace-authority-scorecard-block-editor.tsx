@@ -111,14 +111,14 @@ export function WorkspaceAuthorityScorecardBlockEditor({
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-muted bg-muted p-4">
+        <div className="rounded-surface border border-muted bg-card p-surface">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">On Target</p>
           <p className="mt-2 text-xl font-semibold tracking-tight text-primary">
             {summary.atTargetCount}/{summary.metricCount}
           </p>
         </div>
 
-        <div className="rounded-xl border border-muted bg-muted p-4">
+        <div className="rounded-surface border border-muted bg-card p-surface">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
             Avg Progress
           </p>
@@ -127,7 +127,7 @@ export function WorkspaceAuthorityScorecardBlockEditor({
           </p>
         </div>
 
-        <div className="rounded-xl border border-muted bg-muted p-4">
+        <div className="rounded-surface border border-muted bg-card p-surface">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">Strongest</p>
           <p className="mt-2 text-xl font-semibold tracking-tight text-success">
             {summary.strongestMetric

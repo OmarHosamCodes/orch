@@ -165,7 +165,10 @@ export function WorkspaceCohortHealthDashboardBlockEditor({
             const fillPercent = getCohortFillPercent(cohort);
 
             return (
-              <article key={cohort.id} className="rounded-xl border border-muted bg-background p-4">
+              <article
+                key={cohort.id}
+                className="rounded-surface border border-muted bg-background p-surface"
+              >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2.5">

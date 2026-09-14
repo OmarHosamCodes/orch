@@ -14,7 +14,7 @@ import {
 } from "@/features/shared/agency-ui";
 import { projectHueFor } from "@/features/shared/project-palette";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { cn } from "@/lib/utils";
@@ -114,12 +114,7 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
   } = viewModel;
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-full max-w-2xl rounded-xl" />
-        <Skeleton className="h-72 rounded-2xl" />
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-72" label="Loading dashboard" />;
   }
 
   if (isError) {

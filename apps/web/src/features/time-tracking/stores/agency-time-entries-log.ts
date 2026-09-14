@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-const DEFAULT_PAGE_SIZE = 50;
+export const AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE = 50;
 
 type AgencyTimeEntriesLogState = {
   page: number;
@@ -14,7 +14,7 @@ type AgencyTimeEntriesLogState = {
 
 export const useAgencyTimeEntriesLogStore = create<AgencyTimeEntriesLogState>((set) => ({
   page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
+  pageSize: AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE,
   expandedGroupKeys: new Set(),
   setPage: (page) => set({ page }),
   setPageSize: (pageSize) => set({ pageSize, page: 1 }),

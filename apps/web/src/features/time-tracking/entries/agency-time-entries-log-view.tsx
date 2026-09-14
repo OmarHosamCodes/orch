@@ -4,13 +4,10 @@ import { AgencyTimeEntryDayGroupView } from "@/features/time-tracking/entries/ag
 import { AgencyTimeEntryWeekHeaderView } from "@/features/time-tracking/entries/agency-time-entry-week-group-view";
 import { AgencyWorkSurfacePaginationFooter } from "@/features/task-management/work-surface/agency-work-surface-pagination-footer";
 import { Button } from "@/ui/button";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import type { AgencyTimeEntriesLogViewModel } from "@/features/time-tracking/hooks/use-agency-time-entries-log";
 import type { AgencyTimeEntryGroupRowRenderer } from "@/features/time-tracking/entries/agency-time-entry-row-renderer";
-import {
-  agencyMetricClass,
-  agencyTimeLogSkeletonClass,
-  agencyWorkTableBodyScrollClass,
-} from "@/features/shared/agency-ui";
+import { agencyMetricClass, agencyWorkTableBodyScrollClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
 type AgencyTimeEntriesLogViewProps = {
@@ -38,11 +35,7 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
 
       <div ref={view.scrollContainerRef} className={agencyWorkTableBodyScrollClass}>
         {view.isLoading ? (
-          <div className="overflow-hidden">
-            {[1, 2, 3, 4, 5].map((rowIndex) => (
-              <div key={rowIndex} className={agencyTimeLogSkeletonClass} />
-            ))}
-          </div>
+          <SurfaceShimmer className="min-h-64 rounded-none" label="Loading time entries" />
         ) : view.entriesEmpty ? (
           <div className="border-b border-dashed border-default bg-elevated/25 px-4 py-10 text-center">
             <p className="text-sm font-semibold text-highlighted">No time logged yet</p>

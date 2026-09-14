@@ -57,7 +57,7 @@ export function AgencyProjectsVirtualTable({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="overflow-x-auto rounded-2xl border border-default bg-default">
+      <div className="overflow-x-auto rounded-surface border border-default bg-default">
         <div
           className={cn(
             "grid min-w-[52rem] grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_5.5rem_5.5rem] border-b border-default bg-muted text-xs",

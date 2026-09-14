@@ -22,7 +22,7 @@ export function AgencyWorkSurfaceLayoutView({
 }: AgencyWorkSurfaceLayoutViewProps) {
   return (
     <div
-      className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 font-sans lg:flex-row lg:gap-5"
+      className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-4 font-sans lg:flex-row lg:gap-5"
       data-agency-work-surface
     >
       <div className={cn(agencyTimePaneStackClass, "relative min-h-0 min-w-0 flex-1 basis-0")}>
@@ -33,7 +33,7 @@ export function AgencyWorkSurfaceLayoutView({
             {threadCover ? (
               <motion.div
                 key="task-thread-cover"
-                className="absolute inset-0 z-30 overflow-hidden rounded-lg border border-border bg-card"
+                className="absolute inset-0 z-30 overflow-hidden rounded-surface border border-border bg-card"
                 variants={threadCoverVariants}
                 initial="hidden"
                 animate="show"

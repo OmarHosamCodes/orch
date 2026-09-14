@@ -324,7 +324,7 @@ export function InstrumentPlate({
     </>
   );
   const className = cn(
-    "flex min-h-[7.5rem] flex-col items-center justify-between gap-2 rounded-xl border px-3 py-3 text-center transition-[colors,transform] duration-150 ease-out",
+    "flex min-h-[7.5rem] flex-col items-center justify-between gap-2 rounded-surface border px-3 py-3 text-center transition-[colors,transform] duration-150 ease-out",
     "motion-reduce:transition-none motion-reduce:active:scale-100",
     onClick && "active:scale-[0.985]",
     onClick && agencyFocusRingClass,

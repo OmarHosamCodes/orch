@@ -86,7 +86,7 @@ export function WorkspaceNodeCard({
 
   return (
     <div
-      className="node-card group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[1.5rem] p-4 transition-colors duration-200"
+      className="node-card group relative flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card p-surface transition-colors duration-200"
       style={tintStyle}
       tabIndex={0}
       {...agentScopeableProps({
@@ -95,12 +95,6 @@ export function WorkspaceNodeCard({
         label: workspaceNode.title,
       })}
     >
-      <div className="absolute inset-0 -z-20 rounded-[1.5rem] bg-background/50" />
-      {workspaceNode.nodeType === "orchestrator" ? (
-        <div className="absolute inset-0 -z-10 rounded-[1.5rem] bg-[radial-gradient(circle_at_top_right,rgb(var(--workspace-node-rgb)/0.14),transparent_55%)]" />
-      ) : null}
-      <div className="absolute inset-0 -z-10 rounded-[1.5rem] border border-[rgb(var(--workspace-node-rgb)/0.2)] bg-[rgb(var(--workspace-node-rgb)/0.05)] dark:bg-[rgb(var(--workspace-node-rgb)/0.08)]" />
-
       <div className="mb-4 flex items-start justify-between gap-2.5">
         <div className="flex min-w-0 items-start gap-2.5">
           <div

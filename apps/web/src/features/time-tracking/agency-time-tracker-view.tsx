@@ -182,7 +182,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
                     if (isElapsedStartEditorTarget(event.target)) event.preventDefault();
                   }}
                   className={cn(
-                    "w-auto min-w-0 gap-1.5 rounded-xl border border-default p-2.5 shadow-lg ring-0",
+                    "w-auto min-w-0 gap-1.5 rounded-surface border border-default p-2.5 shadow-lg ring-0",
                     "data-[state=closed]:animate-none",
                   )}
                   data-elapsed-start-editor=""

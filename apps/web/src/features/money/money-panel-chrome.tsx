@@ -4,7 +4,7 @@ import { agencyMetricClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
-export const moneyPanelHeaderClass = "flex flex-col gap-3 border-b border-default p-5 pb-4";
+export const moneyPanelHeaderClass = "flex flex-col gap-3 border-b border-default p-surface";
 
 export function MoneyPanelTitleRow({
   title,

@@ -62,7 +62,7 @@ type AgencyMoneyBillsTablesViewProps = {
   onSettleAdjustment: (row: MoneyBillAdjustmentRow) => void;
 };
 
-const tableWrapperClass = "overflow-x-auto rounded-dense border border-default/55 bg-default";
+const tableWrapperClass = "overflow-x-auto rounded-surface border border-default/55 bg-default";
 const numericCellClass = "whitespace-nowrap text-right font-mono tabular-nums";
 
 function BillsTableHeader({ columns }: { columns: string[] }) {

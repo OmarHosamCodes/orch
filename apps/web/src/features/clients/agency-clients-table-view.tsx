@@ -23,7 +23,7 @@ import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 import type { AgencyClientsTableViewModel } from "./hooks/use-agency-clients-table";
@@ -86,15 +86,7 @@ export function AgencyClientsTableView({
   } = viewModel;
 
   if (isLoading) {
-    return (
-      <div className="agency-clients overflow-hidden rounded-2xl border border-default bg-default">
-        {[1, 2, 3, 4, 5, 6].map((rowIndex) => (
-          <div key={rowIndex} className="border-b border-default px-4 py-4 last:border-b-0">
-            <Skeleton className="h-4 w-full" />
-          </div>
-        ))}
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-80" label="Loading clients" />;
   }
 
   if (isError) {
@@ -131,12 +123,12 @@ export function AgencyClientsTableView({
   return (
     <TooltipProvider delayDuration={300}>
       {filteredClients.length === 0 ? (
-        <div className="rounded-2xl border border-default bg-default p-8 text-center">
+        <div className="rounded-surface border border-default bg-default p-surface text-center">
           <p className="text-sm font-bold text-highlighted">No clients match.</p>
           <p className="mt-1 text-xs text-muted">Try a different search or archive filter.</p>
         </div>
       ) : (
-        <div className="agency-clients overflow-x-auto rounded-2xl border border-default bg-default">
+        <div className="agency-clients overflow-x-auto rounded-surface border border-default bg-default">
           <table className="w-full min-w-[68rem] text-xs">
             <thead className="border-b border-default bg-muted">
               <tr className={agencyLabelClass}>

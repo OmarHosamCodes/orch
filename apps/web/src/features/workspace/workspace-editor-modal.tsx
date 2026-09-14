@@ -244,7 +244,7 @@ export function WorkspaceEditorModal({
             </section>
           </div>
           {mode === "edit" ? (
-            <div className="rounded-2xl border border-muted/30 bg-elevated/20 p-4">
+            <div className="rounded-surface border border-muted/30 bg-card p-surface">
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -266,7 +266,7 @@ export function WorkspaceEditorModal({
               </div>
               <div className="mt-4">
                 {groupedBlockOptions.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-muted/40 bg-muted/20 px-4 py-6 text-sm text-muted">
+                  <p className="rounded-surface border border-dashed border-muted/40 bg-card px-surface py-surface text-sm text-muted">
                     Add blocks inside the node first, then return here to feature them on the card.
                   </p>
                 ) : (

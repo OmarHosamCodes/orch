@@ -220,7 +220,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
             <article
               key={meeting.id}
               className={cn(
-                "rounded-2xl border border-muted p-4 transition-all",
+                "rounded-surface border border-muted p-surface transition-all",
                 getMeetingClasses(meeting),
               )}
             >
@@ -366,7 +366,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
                     />
                   </div>
 
-                  <div className="flex min-w-[120px] flex-col justify-center rounded-xl border border-muted bg-background px-3 py-2.5">
+                  <div className="flex min-w-[120px] flex-col justify-center rounded-surface border border-muted bg-background px-3 py-2.5">
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
                       {workspaceLeadershipRhythmLabels[meeting.rhythm]}
                     </span>

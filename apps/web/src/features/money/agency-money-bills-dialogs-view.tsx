@@ -276,7 +276,7 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
                 </TabsList>
 
                 <TabsContent value="pay" className="mt-4">
-                  <div className="rounded-xl border border-default bg-muted/25 px-4 py-5 text-center">
+                  <div className="rounded-surface border border-default bg-card px-surface py-surface text-center">
                     <p className="text-xs text-muted">
                       {adjust.partyType === "client" ? "Amount to collect" : "Amount to pay"}
                     </p>

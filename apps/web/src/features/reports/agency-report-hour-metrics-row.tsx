@@ -26,7 +26,7 @@ export function AgencyReportHourMetricsRow({ metrics, caption }: AgencyReportHou
   const entryLabel = metrics.entryCount === 1 ? "1 entry" : `${metrics.entryCount} entries`;
 
   return (
-    <div className="space-y-3 rounded-dense border border-default/55 bg-default px-4 py-3">
+    <div className="space-y-3 rounded-surface border border-default/55 bg-default px-surface py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm text-muted">{caption}</p>
         <p className="text-xs text-muted">{entryLabel}</p>

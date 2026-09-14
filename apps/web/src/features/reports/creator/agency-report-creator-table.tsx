@@ -128,7 +128,7 @@ export function AgencyReportCreatorTable({
                 )}
               />
             </div>
-            <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
+            <div className="overflow-x-auto rounded-surface border border-default/55 bg-default">
               <Table className="min-w-[40rem]">
                 <TableCaption className="sr-only">
                   Time entries for {clientGroup.clientName}, grouped by project and task

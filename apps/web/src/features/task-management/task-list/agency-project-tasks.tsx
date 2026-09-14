@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AgencyTaskGroupRow } from "@/features/task-management/task-list/agency-task-group-row";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { useAgencyProjectTasksQuery } from "@/features/shared/agency-queries";
 import { groupTasksByProjectTitle } from "@/features/task-management/agency-task-utils";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
@@ -71,7 +71,7 @@ export function AgencyProjectTasks({
   }
 
   return (
-    <section className="rounded-2xl border border-default bg-default">
+    <section className="rounded-surface border border-default bg-default">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-default px-4 py-3">
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Tasks</p>
@@ -106,13 +106,7 @@ export function AgencyProjectTasks({
       </header>
 
       {tasksQuery.isPending ? (
-        <div className="divide-y divide-default">
-          {[1, 2, 3, 4].map((rowIndex) => (
-            <div key={rowIndex} className="px-4 py-3">
-              <Skeleton className="h-4 w-full" />
-            </div>
-          ))}
-        </div>
+        <SurfaceShimmer className="min-h-48 rounded-none" label="Loading tasks" />
       ) : tasksQuery.isError ? (
         <div className="px-4 py-8 text-center">
           <AlertTriangle className="mx-auto size-5 text-error" />

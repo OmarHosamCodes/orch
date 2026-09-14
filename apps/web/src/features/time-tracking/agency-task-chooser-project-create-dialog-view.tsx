@@ -121,7 +121,7 @@ export function AgencyTaskChooserProjectCreateDialogView({
                 Color
               </span>
               <div
-                className="grid grid-cols-6 gap-2 rounded-xl border border-default bg-default p-2.5 sm:grid-cols-12"
+                className="grid grid-cols-6 gap-2 rounded-surface border border-default bg-default p-2.5 sm:grid-cols-12"
                 role="radiogroup"
                 aria-labelledby={`${formId}-color-label`}
               >

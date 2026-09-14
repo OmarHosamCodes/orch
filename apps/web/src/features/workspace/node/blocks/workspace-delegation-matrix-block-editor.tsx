@@ -192,7 +192,7 @@ export function WorkspaceDelegationMatrixBlockEditor({
         />
       </div>
 
-      <div className="rounded-xl border border-muted bg-muted p-4">
+      <div className="rounded-surface border border-muted bg-card p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-foreground">Delegation tracker</p>
@@ -310,7 +310,7 @@ export function WorkspaceDelegationMatrixBlockEditor({
           {filteredItems.map((item) => (
             <article
               key={item.id}
-              className={cn("rounded-xl border p-5", getStatusCardClasses(item.status))}
+              className={cn("rounded-surface border p-surface", getStatusCardClasses(item.status))}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">

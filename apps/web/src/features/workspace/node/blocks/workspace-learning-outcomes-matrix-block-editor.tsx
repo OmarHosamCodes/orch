@@ -190,7 +190,7 @@ export function WorkspaceLearningOutcomesMatrixBlockEditor({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-muted bg-background p-4">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
@@ -286,7 +286,7 @@ export function WorkspaceLearningOutcomesMatrixBlockEditor({
         ) : null}
       </section>
 
-      <section className="rounded-xl border border-muted bg-background p-4">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
@@ -306,7 +306,7 @@ export function WorkspaceLearningOutcomesMatrixBlockEditor({
 
         {block.latestOutput ? (
           <div
-            className="prose prose-sm dark:prose-invert max-w-none rounded-xl border border-muted bg-background p-4 text-sm leading-relaxed text-toned"
+            className="prose prose-sm dark:prose-invert max-w-none rounded-surface border border-muted bg-background p-surface text-sm leading-relaxed text-toned"
             dangerouslySetInnerHTML={{ __html: renderedLatestOutput }}
           />
         ) : (
@@ -347,7 +347,7 @@ export function WorkspaceLearningOutcomesMatrixBlockEditor({
               return (
                 <article
                   key={entry.id}
-                  className="rounded-xl border border-muted bg-background p-3"
+                  className="rounded-surface border border-muted bg-background p-surface"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-foreground">

@@ -9,7 +9,7 @@ import {
   agencySectionTitleClass,
 } from "@/features/shared/agency-ui";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -45,20 +45,11 @@ export function AgencyMoneySurfaceView({ viewModel }: AgencyMoneySurfaceViewProp
   } = viewModel;
 
   if (isRolePending) {
-    return (
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6" aria-busy="true">
-        <Skeleton className="h-8 w-36" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[1, 2, 3, 4].map((item) => (
-            <Skeleton key={item} className="min-h-[15.5rem] rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-[32rem]" label="Loading money" />;
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
+    <div className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className={cn(agencySectionTitleClass, "text-balance")}>{title}</h1>

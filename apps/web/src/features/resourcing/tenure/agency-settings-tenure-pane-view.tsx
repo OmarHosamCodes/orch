@@ -1,7 +1,5 @@
-import { agencySectionTitleClass } from "@/features/shared/agency-ui";
-import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/dialog";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 
 import { AgencyPeopleDepartments } from "./agency-people-departments";
 import { AgencyPeopleDirectory } from "./agency-people-directory";
@@ -16,20 +14,7 @@ export function AgencySettingsTenurePaneView({
   viewModel: AgencySettingsTenurePaneViewModel;
 }) {
   if (viewModel.isLoading) {
-    return (
-      <div className="space-y-6" aria-busy="true" aria-label="Loading people">
-        <div className="space-y-2">
-          <h1 className={cn(agencySectionTitleClass)}>People</h1>
-          <Skeleton className="h-4 w-72 max-w-full rounded-md" />
-        </div>
-        <Skeleton className="h-36 w-full rounded-[2rem]" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <Skeleton className="h-44 w-full rounded-[2rem]" />
-          <Skeleton className="h-44 w-full rounded-[2rem]" />
-          <Skeleton className="h-44 w-full rounded-[2rem]" />
-        </div>
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-[28rem]" label="Loading people" />;
   }
 
   return (

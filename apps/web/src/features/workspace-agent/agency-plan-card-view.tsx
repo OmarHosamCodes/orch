@@ -30,7 +30,7 @@ export function AgencyPlanCardView({
         "flex w-full flex-col gap-3 text-card-foreground",
         embedded
           ? "rounded-none border-0 bg-transparent p-0"
-          : "max-w-[min(100%,36rem)] rounded-xl bg-muted/40 p-4",
+          : "max-w-[min(100%,36rem)] rounded-surface bg-card p-surface",
         className,
       )}
     >

@@ -87,7 +87,7 @@ export const agencyAvatarStackRingClass = "ring-1 ring-background";
 /** Readable placeholder text on default/elevated agency surfaces (≥4.5:1). */
 export const agencyInputPlaceholderClass = "placeholder:text-muted-foreground";
 
-export const agencyPanelClass = "rounded-[2rem] border border-default bg-default";
+export const agencyPanelClass = "rounded-surface border border-default bg-default";
 
 export const agencyFormFieldClass = "flex w-full min-w-0 flex-col gap-1.5";
 
@@ -99,7 +99,7 @@ export const agencyEmptyPanelClass = shellEmptyPanelClass;
 
 /** My Tasks rail — same card language as the tracker bar (`agencyWorkTrackerCardClass`). */
 export const agencyTaskRailClass =
-  "flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card";
+  "flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card";
 
 /** Collapsed rail: top-aligned open count and expand control. */
 export const agencyTaskRailCollapsedClass = cn(
@@ -196,7 +196,7 @@ export const agencyTimeTrackerPanelClass = "relative z-20 shrink-0 overflow-visi
 export const agencyTimeLogPanelClass = "flex min-h-0 flex-1 flex-col overflow-hidden";
 
 const agencyWorkTrackerCardClass =
-  "shrink-0 overflow-hidden rounded-lg border border-border bg-card";
+  "shrink-0 overflow-hidden rounded-surface border border-border bg-card";
 
 export const agencyWorkTableBodyScrollClass = "min-h-0 flex-1 overflow-y-auto p-0";
 
@@ -225,9 +225,9 @@ export const agencyTimeTrackerCardClass = cn(
   "agency-tracker-card flex min-h-[52px] min-w-0 flex-row items-center overflow-visible px-3 sm:px-4",
 );
 
-/** Whole-tracker loading shimmer — one surface, no partial text placeholders. */
+/** Whole-surface loading shimmer — one sweep, no stacked placeholders. */
 export const agencyTimeTrackerShimmerClass =
-  "pointer-events-none absolute inset-0 rounded-[inherit] bg-muted/50 shimmer motion-reduce:animate-none";
+  "pointer-events-none absolute inset-0 rounded-[inherit] bg-muted/50 shimmer shimmer-bg text-foreground motion-reduce:animate-none";
 
 export const agencyTimeTrackerDescriptionZoneClass =
   "group/desc relative flex min-h-0 min-w-0 flex-1 items-center overflow-visible";
@@ -270,7 +270,7 @@ export const agencyTimeTrackerTaskChooserTriggerClass = cn(
 );
 
 export const agencyTaskChooserPanelClass = cn(
-  "flex w-[26rem] max-w-[calc(100vw-2rem)] flex-col gap-0 rounded-xl border border-border bg-popover p-0 font-sans text-popover-foreground shadow-lg ring-0",
+  "flex w-[26rem] max-w-[calc(100vw-2rem)] flex-col gap-0 rounded-surface border border-border bg-popover p-0 font-sans text-popover-foreground shadow-lg ring-0",
   // Exit animation can stall Presence unmount and leave a click-eating layer.
   "data-[state=closed]:animate-none",
 );
@@ -319,7 +319,7 @@ export const agencyTimeTrackerIconActionClass = cn(
 );
 
 export const agencyTimeTrackerSuggestionPanelClass = cn(
-  "relative z-50 max-h-48 overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
+  "relative z-50 max-h-48 overflow-y-auto overflow-x-hidden rounded-surface border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
 );
 
 export const agencyTimeTrackerSuggestionOptionClass = cn(
@@ -461,7 +461,7 @@ export const agencyTimeEntryBulkActionClass = cn(
 
 /** One day block — solid surface so background gutters read as hard separation. */
 export const agencyTimeEntryDayGroupClass =
-  "@container/entries overflow-hidden rounded-lg border border-default bg-default";
+  "@container/entries overflow-hidden rounded-surface border border-default bg-default";
 
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";
@@ -518,6 +518,3 @@ export const agencyTimeWeekFooterClass = cn(
   "mt-[20px] flex h-[40px] shrink-0 items-center justify-between border-t border-default px-[20px]",
   "bg-elevated/40",
 );
-
-export const agencyTimeLogSkeletonClass =
-  "h-[4.5rem] border-b border-default bg-elevated/35 motion-reduce:animate-none animate-pulse";
