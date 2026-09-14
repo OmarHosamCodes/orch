@@ -131,6 +131,7 @@ function resolveLegacyTargetPath(pathname: string, params: URLSearchParams): str
     section === "management" ||
     manage === "invoices" ||
     manage === "billing" ||
+    manage === "rates" ||
     isAgencyManagementPaneId(manage);
 
   if (isManagementQuery) {
