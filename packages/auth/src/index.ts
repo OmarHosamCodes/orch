@@ -7,6 +7,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { AUTH_IP_ADDRESS_HEADERS, AUTH_TRUSTED_PROXY_CIDRS } from "./trusted-proxies";
+import { rememberedAccount } from "./remembered-account";
 
 const polarClient = new Polar({
   accessToken: env.POLAR_ACCESS_TOKEN,
@@ -53,6 +54,7 @@ export const auth = betterAuth({
     schema: schema,
   }),
   trustedOrigins: corsOrigins,
+  disabledPaths: ["/sign-in/email", "/sign-up/email"],
   emailAndPassword: {
     enabled: true,
   },
@@ -60,6 +62,9 @@ export const auth = betterAuth({
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
+      prompt: "select_account",
+      disableImplicitSignUp: false,
+      disableSignUp: false,
     },
   },
   account: {
@@ -110,6 +115,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    rememberedAccount(),
     polar({
       client: polarClient,
       createCustomerOnSignUp: false,
