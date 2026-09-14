@@ -14,6 +14,7 @@
     "clean": "git clean -xdf .turbo node_modules dist .nuxt .output"
   },
   "dependencies": {
+    "@better-auth/core": "1.6.23",
     "@orch/db": "workspace:*",
     "@orch/env": "workspace:*",
     "@polar-sh/better-auth": "^1.8.3",
