@@ -21,7 +21,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | --- | ---: |
 | golden-feature | 930 |
 | server-operation | 12 |
-| shared-infrastructure | 376 |
+| shared-infrastructure | 375 |
 | static-presentation | 17 |
 
 ## Counts by domain
@@ -54,7 +54,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | task-management | 101 |
 | team | 19 |
 | time-tracking | 120 |
-| web-platform | 151 |
+| web-platform | 150 |
 | workspace | 137 |
 
 ## Artifacts
@@ -135,7 +135,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/components/elements/empty-state.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/components/elements/error-state.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/components/elements/message-queue.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/components/elements/range.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/elements/stopped-run.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/components/elements/surfaces.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/components/elements/thread-list.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |

@@ -70,19 +70,6 @@ function resolveEffort(
   return efforts?.some((e) => e.id === effort) ? effort : undefined;
 }
 
-/**
- * Returns the effort id if the given model supports it, otherwise undefined.
- * Effort selection is kept sticky across model switches; this resolves what
- * actually applies to the current model.
- */
-function resolveModelEffort(
-  models: readonly ModelOption[],
-  modelId: string | undefined,
-  effort: string | undefined,
-): string | undefined {
-  return resolveEffort(getModelEfforts(models.find((m) => m.id === modelId)), effort);
-}
-
 function useControllableState<T>({
   prop,
   defaultProp,
@@ -332,10 +319,7 @@ function ModelSelectorValue({
   );
 }
 
-type ModelSelectorContentProps = Omit<
-  ComponentPropsWithoutRef<typeof PopoverContent>,
-  "side"
-> & {
+type ModelSelectorContentProps = Omit<ComponentPropsWithoutRef<typeof PopoverContent>, "side"> & {
   /**
    * Preferred side for the initial placement. Once the popover is open, the
    * rendered side takes over until it closes, so the popup does not jump
