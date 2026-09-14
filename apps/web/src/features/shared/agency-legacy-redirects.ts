@@ -92,6 +92,7 @@ function resolveManagementPane(
   manage: string | null,
 ): AgencyManagementPaneId {
   if (manage === "invoices" || manage === "billing") return "money";
+  if (manage === "rates") return "tenure";
   if (isAgencyManagementPaneId(manage)) return manage;
   if (section === "billing") return "money";
   if (section === "resourcing" || section === "settings") return "resourcing";
@@ -117,6 +118,10 @@ function resolveLegacyTargetPath(pathname: string, params: URLSearchParams): str
   }
   if (report && (section === "reports" || isAgencyRoot(pathname) || onReportsPath(currentPath))) {
     return agencyReportHref(report);
+  }
+
+  if (manage === "tags") {
+    return "/agency";
   }
 
   const isManagementQuery =
