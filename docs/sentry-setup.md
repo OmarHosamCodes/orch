@@ -16,23 +16,25 @@ Tracing covers every production session (`tracesSampleRate: 1.0`):
 
 ## Railway / deployment variables
 
-Set these on the Railway service that builds and runs Orch:
+Production target: Railway project **Internal Tools**, environment **Brainiac**, service **web**.
 
 | Variable                 | Purpose                                                              |
 | ------------------------ | -------------------------------------------------------------------- |
 | `VITE_PUBLIC_SENTRY_DSN` | Browser SDK DSN (public)                                             |
 | `SENTRY_DSN`             | Server SDK DSN (same project)                                        |
 | `SENTRY_ORG`             | `school-of-marketing`                                                |
-| `SENTRY_PROJECT`         | Project slug, e.g. `orch`                                            |
+| `SENTRY_PROJECT`         | `orch`                                                               |
 | `SENTRY_AUTH_TOKEN`      | Secret auth token with `project:releases` / source map upload scopes |
-| `SENTRY_ENVIRONMENT`     | Optional override; defaults to `NODE_ENV` / production               |
+| `SENTRY_ENVIRONMENT`     | `production` on Railway                                              |
 | `SENTRY_RELEASE`         | Optional override; defaults to `RAILWAY_GIT_COMMIT_SHA`              |
 
 `RAILWAY_GIT_COMMIT_SHA` is already used as the web build id and becomes the shared release identifier.
 
+Create the auth token under [Org Auth Tokens](https://school-of-marketing.sentry.io/settings/auth-tokens/) with scopes that allow release/source map upload (`project:releases`, `org:read`).
+
 ## Local development
 
-Leave DSN values empty in `.env` files. The SDKs stay disabled without a DSN, and production builds skip source map upload without auth credentials.
+Set the same DSN in root `.env`, `apps/server/.env` (`SENTRY_DSN`), and `apps/web/.env` (`VITE_PUBLIC_SENTRY_DSN`). Leave `SENTRY_AUTH_TOKEN` empty locally unless you need source map uploads from a local production build. Without a DSN, the SDKs stay disabled; without auth credentials, builds skip source map upload.
 
 ## Reading performance data
 
