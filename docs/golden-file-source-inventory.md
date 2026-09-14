@@ -19,7 +19,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 930 |
+| golden-feature | 932 |
 | server-operation | 12 |
 | shared-infrastructure | 375 |
 | static-presentation | 17 |
@@ -44,7 +44,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | integrations | 2 |
 | marketing | 19 |
 | member-profile | 55 |
-| notifications | 35 |
+| notifications | 37 |
 | performance | 8 |
 | projects | 25 |
 | reports | 66 |
@@ -86,6 +86,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/server/src/lib/task-attachments.ts` | task-management | domain-service | golden-feature | task-management-domain | Feature-owned task-management artifact in the canonical domain-service layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/team-avatar.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: database access, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/user-avatar.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: database access, exported declarations; structure: source role and exported behavior |
+| `apps/server/src/lib/web-push-errors.test.ts` | notifications | test | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/server/src/lib/web-push-errors.ts` | notifications | domain-service | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical domain-service layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/web-push.ts` | notifications | domain-service | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical domain-service layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/ws-context.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: server runtime wiring, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/ws-handler.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: server runtime wiring, exported declarations; structure: source role and exported behavior |

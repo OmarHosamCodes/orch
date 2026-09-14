@@ -32,7 +32,7 @@ export const Route = createRootRouteWithContext<{
       { rel: "stylesheet", href: appCss },
       {
         rel: "preload",
-        href: "/fonts/ibm-plex-sans-latin-600.woff2",
+        href: "/fonts/poppins-latin-600-normal.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",

@@ -5,10 +5,17 @@ let publisher: Redis | null = null;
 let subscriber: Redis | null = null;
 
 function createRedisClient() {
-  return new Redis(env.REDIS_URL, {
+  const client = new Redis(env.REDIS_URL, {
     maxRetriesPerRequest: 3,
     lazyConnect: false,
+    retryStrategy(times) {
+      return Math.min(times * 200, 5_000);
+    },
   });
+  client.on("error", (error) => {
+    console.warn("[redis] connection error:", error.message);
+  });
+  return client;
 }
 
 export function getRedisPublisher(): Redis {

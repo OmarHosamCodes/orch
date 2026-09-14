@@ -96,6 +96,11 @@ export const auth = betterAuth({
       secure: env.BETTER_AUTH_URL.startsWith("https://"),
       httpOnly: true,
     },
+    // Cloudflare sits in front of Railway; trust CF's connecting IP rather than
+    // a client-spoofable X-Forwarded-For chain.
+    ipAddress: {
+      ipAddressHeaders: ["cf-connecting-ip", "x-real-ip"],
+    },
   },
   plugins: [
     polar({
