@@ -1,39 +1,44 @@
 ---
-version: 1
+version: 2
 slug: "apps-web-src-features-app-shell"
 primary_target: "apps/web/src/features/app-shell"
-related_targets: []
+related_targets: ["apps/web/src/ui","apps/web/src/pages","apps/web/src/features/shared/agency-ui.ts"]
 ---
 
-# App shell chrome
+# Authenticated surface system
 
-Visitor mode: Operate.
+Visitor mode: Operate. Scope: all authenticated pages, panels, node editors, and dialogs.
 
-## Audience and job
+The user selected 01 Continuous surface on 2026-09-15 after comparing three live application directions in Open Design project 3dc5e4e5-1ab7-40fa-a29f-8d0c1e3f7977. Desktop navigation stays expanded; mobile retains a drawer. Preserve all route features, fonts, semantic indicators, and working controls.
 
-Authenticated operators moving between Canvas and Agency (Tracker through Management panes) for hours at a time. They need one-click access to nested Management destinations without losing Canvas in the rail.
+## Liquid destination chrome (2026-09-15)
 
-## Outcome
+Shape brief evaluated three navigation motion directions; **01 Traveling blob** shipped.
 
-- Connected sidebar + top bar shield (sidebar tokens) frames a rounded inset page well.
-- Agency nav is a stable tree: segments plus always-visible Management children when the rail is pinned.
-- Collapsed rail hover peek and mobile sheet expose the same destinations (including Resourcing, People, Money).
-- Top bar stays contextual: pin, breadcrumb with segment/pane switcher, utilities — not a second nav tree.
+| Direction | Interaction | Why not chosen |
+|---|---|---|
+| **01 Traveling blob** (shipped) | One `liquid-gooey` selection mass moves between rail rows; context-bar segment crumb morphs in sync; notification `9+` badge melts in/out. | — |
+| 02 Cluster melt | Canvas solitary; Agency destinations fused; Management a second fused cluster. | Higher visual noise; slower scan for power users jumping segments. |
+| 03 Shared-spine bead | Thread line kept; gooey bead slides the spine. | Competes with existing nested thread grammar; less clear on nested Management panes. |
 
-## Direction
+Speed rules: TanStack `defaultPreload: "intent"` kept; authenticated route hops skip page-enter fades; navigation commits before the blob finishes; `prefers-reduced-motion` snaps the blob with no filter.
 
-Zen-browser topology on incumbent Orch tokens: opaque chrome shield, hairline-framed page well, quiet thread line for nested rows. No drill-in rail replacement. No glass. No inner surface restyle in this pass.
+Implementation: `liquid-gooey` in `shell-liquid-nav.tsx`, `shell-liquid-badge.tsx`, `shell-nav-selection.ts`. Not liquid glass.
 
-## Scope
+## Direction contract
 
-In: `apps/web/src/features/app-shell/`, shell CSS in `index.css`, shell padding classes in `app-shell-ui.ts`.
+THESIS: One continuous workspace, with grain confined to its connected outer shell and instant content inside it.
 
-Out: Tracker, Reports, Money, Canvas board, node pages, Orch composer, route definitions.
+OWN-WORLD: Existing Orch dark zinc surface ladder with monochrome primary CTAs and Operator Violet accents. Shared 16px surface corners, 20px desktop interior gutters, 12px mobile gutters; the existing 12px shell inset remains. One neutral background across pages, panels, and dialogs. Semantic controls retain their shapes.
 
-## States
+STORY: Operators move between Canvas, tasks, reports, and management without relearning panel hierarchy or losing navigation.
 
-Pinned vs collapsed rail; spatial vs execution well background; mobile sheet; boot/update overlay on well; keyboard `g` chords and crumb menu parity for management panes.
+FIRST VIEWPORT: Full-height expanded 248px left sidebar, connected 44px context bar without a collapse control, rounded inset page well, then a single interior gutter. Tracker reflows with available width; canvas geometry and internal scrolling remain intact.
 
-## Open
+FORM: User-selected Continuous surface, option 01, plus Traveling blob liquid chrome. Reference: Linear project overview https://mobbin.com/screens/267d16a1-982b-4479-85b5-22294fdab01a.
 
-Inner Agency/Canvas page styling inside the well is a follow-up pass.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Verification
+
+Actual authenticated routes and dialogs at 967px, wide desktop, and mobile. Check grain ownership, corner/background consistency, gutter ownership, liquid nav blob travel, context-bar crumb morph, notification badge melt, focus, reduced motion, and overflow. TypeScript and existing shell tests must pass. No new raster assets.

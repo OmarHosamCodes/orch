@@ -73,5 +73,5 @@ No customer testimonials, case studies, press quotes, or fabricated metrics are 
 
 - WCAG 2.1 AA across all product surfaces. Contrast, focus visibility, keyboard navigation are non-negotiable.
 - Full keyboard control of the agent rail, canvas pan/zoom, and node interactions. Spatial tools must not become unusable for keyboard-only users.
-- Respect `prefers-reduced-motion` for the rail expand/collapse, streaming animations, marketing motion (aurora, blur text, magnet), and any canvas transitions.
+- Respect `prefers-reduced-motion` for shell liquid-gooey destination chrome (instant snap, no SVG filter), streaming animations, marketing motion (aurora, blur text, magnet), and any canvas transitions.
 - Text in tool traces and agent messages must remain selectable and screen-reader-readable. Tool call summaries should make sense as plain prose, not just visual badges.

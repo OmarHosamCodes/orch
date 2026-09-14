@@ -16,11 +16,11 @@ export type ProjectHue = {
   id: number;
   /** Human label, used in project settings overrides. */
   label: string;
-  /** Higher-contrast OKLCH dot color for alternate embeds. */
+  /** OKLCH dot color for light theme. */
   light: string;
   /** OKLCH dot color for dark theme. */
   dark: string;
-  /** Soft tint background for pill/chip in alternate embeds. */
+  /** Soft tint background for pill/chip in light theme. */
   lightSoft: string;
   /** Soft tint background for pill/chip in dark theme. */
   darkSoft: string;

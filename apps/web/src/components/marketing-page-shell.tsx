@@ -1,8 +1,11 @@
+import { Moon, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "@/lib/navigation";
 
 import { MarketingBrandLockup } from "@/components/marketing/marketing-brand-lockup";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/stores/theme";
+import { Button } from "@/ui/button";
 
 const footerLinks = [
   { label: "Canvas", to: "/canvas" },
@@ -11,6 +14,23 @@ const footerLinks = [
   { label: "Terms", to: "/terms" },
   { label: "Privacy", to: "/privacy" },
 ];
+
+function ThemeToggle() {
+  const { isDark, toggle } = useTheme();
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      className="rounded-full text-muted-foreground hover:text-foreground"
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      onClick={toggle}
+    >
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+    </Button>
+  );
+}
 
 export function MarketingPageShell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
@@ -47,10 +67,11 @@ export function MarketingPageShell({ children }: { children: ReactNode }) {
             )}
           />
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-xs text-muted-foreground">
               &copy; {year} Orch. All rights reserved.
             </p>
+            <ThemeToggle />
           </div>
         </div>
       </footer>

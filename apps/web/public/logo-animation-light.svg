@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- dark theme: background oklch(0.15 0.02 269.18), primary oklch(0.922 0 0) -->
+  <!-- light theme: paper oklch(0.985 0.006 269), ink oklch(0.22 0.02 269) -->
   <style>
     .line-1 {
       stroke-dasharray: 12;
@@ -56,11 +56,9 @@
     }
   </style>
 
+  <path class="line-1" d="M10 12h12" stroke="#2e2e42" stroke-width="2" stroke-linecap="round"/>
+  <path class="line-2" d="M10 16h8" stroke="#2e2e42" stroke-width="2" stroke-linecap="round"/>
+  <path class="line-3" d="M10 20h10" stroke="#2e2e42" stroke-width="2" stroke-linecap="round"/>
 
-
-  <path class="line-1" d="M10 12h12" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-  <path class="line-2" d="M10 16h8" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-  <path class="line-3" d="M10 20h10" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-
-  <circle class="dot" cx="22" cy="20" r="2" fill="#e5e5e5"/>
+  <circle class="dot" cx="22" cy="20" r="2" fill="#2e2e42"/>
 </svg>

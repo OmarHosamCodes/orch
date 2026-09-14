@@ -5,6 +5,7 @@ import type { AgencyTimeRangeFilters } from "@/features/shared/use-agency-time-r
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
 import { useAgencyPresenceMembers } from "@/features/shared/agency-queries";
+import { useTheme } from "@/stores/theme";
 
 export type UseAgencyDashboardSurfaceProps = {
   teamId: string;
@@ -26,7 +27,7 @@ export function useAgencyDashboardSurface({
   const { range, projectId, memberUserId, clientId, clientIds, projectIds, memberUserIds } =
     filters;
   const { members: presenceMembers } = useAgencyPresenceMembers(teamId);
-  const isDark = true;
+  const { isDark } = useTheme();
   const [hourBreakdownOpen, setHourBreakdownOpen] = useState(false);
   const totalButtonId = useId();
   const breakdownPanelId = useId();

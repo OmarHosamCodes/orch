@@ -1,10 +1,10 @@
 ---
 name: Orch
-description: A spatial knowledge workspace with an embedded agent. Quiet instrument, photographic depth. Dual register — dark cinematic marketing, light precise product.
+description: A spatial knowledge workspace with an embedded agent. Quiet instrument, photographic depth. Dark-only product and marketing.
 colors:
   operator-violet: "oklch(0.55 0.22 264.53)"
   operator-violet-dark: "oklch(0.58 0.21 260.84)"
-  orchid-purple-brand: "#8b8be8"
+  operator-violet-brand: "#5b5bd6"
   operator-violet-soft: "oklch(0.94 0.04 264)"
   ink: "oklch(0 0 0)"
   ink-muted: "oklch(0.44 0 0)"
@@ -153,15 +153,15 @@ components:
 
 **Creative North Star: "Quiet instrument, photographic depth"**
 
-Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained WebThreads field. Product uses one dark cool-zinc family with Orchid Purple from the logo (`#8B8BE8`) as its primary accent. Surfaces stay quiet; violet carries actions, focus, selection, and key data signals.
+Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained field. Product uses one dark cool-zinc family — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.
 
-Shipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is Orchid Purple (`chart-2`). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. Inspiration (synthesize, don't copy): Apple whitespace, Linear surface ladder, Vercel hero atmosphere only.
+Shipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. Inspiration (synthesize, don't copy): Apple whitespace, Linear surface ladder, Vercel hero atmosphere only.
 
 The system rejects category defaults. No purple gradient heroes, no animated orbs as brand, no gradient text, no glassmorphism-as-default, no AI neon. The agent is a tool. The canvas is the product.
 
 **Key Characteristics:**
 
-- Restrained color: dark zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Orchid Purple (`--primary`, `--chart-2`) as the brand accent. Keep violet concentrated on actions, focus, selection, heatmaps, soft glows, and the canvas minimap.
+- Restrained color: dark zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome white-on-black.
 - Typographic hierarchy carries the system. `--font-sans`: Poppins for Latin, IBM Plex Sans Arabic for Arabic glyphs; IBM Plex Mono for tool traces and metrics.
 - Surface ladder, not flat paper. Background → card → secondary/muted → border. Soft shadows only for true float (dialogs, popovers) via the theme shadow scale.
 - Radii from `--radius` (`0.5rem`): controls use `rounded-2xl` (~14px); cards/dialogs use `radius-4xl` capped at 24px; dense tables pin `radius-dense` at 8px.
@@ -170,11 +170,12 @@ The system rejects category defaults. No purple gradient heroes, no animated orb
 
 ## Colors
 
-Dark cool-zinc neutrals with one violet accent. Runtime source: `:root` in `apps/web/src/index.css`.
+Dark cool-zinc neutrals with one violet accent. Runtime source: `:root` in `apps/web/src/index.css`. Appearance is dark-only.
 
 ### Primary
 
-- **Orchid Purple** (`#8B8BE8` as `--primary` / `--chart-2`): The logo-derived brand accent. Actions, focus, selection, heatmaps, soft glows, canvas minimap, and marketing threads.
+- **Ink / Paper CTA** (`oklch(1 0 0)` / `oklch(0 0 0)`): Monochrome `--primary` buttons. Not a decorative hue.
+- **Operator Violet** (`oklch(0.58 0.21 260.84)` as `--chart-2`): The single brand accent. Selection, heatmaps, soft glows, canvas minimap, marketing threads (`#5b5bd6` literal in hero/login). Never decorative wallpaper.
 
 ### Neutral
 
@@ -202,13 +203,13 @@ Dark cool-zinc neutrals with one violet accent. Runtime source: `:root` in `apps
 
 ### Named Rules
 
-**The One Voice Rule.** Orchid Purple is the action and focus voice. Keep it concentrated so the dark zinc surfaces remain calm.
+**The One Voice Rule.** Operator Violet on ≤10% of any product screen. Rarity is the point. Primary CTAs stay monochrome.
 
 **The Dark Ground Rule.** Page ground is black zinc (`oklch(0 0 0)`), with depth coming from tonal surface steps rather than wallpaper.
 
-**The Tinted Accent Rule.** Neutrals stay achromatic zinc; chroma belongs to Orchid Purple and semantic state colors only.
+**The Tinted Accent Rule.** Neutrals stay achromatic zinc; chroma belongs to Operator Violet and semantic state colors only.
 
-**The Marketing Atmosphere Exception.** One restrained WebThreads field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.
+**The Marketing Atmosphere Exception.** One restrained atmosphere field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.
 
 ## Typography
 
@@ -284,7 +285,7 @@ Controls share `rounded-2xl` (~14.4px from `--radius`), medium weight, and monoc
 ### Buttons
 
 - **Shape:** Soft squircle (`rounded-2xl`, ~14px) — not full pill on default shadcn buttons.
-- **Primary:** `--primary` / `--primary-foreground` (Orchid Purple / deep ink), height `32px` default, `hover:bg-primary/80`.
+- **Primary:** `--primary` / `--primary-foreground` (ink on paper / paper on ink), height `32px` default, `hover:bg-primary/80`.
 - **Outline / Ghost / Secondary:** Hairline or transparent; hover fills `--muted` or secondary mix.
 - **Focus:** `ring-3` + `ring-ring/30`; destructive variants use destructive ring tokens.
 
@@ -310,7 +311,7 @@ Controls share `rounded-2xl` (~14.4px from `--radius`), medium weight, and monoc
 ### Navigation
 
 - **Marketing:** The root landing is one full-viewport hero with a compact brand lockup and auth action. It has no feature index, pricing block, or footer. Legal pages may retain the centered marketing footer. No sticky chrome by default.
-- **Product:** Connected left rail + top context bar (`app-shell`). Active: Orchid Purple text + soft tint (`bg-sidebar-primary/10` or chart-2 mixes). Nested routes use a quiet 1px thread line — never a side-stripe. Rail collapsed `3.25rem` / expanded `15.5rem`.
+- **Product:** Connected left rail + top context bar (`app-shell`). Active destination: a traveling liquid selection blob (`liquid-gooey`, opaque `sidebar-accent` fill) behind crisp labels — not a static tint or side-stripe. Nested routes keep the quiet 1px thread line. Rail expanded `15.5rem` on desktop.
 
 ### Authentication
 
@@ -322,13 +323,15 @@ Label-scale tool name in mono, violet running indicator while live, hairline sep
 
 ### Marketing motion (register exception)
 
-Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThreads hero field, a headline reveal, and a purposeful CTA response. The current root landing uses only the WebThreads field; the global grain is static. All motion degrades under `prefers-reduced-motion`. Product motion stays to shell rail easing (`--motion-ease-rail`) and short state transitions (`120–220ms`).
+Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThreads hero field, a headline reveal, and a purposeful CTA response. The current root landing uses only the WebThreads field; the global grain is static. All motion degrades under `prefers-reduced-motion`.
+
+**Product chrome motion** uses `liquid-gooey` for shell destination selection (rail rows, context-bar crumb, notification overflow badge): one traveling blob with `effect="move"` and `transition="snappy"`. Route content commits instantly — no `shell-page-enter` / `shell-content-in` fades on authenticated hops. Wrap only the morphing chrome pieces in `<Liquid>`; never the page well, Canvas, or whole rail. This is opaque metaball chrome, not liquid glass (`ui-liquid-glass-*` stays banned). Other product surfaces may keep short state transitions (`120–220ms`) until migrated.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** use Orchid Purple (`--primary` / `--chart-2` / `#8B8BE8`) for actions, selection, heatmaps, soft glows, and chrome accents.
+- **Do** use monochrome primary CTAs; reserve Operator Violet (`chart-2` / `#5b5bd6`) for selection, heatmaps, soft glows, and chrome accents ≤10%.
 - **Do** walk the surface ladder (background → card → secondary/muted → border) before reaching for shadow.
 - **Do** use Poppins + IBM Plex Sans Arabic (`--font-sans`) and IBM Plex Mono for system-reported truth.
 - **Do** keep control radii on the `--radius` scale (`rounded-2xl` controls, `radius-4xl` cards); use full pills only for intentionally circular chrome (e.g. mobile nav trigger).
@@ -344,5 +347,6 @@ Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThr
 - **Don't** wrap everything in a card; nested cards are always wrong.
 - **Don't** add a second grain/noise overlay to an individual route; use the shared `--orch-grain-image` surface token.
 - **Don't** put an uppercase eyebrow on every section or orchestrate entrance sequences in product surfaces.
-- **Don't** use side-stripe active indicators — use text + soft tint, or the quiet thread line for nested routes.
+- **Don't** use side-stripe active indicators — use the traveling liquid blob + text emphasis, or the quiet thread line for nested routes.
+- **Don't** wrap authenticated page content or the whole shell in gooey filters — chrome blobs only.
 - **Don't** use em dashes in copy or UI text.

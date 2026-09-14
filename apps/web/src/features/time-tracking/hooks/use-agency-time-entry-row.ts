@@ -35,6 +35,7 @@ import type {
   TimeEntryRecord,
 } from "@/features/time-tracking/group-time-entries";
 import { useTrackerDraft } from "@/features/time-tracking/stores/agency-time-tracking";
+import { useTheme } from "@/stores/theme";
 
 function isTimeFieldTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -228,7 +229,7 @@ export function useAgencyTimeEntryRow({
   onSaveLinks,
   onBulkPatch,
 }: UseAgencyTimeEntryRowOptions): AgencyTimeEntryRowViewModel {
-  const isDark = true;
+  const { isDark } = useTheme();
   const activeTimer = useAgencyActiveTimerQuery(teamId).data?.timer ?? null;
   const activeTimerTeamId = activeTimer?.teamId ?? teamId;
   const trackerDraft = useTrackerDraft(activeTimerTeamId);
