@@ -32,6 +32,7 @@ import { buildActiveTimerTaskUpdateInput } from "@/features/time-tracking/active
 import { releasePendingEntryIds } from "@/features/time-tracking/pending-entry-ids";
 import { type AgencyListOverlay } from "@/features/shared/agency-optimistic-merge";
 import { useAgencyOptimisticStore } from "@/features/shared/stores/agency-optimistic";
+import { restoreQuerySnapshots, snapshotQueries } from "@/features/shared/query-snapshots";
 
 type AgencyProjectTask = {
   id: string;
@@ -139,11 +140,6 @@ type RegisteredLogQuery = {
   queryKey: QueryKey;
   teamId: string;
   page: number;
-};
-
-type QuerySnapshot = {
-  queryKey: QueryKey;
-  data: unknown;
 };
 
 type StartTimerPayload = {
@@ -1641,19 +1637,6 @@ function createAgencyTimeTrackingActions(
     }
 
     return Math.max(1, Math.floor((endedAtMs - startedAtMs) / 1_000));
-  }
-
-  function snapshotQueries(queries: Iterable<{ queryKey: QueryKey }>) {
-    return [...queries].map((query) => ({
-      queryKey: query.queryKey,
-      data: getQueryClient().getQueryData(query.queryKey),
-    })) satisfies QuerySnapshot[];
-  }
-
-  function restoreQuerySnapshots(snapshots: QuerySnapshot[]) {
-    snapshots.forEach((snapshot) => {
-      getQueryClient().setQueryData(snapshot.queryKey, snapshot.data);
-    });
   }
 
   async function cancelQueries(queries: Iterable<{ queryKey: QueryKey }>) {

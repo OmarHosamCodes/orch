@@ -21,14 +21,14 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | --- | ---: |
 | golden-feature | 941 |
 | server-operation | 16 |
-| shared-infrastructure | 481 |
+| shared-infrastructure | 483 |
 | static-presentation | 22 |
 
 ## Counts by domain
 
 | Domain | Artifacts |
 | --- | ---: |
-| agency-shared | 141 |
+| agency-shared | 143 |
 | agent | 132 |
 | api-platform | 13 |
 | architecture | 4 |
@@ -636,6 +636,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/shared/orch-presence-morph.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/project-palette.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/shared/project-palette.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/shared/query-snapshots.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations, TanStack Query orchestration; structure: test filename |
+| `apps/web/src/features/shared/query-snapshots.ts` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/stores/agency-favorites.ts` | agency-shared | client-state | shared-infrastructure | agency-platform | Cross-cutting agency-shared client-state support rather than a feature-owned business workflow. | content: oRPC procedures or clients, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/stores/agency-ops-selectors.ts` | agency-shared | client-state | shared-infrastructure | agency-platform | Cross-cutting agency-shared client-state support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/stores/agency-ops.ts` | agency-shared | client-state | shared-infrastructure | agency-platform | Cross-cutting agency-shared client-state support rather than a feature-owned business workflow. | content: oRPC procedures or clients, Zustand client state, exported declarations; structure: source role and exported behavior |
