@@ -1,7 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation } from "@/lib/navigation";
 
-import { AppShellChrome } from "@/features/app-shell/app-shell-chrome";
+import { AppShellContextBar } from "@/features/app-shell/app-shell-context-bar";
+import { AppShellRail, AppShellRailOverlays } from "@/features/app-shell/app-shell-rail";
 import { LogoLoader } from "@/features/app-shell/components/logo-loader";
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { useAppUpdateWatcher } from "@/features/app-shell/hooks/use-app-update-watcher";
@@ -52,20 +53,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div
       className={cn(
-        "app-shell orch-grain-surface bg-background text-foreground",
+        "app-shell orch-grain-surface",
         isSpatialMode ? "app-shell--spatial" : "app-shell--execution",
         railPinned && "app-shell--rail-pinned",
       )}
     >
-      <AppShellChrome />
+      <AppShellRail />
+      <AppShellContextBar />
       <main className="app-shell__main relative">
-        {children}
-        {isRefreshing ? (
-          <div className="absolute inset-0 z-[2]">
-            <LogoLoader placement="slot" label="Applying the update" />
-          </div>
-        ) : null}
+        <div className="app-shell__page-well relative min-h-0 flex-1">
+          {children}
+          {isRefreshing ? (
+            <div className="absolute inset-0 z-[2]">
+              <LogoLoader placement="slot" label="Applying the update" />
+            </div>
+          ) : null}
+        </div>
       </main>
+      <AppShellRailOverlays />
       <WorkspaceAgentHost />
     </div>
   );

@@ -185,7 +185,8 @@ export const agencySearchHighlightMarkClass = "agency-search-highlight-mark";
 export const agencyTaskRowNeedsDescriptionClass = "bg-warning/5";
 
 /** Work time surface — stacks tracker and log as separate panels. */
-export const agencyTimePaneStackClass = "flex min-h-0 min-w-0 flex-1 flex-col gap-[20px] font-sans";
+export const agencyTimePaneStackClass =
+  "@container/tracker flex min-h-0 min-w-0 flex-1 flex-col gap-[20px] font-sans";
 
 export const agencyTimePaneBodyClass = "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden";
 
@@ -221,7 +222,7 @@ export const agencyTimeEntryIconButtonClass = cn(
 /** Match entry-row content height (`agencyTimeEntryRowClass` min-h-[52px]). */
 export const agencyTimeTrackerCardClass = cn(
   agencyWorkTrackerCardClass,
-  "flex min-h-[52px] min-w-0 flex-row items-center overflow-visible px-3 sm:px-4",
+  "agency-tracker-card flex min-h-[52px] min-w-0 flex-row items-center overflow-visible px-3 sm:px-4",
 );
 
 /** Whole-tracker loading shimmer — one surface, no partial text placeholders. */
@@ -235,7 +236,8 @@ export const agencyTimeTrackerDescriptionInputClass =
   "block h-9 w-full min-w-0 truncate rounded-md border-0 bg-transparent px-0 py-0 text-base font-normal leading-9 text-foreground shadow-none";
 
 /** Tracker right cluster — single-height rail with hairline separators. */
-export const agencyTimeTrackerRailClass = "flex h-full shrink-0 items-center";
+export const agencyTimeTrackerRailClass =
+  "agency-tracker-controls flex h-full shrink-0 items-center";
 
 export const agencyTimeTrackerRailCellClass = "flex shrink-0 items-center gap-2 px-2.5";
 
@@ -327,7 +329,7 @@ export const agencyTimeTrackerSuggestionOptionClass = cn(
 );
 
 export const agencyTimeEntryRowClass = cn(
-  "group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
+  "agency-entry-row group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
 );
 
 /** Nested child row inside an expanded multi-entry group. */
@@ -368,14 +370,15 @@ export const agencyTimeEntryDurationInputClass = cn(
 );
 
 /** Left cluster — badge, description, task (free; not column-locked). */
-export const agencyTimeEntryMainClass = "flex min-w-0 flex-1 self-stretch items-center gap-0 pl-3";
+export const agencyTimeEntryMainClass =
+  "agency-entry-main flex min-w-0 flex-1 self-stretch items-center gap-0 pl-3";
 
 /**
  * Right rail — time | duration | actions.
  * Inset vertical ticks (`inset-y-2`); day headers use the quiet rail (no hairlines).
  */
 export const agencyTimeEntryRailClass = cn(
-  "relative flex shrink-0 self-stretch items-stretch",
+  "agency-entry-controls relative flex shrink-0 self-stretch items-stretch",
   "before:pointer-events-none before:absolute before:inset-y-2 before:left-0 before:w-px before:bg-border/40",
   "[&>*+*]:relative [&>*+*]:before:pointer-events-none [&>*+*]:before:absolute [&>*+*]:before:inset-y-2 [&>*+*]:before:left-0 [&>*+*]:before:w-px [&>*+*]:before:bg-border/40",
 );
@@ -387,35 +390,35 @@ const agencyTimeEntryRailCellClass = "box-border flex h-full shrink-0 items-cent
 
 export const agencyTimeEntryRailBillableClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-link w-[56px] justify-center",
 );
 
 /** Content-box width for locale ranges like "12:29 - 14:54" / "9:29 pm - 9:40 pm". */
 export const agencyTimeEntryRailTimeClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[188px] whitespace-nowrap",
+  "agency-entry-time w-[188px] whitespace-nowrap",
 );
 
 export const agencyTimeEntryRailCalendarClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[63px] justify-center",
+  "agency-entry-calendar w-[63px] justify-center",
 );
 
 /** Content-box width for bold tabular "HH:MM:SS". */
 export const agencyTimeEntryRailDurationClass = cn(
   agencyTimeEntryRailCellClass,
-  "relative w-[133px] whitespace-nowrap",
+  "agency-entry-duration relative w-[133px] whitespace-nowrap",
 );
 
 /** Play / more — 56+56; rail `[&>*+*]:before` draws the divider between them. */
 export const agencyTimeEntryRailPlayClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-play w-[56px] justify-center",
 );
 
 export const agencyTimeEntryRailMoreClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-more w-[56px] justify-center",
 );
 
 /** Combined 112px actions zone for day headers / skeletons. */
@@ -458,7 +461,7 @@ export const agencyTimeEntryBulkActionClass = cn(
 
 /** One day block — solid surface so background gutters read as hard separation. */
 export const agencyTimeEntryDayGroupClass =
-  "overflow-hidden rounded-lg border border-default bg-default";
+  "@container/entries overflow-hidden rounded-lg border border-default bg-default";
 
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";

@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { nextSegmentIndex } from "./app-shell-agency-segment-menu";
 
 describe("nextSegmentIndex", () => {
-  const lastIndex = 5;
+  const lastIndex = 7;
 
   test("ArrowDown wraps from the last row to the first", () => {
     expect(nextSegmentIndex(lastIndex, "ArrowDown", lastIndex)).toBe(0);

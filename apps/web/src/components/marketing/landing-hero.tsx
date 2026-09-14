@@ -1,4 +1,4 @@
-import WebThreads from "@/components/marketing/bits/WebThreads";
+import FibreArc from "@/components/originkit/ui/fibre-arc";
 import { LandingAuthActions } from "@/components/marketing/landing-auth-actions";
 import { MarketingBrandLockup } from "@/components/marketing/marketing-brand-lockup";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
@@ -15,22 +15,17 @@ export function LandingHero({ isAuthenticated }: LandingHeroProps) {
     <section className="orch-grain-surface relative isolate flex min-h-svh w-full flex-col overflow-hidden bg-background font-sans text-foreground [--font-body:var(--font-sans)] [--font-heading:var(--font-sans)]">
       {!reducedMotion ? (
         <div className="pointer-events-none absolute inset-0 z-0 opacity-45" aria-hidden="true">
-          <WebThreads
-            color1="#a1a1aa"
-            color2="#5b5bd6"
-            color3="#ffffff"
-            speed={0.18}
-            threadCount={6}
-            frequency={5}
-            spread={0.18}
-            position={0.72}
-            brightness={0.5}
-            opacity={0.9}
-            mirror
-            grain
-            grainIntensity={0.04}
-            mouseInteraction
-            mouseStrength={0.12}
+          <FibreArc
+            background="#050507"
+            baseColor="#363244"
+            accentColor="#8b8be8"
+            highlight="#f4f4f5"
+            density={16}
+            speed={30}
+            direction={40}
+            hover={68}
+            reach={23}
+            bundle={{ curve: 36, spread: 85, thickness: 109, comb: 170 }}
           />
         </div>
       ) : (

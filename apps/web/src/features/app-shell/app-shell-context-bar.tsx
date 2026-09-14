@@ -87,7 +87,7 @@ export function AppShellContextBar() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <AppShellAgencySegmentMenu segment={segment} />
+                  <AppShellAgencySegmentMenu segment={segment} pathname={location.pathname} />
                 </BreadcrumbItem>
               </>
             ) : (

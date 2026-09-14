@@ -4,13 +4,13 @@ import {
   ArrowLeft,
   ChevronDown,
   Clock,
-  FolderX,
   Loader2,
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Link } from "@/lib/navigation";
+import { NotFoundState } from "@/features/app-shell/route-status";
 import { Button } from "@/ui/button";
 import {
   Dialog,
@@ -22,7 +22,6 @@ import {
 } from "@/ui/dialog";
 import { Skeleton } from "@/ui/skeleton";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -142,13 +141,10 @@ export function AgencyProjectDetailView({
           </Button>
         </div>
       ) : !project ? (
-        <div className={agencyEmptyPanelClass}>
-          <FolderX className="mx-auto size-7 text-muted" />
-          <p className="mt-4 text-sm font-bold text-highlighted">Project not found.</p>
-          <p className="mt-1 text-xs text-muted">
-            It may have been removed or moved to another team.
-          </p>
-        </div>
+        <NotFoundState
+          title="Project not found."
+          description="This project may have been removed or moved to another team. Return to the canvas to continue working."
+        />
       ) : (
         <>
           {isTrashed ? (

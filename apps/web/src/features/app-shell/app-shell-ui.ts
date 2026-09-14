@@ -23,7 +23,7 @@ export const shellRailLinkActiveClass =
 
 export const shellRailFooterClass = "app-shell__rail-footer";
 
-export const shellChromeFrameClass = "app-shell__chrome app-shell__chrome-surface";
+export const shellChromeFrameClass = "app-shell__chrome";
 
 export const shellContextBarClass = "app-shell__context-bar";
 
@@ -50,15 +50,14 @@ export const shellSegmentTabClass =
 
 export const shellSegmentTabActiveClass = "bg-primary/10 text-primary";
 
-/** Document-scroll Agency pages — grow with content instead of locking to viewport height. */
-export const shellPageScrollClass =
-  "flex w-full min-h-full flex-col px-[var(--shell-nest-pad,1rem)] pb-4";
+/** Document-scroll Agency pages — grow with content inside the shell page well. */
+export const shellPageScrollClass = "flex w-full min-h-full min-w-0 flex-col p-3 sm:p-4 xl:p-5";
 
-/** Nest-padded work surface — inset matches `--app-shell-topbar-inset` in execution. */
+/** Full-height work surface with a gutter inside the shell page well. */
 export const shellPageNestClass =
-  "flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden p-[var(--shell-nest-pad,1rem)]";
+  "flex h-full w-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 sm:p-4 xl:p-5";
 
-export const shellPageBodyClass = "flex min-h-0 flex-1 flex-col gap-4 pt-4";
+export const shellPageBodyClass = "flex min-h-0 min-w-0 flex-1 flex-col gap-4";
 
 /** Outer content frame — set on the shell page transition in execution mode. */
 export const shellContentFrameClass = "overflow-hidden";

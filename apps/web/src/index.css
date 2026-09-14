@@ -110,63 +110,63 @@
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Orch dark theme — the only supported appearance. */
-  --background: oklch(0 0 0);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.14 0 0);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(1 0 0);
-  --primary-foreground: oklch(0 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.23 0 0);
-  --muted-foreground: oklch(0.72 0 0);
-  --accent: oklch(0.32 0 0);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.69 0.2 23.91);
-  --destructive-foreground: oklch(0 0 0);
-  --success: oklch(0.72 0.17 145);
-  --success-foreground: oklch(0.14 0 0);
-  --warning: oklch(0.79 0.15 70);
-  --warning-foreground: oklch(0.14 0 0);
-  --info: oklch(0.68 0.16 252);
-  --info-foreground: oklch(0.14 0 0);
-  --border: oklch(0.26 0 0);
-  --input: oklch(0.32 0 0);
-  --ring: oklch(0.72 0 0);
-  --chart-1: oklch(0.81 0.17 75.35);
-  --chart-2: oklch(0.58 0.21 260.84);
-  --chart-3: oklch(0.56 0 0);
-  --chart-4: oklch(0.44 0 0);
-  --chart-5: oklch(0.92 0 0);
+  --background: #050507;
+  --foreground: #f4f4f5;
+  --card: #17151f;
+  --card-foreground: #f4f4f5;
+  --popover: #201d2b;
+  --popover-foreground: #f4f4f5;
+  --primary: #8b8be8;
+  --primary-foreground: #101018;
+  --secondary: #29263a;
+  --secondary-foreground: #f4f4f5;
+  --muted: #242131;
+  --muted-foreground: #bdb9cf;
+  --accent: #39345a;
+  --accent-foreground: #f4f4f5;
+  --destructive: #f87171;
+  --destructive-foreground: #260b0b;
+  --success: #86d99f;
+  --success-foreground: #101018;
+  --warning: #f1ca78;
+  --warning-foreground: #101018;
+  --info: #8bb8f2;
+  --info-foreground: #101018;
+  --border: #363244;
+  --input: #413b54;
+  --ring: #a7a7f2;
+  --chart-1: #a7a7f2;
+  --chart-2: #8b8be8;
+  --chart-3: #706fd0;
+  --chart-4: #514fa8;
+  --chart-5: #c8c8ff;
   --radius: 0.5rem;
-  --sidebar: oklch(0.18 0 0);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.32 0 0);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.32 0 0);
-  --sidebar-ring: oklch(0.72 0 0);
+  --sidebar: #0f0e16;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #8b8be8;
+  --sidebar-primary-foreground: #101018;
+  --sidebar-accent: #29263a;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #363244;
+  --sidebar-ring: #a7a7f2;
 
   --font-sans: "Poppins", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "IBM Plex Serif", ui-serif, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --shadow-blur: 2px;
   --shadow-spread: 0px;
-  --shadow-opacity: 0.18;
-  --shadow-color: hsl(0 0% 0%);
+  --shadow-opacity: 0.28;
+  --shadow-color: #090812;
   --shadow-offset-x: 0px;
   --shadow-offset-y: 1px;
-  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-sm: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow-md: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
-  --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
-  --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
-  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
+  --shadow-2xs: 0px 1px 2px 0px color-mix(in srgb, var(--shadow-color) 10%, transparent);
+  --shadow-xs: 0px 1px 3px 0px color-mix(in srgb, var(--shadow-color) 14%, transparent);
+  --shadow-sm: 0px 2px 4px 0px color-mix(in srgb, var(--shadow-color) 20%, transparent);
+  --shadow: 0px 4px 10px 0px color-mix(in srgb, var(--shadow-color) 28%, transparent);
+  --shadow-md: 0px 6px 14px 0px color-mix(in srgb, var(--shadow-color) 30%, transparent);
+  --shadow-lg: 0px 10px 20px 0px color-mix(in srgb, var(--shadow-color) 32%, transparent);
+  --shadow-xl: 0px 16px 28px 0px color-mix(in srgb, var(--shadow-color) 34%, transparent);
+  --shadow-2xl: 0px 24px 40px 0px color-mix(in srgb, var(--shadow-color) 40%, transparent);
   --tracking-normal: 0em;
   --letter-spacing: 0em;
   --spacing: 0.25rem;
@@ -509,31 +509,28 @@ body {
 }
 
 .app-shell {
-  --app-shell-topbar-inset: 1rem;
   --app-shell-rail-collapsed: 3.25rem;
   --app-shell-rail-expanded: 15.5rem;
   --app-shell-rail-width: var(--app-shell-rail-collapsed);
   --app-shell-context-bar-height: 2.75rem;
   --app-shell-chrome-rail: var(--app-shell-rail-collapsed);
+  --shell-chrome-inset: 0.75rem;
+  --shell-inner-radius: 1.25rem;
   position: relative;
   display: grid;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
   transition: grid-template-columns var(--motion-duration-rail) var(--motion-ease-rail);
 }
 
 .app-shell--rail-pinned {
   --app-shell-rail-width: var(--app-shell-rail-expanded);
   --app-shell-chrome-rail: var(--app-shell-rail-expanded);
-}
-
-.app-shell--execution {
-  --shell-chrome-inset: 0;
-  --shell-nest-pad: var(--app-shell-topbar-inset);
-  --shell-inner-radius: 1rem;
-  --shell-outer-radius: calc(var(--shell-inner-radius) + var(--shell-nest-pad));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -545,70 +542,26 @@ body {
   }
 }
 
-/* Quiet opaque chrome panel on the shadcn sidebar ladder; hairline ring instead of glass. */
-.app-shell__chrome-surface {
-  background: var(--color-sidebar);
-  color: var(--color-sidebar-foreground);
-  box-shadow: 0 0 0 1px var(--color-sidebar-border);
-}
-
-/* Spatial: drop the L-ring so the top bar can flush into the canvas surface. */
-.app-shell--spatial .app-shell__chrome-surface {
-  box-shadow: none;
-}
-
-.app-shell--spatial .app-shell__rail {
-  box-shadow: 1px 0 0 0 var(--color-sidebar-border);
-}
-
-/* One L-shaped nest: rail column + context row share border/shadow. Flush to viewport. */
-.app-shell__chrome {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  display: none;
-  grid-template-columns: var(--app-shell-chrome-rail) minmax(0, 1fr);
-  grid-template-rows: var(--app-shell-context-bar-height) minmax(0, 1fr);
-  pointer-events: none;
-  transition:
-    grid-template-columns var(--motion-duration-rail) var(--motion-ease-rail),
-    clip-path var(--motion-duration-rail) var(--motion-ease-rail);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% var(--app-shell-context-bar-height),
-    var(--app-shell-chrome-rail) var(--app-shell-context-bar-height),
-    var(--app-shell-chrome-rail) 100%,
-    0 100%
-  );
-}
-
-@media (min-width: 768px) {
-  .app-shell__chrome {
-    display: grid;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-shell__chrome {
-    transition: none;
-  }
-}
-
+/* Connected L-frame shield: left rail + top context bar, page sits in inset well. */
 .app-shell__rail {
-  grid-column: 1;
-  grid-row: 1 / -1;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 0.25rem;
   width: 100%;
   min-height: 0;
   padding: 0.5rem;
   overflow: hidden;
-  pointer-events: auto;
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
+}
+
+@media (min-width: 768px) {
+  .app-shell__rail {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    z-index: 2;
+  }
 }
 
 /* Taller two-line rows: team header at the top, profile row in the footer. */
@@ -734,11 +687,43 @@ body {
 }
 
 .app-shell--rail-pinned .app-shell__rail-subnav {
-  max-height: 18rem;
+  max-height: none;
   margin-top: 0.25rem;
   margin-left: 1.125rem;
   padding-left: 0.625rem;
   opacity: 1;
+}
+
+.app-shell__rail-subnav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.app-shell__rail-subnav--nested {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height var(--motion-duration-rail) var(--motion-ease-rail),
+    opacity var(--motion-duration-rail) var(--motion-ease-rail);
+}
+
+.app-shell--rail-pinned .app-shell__rail-subnav--nested,
+.app-shell__drawer-static .app-shell__rail-subnav--nested {
+  max-height: none;
+  margin-top: 0.125rem;
+  margin-left: 1.125rem;
+  padding-left: 0.625rem;
+  border-left: 1px solid var(--color-sidebar-border);
+  opacity: 1;
+}
+
+.app-shell__rail-sublink--nested {
+  height: 1.75rem;
 }
 
 /* Static drawer (mobile sheet): rail rows render expanded, no width animation. */
@@ -770,40 +755,28 @@ body {
 }
 
 .app-shell__context-bar {
-  grid-column: 2;
-  grid-row: 1;
-  display: flex;
+  display: none;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-inline: 0.75rem;
-  pointer-events: auto;
-  background: var(--color-background);
-  color: var(--color-foreground);
+  padding-inline: var(--shell-chrome-inset);
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
 }
 
-/* Canvas / spatial: top bar shares the workspace surface (bg-default), not sidebar chrome. */
-.app-shell--spatial .app-shell__context-bar {
-  background: var(--color-default);
+@media (min-width: 768px) {
+  .app-shell__context-bar {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    z-index: 2;
+  }
 }
 
-/* Grain belongs to each painted surface, never to a layer above its content. */
-:where(
-  .orch-grain-surface,
-  .bg-background,
-  .bg-default,
-  .bg-sidebar,
-  .bg-card,
-  .bg-popover,
-  .bg-muted,
-  .bg-secondary,
-  .bg-elevated,
-  .app-shell__chrome-surface,
-  .app-shell__rail,
-  .app-shell__context-bar,
-  .app-shell__drawer-static
-) {
+/* Grain is reserved for explicit page and shell surfaces. Never apply it to
+ * generic component fills such as card, muted, secondary, popover, or input. */
+:where(.orch-grain-surface, .app-shell__rail, .app-shell__context-bar, .app-shell__drawer-static) {
   background-image: var(--orch-grain-image);
   background-repeat: repeat;
   background-size: var(--orch-grain-size);
@@ -819,9 +792,43 @@ body {
 .app-shell__main {
   grid-column: 1;
   grid-row: 1;
+  display: flex;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  padding: max(var(--shell-chrome-inset), env(safe-area-inset-top))
+    max(var(--shell-chrome-inset), env(safe-area-inset-right))
+    max(var(--shell-chrome-inset), env(safe-area-inset-bottom))
+    max(var(--shell-chrome-inset), env(safe-area-inset-left));
+  z-index: 1;
+}
+
+/* Zen-style inset page container: distinct surface inside the chrome shield. */
+.app-shell__page-well {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--shell-inner-radius);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-foreground) 6%, transparent),
+    var(--shadow-sm);
+}
+
+.dark .app-shell__page-well {
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-foreground) 8%, transparent),
+    var(--shadow-sm);
+}
+
+.app-shell--spatial .app-shell__page-well {
+  background: var(--color-default);
+  color: var(--color-foreground);
 }
 
 @media (min-width: 768px) {
@@ -838,14 +845,132 @@ body {
   }
 }
 
-.app-shell--execution .app-shell__main {
-  padding: var(--shell-chrome-inset) 0 0 var(--shell-chrome-inset);
+@media (max-width: 767px) {
+  .app-shell__page-well {
+    border-radius: 1rem;
+  }
 }
 
 .app-shell__mobile-backdrop {
   position: fixed;
   inset: 0;
   z-index: 45;
+}
+
+@container tracker (max-width: 52rem) {
+  .agency-tracker-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding-block: 0.5rem;
+  }
+
+  .agency-tracker-card > :first-child {
+    min-height: 2.75rem;
+    padding-right: 0;
+  }
+
+  .agency-tracker-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.5rem;
+    height: auto;
+  }
+
+  .agency-tracker-controls > :first-child {
+    display: none;
+  }
+
+  .agency-tracker-controls > :nth-child(2) {
+    flex: 1;
+    min-width: 0;
+    padding-left: 0;
+  }
+}
+
+@container tracker (max-width: 34rem) {
+  .agency-tracker-controls > [data-orientation="vertical"] {
+    display: none;
+  }
+
+  .agency-tracker-controls > :nth-child(2) {
+    flex-basis: 100%;
+  }
+
+  .agency-tracker-controls > div {
+    padding-inline: 0.25rem;
+  }
+}
+
+@container entries (max-width: 52rem) {
+  .agency-entry-row {
+    flex-direction: column;
+  }
+
+  .agency-entry-main {
+    min-height: 2.75rem;
+  }
+
+  .agency-entry-controls {
+    min-height: 2.75rem;
+    justify-content: flex-end;
+  }
+
+  .agency-entry-controls::before {
+    display: none;
+  }
+
+  .agency-entry-controls > div {
+    padding-inline: 0.25rem;
+  }
+
+  .agency-entry-link,
+  .agency-entry-calendar,
+  .agency-entry-play,
+  .agency-entry-more {
+    width: 2.5rem;
+  }
+
+  .agency-entry-time {
+    width: 11rem;
+  }
+
+  .agency-entry-duration {
+    width: 6.25rem;
+  }
+}
+
+@container entries (max-width: 30rem) {
+  .agency-entry-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem 2.5rem;
+    grid-template-areas: "time link calendar" "duration play more";
+  }
+
+  .agency-entry-controls > div {
+    width: auto;
+    min-width: 0;
+    min-height: 2.5rem;
+  }
+
+  .agency-entry-link {
+    grid-area: link;
+  }
+  .agency-entry-time {
+    grid-area: time;
+    justify-content: center;
+  }
+  .agency-entry-calendar {
+    grid-area: calendar;
+  }
+  .agency-entry-duration {
+    grid-area: duration;
+  }
+  .agency-entry-play {
+    grid-area: play;
+  }
+  .agency-entry-more {
+    grid-area: more;
+  }
 }
 
 html[data-agent-scope-mode="true"] {
@@ -861,20 +986,6 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="true"] {
     outline-width: 2px;
   }
-}
-
-@keyframes logo-loader-indeterminate {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(320%);
-  }
-}
-
-.logo-loader-bar {
-  animation: logo-loader-indeterminate 1.2s var(--motion-ease-out) infinite;
 }
 
 @keyframes shell-page-enter {
@@ -1177,12 +1288,6 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo-loader-bar {
-    animation: none;
-    width: 40%;
-    opacity: 0.45;
-  }
-
   .shell-page-enter,
   .shell-content-in,
   .shell-stagger-item,

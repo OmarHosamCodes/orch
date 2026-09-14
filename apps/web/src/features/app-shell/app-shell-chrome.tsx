@@ -1,15 +1,2 @@
-import { AppShellContextBar } from "@/features/app-shell/app-shell-context-bar";
-import { AppShellRail, AppShellRailOverlays } from "@/features/app-shell/app-shell-rail";
-import { shellChromeFrameClass } from "@/features/app-shell/app-shell-ui";
-
-export function AppShellChrome() {
-  return (
-    <>
-      <div className={shellChromeFrameClass}>
-        <AppShellRail />
-        <AppShellContextBar />
-      </div>
-      <AppShellRailOverlays />
-    </>
-  );
-}
+/** @deprecated Chrome is laid out on AppShell grid; overlays live on AppShellRailOverlays. */
+export { AppShellRailOverlays as AppShellChrome } from "@/features/app-shell/app-shell-rail";

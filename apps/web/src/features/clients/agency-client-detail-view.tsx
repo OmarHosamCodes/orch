@@ -3,15 +3,14 @@ import {
   Archive,
   ArchiveRestore,
   ArrowLeft,
-  Building2,
   ExternalLink,
   MoreHorizontal,
   Plus,
 } from "lucide-react";
 import { clientContactCompletenessLabel } from "@/features/clients/client-contact-completeness";
+import { NotFoundState } from "@/features/app-shell/route-status";
 import { AgencyProjectCreateDialog } from "@/features/projects/agency-project-create-dialog";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -210,13 +209,10 @@ export function AgencyClientDetailView({
             </Button>
           </div>
         ) : !client ? (
-          <div className={agencyEmptyPanelClass}>
-            <Building2 className="mx-auto size-7 text-muted" />
-            <p className="mt-4 text-sm font-bold text-highlighted">Client not found.</p>
-            <p className="mt-1 text-xs text-muted">
-              It may have been removed or moved to another team.
-            </p>
-          </div>
+          <NotFoundState
+            title="Client not found."
+            description="This client may have been removed or moved to another team. Return to the canvas to continue working."
+          />
         ) : (
           <>
             {isArchived ? (

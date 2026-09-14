@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { AppShell } from "@/features/app-shell/app-shell";
 import { ShellPageTransition } from "@/features/app-shell/components/shell-page-transition";
-import { RouteError, RoutePending } from "@/features/app-shell/route-status";
+import { RouteError, RouteNotFound, RoutePending } from "@/features/app-shell/route-status";
 import { shellContentInClass } from "@/features/app-shell/app-shell-ui";
 import { resolveLegacyAgencyRedirect } from "@/features/shared/agency-legacy-redirects";
 import { useTeamStore } from "@/features/team/team-store";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated")({
   },
   pendingComponent: () => <RoutePending label="Opening your workspace" />,
   errorComponent: () => <RouteError message="Couldn't open your workspace." />,
+  notFoundComponent: RouteNotFound,
   component: AuthenticatedLayout,
 });
 

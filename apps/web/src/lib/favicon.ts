@@ -1,18 +1,12 @@
 const FAVICON_DARK = "/favicon.svg";
 const TRACKING_DARK = "/favicon-tracking.svg";
-const LOGO_DARK = "/logo-animation.svg";
 
-type BrandAssetKind = "favicon" | "tracking" | "logo";
+type BrandAssetKind = "favicon" | "tracking";
 
 let tracking = false;
 export function getBrandAssetHref(kind: BrandAssetKind): string {
-  if (kind === "logo") return LOGO_DARK;
   if (kind === "tracking") return TRACKING_DARK;
   return FAVICON_DARK;
-}
-
-export function getLogoAnimationHref(): string {
-  return getBrandAssetHref("logo");
 }
 
 function getFaviconHref(isTracking: boolean): string {

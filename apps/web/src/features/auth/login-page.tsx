@@ -19,7 +19,7 @@ function AuthLanyard({ children }: { children: ReactNode }) {
         className="pointer-events-none absolute -top-[17.5rem] left-1/2 z-10 h-[19rem] w-16 -translate-x-1/2"
         aria-hidden="true"
       >
-        <div className="absolute top-0 left-1/2 h-52 w-12 -translate-x-1/2 rounded-b-sm border-x border-border bg-secondary shadow-sm" />
+        <div className="absolute top-0 left-1/2 h-52 w-12 -translate-x-1/2 rounded-b-sm border-x border-border bg-secondary shadow-sm sm:-top-2 sm:h-[13.5rem]" />
         <div className="absolute top-[10.5rem] left-1/2 flex h-9 w-16 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-muted shadow-md">
           <div className="h-5 w-12 rounded-full border border-border bg-background shadow-inner" />
         </div>
@@ -51,7 +51,7 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 opacity-35" aria-hidden="true">
         <Scanner
           color1="#6b7280"
-          color2="#5b5bd6"
+          color2="#8b8be8"
           color3="#f2f2f5"
           speed={reducedMotion ? 0 : 0.5}
           sweepSpeed={reducedMotion ? 0 : 0.25}
