@@ -3,9 +3,20 @@ import { Link } from "@/lib/navigation";
 import { Dithered404 } from "@/components/ui/dithered-404";
 import { LogoLoader } from "@/features/app-shell/components/logo-loader";
 import { agencyErrorPanelClass } from "@/features/shared/agency-ui";
+import { SurfaceShimmer } from "@/ui/skeleton";
 
-export function RoutePending({ label = "Loading" }: { label?: string }) {
-  return <LogoLoader placement="slot" label={label} />;
+type RoutePendingProps = {
+  label?: string;
+  /** `logo` is cold boot only — in-shell waits stay on one surface shimmer. */
+  variant?: "logo" | "surface";
+};
+
+export function RoutePending({ label = "Loading", variant = "surface" }: RoutePendingProps) {
+  if (variant === "logo") {
+    return <LogoLoader placement="slot" label={label} />;
+  }
+
+  return <SurfaceShimmer className="h-full min-h-0 rounded-[inherit]" label={label} />;
 }
 
 export function RouteError({ message = "Something went wrong." }: { message?: string }) {
@@ -30,7 +41,7 @@ export function NotFoundState({
   backLabel = "Back to Canvas",
 }: NotFoundStateProps) {
   return (
-    <div className="orch-grain-surface relative isolate flex min-h-[100svh] items-center justify-center overflow-hidden bg-background px-6 py-16 text-foreground">
+    <div className="relative isolate flex min-h-[100svh] items-center justify-center overflow-hidden bg-background px-6 py-16 text-foreground">
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center text-center">
         <div className="relative h-44 w-full max-w-xs sm:h-52">
           <Dithered404 className="opacity-70" interactive={false} />

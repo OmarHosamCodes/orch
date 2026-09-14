@@ -1,45 +1,16 @@
-import { useMemo, useRef, useEffect } from "react";
-import { Outlet, useLocation, useNavigationType } from "@/lib/navigation";
+import { Outlet, useLocation } from "@/lib/navigation";
 
 import { resolveShellMode } from "@/features/app-shell/app-navigation";
-import {
-  shellContentFrameClass,
-  shellContentInClass,
-  shellPageEnterClass,
-} from "@/features/app-shell/app-shell-ui";
+import { shellContentFrameClass } from "@/features/app-shell/app-shell-ui";
 import { cn } from "@/lib/utils";
 
-function isSpatialFastPath(previousPath: string, nextPath: string) {
-  return resolveShellMode(previousPath) === "spatial" && resolveShellMode(nextPath) === "spatial";
-}
-
+/** Authenticated route outlet — no page-enter fade; navigation commits instantly. */
 export function ShellPageTransition() {
   const location = useLocation();
-  const navigationType = useNavigationType();
-  const previousPathRef = useRef(location.pathname);
   const isSpatial = resolveShellMode(location.pathname) === "spatial";
 
-  const enterClass = useMemo(() => {
-    if (navigationType === "POP") {
-      return undefined;
-    }
-
-    const previousPath = previousPathRef.current;
-    const nextPath = location.pathname;
-
-    if (isSpatialFastPath(previousPath, nextPath)) {
-      return shellContentInClass;
-    }
-
-    return shellPageEnterClass;
-  }, [location.pathname, navigationType]);
-
-  useEffect(() => {
-    previousPathRef.current = location.pathname;
-  }, [location.pathname]);
-
   return (
-    <div className={cn(enterClass, "h-full min-h-0", !isSpatial && shellContentFrameClass)}>
+    <div className={cn("h-full min-h-0", !isSpatial && shellContentFrameClass)}>
       <Outlet />
     </div>
   );

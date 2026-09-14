@@ -5,18 +5,13 @@ import { useTeamStore } from "@/features/team/team-store";
 type AppShellNotificationsProps = {
   /** Top-bar inbox bell, or featured Needs-action card in the rail footer. */
   variant?: "icon" | "featured";
-  /** Mobile drawer is always wide enough for the featured card. */
-  forceExpanded?: boolean;
 };
 
 /** Shell-level notifications for the current team, on every authenticated screen. */
-export function AppShellNotifications({
-  variant = "icon",
-  forceExpanded,
-}: AppShellNotificationsProps) {
+export function AppShellNotifications({ variant = "icon" }: AppShellNotificationsProps) {
   const teamId = useTeamStore((s) => s.selectedTeamId);
   if (variant === "featured") {
-    return <FeaturedRailNotification forceExpanded={forceExpanded} />;
+    return <FeaturedRailNotification />;
   }
   if (!teamId) return null;
   return <AgencyNotifications teamId={teamId} />;

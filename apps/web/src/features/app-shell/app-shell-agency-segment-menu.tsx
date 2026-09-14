@@ -8,6 +8,7 @@ import {
   agencyShellNavItems,
 } from "@/features/app-shell/app-shell-agency-nav-tree";
 import { shellFocusRingClass } from "@/features/app-shell/app-shell-ui";
+import { useShellLiquidNavRegister } from "@/features/app-shell/shell-liquid-nav";
 import { agencyManagementPaneFromPathname } from "@/features/shared/agency-management-sections";
 import { type AgencySegmentId } from "@/features/shared/agency-segments";
 import { LucideIcon } from "@/lib/lucide-icon";
@@ -74,16 +75,20 @@ export function AppShellAgencySegmentMenu({ segment, pathname }: AppShellAgencyS
 
   const lastIndex = navItems.length - 1;
   let menuIndex = 0;
+  const registerContextTarget = useShellLiquidNavRegister("context-agency-segment");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          ref={triggerRef}
+          ref={(element) => {
+            triggerRef.current = element;
+            registerContextTarget(element);
+          }}
           type="button"
           className={cn(
-            "-mx-1.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-0.5 font-semibold text-highlighted transition-colors",
-            "hover:bg-elevated focus-visible:bg-elevated",
+            "app-shell__context-crumb app-shell__context-crumb--current shrink-0",
+            "transition-colors hover:text-sidebar-accent-foreground",
             shellFocusRingClass,
             "motion-reduce:transition-none",
           )}
@@ -103,7 +108,7 @@ export function AppShellAgencySegmentMenu({ segment, pathname }: AppShellAgencyS
           }}
         >
           <span>{label}</span>
-          <ChevronsUpDown className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />
+          <ChevronsUpDown className="size-3 shrink-0 opacity-50" aria-hidden="true" />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -141,9 +146,7 @@ export function AppShellAgencySegmentMenu({ segment, pathname }: AppShellAgencyS
                 role="menuitem"
                 to={entry.href}
                 title={
-                  entry.kind === "segment"
-                    ? `${entry.label} (g ${entry.shortcutKey})`
-                    : entry.label
+                  entry.kind === "segment" ? `${entry.label} (g ${entry.shortcutKey})` : entry.label
                 }
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-muted outline-hidden transition-colors hover:bg-elevated hover:text-highlighted focus-visible:bg-elevated focus-visible:text-highlighted",

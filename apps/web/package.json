@@ -47,6 +47,7 @@
     "cmdk": "^1.1.1",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.42.2",
+    "liquid-gooey": "^0.2.1",
     "lucide-react": "^1.22.0",
     "motion": "^12.23.12",
     "ogl": "^1.0.11",

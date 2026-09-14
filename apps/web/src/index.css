@@ -95,6 +95,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --surface-radius: min(var(--radius-4xl), 24px);
+  --surface-gutter: 1.25rem;
   --orch-grain-image: none;
   --orch-grain-size: 256px 256px;
   --motion-duration-fast: 120ms;
@@ -109,69 +111,69 @@
   --motion-ease-rail: cubic-bezier(0.32, 0.72, 0, 1);
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Orch dark theme — the only supported appearance. */
-  --background: #050507;
-  --foreground: #f4f4f5;
-  --card: #17151f;
-  --card-foreground: #f4f4f5;
-  --popover: #201d2b;
-  --popover-foreground: #f4f4f5;
-  --primary: #8b8be8;
-  --primary-foreground: #101018;
-  --secondary: #29263a;
-  --secondary-foreground: #f4f4f5;
-  --muted: #242131;
-  --muted-foreground: #bdb9cf;
-  --accent: #39345a;
-  --accent-foreground: #f4f4f5;
-  --destructive: #f87171;
-  --destructive-foreground: #260b0b;
-  --success: #86d99f;
-  --success-foreground: #101018;
-  --warning: #f1ca78;
-  --warning-foreground: #101018;
-  --info: #8bb8f2;
-  --info-foreground: #101018;
-  --border: #363244;
-  --input: #413b54;
-  --ring: #a7a7f2;
-  --chart-1: #a7a7f2;
-  --chart-2: #8b8be8;
-  --chart-3: #706fd0;
-  --chart-4: #514fa8;
-  --chart-5: #c8c8ff;
+  /* Vercel theme (tweakcn) — dark only */
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.14 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.23 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.32 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.69 0.2 23.91);
+  --destructive-foreground: oklch(0 0 0);
+  --success: oklch(0.72 0.17 145);
+  --success-foreground: oklch(0.14 0 0);
+  --warning: oklch(0.79 0.15 70);
+  --warning-foreground: oklch(0.14 0 0);
+  --info: oklch(0.68 0.16 252);
+  --info-foreground: oklch(0.14 0 0);
+  --border: oklch(0.26 0 0);
+  --input: oklch(0.32 0 0);
+  --ring: oklch(0.72 0 0);
+  --chart-1: oklch(0.81 0.17 75.35);
+  --chart-2: oklch(0.58 0.21 260.84);
+  --chart-3: oklch(0.56 0 0);
+  --chart-4: oklch(0.44 0 0);
+  --chart-5: oklch(0.92 0 0);
   --radius: 0.5rem;
-  --sidebar: #0f0e16;
-  --sidebar-foreground: #f4f4f5;
-  --sidebar-primary: #8b8be8;
-  --sidebar-primary-foreground: #101018;
-  --sidebar-accent: #29263a;
-  --sidebar-accent-foreground: #f4f4f5;
-  --sidebar-border: #363244;
-  --sidebar-ring: #a7a7f2;
+  --sidebar: oklch(0.18 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.32 0 0);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.32 0 0);
+  --sidebar-ring: oklch(0.72 0 0);
 
   --font-sans: "Poppins", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "IBM Plex Serif", ui-serif, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --shadow-blur: 2px;
   --shadow-spread: 0px;
-  --shadow-opacity: 0.28;
-  --shadow-color: #090812;
+  --shadow-opacity: 0.18;
+  --shadow-color: hsl(0 0% 0%);
   --shadow-offset-x: 0px;
   --shadow-offset-y: 1px;
-  --shadow-2xs: 0px 1px 2px 0px color-mix(in srgb, var(--shadow-color) 10%, transparent);
-  --shadow-xs: 0px 1px 3px 0px color-mix(in srgb, var(--shadow-color) 14%, transparent);
-  --shadow-sm: 0px 2px 4px 0px color-mix(in srgb, var(--shadow-color) 20%, transparent);
-  --shadow: 0px 4px 10px 0px color-mix(in srgb, var(--shadow-color) 28%, transparent);
-  --shadow-md: 0px 6px 14px 0px color-mix(in srgb, var(--shadow-color) 30%, transparent);
-  --shadow-lg: 0px 10px 20px 0px color-mix(in srgb, var(--shadow-color) 32%, transparent);
-  --shadow-xl: 0px 16px 28px 0px color-mix(in srgb, var(--shadow-color) 34%, transparent);
-  --shadow-2xl: 0px 24px 40px 0px color-mix(in srgb, var(--shadow-color) 40%, transparent);
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
+  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
+  --shadow-sm: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
+  --shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
+  --shadow-md: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
+  --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
+  --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
+  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
   --tracking-normal: 0em;
   --letter-spacing: 0em;
   --spacing: 0.25rem;
 
-  /* Custom tokens alias the dark base theme. */
+  /* Custom tokens alias the dark theme. */
   --inverted: var(--foreground);
   --inverted-foreground: var(--background);
   --marketing-ink: var(--background);
@@ -189,7 +191,81 @@
   --aui-success: oklch(0.72 0.17 149);
   --aui-warning: oklch(0.8 0.17 75);
 }
+
+.dark {
+  /* Vercel theme (tweakcn) — dark */
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.14 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.23 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.32 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.69 0.2 23.91);
+  --destructive-foreground: oklch(0 0 0);
+  --success: oklch(0.72 0.17 145);
+  --success-foreground: oklch(0.14 0 0);
+  --warning: oklch(0.79 0.15 70);
+  --warning-foreground: oklch(0.14 0 0);
+  --info: oklch(0.68 0.16 252);
+  --info-foreground: oklch(0.14 0 0);
+  --border: oklch(0.26 0 0);
+  --input: oklch(0.32 0 0);
+  --ring: oklch(0.72 0 0);
+  --chart-1: oklch(0.81 0.17 75.35);
+  --chart-2: oklch(0.58 0.21 260.84);
+  --chart-3: oklch(0.56 0 0);
+  --chart-4: oklch(0.44 0 0);
+  --chart-5: oklch(0.92 0 0);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.18 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.32 0 0);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.32 0 0);
+  --sidebar-ring: oklch(0.72 0 0);
+
+  --font-sans: "Poppins", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "IBM Plex Serif", ui-serif, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.18;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 1px;
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
+  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
+  --shadow-sm: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
+  --shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
+  --shadow-md: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
+  --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
+  --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
+  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
+  --letter-spacing: 0em;
+  --spacing: 0.25rem;
+
+  --marketing-accent-glow: color-mix(in oklab, var(--chart-2) 18%, transparent);
+
+  --agency-search-highlight-bg: color-mix(in oklab, var(--chart-1) 50%, transparent);
+  --agency-search-highlight-ring: color-mix(in oklab, var(--chart-1) 40%, transparent);
+  --agency-search-highlight-glow: color-mix(in oklab, var(--chart-1) 34%, transparent);
+  --aui-success: oklch(0.72 0.17 149);
+  --aui-warning: oklch(0.8 0.17 75);
+}
+
 @theme inline {
+  --radius-surface: var(--surface-radius);
+  --spacing-surface: var(--surface-gutter);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -508,14 +584,23 @@ body {
   }
 }
 
+body:has(.app-shell) {
+  --background: var(--card);
+  --popover: var(--card);
+  --surface-radius: 1rem;
+}
+
+@media (max-width: 767px) {
+  body:has(.app-shell) {
+    --surface-gutter: 0.75rem;
+  }
+}
+
 .app-shell {
-  --app-shell-rail-collapsed: 3.25rem;
   --app-shell-rail-expanded: 15.5rem;
-  --app-shell-rail-width: var(--app-shell-rail-collapsed);
+  --app-shell-rail-width: var(--app-shell-rail-expanded);
   --app-shell-context-bar-height: 2.75rem;
-  --app-shell-chrome-rail: var(--app-shell-rail-collapsed);
   --shell-chrome-inset: 0.75rem;
-  --shell-inner-radius: 1.25rem;
   position: relative;
   display: grid;
   height: 100vh;
@@ -525,18 +610,9 @@ body {
   grid-template-rows: minmax(0, 1fr);
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
-  transition: grid-template-columns var(--motion-duration-rail) var(--motion-ease-rail);
-}
-
-.app-shell--rail-pinned {
-  --app-shell-rail-width: var(--app-shell-rail-expanded);
-  --app-shell-chrome-rail: var(--app-shell-rail-expanded);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-shell {
-    transition: none;
-  }
   [data-aui="carousel"] {
     scroll-behavior: auto;
   }
@@ -570,6 +646,99 @@ body {
   height: 2.75rem;
 }
 
+.app-shell__team-card {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 10%, transparent);
+  border-radius: 0.875rem;
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 4%, transparent);
+  color: var(--color-sidebar-foreground);
+  cursor: pointer;
+  text-align: start;
+  text-decoration: none;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    background-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__team-card:hover {
+  border-color: color-mix(in oklab, var(--color-sidebar-foreground) 16%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 7%, transparent);
+}
+
+.app-shell__team-card[data-state="open"],
+.app-shell__team-card[aria-expanded="true"] {
+  border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.app-shell__team-card-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-inline-end: 0.25rem;
+}
+
+.app-shell__team-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-merriweather);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-sidebar-accent-foreground);
+  text-decoration: none;
+}
+
+.app-shell__team-card-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 58%, transparent);
+  text-decoration: none;
+}
+
+.app-shell__team-card-mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.app-shell__team-card-avatar-ring {
+  display: inline-flex;
+  padding: 0.125rem;
+  border-radius: 9999px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--color-primary) 85%, white 15%) 0%,
+    color-mix(in oklab, var(--color-primary) 55%, transparent) 100%
+  );
+}
+
+.app-shell__team-card-indicator {
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__team-card,
+  .app-shell__team-card-indicator,
+  .app-shell__team-card-indicator svg {
+    transition: none;
+  }
+}
+
 .app-shell__rail-nav {
   display: flex;
   min-height: 0;
@@ -579,6 +748,182 @@ body {
   overflow-y: auto;
 }
 
+.app-shell__rail-destinations {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0;
+  padding-block: 0.375rem 0.25rem;
+}
+
+.app-shell__rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.app-shell__rail-section + .app-shell__rail-section {
+  margin-top: 1.125rem;
+}
+
+.app-shell__rail-section-label {
+  padding-inline: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 56%, transparent);
+}
+
+.app-shell__rail-section-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.app-shell__rail-row {
+  display: flex;
+  width: 100%;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.375rem;
+  border: none;
+  border-radius: 0.625rem;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 72%, transparent);
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  text-align: start;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    opacity var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__rail-row:hover {
+  color: var(--color-sidebar-accent-foreground);
+}
+
+.app-shell__rail-row:hover .app-shell__rail-icon-tile:not(.app-shell__rail-icon-tile--active) {
+  border-color: color-mix(in oklab, var(--color-sidebar-foreground) 18%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 9%, transparent);
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 88%, transparent);
+}
+
+.app-shell__rail-row:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__rail-row {
+    transition: none;
+  }
+
+  .app-shell__rail-row:active {
+    transform: none;
+  }
+}
+
+.app-shell__rail-row--nested {
+  min-height: 2.125rem;
+  padding-inline: 0.25rem;
+}
+
+.app-shell__rail-row--parent-active {
+  color: var(--color-sidebar-accent-foreground);
+  opacity: 0.92;
+}
+
+.app-shell__rail-row-label {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-merriweather);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.011em;
+}
+
+.app-shell__rail-row.app-shell__rail-link-active .app-shell__rail-row-label,
+.app-shell__rail-row.text-sidebar-accent-foreground .app-shell__rail-row-label {
+  color: var(--color-sidebar-accent-foreground);
+  font-weight: 600;
+}
+
+.app-shell__rail-icon-tile {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 6%, transparent);
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 78%, transparent);
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out),
+    color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__rail-icon-tile--nested {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4375rem;
+}
+
+.app-shell__rail-icon-tile--active {
+  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  color: var(--color-sidebar-accent-foreground);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+
+.app-shell__rail-icon-tile-glyph {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.app-shell__rail-icon-tile--nested .app-shell__rail-icon-tile-glyph {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.app-shell__rail-shortcuts {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+  margin-inline-start: 0.125rem;
+}
+
+.app-shell__rail-shortcut {
+  display: inline-flex;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.1875rem;
+  border-radius: 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 12%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 5%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 52%, transparent);
+}
+
 .app-shell__rail-group {
   display: flex;
   flex-direction: column;
@@ -586,7 +931,7 @@ body {
 }
 
 /* Nested-route subnav: Clean indent with single continuous inset rail guide line (shadcn / Linear pattern) */
-.app-shell--rail-pinned .app-shell__rail-subnav,
+.app-shell .app-shell__rail-subnav,
 .app-shell__drawer-static .app-shell__rail-subnav {
   position: relative;
   border-left: 1px solid var(--color-sidebar-border);
@@ -597,56 +942,32 @@ body {
   width: 100%;
   height: 2.25rem;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border-radius: 0.625rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-/* Compact rail: Back reads as chrome, not another mute nav icon. */
-.app-shell__rail-back {
-  background: color-mix(in oklab, var(--color-sidebar-accent) 55%, transparent);
-  box-shadow: inset 0 0 0 1px var(--color-sidebar-border);
-}
-
-.app-shell__rail-back:hover,
-.app-shell__rail-back:focus-visible {
-  background: var(--color-sidebar-accent);
-  color: var(--color-sidebar-accent-foreground);
-  box-shadow: inset 0 0 0 1px var(--color-sidebar-border);
-}
-
-.app-shell--rail-pinned .app-shell__rail-back {
   justify-content: flex-start;
   gap: 0.625rem;
   padding-inline: 0.625rem;
+  border-radius: 0.625rem;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
 }
 
 .rail-label {
   min-width: 0;
-  max-width: 0;
+  max-width: 11.5rem;
   overflow: hidden;
-  opacity: 0;
+  opacity: 1;
   white-space: nowrap;
   font-size: 0.8125rem;
   font-weight: 500;
-  transition:
-    max-width var(--motion-duration-rail) var(--motion-ease-rail),
-    opacity var(--motion-duration-rail) var(--motion-ease-rail);
 }
 
 .app-shell__rail-subnav {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  max-height: 0;
+  max-height: none;
   overflow: hidden;
-  opacity: 0;
-  transition:
-    max-height var(--motion-duration-rail) var(--motion-ease-rail),
-    opacity var(--motion-duration-rail) var(--motion-ease-rail);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -664,6 +985,7 @@ body {
   padding-inline: 0.5rem;
   border-radius: 0.5rem;
   white-space: nowrap;
+  background: transparent;
 }
 
 .app-shell__rail-footer {
@@ -675,18 +997,7 @@ body {
   padding-top: 0.5rem;
 }
 
-.app-shell--rail-pinned .app-shell__rail-link {
-  justify-content: flex-start;
-  gap: 0.625rem;
-  padding-inline: 0.625rem;
-}
-
-.app-shell--rail-pinned .rail-label {
-  max-width: 11.5rem;
-  opacity: 1;
-}
-
-.app-shell--rail-pinned .app-shell__rail-subnav {
+.app-shell .app-shell__rail-subnav {
   max-height: none;
   margin-top: 0.25rem;
   margin-left: 1.125rem;
@@ -700,25 +1011,13 @@ body {
   gap: 0.125rem;
 }
 
-.app-shell__rail-subnav--nested {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition:
-    max-height var(--motion-duration-rail) var(--motion-ease-rail),
-    opacity var(--motion-duration-rail) var(--motion-ease-rail);
-}
-
-.app-shell--rail-pinned .app-shell__rail-subnav--nested,
+.app-shell .app-shell__rail-subnav--nested,
 .app-shell__drawer-static .app-shell__rail-subnav--nested {
   max-height: none;
   margin-top: 0.125rem;
-  margin-left: 1.125rem;
+  margin-left: 1.625rem;
   padding-left: 0.625rem;
-  border-left: 1px solid var(--color-sidebar-border);
+  border-left: 1px solid color-mix(in oklab, var(--color-sidebar-border) 85%, transparent);
   opacity: 1;
 }
 
@@ -757,10 +1056,12 @@ body {
 .app-shell__context-bar {
   display: none;
   min-width: 0;
+  height: var(--app-shell-context-bar-height);
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-inline: var(--shell-chrome-inset);
+  /* Match the page-well interior: chrome inset + surface gutter. */
+  padding-inline: calc(var(--shell-chrome-inset) + var(--surface-gutter));
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
 }
@@ -774,9 +1075,11 @@ body {
   }
 }
 
-/* Grain is reserved for explicit page and shell surfaces. Never apply it to
- * generic component fills such as card, muted, secondary, popover, or input. */
-:where(.orch-grain-surface, .app-shell__rail, .app-shell__context-bar, .app-shell__drawer-static) {
+/* Only the connected shell carries grain. Content and overlays stay solid. */
+.app-shell,
+.app-shell__rail,
+.app-shell__context-bar,
+.app-shell__drawer-static {
   background-image: var(--orch-grain-image);
   background-repeat: repeat;
   background-size: var(--orch-grain-size);
@@ -787,6 +1090,65 @@ body {
   min-width: 0;
   flex: 1;
   align-items: center;
+  height: 100%;
+}
+
+.app-shell__context-bar [data-slot="breadcrumb-list"] {
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+.app-shell__context-bar [data-slot="breadcrumb-separator"] {
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 42%, transparent);
+}
+
+.app-shell__context-bar [data-slot="breadcrumb-separator"] svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.app-shell__context-crumb {
+  display: inline-flex;
+  height: 1.75rem;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.app-shell__context-crumb--parent {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 62%, transparent);
+}
+
+.app-shell__context-crumb--parent:hover {
+  color: var(--color-sidebar-accent-foreground);
+  text-decoration: none;
+}
+
+.app-shell__context-crumb--current {
+  font-family: var(--font-merriweather);
+  font-weight: 600;
+  color: var(--color-sidebar-accent-foreground);
+}
+
+.app-shell__context-crumb--current [data-slot="breadcrumb-page"] {
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.app-shell__context-bar .app-shell__utilities {
+  height: 100%;
 }
 
 .app-shell__main {
@@ -811,24 +1173,10 @@ body {
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--shell-inner-radius);
-  background: var(--color-background);
-  color: var(--color-foreground);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--color-foreground) 6%, transparent),
-    var(--shadow-sm);
-}
-
-.dark .app-shell__page-well {
-  background: var(--color-card);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--color-foreground) 8%, transparent),
-    var(--shadow-sm);
-}
-
-.app-shell--spatial .app-shell__page-well {
-  background: var(--color-default);
-  color: var(--color-foreground);
+  border-radius: var(--surface-radius);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 @media (min-width: 768px) {
@@ -842,12 +1190,6 @@ body {
   .app-shell__main {
     grid-column: 2;
     grid-row: 2;
-  }
-}
-
-@media (max-width: 767px) {
-  .app-shell__page-well {
-    border-radius: 1rem;
   }
 }
 

@@ -12,7 +12,9 @@ describe("agencyShellNavItems", () => {
     const items = agencyShellNavItems();
     expect(items).toHaveLength(agencyShellNavItemCount());
     expect(items.some((item) => item.kind === "segment" && item.id === "work")).toBe(true);
-    expect(items.some((item) => item.kind === "management-pane" && item.id === "tenure")).toBe(true);
+    expect(items.some((item) => item.kind === "management-pane" && item.id === "tenure")).toBe(
+      true,
+    );
     expect(items.some((item) => item.kind === "segment" && item.id === "management")).toBe(false);
   });
 });

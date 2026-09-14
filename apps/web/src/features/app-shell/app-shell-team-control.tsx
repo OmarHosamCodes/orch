@@ -1,9 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Loader2, Plus, Settings2, Users } from "lucide-react";
+import { Check, Loader2, Plus, Settings2, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import {
+  AppShellTeamCardButton,
+  TeamCardOpenIndicator,
+} from "@/features/app-shell/app-shell-team-card-trigger";
 import { shellFocusRingClass } from "@/features/app-shell/app-shell-ui";
 import { teamDetailQueryOptions, teamListQueryOptions } from "@/features/team/team-queries";
 import { TeamSettingsModal } from "@/features/team/team-settings-modal";
@@ -113,7 +117,7 @@ export function AppShellTeamControl({ className, variant = "compact" }: AppShell
 
   if (teamListQuery.isPending) {
     return variant === "sidebar" ? (
-      <Skeleton className={cn("h-11 w-full rounded-[10px]", className)} />
+      <Skeleton className={cn("h-[3.25rem] w-full rounded-[0.875rem]", className)} />
     ) : (
       <Skeleton className={cn("size-8 rounded-full", className)} />
     );
@@ -131,33 +135,30 @@ export function AppShellTeamControl({ className, variant = "compact" }: AppShell
           }
         }}
       >
-        <DropdownMenuTrigger asChild>
-          {variant === "sidebar" ? (
-            <button
-              type="button"
-              className={cn(
-                "app-shell__rail-link app-shell__rail-header text-muted transition-colors hover:bg-sidebar-accent",
-                shellFocusRingClass,
-                className,
-              )}
-              aria-label={displayName ? `Team: ${displayName}` : "Select team"}
-              aria-expanded={menuOpen}
-              title={displayName || "Select team"}
-            >
-              <TeamMark name={displayName} image={displayImage} teamId={displayTeamId} />
-              <span className="rail-label flex min-w-0 flex-1 items-center gap-1.5">
-                <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
-                  <span className="truncate text-[13px] font-semibold text-highlighted">
-                    {displayName || "Select team"}
+        {variant === "sidebar" ? (
+          <div className="group/team-card relative w-full">
+            <DropdownMenuTrigger asChild>
+              <AppShellTeamCardButton
+                className={className}
+                name={displayName || "Select team"}
+                meta={secondaryLabel}
+                ariaLabel={displayName ? `Team: ${displayName}` : "Select team"}
+                mark={
+                  <span className="app-shell__team-card-avatar-ring">
+                    <TeamMark
+                      name={displayName}
+                      image={displayImage}
+                      teamId={displayTeamId}
+                      className="size-9 rounded-full after:rounded-full"
+                    />
                   </span>
-                  <span className="truncate text-[11px] font-medium text-muted">
-                    {secondaryLabel}
-                  </span>
-                </span>
-                <ChevronsUpDown className="size-3.5 shrink-0 text-muted" aria-hidden="true" />
-              </span>
-            </button>
-          ) : (
+                }
+              />
+            </DropdownMenuTrigger>
+            <TeamCardOpenIndicator open={menuOpen} />
+          </div>
+        ) : (
+          <DropdownMenuTrigger asChild>
             <button
               type="button"
               className={cn(
@@ -176,8 +177,8 @@ export function AppShellTeamControl({ className, variant = "compact" }: AppShell
                 className="size-8 rounded-full after:rounded-full"
               />
             </button>
-          )}
-        </DropdownMenuTrigger>
+          </DropdownMenuTrigger>
+        )}
 
         <DropdownMenuContent align="start" className="w-64">
           {createOpen ? (

@@ -3,7 +3,7 @@ import { useLocation } from "@/lib/navigation";
 
 import { AppShellContextBar } from "@/features/app-shell/app-shell-context-bar";
 import { AppShellRail, AppShellRailOverlays } from "@/features/app-shell/app-shell-rail";
-import { LogoLoader } from "@/features/app-shell/components/logo-loader";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { useAppUpdateWatcher } from "@/features/app-shell/hooks/use-app-update-watcher";
 import { useAppShellStore, useShellMode } from "@/features/app-shell/app-shell-store";
@@ -24,7 +24,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const setCurrentPath = useAppShellStore((s) => s.setCurrentPath);
   const shellMode = useShellMode();
 
-  const railPinned = useAppShellStore((s) => s.railPinned);
   const toggleCommandPalette = useAppShellStore((s) => s.toggleCommandPalette);
 
   const isSpatialMode = shellMode === "spatial";
@@ -51,22 +50,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [toggleCommandPalette]);
 
   return (
-    <div
-      className={cn(
-        "app-shell orch-grain-surface",
-        isSpatialMode ? "app-shell--spatial" : "app-shell--execution",
-        railPinned && "app-shell--rail-pinned",
-      )}
-    >
+    <div className={cn("app-shell", isSpatialMode ? "app-shell--spatial" : "app-shell--execution")}>
       <AppShellRail />
       <AppShellContextBar />
       <main className="app-shell__main relative">
         <div className="app-shell__page-well relative min-h-0 flex-1">
           {children}
           {isRefreshing ? (
-            <div className="absolute inset-0 z-[2]">
-              <LogoLoader placement="slot" label="Applying the update" />
-            </div>
+            <SurfaceShimmer overlay className="z-[2]" label="Applying the update" />
           ) : null}
         </div>
       </main>

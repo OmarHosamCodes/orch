@@ -4,13 +4,11 @@ import { Suspense } from "react";
 import { AppShell } from "@/features/app-shell/app-shell";
 import { ShellPageTransition } from "@/features/app-shell/components/shell-page-transition";
 import { RouteError, RouteNotFound, RoutePending } from "@/features/app-shell/route-status";
-import { shellContentInClass } from "@/features/app-shell/app-shell-ui";
 import { resolveLegacyAgencyRedirect } from "@/features/shared/agency-legacy-redirects";
 import { useTeamStore } from "@/features/team/team-store";
 import { loadAuthenticatedShell } from "@/lib/authenticated-boot";
 import { fetchBootShellChrome } from "@/lib/boot-prefetch";
 import { fetchBootSession } from "@/lib/session-boot";
-import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/providers/auth-provider";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -29,7 +27,7 @@ export const Route = createFileRoute("/_authenticated")({
       fetchChrome: async (teamId) => fetchBootShellChrome({ data: teamId ? { teamId } : {} }),
     });
   },
-  pendingComponent: () => <RoutePending label="Opening your workspace" />,
+  pendingComponent: () => <RoutePending variant="logo" label="Opening your workspace" />,
   errorComponent: () => <RouteError message="Couldn't open your workspace." />,
   notFoundComponent: RouteNotFound,
   component: AuthenticatedLayout,
@@ -40,7 +38,7 @@ function AuthenticatedLayout() {
 
   return (
     <AuthProvider initialSession={session}>
-      <div className={cn(shellContentInClass, "h-full min-h-0")}>
+      <div className="h-full min-h-0">
         <AppShell>
           <Suspense fallback={<RoutePending label="Opening your workspace" />}>
             <ShellPageTransition />
