@@ -1,5 +1,5 @@
 ---
-description: Testing conventions — Bun test for unit logic, Bruno for API integration
+description: Testing conventions — Bun test for unit logic; Bruno collections removed
 alwaysApply: false
 ---
 
@@ -28,14 +28,9 @@ describe("myUtil", () => {
 
 **New non-trivial logic ships with one small test** — the smallest thing that fails if the logic breaks.
 
-## API integration (Bruno)
+## API integration
 
-```bash
-bun run test:api:bruno        # local
-bun run test:api:bruno:ci     # CI
-```
-
-Tests live in `tests/bruno/orch-api/`.
+Bruno collections were removed. Do not add `test:api:bruno*` scripts until a new collection lands under `tests/bruno/`.
 
 ## What we don't test here
 
