@@ -1,6 +1,6 @@
 # Golden File Source Inventory
 
-Generated on 2026-09-08 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
+Generated on 2026-09-14 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
 
 ## Scope policy
 
@@ -19,9 +19,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 949 |
+| golden-feature | 941 |
 | server-operation | 16 |
-| shared-infrastructure | 482 |
+| shared-infrastructure | 481 |
 | static-presentation | 22 |
 
 ## Counts by domain
@@ -32,12 +32,12 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | agent | 132 |
 | api-platform | 13 |
 | architecture | 4 |
-| auth | 14 |
-| billing | 147 |
+| auth | 13 |
+| billing | 141 |
 | ci | 2 |
 | clients | 13 |
 | configuration | 3 |
-| dashboard | 8 |
+| dashboard | 7 |
 | database-platform | 44 |
 | deployment | 6 |
 | environment | 5 |
@@ -54,7 +54,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | task-management | 101 |
 | team | 19 |
 | time-tracking | 120 |
-| web-platform | 259 |
+| web-platform | 258 |
 | workspace | 138 |
 
 ## Artifacts
@@ -313,12 +313,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/auth/auth-schemas.ts` | auth | domain-logic | golden-feature | identity-domain | Feature-owned auth artifact in the canonical domain-logic layer. | content: Zod contracts, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/auth/hooks/use-login-page.ts` | auth | feature-hook | golden-feature | identity-domain | Feature-owned auth artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/auth/login-page.tsx` | auth | feature-entry | golden-feature | identity-domain | Feature-owned auth artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
-| `apps/web/src/features/auth/protected-route.tsx` | auth | presentational-view | golden-feature | identity-domain | Feature-owned auth artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/billing/agency-money-surface.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/billing/agency-pro-upsell.tsx` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/billing-queries.ts` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: source role and exported behavior |
-| `apps/web/src/features/billing/build-money-payout-run-view-model.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
-| `apps/web/src/features/billing/build-money-payout-run-view-model.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-bill-allocation.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/billing/money-bill-allocation.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-bill-merged-rows.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
@@ -339,9 +335,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/billing/money-formula-chips.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/billing/money-formula-chips.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-fx-override-field-view.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/billing/money-payout-run-view.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/billing/money-payout-run.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
-| `apps/web/src/features/billing/money-payout-run.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-settings-form.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/billing/money-settings-form.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-stats-fixtures.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
@@ -360,7 +353,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/clients/hooks/use-agency-client-detail.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
 | `apps/web/src/features/clients/hooks/use-agency-clients-table.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: TanStack Query orchestration, feature query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/dashboard/agency-dashboard-command-bar.test.ts` | dashboard | test | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
-| `apps/web/src/features/dashboard/agency-dashboard-command-bar.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-dashboard-surface-view.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-dashboard-surface.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-project-share-morph.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -1068,7 +1060,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/pages/terms-page.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/workspace-object-page.tsx` | workspace | feature-entry | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/providers/auth-provider.tsx` | auth | presentational-view | golden-feature | identity-domain | Feature-owned auth artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/providers/query-provider.tsx` | web-platform | web-query | shared-infrastructure | web-platform | Cross-cutting web-platform web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/routeTree.gen.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/router.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/__root.tsx` | web-platform | web-query | shared-infrastructure | web-platform | Cross-cutting web-platform web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
