@@ -57,11 +57,11 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body className="orch-grain-surface">
+      <body>
         {children}
         <GlobalGrain />
         <Toaster position="bottom-right" />

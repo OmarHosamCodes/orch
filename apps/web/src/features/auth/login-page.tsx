@@ -51,7 +51,7 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 opacity-35" aria-hidden="true">
         <Scanner
           color1="#6b7280"
-          color2="#8b8be8"
+          color2="#5b5bd6"
           color3="#f2f2f5"
           speed={reducedMotion ? 0 : 0.5}
           sweepSpeed={reducedMotion ? 0 : 0.25}

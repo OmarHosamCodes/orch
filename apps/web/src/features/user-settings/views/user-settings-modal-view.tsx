@@ -11,7 +11,7 @@ import type { UserSettingsPane } from "@/features/user-settings/hooks/use-user-s
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Label } from "@/ui/label";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 
 type UserSettingsModalViewProps = {
   viewModel: UserSettingsModalViewModel;
@@ -129,11 +129,7 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
                 Select a team to manage notification preferences.
               </p>
             ) : notificationPreferencesLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-14 w-full rounded-xl" />
-                <Skeleton className="h-14 w-full rounded-xl" />
-                <Skeleton className="h-14 w-full rounded-xl" />
-              </div>
+              <SurfaceShimmer className="min-h-44" label="Loading notification preferences" />
             ) : notificationPreferences.length === 0 ? (
               <p className="text-sm text-muted-foreground">No preference types available yet.</p>
             ) : (

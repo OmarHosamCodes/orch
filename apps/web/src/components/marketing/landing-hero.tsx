@@ -12,13 +12,13 @@ export function LandingHero({ isAuthenticated }: LandingHeroProps) {
   const reducedMotion = usePrefersReducedMotion();
 
   return (
-    <section className="orch-grain-surface relative isolate flex min-h-svh w-full flex-col overflow-hidden bg-background font-sans text-foreground [--font-body:var(--font-sans)] [--font-heading:var(--font-sans)]">
+    <section className="dark relative isolate flex min-h-svh w-full flex-col overflow-hidden bg-background font-sans text-foreground [--font-body:var(--font-sans)] [--font-heading:var(--font-sans)]">
       {!reducedMotion ? (
         <div className="pointer-events-none absolute inset-0 z-0 opacity-45" aria-hidden="true">
           <FibreArc
-            background="#050507"
+            background="#000000"
             baseColor="#363244"
-            accentColor="#8b8be8"
+            accentColor="#5b5bd6"
             highlight="#f4f4f5"
             density={16}
             speed={30}

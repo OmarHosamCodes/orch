@@ -421,7 +421,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
               <div
                 className={cn(
                   shellChromePanelClass,
-                  "flex flex-col items-center gap-1 rounded-[14px] p-1.5",
+                  "flex flex-col items-center gap-1 rounded-surface p-1.5",
                 )}
                 role="toolbar"
                 aria-label="Canvas zoom"
@@ -477,7 +477,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
                 aria-label="Board overview"
                 className={cn(
                   shellChromePanelClass,
-                  "!m-0 overflow-hidden !rounded-[14px] !border-0 !shadow-none",
+                  "!m-0 overflow-hidden !rounded-surface !border-0 !shadow-none",
                 )}
                 maskColor="color-mix(in oklab, var(--chart-2) 12%, transparent)"
                 nodeColor={minimapNodeColor}

@@ -82,7 +82,7 @@ export function Dithered404({ className, interactive = true }: Dithered404Props)
       // fonts and hydration settle, before the particle pass takes over.
       context.fillStyle =
         getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() ||
-        "#8b8be8";
+        "#ffffff";
       context.globalAlpha = 0.9;
       context.textAlign = "center";
       context.textBaseline = "middle";
@@ -104,7 +104,7 @@ export function Dithered404({ className, interactive = true }: Dithered404Props)
       context.clearRect(0, 0, width, height);
       const accent =
         getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() ||
-        "#8b8be8";
+        "#ffffff";
       const shouldAnimate = !reducedMotion.matches && interactive;
 
       // Keep the 404 legible if a constrained canvas implementation cannot
