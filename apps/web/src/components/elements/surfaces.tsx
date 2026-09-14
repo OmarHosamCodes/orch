@@ -12,10 +12,10 @@ export const floating =
 
 export const field = "bg-foreground/[0.04] dark:bg-foreground/[0.06]";
 
-export const fieldInteractive =
+const fieldInteractive =
   "bg-foreground/[0.04] transition-colors hover:bg-foreground/[0.07] dark:bg-foreground/[0.06] dark:hover:bg-foreground/[0.09]";
 
-export const pressable =
+const pressable =
   "transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.96] motion-reduce:transition-none";
 
 export const ghostButton =
@@ -31,17 +31,17 @@ export const iconSwapIn = "scale-100 opacity-100 blur-none";
 
 export const iconSwapOut = "scale-[0.25] opacity-0 blur-[4px]";
 
-export const labelSwap =
+const labelSwap =
   "col-start-1 row-start-1 flex w-max items-center gap-1.5 leading-none transition-[opacity,filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none";
 
-export const labelSwapIn = "opacity-100 blur-none";
+const labelSwapIn = "opacity-100 blur-none";
 
-export const labelSwapOut = "pointer-events-none select-none opacity-0 blur-[2px]";
+const labelSwapOut = "pointer-events-none select-none opacity-0 blur-[2px]";
 
-export const collapsePanel =
+const collapsePanel =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] data-[ending-style]:h-0 data-[starting-style]:h-0 motion-reduce:transition-none";
 
-export const live = "text-blue-500 dark:text-blue-400";
+const live = "text-blue-500 dark:text-blue-400";
 
 export const mono = "font-mono text-[11px] tracking-tight";
 
@@ -65,11 +65,11 @@ export function ShimmerLabel({
  * container's visible width rather than its scroll width, so a per-row width
  * leaves every row except the longest ending its background at the fold.
  */
-export const codeScroll = "overflow-x-auto";
+const codeScroll = "overflow-x-auto";
 
-export const codeSurface = "w-max min-w-full";
+const codeSurface = "w-max min-w-full";
 
-export function SwapLabel({
+function SwapLabel({
   active,
   children,
   className,

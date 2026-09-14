@@ -59,7 +59,7 @@ export function EmptyStateSuggestion({
   );
 }
 
-export function EmptyStateComposer({
+function EmptyStateComposer({
   placeholder,
   onSend,
   className,

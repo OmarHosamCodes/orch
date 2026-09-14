@@ -19,7 +19,7 @@ const ANIMATION_DURATION = 200;
 
 const pressable = "active:scale-[0.98]";
 
-export type ToolFallbackRootProps = Omit<
+type ToolFallbackRootProps = Omit<
   React.ComponentProps<typeof Collapsible>,
   "open" | "onOpenChange"
 > & {
@@ -538,13 +538,4 @@ ToolFallback.Result = ToolFallbackResult;
 ToolFallback.Error = ToolFallbackError;
 ToolFallback.Approval = ToolFallbackApproval;
 
-export {
-  ToolFallback,
-  ToolFallbackRoot,
-  ToolFallbackTrigger,
-  ToolFallbackContent,
-  ToolFallbackArgs,
-  ToolFallbackResult,
-  ToolFallbackError,
-  ToolFallbackApproval,
-};
+export { ToolFallback };

@@ -32,7 +32,7 @@ export function CanvasSplitThread({ className, ...props }: ComponentProps<"div">
   );
 }
 
-export function CanvasSplitMessage({
+function CanvasSplitMessage({
   speaker,
   className,
   ...props
@@ -63,7 +63,7 @@ export function CanvasSplitDocument({ className, ...props }: ComponentProps<"div
   );
 }
 
-export function CanvasSplitHeader({
+function CanvasSplitHeader({
   title,
   version,
   saved,
@@ -134,7 +134,7 @@ export function CanvasSplitHeader({
   );
 }
 
-export function CanvasSplitBody({
+function CanvasSplitBody({
   writing,
   className,
   children,
@@ -157,7 +157,7 @@ export function CanvasSplitBody({
   );
 }
 
-export function CanvasSplitLine({
+function CanvasSplitLine({
   heading,
   className,
   ...props

@@ -30,7 +30,7 @@ import {
 } from "./surfaces";
 import { clamp, pct } from "./range";
 
-export interface ComposerAttachment {
+interface ComposerAttachment {
   name: string;
   meta: string;
   state: "uploading" | "done" | "error";
@@ -38,23 +38,23 @@ export interface ComposerAttachment {
   kind?: "image" | "text" | "archive";
 }
 
-export interface ComposerCommand {
+interface ComposerCommand {
   name: string;
   description: string;
   icon: LucideIcon;
 }
 
-export interface ComposerPerson {
+interface ComposerPerson {
   name: string;
   role: "agent" | "human";
 }
 
-export interface ComposerModel {
+interface ComposerModel {
   name: string;
   meta: string;
 }
 
-export interface ComposerUsage {
+interface ComposerUsage {
   system: number;
   tools: number;
   messages: number;
@@ -74,7 +74,7 @@ function barHeight(bar: number, tick: number): number {
 }
 
 /** Commands whose name starts with the slash query, or none when not typing one. */
-export function useSlashMatches(
+function useSlashMatches(
   value: string,
   commands: readonly ComposerCommand[] | undefined,
 ): ComposerCommand[] {
@@ -86,7 +86,7 @@ export function useSlashMatches(
 }
 
 /** People matching a trailing @mention, or none when the caret is not in one. */
-export function useMentionMatches(
+function useMentionMatches(
   value: string,
   people: readonly ComposerPerson[] | undefined,
 ): ComposerPerson[] {
@@ -100,17 +100,17 @@ export function useMentionMatches(
 }
 
 /** Replaces the trailing @mention with the chosen name. */
-export function applyMention(value: string, name: string): string {
+function applyMention(value: string, name: string): string {
   return value.replace(/@[\w]*$/, `@${name} `);
 }
 
-export function Composer({ className, ...props }: ComponentProps<"div">) {
+function Composer({ className, ...props }: ComponentProps<"div">) {
   return (
     <div data-slot="composer" className={cn("relative w-full max-w-lg", className)} {...props} />
   );
 }
 
-export function ComposerBar({
+function ComposerBar({
   dragActive = false,
   className,
   ...props
@@ -173,7 +173,7 @@ export function ComposerMenuItem({
   );
 }
 
-export function ComposerCommandItem({
+function ComposerCommandItem({
   command,
   active,
   ...props
@@ -197,7 +197,7 @@ export function ComposerCommandItem({
   );
 }
 
-export function ComposerPersonItem({
+function ComposerPersonItem({
   person,
   active,
   ...props
@@ -216,7 +216,7 @@ export function ComposerPersonItem({
   );
 }
 
-export function ComposerAttachments({ className, ...props }: ComponentProps<"div">) {
+function ComposerAttachments({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="composer-attachments"
@@ -226,7 +226,7 @@ export function ComposerAttachments({ className, ...props }: ComponentProps<"div
   );
 }
 
-export function ComposerAttachmentChip({
+function ComposerAttachmentChip({
   attachment,
   onRemove,
   className,
@@ -290,7 +290,7 @@ export function ComposerAttachmentChip({
   );
 }
 
-export function ComposerInput({
+function ComposerInput({
   onSubmit,
   onKeyDown,
   className,
@@ -314,7 +314,7 @@ export function ComposerInput({
   );
 }
 
-export function ComposerVoice({
+function ComposerVoice({
   recording,
   seconds,
   className,
@@ -361,7 +361,7 @@ export function ComposerVoice({
   );
 }
 
-export function ComposerToolbar({ className, ...props }: ComponentProps<"div">) {
+function ComposerToolbar({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="composer-toolbar"
@@ -371,7 +371,7 @@ export function ComposerToolbar({ className, ...props }: ComponentProps<"div">) 
   );
 }
 
-export function ComposerActions({ className, ...props }: ComponentProps<"div">) {
+function ComposerActions({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="composer-actions"
@@ -403,7 +403,7 @@ export function ComposerAttachButton({
   );
 }
 
-export function ComposerModelTrigger({
+function ComposerModelTrigger({
   model,
   open,
   className,
@@ -429,7 +429,7 @@ export function ComposerModelTrigger({
   );
 }
 
-export function ComposerModelItem({
+function ComposerModelItem({
   entry,
   selected,
   ...props
@@ -448,7 +448,7 @@ export function ComposerModelItem({
   );
 }
 
-export function ComposerContext({
+function ComposerContext({
   usage,
   className,
   ...props
@@ -550,7 +550,7 @@ export function ComposerContext({
   );
 }
 
-export function ComposerVoiceButton({
+function ComposerVoiceButton({
   active,
   className,
   ...props
@@ -573,7 +573,7 @@ export function ComposerVoiceButton({
   );
 }
 
-export function ComposerSend({
+function ComposerSend({
   streaming,
   idle,
   className,

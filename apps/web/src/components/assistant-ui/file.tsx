@@ -59,7 +59,7 @@ function getMimeTypeIcon(mimeType: string): FC<{ className?: string }> {
   return FileIcon;
 }
 
-export type FileDataKind = "data-uri" | "url" | "base64" | "id";
+type FileDataKind = "data-uri" | "url" | "base64" | "id";
 
 function getFileDataKind(data: string, sourceType?: "url" | "id"): FileDataKind {
   if (sourceType === "url" && /^data:/i.test(data)) return "data-uri";
@@ -86,7 +86,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export type FileRootProps = React.ComponentProps<"div"> & VariantProps<typeof fileVariants>;
+type FileRootProps = React.ComponentProps<"div"> & VariantProps<typeof fileVariants>;
 
 function FileRoot({ className, variant, size, children, ...props }: FileRootProps) {
   return (
@@ -223,16 +223,4 @@ File.Name = FileName;
 File.Size = FileSize;
 File.Download = FileDownload;
 
-export {
-  File,
-  FileRoot,
-  FileIconDisplay,
-  FileName,
-  FileSize,
-  FileDownload,
-  fileVariants,
-  getMimeTypeIcon,
-  getFileDataKind,
-  getBase64Size,
-  formatFileSize,
-};
+export { File };

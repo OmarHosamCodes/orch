@@ -65,7 +65,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
+type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
 /**
  * Optional component overrides for the thread. `AssistantMessage` and
@@ -74,7 +74,7 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
  * by name (toolkit `render`, `useAssistantDataUI`) take precedence over
  * `ToolFallback`.
  */
-export type ThreadComponents = {
+type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   UserMessage?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
