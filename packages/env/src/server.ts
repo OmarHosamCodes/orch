@@ -23,7 +23,10 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required for Google OAuth"),
     GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required for Google OAuth"),
     CORS_ORIGIN: z.url("CORS_ORIGIN must be a valid URL (e.g., http://localhost:7001)"),
-    CORS_ORIGINS: z.string().optional(),
+    CORS_ORIGINS: z
+      .string()
+      .optional()
+      .describe("Comma-separated extra origins (alias domains) allowed for CORS and Better Auth"),
     OPENROUTER_API_KEY: z
       .string()
       .min(1, "OPENROUTER_API_KEY is required. Get one from https://openrouter.ai/keys"),

@@ -8,6 +8,8 @@ import type { NotificationRecord } from "@orch/api/schemas/notifications";
 import { notificationPushCopy } from "@orch/api/routers/notifications/copy";
 import { listPushSubscriptionsForUser } from "@orch/api/routers/notifications/service";
 
+import { shouldDropPushSubscription } from "./web-push-errors";
+
 let configured = false;
 
 function ensureWebPushConfigured() {
@@ -54,11 +56,7 @@ export async function sendWebPushForNotification(notification: NotificationRecor
           payload,
         );
       } catch (error) {
-        const statusCode =
-          error && typeof error === "object" && "statusCode" in error
-            ? Number(error.statusCode)
-            : null;
-        if (statusCode === 404 || statusCode === 410) {
+        if (shouldDropPushSubscription(error)) {
           await db
             .delete(pushSubscription)
             .where(eq(pushSubscription.endpoint, subscription.endpoint));
