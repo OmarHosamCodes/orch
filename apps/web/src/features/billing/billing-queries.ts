@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { useAuthSession } from "@/lib/auth-session";
 import { orpc, orpcClient } from "@/lib/orpc";
 
-export const DEFAULT_BILLING_LIMITS: TierLimits = {
+const DEFAULT_BILLING_LIMITS: TierLimits = {
   workspaceNodes: 10,
   blocksPerTab: 6,
   tabsPerNode: 3,
@@ -19,7 +19,7 @@ export const DEFAULT_BILLING_LIMITS: TierLimits = {
 
 type BillingState = Awaited<ReturnType<typeof orpcClient.billing.state>>;
 
-export function billingStateQueryOptions(authEnabled: boolean) {
+function billingStateQueryOptions(authEnabled: boolean) {
   return {
     ...orpc.billing.state.queryOptions(),
     enabled: authEnabled,
@@ -27,11 +27,11 @@ export function billingStateQueryOptions(authEnabled: boolean) {
   };
 }
 
-export function billingStateQueryKey() {
+function billingStateQueryKey() {
   return orpc.billing.state.queryOptions().queryKey;
 }
 
-export function deriveBillingState(data: BillingState | undefined) {
+function deriveBillingState(data: BillingState | undefined) {
   const tier = data?.tier ?? "free";
   return {
     tier,
@@ -41,15 +41,15 @@ export function deriveBillingState(data: BillingState | undefined) {
   };
 }
 
-export async function checkoutBilling(slug = "pro") {
+async function checkoutBilling(slug = "pro") {
   await authClient.checkout({ slug });
 }
 
-export async function openBillingPortal() {
+async function openBillingPortal() {
   await authClient.customer.portal();
 }
 
-export function refreshBillingState(queryClient: QueryClient) {
+function refreshBillingState(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: billingStateQueryKey() });
 }
 

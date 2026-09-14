@@ -9,7 +9,7 @@ import { useTeamSettingsModalState, type TeamSettingsPane } from "./use-team-set
 
 export type TeamSettingsRole = "owner" | "editor" | "viewer";
 
-export type TeamSettingsMember = {
+type TeamSettingsMember = {
   teamId: string;
   userId: string;
   userName: string;
@@ -20,7 +20,7 @@ export type TeamSettingsMember = {
   updatedAt: string;
 };
 
-export type TeamSettingsTeam = {
+type TeamSettingsTeam = {
   id: string;
   name: string;
   image: string | null;

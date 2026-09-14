@@ -1,6 +1,5 @@
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
 
 import { ErrorState } from "@/components/elements/error-state";
 import {
@@ -36,17 +35,6 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
   const showArtifactSplit = Boolean(view.activeArtifact);
   const expanded = view.expanded;
   const showDock = view.orchPresence === "dock";
-  const prevPresenceRef = useRef(view.orchPresence);
-  const [dockLandPulse, setDockLandPulse] = useState(false);
-
-  useEffect(() => {
-    const prev = prevPresenceRef.current;
-    prevPresenceRef.current = view.orchPresence;
-    if (prev !== "thread" || view.orchPresence !== "dock") return;
-    setDockLandPulse(true);
-    const timer = window.setTimeout(() => setDockLandPulse(false), 480);
-    return () => window.clearTimeout(timer);
-  }, [view.orchPresence]);
 
   return (
     <AssistantRuntimeProvider runtime={view.runtime}>
@@ -90,7 +78,7 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
                       "motion-safe:transition-[width,height,max-width,padding,background-color,border-color,box-shadow] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.25,1,0.5,1)]",
                       "hover:h-12 hover:w-full hover:max-w-[22rem] hover:border-border hover:bg-card hover:px-4 hover:shadow-md",
                       "focus-within:h-12 focus-within:w-full focus-within:max-w-[22rem] focus-within:border-border focus-within:bg-card focus-within:px-4 focus-within:shadow-md",
-                      dockLandPulse && !expanded && "orch-presence-land",
+                      view.dockLandPulse && !expanded && "orch-presence-land",
                     ),
               )}
             >

@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
-import { motion } from "motion/react";
 
-import { agencyFocusRingClass, agencyMetricClass } from "@/features/shared/agency-ui";
-import { moneyBaseTransition } from "@/features/money/money-motion";
+import { agencyMetricClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
@@ -37,12 +35,6 @@ export function MoneyPanelTitleRow({
   );
 }
 
-export function MoneyPanelCount({ children }: { children: ReactNode }) {
-  return (
-    <span className={cn(agencyMetricClass, "text-xs tabular-nums text-muted")}>{children}</span>
-  );
-}
-
 export function MoneyPanelMetricBlock({
   label,
   value,
@@ -74,54 +66,6 @@ export function MoneyPanelMetricBlock({
           </p>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-export function MoneyPanelFilterPill({
-  label,
-  selected,
-  onSelect,
-  layoutId,
-}: {
-  label: string;
-  selected: boolean;
-  onSelect: () => void;
-  layoutId: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      className={cn(
-        "relative inline-flex h-10 items-center rounded-full px-3 text-xs font-medium transition-colors duration-150 sm:h-7 sm:px-2.5",
-        agencyFocusRingClass,
-        selected ? "text-highlighted" : "text-muted hover:bg-elevated/70 hover:text-highlighted",
-        "motion-reduce:transition-none",
-      )}
-      onClick={onSelect}
-    >
-      {selected ? (
-        <motion.span
-          layoutId={layoutId}
-          className="absolute inset-0 rounded-full bg-elevated ring-1 ring-border"
-          transition={moneyBaseTransition}
-          aria-hidden
-        />
-      ) : null}
-      <span className="relative z-10">{label}</span>
-    </button>
-  );
-}
-
-export function MoneyPanelFilterRow({ label, children }: { label?: string; children: ReactNode }) {
-  return (
-    <div
-      className="flex flex-wrap items-center gap-1.5"
-      role={label ? "group" : undefined}
-      aria-label={label}
-    >
-      {children}
     </div>
   );
 }

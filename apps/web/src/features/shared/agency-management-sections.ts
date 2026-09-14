@@ -2,7 +2,7 @@
 
 export type AgencyManagementPaneId = "resourcing" | "tenure" | "money";
 
-export type AgencyManagementHubId = "operations" | "commercial";
+type AgencyManagementHubId = "operations" | "commercial";
 
 export type AgencyManagementPane = {
   id: AgencyManagementPaneId;
@@ -26,7 +26,7 @@ export const AGENCY_MANAGEMENT_PANES: readonly AgencyManagementPane[] = [
 ] as const;
 
 /** Product URL slug per pane. People stays `tenure` internally. */
-export const AGENCY_MANAGEMENT_PANE_SLUG = {
+const AGENCY_MANAGEMENT_PANE_SLUG = {
   resourcing: "resourcing",
   tenure: "people",
   money: "money",

@@ -10,7 +10,7 @@ export function isDocumentBoardCard(node: CanvasNodeModel): boolean {
   return !node.kind || node.kind === "document";
 }
 
-export function documentToCanvasCard(node: CanvasNodeModel): CanvasNodeModel {
+function documentToCanvasCard(node: CanvasNodeModel): CanvasNodeModel {
   return {
     ...node,
     kind: "document",
@@ -19,7 +19,7 @@ export function documentToCanvasCard(node: CanvasNodeModel): CanvasNodeModel {
   };
 }
 
-export function knowledgeCardToCanvasNode(card: KnowledgeBoardCard): CanvasNodeModel {
+function knowledgeCardToCanvasNode(card: KnowledgeBoardCard): CanvasNodeModel {
   return {
     id: card.id,
     kind: card.kind,

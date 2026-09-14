@@ -5,6 +5,7 @@ import {
   applyReportEntriesWaste,
   filterEntriesByShowWaste,
   groupEntriesForDisplay,
+  isReportEntryWaste,
   reportSimilarTaskStripeIndexes,
   type AgencyReportEntry,
 } from "@/features/reports/agency-report-grouping";
@@ -448,6 +449,42 @@ describe("applyReportEntriesWaste", () => {
     expect(next.find((entry) => entry.id === "keep")?.isWaste).toBe(false);
     expect(next.find((entry) => entry.id === "flip")?.isWaste).toBe(true);
     expect(entries.find((entry) => entry.id === "flip")?.isWaste).toBe(false);
+  });
+});
+
+describe("isReportEntryWaste", () => {
+  test("treats entry flag, task flag, and waste labels as waste", () => {
+    expect(isReportEntryWaste(makeEntry({ id: "e1", isWaste: true }))).toBe(true);
+    expect(
+      isReportEntryWaste(makeEntry({ id: "e2", taskIsWaste: true, taskTitle: "Research" })),
+    ).toBe(true);
+    expect(
+      isReportEntryWaste(makeEntry({ id: "e3", taskTitle: "Daily waste", projectName: "Ship" })),
+    ).toBe(true);
+    expect(isReportEntryWaste(makeEntry({ id: "e4", taskTitle: "wasted effort" }))).toBe(false);
+  });
+
+  test("aggregated rows are waste only when every child is waste", () => {
+    const mixed = {
+      projectName: "Ship",
+      taskTitle: "Research",
+      taskIsWaste: false,
+      entries: [
+        makeEntry({ id: "a", isWaste: true }),
+        makeEntry({ id: "b", isWaste: false, taskTitle: "Research" }),
+      ],
+    };
+    const allWaste = {
+      projectName: "Ship",
+      taskTitle: "Research",
+      taskIsWaste: false,
+      entries: [
+        makeEntry({ id: "a", isWaste: true }),
+        makeEntry({ id: "b", taskTitle: "waste QA" }),
+      ],
+    };
+    expect(isReportEntryWaste(mixed)).toBe(false);
+    expect(isReportEntryWaste(allWaste)).toBe(true);
   });
 });
 

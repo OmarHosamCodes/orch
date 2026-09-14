@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import type { CanvasKnowledgeCreateMenuViewProps } from "@/features/workspace-knowledge/canvas-knowledge-create-menu-view";
+import type {
+  CanvasKnowledgeCreateMenuViewProps,
+  MenuMotionState,
+} from "@/features/workspace-knowledge/canvas-knowledge-create-menu-view";
 import { useWorkspaceKnowledgeStore } from "@/features/workspace-knowledge/stores/workspace-knowledge";
 import type { KnowledgeCreateKind } from "@/features/workspace-knowledge/knowledge-create";
 import { orpc } from "@/lib/orpc";
+
+const CLOSE_DURATION_MS = 260;
 
 export function useCanvasKnowledgeCreateMenu(input: {
   teamId?: string | null;
@@ -46,11 +51,41 @@ export function useCanvasKnowledgeCreateMenu(input: {
     openCreateMenuAt(null);
   }, [createMenuPoint, openCreateMenuAt, openUnplacedDialog, setPendingPlacement]);
 
+  const open = Boolean(createMenuPoint);
+  const [motionState, setMotionState] = useState<MenuMotionState>(
+    createMenuPoint ? "open" : "hidden",
+  );
+  const [activeKind, setActiveKind] = useState<KnowledgeCreateKind | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setMotionState("opening");
+      const timeout = window.setTimeout(() => setMotionState("open"), 0);
+      return () => window.clearTimeout(timeout);
+    }
+    setActiveKind(null);
+    setMotionState((current) => (current === "hidden" ? "hidden" : "closing"));
+    const timeout = window.setTimeout(() => setMotionState("hidden"), CLOSE_DURATION_MS);
+    return () => window.clearTimeout(timeout);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") openCreateMenuAt(null);
+    };
+    window.addEventListener("keydown", closeOnEscape, true);
+    return () => window.removeEventListener("keydown", closeOnEscape, true);
+  }, [open, openCreateMenuAt]);
+
   return {
-    open: Boolean(createMenuPoint),
+    open,
     x: createMenuPoint?.screenX ?? 0,
     y: createMenuPoint?.screenY ?? 0,
     unplacedCount: boardQuery.data?.unplaced.length ?? 0,
+    motionState,
+    activeKind,
+    onActiveKindChange: setActiveKind,
     onClose: () => openCreateMenuAt(null),
     onSelect,
     onOpenUnplaced,

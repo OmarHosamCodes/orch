@@ -209,11 +209,7 @@ export function useAgencyDurationInput({
 
       if (event.key === "Backspace") {
         event.preventDefault();
-        const result = applyDurationBackspace(
-          currentValue,
-          caret.segmentIndex,
-          caret.slotIndex,
-        );
+        const result = applyDurationBackspace(currentValue, caret.segmentIndex, caret.slotIndex);
         caretRef.current = {
           segmentIndex: result.segmentIndex,
           slotIndex: result.slotIndex,

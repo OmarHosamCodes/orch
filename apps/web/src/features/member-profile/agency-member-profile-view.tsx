@@ -727,7 +727,11 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => viewModel.setReviewDialogOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => viewModel.setReviewDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button

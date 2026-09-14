@@ -65,7 +65,7 @@ function toneValueClass(tone: MoneyStatsMetricTone | undefined): string {
   }
 }
 
-export function MoneyStatsMetricRow({
+function MoneyStatsMetricRow({
   card,
   metric,
   value,

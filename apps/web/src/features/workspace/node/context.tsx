@@ -18,17 +18,17 @@ import { createContext, useContext, type ReactNode } from "react";
 
 import type { WorkspaceBlockPresetId } from "@/features/workspace/utils/workspace-block-presets";
 
-export type WorkspaceBlockOperationState = {
+type WorkspaceBlockOperationState = {
   pending: boolean;
   label: string | null;
 };
 
-export type WorkspaceNodePriorityOption = {
+type WorkspaceNodePriorityOption = {
   label: string;
   value: "" | WorkspaceTaskPriority;
 };
 
-export type WorkspaceNodeDomainOption = {
+type WorkspaceNodeDomainOption = {
   label: string;
   value: "" | WorkspaceTaskDomain;
 };
@@ -38,9 +38,9 @@ export type WorkspaceSaveBadge = {
   className: string;
 };
 
-export type WorkspaceTabEditorMode = "create" | "rename";
+type WorkspaceTabEditorMode = "create" | "rename";
 
-export type WorkspaceTabEditorState = {
+type WorkspaceTabEditorState = {
   open: boolean;
   mode: WorkspaceTabEditorMode;
   title: string;

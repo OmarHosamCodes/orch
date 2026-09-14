@@ -168,7 +168,7 @@ export function moneyExpensePaymentCanSubmit(
   return parseMoneyExpensePaymentAmount(value, remainingAmount, amountMode) !== null;
 }
 
-export function moneyExpenseSourceAmount(amount: number, sourceAmount?: number | null): number {
+function moneyExpenseSourceAmount(amount: number, sourceAmount?: number | null): number {
   return sourceAmount ?? amount;
 }
 
@@ -206,7 +206,7 @@ export function moneyExpenseStatusLabel(status: MoneyExpenseStatus): string {
   }
 }
 
-export function formatMoneyExpenseDueDate(iso: string | null): string | null {
+function formatMoneyExpenseDueDate(iso: string | null): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;

@@ -35,10 +35,6 @@ export function localDateKeyFromIso(iso: string): string {
   return toLocalDateKey(parsed);
 }
 
-export function todayLocalDateKey(referenceDate = new Date()): string {
-  return toLocalDateKey(referenceDate);
-}
-
 const weekRangeFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",

@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/ui/radio-group";
 import { Textarea } from "@/ui/textarea";
 import { cn } from "@/lib/utils";
 
-export type AgencyQuestionCardViewModel = {
+type AgencyQuestionCardViewModel = {
   questionId: string;
   prompt: string;
   kind: "single" | "multi" | "text";

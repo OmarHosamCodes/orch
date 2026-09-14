@@ -17,10 +17,6 @@ export type AgencyProjectJourney = Awaited<
 
 export type AgencyProjectJourneyStep = AgencyProjectJourney["steps"][number];
 
-export type AgencyProjectJourneyRemovePreview = Awaited<
-  ReturnType<typeof orpcClient.agencyOps.projects.journey.previewRemoveStep>
->;
-
 type UseAgencyProjectJourneyOptions = {
   enabled?: boolean;
 };

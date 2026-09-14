@@ -551,4 +551,3 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasHandle, InfiniteCanvasPro
 );
 
 // Re-export for consumers that imported from use-canvas
-export type { CanvasNodeModel } from "@/features/workspace/canvas/canvas-types";

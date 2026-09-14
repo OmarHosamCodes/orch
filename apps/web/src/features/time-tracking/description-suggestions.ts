@@ -1,6 +1,6 @@
-export const DESCRIPTION_SUGGESTION_LIMIT = 10;
+const DESCRIPTION_SUGGESTION_LIMIT = 10;
 /** Max unique compounds kept after aggregation (ranker trims further). */
-export const DESCRIPTION_SUGGESTION_POOL = 40;
+const DESCRIPTION_SUGGESTION_POOL = 40;
 
 export type DescriptionSuggestionEntry = {
   description: string;

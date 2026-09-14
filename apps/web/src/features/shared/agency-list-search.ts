@@ -7,7 +7,7 @@ export function tokenizeAgencySearchQuery(query: string): string[] {
   return query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
 }
 
-export function normalizeAgencySearchTerm(term: string): string {
+function normalizeAgencySearchTerm(term: string): string {
   return term.trim().toLowerCase();
 }
 

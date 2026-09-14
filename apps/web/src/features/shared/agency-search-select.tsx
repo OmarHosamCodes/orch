@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
-export type AgencySearchSelectOption = {
+type AgencySearchSelectOption = {
   value: string;
   label: string;
   description?: string;

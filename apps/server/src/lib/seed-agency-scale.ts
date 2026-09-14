@@ -4,7 +4,7 @@ import type { SeedContext } from "./seed-agency-types";
 
 export type AgencySeedScale = "default" | "massive";
 
-export const MASSIVE_SCALE_TARGETS = {
+const MASSIVE_SCALE_TARGETS = {
   clients: 80,
   projects: 400,
   tasks: 3_000,

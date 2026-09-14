@@ -27,16 +27,7 @@ const MEDIA_TYPE_BY_MIME: Record<string, AgentTextAttachmentMediaType> = {
   "image/gif": "image/gif",
 };
 
-export const AGENT_ATTACHMENT_ACCEPT =
-  ".txt,.md,.json,.png,.jpg,.jpeg,.webp,.gif,text/plain,text/markdown,application/json,image/png,image/jpeg,image/webp,image/gif";
-
-export {
-  AGENT_IMAGE_ATTACHMENT_MAX_BYTES,
-  AGENT_TEXT_ATTACHMENT_MAX_BYTES,
-  AGENT_TEXT_ATTACHMENT_MAX_FILES,
-};
-
-export function isImageAttachmentMediaType(mediaType: string): boolean {
+function isImageAttachmentMediaType(mediaType: string): boolean {
   return mediaType.startsWith("image/");
 }
 

@@ -59,18 +59,20 @@ Visit [http://localhost:7001](http://localhost:7001). The API runs at [http://lo
 brainiac/
 ├── apps/web/                    # Frontend (React + Vite)
 │   └── src/
-│       ├── pages/               # Route pages
-│       ├── components/          # UI (dashboard, agency, canvas, ui, …)
-│       ├── lib/                 # oRPC client, hooks, utilities
-│       └── stores/              # Zustand stores
+│       ├── features/<domain>/   # golden-file features
+│       ├── ui/                  # shadcn primitives
+│       ├── routes/              # TanStack Start routes
+│       ├── components/          # shared assistant-ui, elements, marketing
+│       └── lib/                 # oRPC client, env, utilities
 │
 ├── apps/server/                 # Backend (Hono on Bun)
 │   └── src/
 │       ├── app.ts               # Hono app, auth, RPC, WebSocket
-│       └── seed.ts              # Database seeding
+│       └── operations/          # seeds, imports, backfills, maintenance
 │
 ├── packages/
 │   ├── api/                     # oRPC routers and business logic
+│   │   └── src/routers/         # routers + services
 │   ├── db/                      # Drizzle schema and migrations
 │   ├── auth/                    # Better-Auth setup
 │   ├── env/                     # Environment validation
@@ -281,8 +283,9 @@ git push origin feat/my-feature
 
 ### PR Checklist
 
-- [ ] `bun run check` passes (oxlint, conventions, oxfmt)
+- [ ] `bun run check` passes (oxlint, conventions, unused, golden, oxfmt)
 - [ ] `bun run check-types` passes
+- [ ] `bun run check:conventions` is implied by `check` (empty golden allowlists)
 - [ ] Commit messages follow conventions
 - [ ] PR description explains what and why
 

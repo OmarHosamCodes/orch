@@ -22,13 +22,13 @@ import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export type ResourcingActivityHeatMemberRow = {
+type ResourcingActivityHeatMemberRow = {
   userId: string;
   userName: string;
   heatMap: MemberProfileHeatMapData;
 };
 
-export type ResourcingAbsenceAgendaItem = {
+type ResourcingAbsenceAgendaItem = {
   id: string;
   userId: string | null;
   userName: string;
@@ -39,7 +39,7 @@ export type ResourcingAbsenceAgendaItem = {
   daySpan: number;
 };
 
-export type ResourcingFilmstripDay = {
+type ResourcingFilmstripDay = {
   date: string;
   dayOfMonth: number;
   weekdayShort: string;
@@ -48,7 +48,7 @@ export type ResourcingFilmstripDay = {
   weekend: boolean;
 };
 
-export type ResourcingOutPerson = PresencePerson & {
+type ResourcingOutPerson = PresencePerson & {
   leaveType: string;
   leaveReason: string | null;
 };

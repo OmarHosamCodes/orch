@@ -1,11 +1,8 @@
 import { z } from "zod";
 
-import {
-  draftToIsoRange as draftToIsoRangeUtil,
-  parseDurationInput,
-} from "@/features/time-tracking/time-entry-draft";
+import { draftToIsoRange as draftToIsoRangeUtil } from "@/features/time-tracking/time-entry-draft";
 
-export const timeEntryDraftSchema = z.object({
+const timeEntryDraftSchema = z.object({
   projectId: z.string(),
   taskId: z.string(),
   tagIds: z.array(z.string()),
@@ -53,10 +50,6 @@ export function classifyTimeEntryEditError(error: string | null): TimeEntryClock
   if (error === "End time must be after start time.") return { ...none, start: true, end: true };
   if (error === "Invalid duration.") return { ...none, duration: true };
   return none;
-}
-
-export function parseTimeEntryDraftDuration(value: string): number | null {
-  return parseDurationInput(value);
 }
 
 export { draftToIsoRangeUtil as draftToIsoRange };

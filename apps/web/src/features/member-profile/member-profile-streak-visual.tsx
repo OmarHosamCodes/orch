@@ -69,7 +69,12 @@ export function MemberProfileStreakVisual({ streak, className }: Props) {
         <p className="mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Recent working days
         </p>
-        <div className={cn("h-9 w-full", streak.currentStreak > 0 ? "text-success" : "text-foreground")}>
+        <div
+          className={cn(
+            "h-9 w-full",
+            streak.currentStreak > 0 ? "text-success" : "text-foreground",
+          )}
+        >
           <StreakChainGlyph segments={streak.segments} className="h-full w-full" />
         </div>
         <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[0.625rem] text-muted-foreground">
@@ -82,7 +87,9 @@ export function MemberProfileStreakVisual({ streak, className }: Props) {
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <p className="text-xs font-medium text-foreground">Month attendance</p>
-          <p className="font-mono text-xs font-semibold tabular-nums text-foreground">{coveragePct}%</p>
+          <p className="font-mono text-xs font-semibold tabular-nums text-foreground">
+            {coveragePct}%
+          </p>
         </div>
         <div className="h-2.5 overflow-hidden rounded-full bg-muted">
           <div

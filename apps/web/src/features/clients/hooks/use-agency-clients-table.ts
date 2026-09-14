@@ -22,9 +22,9 @@ import { getTaskGroupKey } from "@/features/task-management/agency-task-utils";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export type AgencyClientCategory = "internal" | "external";
+type AgencyClientCategory = "internal" | "external";
 
-export type AgencyClientsTableClient = {
+type AgencyClientsTableClient = {
   id: string;
   name: string;
   category: AgencyClientCategory;
@@ -34,7 +34,7 @@ export type AgencyClientsTableClient = {
   archivedAt: string | null;
 };
 
-export type AgencyClientsTableProject = {
+type AgencyClientsTableProject = {
   id: string;
   clientId: string;
   name: string;

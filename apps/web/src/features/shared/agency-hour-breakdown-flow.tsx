@@ -16,7 +16,7 @@ export type AgencyHourBreakdownMetrics = {
   paidSeconds: number;
 };
 
-export type HourBreakdownSegmentId = "paid" | "waste" | "internalBillable" | "internalNonBillable";
+type HourBreakdownSegmentId = "paid" | "waste" | "internalBillable" | "internalNonBillable";
 
 type HourBreakdownSegment = {
   id: HourBreakdownSegmentId;
@@ -88,9 +88,9 @@ export function buildHourBreakdownSegments(
   ];
 }
 
-export type FlowSpan = { x0: number; x1: number };
+type FlowSpan = { x0: number; x1: number };
 
-export type HourBreakdownFlowLink = {
+type HourBreakdownFlowLink = {
   id: string;
   source: FlowSpan;
   target: FlowSpan;

@@ -19,15 +19,19 @@
         "src/**/*.{test,spec}.{ts,tsx}",
         "src/ui/**/*.{ts,tsx}",
         "vite.config.ts",
-        "scripts/write-railway-server.mjs"
+        "scripts/write-railway-server.mjs",
+        "scripts/railway-ssr-server.mjs"
       ],
       "project": ["src/**/*.{ts,tsx}", "vite*.ts", "scripts/**/*.mjs", "perf/**/*.mjs"],
       "ignoreDependencies": [
         "tailwindcss",
+        "@fontsource-variable/ibm-plex-sans",
         "@fontsource-variable/merriweather",
+        "@fontsource-variable/roboto",
         "@fontsource-variable/roboto-mono",
         "@fontsource/lato",
         "tw-animate-css",
+        "tw-shimmer",
         "shadcn"
       ]
     },

@@ -13,10 +13,11 @@ describe("agency-report-fields", () => {
       "project",
       "task",
       "description",
+      "link",
       "duration",
       "assignee",
     ]);
-    expect(parseReportFieldsParam(null).length).toBe(5);
+    expect(parseReportFieldsParam(null).length).toBe(6);
     expect(parseReportFieldsParam("project,duration")).toEqual(["project", "duration"]);
     expect(parseReportFieldsParam("bad,values")).toEqual(allAgencyReportFieldIds());
     expect(serializeReportFieldsParam(["project", "task"])).toBe("project,task");

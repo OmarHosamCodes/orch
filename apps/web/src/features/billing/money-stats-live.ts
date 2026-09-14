@@ -8,7 +8,7 @@ import {
   type MoneyStatsMetricId,
 } from "./money-stats-fixtures";
 
-export type MoneyStatsMetricSource = "live" | "fixture";
+type MoneyStatsMetricSource = "live" | "fixture";
 
 export type MoneyStatsLiveOverrides = {
   currency?: string;
@@ -17,7 +17,7 @@ export type MoneyStatsLiveOverrides = {
   sources?: Partial<Record<MoneyStatsMetricId, MoneyStatsMetricSource>>;
 };
 
-export type MoneyStatsMetricWithSource = MoneyStatsMetricFixture & {
+type MoneyStatsMetricWithSource = MoneyStatsMetricFixture & {
   source: MoneyStatsMetricSource;
 };
 

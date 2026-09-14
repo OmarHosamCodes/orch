@@ -11,8 +11,8 @@ import {
 } from "./money-bill-allocation";
 import { parseMoneyExpenseAmount } from "./money-expense-form";
 
-export type MoneyBillInvoiceStatus = "draft" | "sent" | "partial" | "paid" | "refunded";
-export type MoneyBillPayoutStatus = "draft" | "partial" | "paid";
+type MoneyBillInvoiceStatus = "draft" | "sent" | "partial" | "paid" | "refunded";
+type MoneyBillPayoutStatus = "draft" | "partial" | "paid";
 export type MoneyBillStatus = "outstanding" | "partial" | "paid" | "refunded";
 
 export type MoneyBillInvoiceSource = {
@@ -116,7 +116,7 @@ export type MoneyBillInvoiceRow = MoneyBillRowBase & {
   allocation: MoneyBillAllocationView;
 };
 
-export type MoneyBillClientActivityRow = MoneyBillRowBase & {
+type MoneyBillClientActivityRow = MoneyBillRowBase & {
   kind: "client-activity";
   party: "client";
   clientId: string;
@@ -130,7 +130,7 @@ export type MoneyBillClientActivityRow = MoneyBillRowBase & {
   allocation: MoneyBillAllocationView;
 };
 
-export type MoneyBillMemberActivityRow = MoneyBillRowBase & {
+type MoneyBillMemberActivityRow = MoneyBillRowBase & {
   kind: "member-activity";
   party: "team";
   userId: string;
@@ -310,7 +310,7 @@ export function moneyBillRowFromInvoice(
   };
 }
 
-export function moneyBillRowFromClientActivity(
+function moneyBillRowFromClientActivity(
   client: MoneyBillClientActivitySource,
 ): MoneyBillClientActivityRow {
   const durationLabel = formatDuration(client.durationSeconds, "short");
@@ -345,7 +345,7 @@ export function moneyBillRowFromClientActivity(
   };
 }
 
-export function moneyBillRowFromMemberActivity(
+function moneyBillRowFromMemberActivity(
   member: MoneyBillMemberActivitySource,
 ): MoneyBillMemberActivityRow {
   const durationLabel = formatDuration(member.durationSeconds, "short");
@@ -468,24 +468,6 @@ export function moneyBillRowFromAdjustmentLine(
   };
 }
 
-/** Stable id for project-palette hue (client rows / invoices). */
-export function moneyBillHueId(row: MoneyBillRow): string | null {
-  switch (row.kind) {
-    case "client-activity":
-      return row.clientId;
-    case "invoice":
-      return row.clientId;
-    case "member-activity":
-    case "team-payout":
-    case "adjustment":
-      return null;
-    default: {
-      const _exhaustive: never = row;
-      return _exhaustive;
-    }
-  }
-}
-
 export function moneyBillClientHref(clientId: string): string {
   return agencyClientHref(clientId);
 }
@@ -513,7 +495,7 @@ export function moneyBillPartyHref(row: MoneyBillRow): string | null {
   }
 }
 
-export type MoneyBillRowSectionId = "ready" | "invoices" | "ready-payout" | "team" | "adjustments";
+type MoneyBillRowSectionId = "ready" | "invoices" | "ready-payout" | "team" | "adjustments";
 
 export type MoneyBillRowSection = {
   id: MoneyBillRowSectionId;

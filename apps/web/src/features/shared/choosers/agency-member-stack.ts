@@ -1,7 +1,7 @@
 /** Stack trigger: size-6 avatars, -ml-2 overlap; plus when ≤1 assignee, else +N overflow. */
-export const ASSIGNEE_STACK_AVATAR_PX = 24;
-export const ASSIGNEE_STACK_OVERLAP_PX = 8;
-export const ASSIGNEE_STACK_PLUS_OVERLAP_PX = 4;
+const ASSIGNEE_STACK_AVATAR_PX = 24;
+const ASSIGNEE_STACK_OVERLAP_PX = 8;
+const ASSIGNEE_STACK_PLUS_OVERLAP_PX = 4;
 /** Composer cap: 2 avatars, or 1 avatar + overflow. */
 export const ASSIGNEE_STACK_MAX_WIDTH_PX = 48;
 

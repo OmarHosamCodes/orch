@@ -60,7 +60,7 @@ function queryKeysEqual(left: readonly unknown[], right: readonly unknown[]) {
   return left.length === right.length && JSON.stringify(left) === JSON.stringify(right);
 }
 
-export function chooserTeamIdFromQueryKey(queryKey: readonly unknown[]): string | undefined {
+function chooserTeamIdFromQueryKey(queryKey: readonly unknown[]): string | undefined {
   const meta = queryKey[1];
   if (!meta || typeof meta !== "object") return undefined;
   const input = "input" in meta ? (meta as { input?: { teamId?: unknown } }).input : undefined;

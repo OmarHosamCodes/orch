@@ -3,7 +3,7 @@ import { Link } from "@/lib/navigation";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 
-export type KnowledgeObjectBacklink = {
+type KnowledgeObjectBacklink = {
   id: string;
   label: string;
   href: string;

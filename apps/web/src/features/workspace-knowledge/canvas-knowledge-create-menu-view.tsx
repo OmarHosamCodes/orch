@@ -1,5 +1,14 @@
-import { FileText, Folder, Layers3, Pin, Plus, Scale, StickyNote, Upload, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  FileText,
+  Folder,
+  Layers3,
+  Pin,
+  Plus,
+  Scale,
+  StickyNote,
+  Upload,
+  User,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 
 import {
@@ -10,20 +19,22 @@ import {
 } from "@/features/workspace-knowledge/knowledge-create";
 import { cn } from "@/lib/utils";
 
+export type MenuMotionState = "hidden" | "opening" | "open" | "closing";
+
 export type CanvasKnowledgeCreateMenuViewProps = {
   open: boolean;
   x: number;
   y: number;
   unplacedCount: number;
+  motionState: MenuMotionState;
+  activeKind: KnowledgeCreateKind | null;
+  onActiveKindChange: (kind: KnowledgeCreateKind | null) => void;
   onClose: () => void;
   onSelect: (kind: KnowledgeCreateKind) => void;
   onOpenUnplaced: () => void;
 };
 
-type MenuMotionState = "hidden" | "opening" | "open" | "closing";
-
 const RADIAL_RADIUS = 70;
-const CLOSE_DURATION_MS = 260;
 const ACTION_SAFE_INSET = 28;
 
 function kindIcon(kind: KnowledgeCreateKind) {
@@ -74,41 +85,16 @@ function keepActionInsideCanvas(
 }
 
 export function CanvasKnowledgeCreateMenuView({
-  open,
   x,
   y,
   unplacedCount,
+  motionState,
+  activeKind,
+  onActiveKindChange,
   onClose,
   onSelect,
   onOpenUnplaced,
 }: CanvasKnowledgeCreateMenuViewProps) {
-  const [motionState, setMotionState] = useState<MenuMotionState>(open ? "open" : "hidden");
-  const [activeKind, setActiveKind] = useState<KnowledgeCreateKind | null>(null);
-
-  useEffect(() => {
-    if (open) {
-      setMotionState("opening");
-      const timeout = window.setTimeout(() => setMotionState("open"), 0);
-      return () => window.clearTimeout(timeout);
-    }
-
-    setActiveKind(null);
-    setMotionState((current) => (current === "hidden" ? "hidden" : "closing"));
-    const timeout = window.setTimeout(() => setMotionState("hidden"), CLOSE_DURATION_MS);
-    return () => window.clearTimeout(timeout);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", closeOnEscape, true);
-    return () => window.removeEventListener("keydown", closeOnEscape, true);
-  }, [onClose, open]);
-
   if (motionState === "hidden" || typeof document === "undefined") return null;
 
   const expanded = motionState === "open";
@@ -120,10 +106,7 @@ export function CanvasKnowledgeCreateMenuView({
 
   return createPortal(
     <div
-      className={cn(
-        "fixed inset-0 z-40",
-        closing && "pointer-events-none",
-      )}
+      className={cn("fixed inset-0 z-40", closing && "pointer-events-none")}
       onClick={onClose}
       onContextMenu={(event) => event.preventDefault()}
     >
@@ -163,11 +146,7 @@ export function CanvasKnowledgeCreateMenuView({
 
         {knowledgeCreateKinds.map((kind, index) => {
           const Icon = kindIcon(kind);
-          const position = keepActionInsideCanvas(
-            radialPosition(index),
-            { x, y },
-            canvasRect,
-          );
+          const position = keepActionInsideCanvas(radialPosition(index), { x, y }, canvasRect);
           const delay = reducedMotion
             ? 0
             : closing
@@ -197,10 +176,10 @@ export function CanvasKnowledgeCreateMenuView({
                 transitionProperty: "opacity, transform, background-color, color",
                 transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
               }}
-              onBlur={() => setActiveKind(null)}
-              onFocus={() => setActiveKind(kind)}
-              onMouseEnter={() => setActiveKind(kind)}
-              onMouseLeave={() => setActiveKind(null)}
+              onBlur={() => onActiveKindChange(null)}
+              onFocus={() => onActiveKindChange(kind)}
+              onMouseEnter={() => onActiveKindChange(kind)}
+              onMouseLeave={() => onActiveKindChange(null)}
               onClick={() => onSelect(kind)}
               title={knowledgeCreateLabel(kind)}
             >

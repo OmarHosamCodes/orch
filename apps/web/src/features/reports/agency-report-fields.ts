@@ -23,7 +23,7 @@ export const AGENCY_REPORT_FIELD_LABELS: Record<AgencyReportFieldId, string> = {
 };
 
 /** Default Create Report / live Reports columns — period from/to are opt-in. */
-export const AGENCY_REPORT_DEFAULT_FIELDS = [
+const AGENCY_REPORT_DEFAULT_FIELDS = [
   "project",
   "task",
   "description",
@@ -33,7 +33,6 @@ export const AGENCY_REPORT_DEFAULT_FIELDS = [
 ] as const satisfies readonly AgencyReportFieldId[];
 
 const fieldIdSet = new Set<string>(AGENCY_REPORT_FIELDS);
-const defaultFieldIdSet = new Set<string>(AGENCY_REPORT_DEFAULT_FIELDS);
 
 export function isAgencyReportFieldId(value: string): value is AgencyReportFieldId {
   return fieldIdSet.has(value);
@@ -79,12 +78,4 @@ export function isReportFieldVisible(
 /** Row selection highlight applies to every column except project and period. */
 export function isReportCreatorSelectionHighlightField(field: AgencyReportFieldId): boolean {
   return field !== "project" && field !== "from" && field !== "to";
-}
-
-export function isAgencyReportPeriodField(field: AgencyReportFieldId): boolean {
-  return field === "from" || field === "to";
-}
-
-export function isAgencyReportDefaultField(field: AgencyReportFieldId): boolean {
-  return defaultFieldIdSet.has(field);
 }

@@ -100,7 +100,7 @@ const imageVariants = cva("aui-image-root relative overflow-hidden rounded-lg", 
   },
 });
 
-export type ImageRootProps = React.ComponentProps<"div"> & VariantProps<typeof imageVariants>;
+type ImageRootProps = React.ComponentProps<"div"> & VariantProps<typeof imageVariants>;
 
 function ImageRoot({ className, variant, size, children, ...props }: ImageRootProps) {
   return (
@@ -297,7 +297,7 @@ function ImageContentFilterError({ className, reason }: { className?: string; re
   );
 }
 
-export type ImageActionsProps = {
+type ImageActionsProps = {
   part: ImageMessagePart;
   /**
    * Wire to your own generation call to show a regenerate button. The button
@@ -407,14 +407,4 @@ Image.Actions = ImageActions;
 Image.Generating = ImageGenerating;
 Image.ContentFilterError = ImageContentFilterError;
 
-export {
-  Image,
-  ImageRoot,
-  ImagePreview,
-  ImageFilename,
-  ImageZoom,
-  ImageActions,
-  ImageGenerating,
-  ImageContentFilterError,
-  imageVariants,
-};
+export { Image };

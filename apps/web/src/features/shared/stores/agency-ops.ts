@@ -22,6 +22,7 @@ import {
   toggleAgencyFavorite,
   type ToggleFavoritePayload,
 } from "@/features/shared/stores/agency-favorites";
+import { restoreQuerySnapshots, snapshotQueries } from "@/features/shared/query-snapshots";
 import { useAgencyOptimisticStore } from "@/features/shared/stores/agency-optimistic";
 import type { AgencyProjectJourney, AgencyProjectTask } from "@orch/api/schemas/agency-ops";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -87,11 +88,6 @@ type AgencyProjectsListQueryData = {
 };
 
 type QueryKey = readonly unknown[];
-
-type QuerySnapshot = {
-  queryKey: QueryKey;
-  data: unknown;
-};
 
 type RegisteredClientsQuery = {
   queryKey: QueryKey;
@@ -457,21 +453,6 @@ function createAgencyOpsActions(
 
   function unregisterCapacityQuery(queryKey: QueryKey) {
     unregisterFrom(capacityQueryRegistry, registryKey(queryKey));
-  }
-
-  // ---------------------------------------------------------------------------
-  // Snapshot / restore helpers
-  // ---------------------------------------------------------------------------
-
-  function snapshotQueries(queries: Iterable<{ queryKey: QueryKey }>): QuerySnapshot[] {
-    return [...queries].map((q) => ({
-      queryKey: q.queryKey,
-      data: getQueryClient().getQueryData(q.queryKey),
-    }));
-  }
-
-  function restoreQuerySnapshots(snapshots: QuerySnapshot[]) {
-    snapshots.forEach((s) => getQueryClient().setQueryData(s.queryKey, s.data));
   }
 
   // ---------------------------------------------------------------------------
@@ -2598,18 +2579,9 @@ export const useAgencyOpsStore = create<AgencyOpsState>((set, get) => ({
 }));
 
 export {
-  selectIsCapacityMutationPending,
   selectIsClientMutationPending,
   selectIsContactMutationPending,
   selectIsCreatingTask,
   selectIsInvoiceMutationPending,
   selectIsProjectMutationPending,
-  selectIsRateMutationPending,
-  selectIsTaskMutationPending,
-  selectIsTaskRowPending,
 } from "@/features/shared/stores/agency-ops-selectors";
-
-export {
-  toggleAgencyFavorite,
-  type ToggleFavoritePayload,
-} from "@/features/shared/stores/agency-favorites";

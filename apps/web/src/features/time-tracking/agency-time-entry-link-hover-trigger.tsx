@@ -3,10 +3,7 @@ import { useState } from "react";
 
 import { AgencyTimeEntryLinksDialog } from "@/features/time-tracking/agency-time-entry-links-dialog";
 import type { TimeEntryLinkRecord } from "@/features/shared/agency-time-entry-links";
-import {
-  agencyFocusRingClass,
-  agencyTimeEntryIconButtonClass,
-} from "@/features/shared/agency-ui";
+import { agencyFocusRingClass, agencyTimeEntryIconButtonClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
 type AgencyTimeEntryLinkHoverTriggerProps = {

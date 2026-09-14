@@ -26,7 +26,7 @@ export function getLogoAnimationHref(preference: ThemePreference): string {
   return getBrandAssetHref("logo", preference);
 }
 
-export function getFaviconHref(preference: ThemePreference, isTracking: boolean): string {
+function getFaviconHref(preference: ThemePreference, isTracking: boolean): string {
   return getBrandAssetHref(isTracking ? "tracking" : "favicon", preference);
 }
 
@@ -34,7 +34,7 @@ function getFaviconLink(): HTMLLinkElement | null {
   return document.querySelector('link[rel="icon"]');
 }
 
-export function setFavicon(href: string): void {
+function setFavicon(href: string): void {
   if (typeof document === "undefined") return;
 
   const link = getFaviconLink();
@@ -54,7 +54,7 @@ function getThemeColorMeta(): HTMLMetaElement | null {
   return document.querySelector('meta[name="theme-color"]');
 }
 
-export function setThemeColor(preference: ThemePreference): void {
+function setThemeColor(preference: ThemePreference): void {
   if (typeof document === "undefined") return;
 
   const content = preference === "light" ? THEME_COLOR_LIGHT : THEME_COLOR_DARK;

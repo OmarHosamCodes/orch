@@ -1,5 +1,3 @@
-import type { AgencyReportFieldId } from "./agency-report-fields";
-
 export type AgencyReportNameSnapshot = {
   range: { from: string; to: string };
   clientId?: string;
@@ -267,5 +265,3 @@ export function sanitizeReportFileName(name: string): string {
     .trim();
   return sanitized.length > 0 ? sanitized : "report";
 }
-
-export type SavedReportFieldIds = AgencyReportFieldId[];

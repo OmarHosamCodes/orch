@@ -6,13 +6,13 @@ import type { AgencyLiveConnectionState } from "@/features/shared/agency-live-rp
 import { isAgencyLiveConnected } from "@/features/shared/live/agency-live-connected";
 import { getQueryClient } from "@/lib/query-client";
 
-export const AGENCY_POLL = {
+const AGENCY_POLL = {
   hot: 3_000,
   warm: 8_000,
   cold: 30_000,
 } as const;
 
-export const AGENCY_STALE_TIME = {
+const AGENCY_STALE_TIME = {
   hot: 2_000,
   warm: 5_000,
   cold: 15_000,
@@ -20,7 +20,7 @@ export const AGENCY_STALE_TIME = {
 
 export type AgencySyncTier = keyof typeof AGENCY_POLL;
 
-export type AgencySyncMeta = {
+type AgencySyncMeta = {
   agencyLiveGatedTeamId?: string;
   agencySyncTier?: AgencySyncTier;
   agencyNoPoll?: boolean;

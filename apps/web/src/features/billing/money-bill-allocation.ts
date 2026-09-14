@@ -1,6 +1,6 @@
 /** Approach 02 — segmented pool allocation for client + team bill rows. */
 
-export type MoneyBillAllocationParty = "client" | "team";
+type MoneyBillAllocationParty = "client" | "team";
 
 export type MoneyBillAllocationAmount = {
   totalCents: number;
@@ -12,9 +12,9 @@ export type MoneyBillAllocationAmount = {
   party?: MoneyBillAllocationParty;
 };
 
-export type MoneyBillAllocationSegmentId = "received" | "remaining" | "uninvoiced";
+type MoneyBillAllocationSegmentId = "received" | "remaining" | "uninvoiced";
 
-export type MoneyBillAllocationSegment = {
+type MoneyBillAllocationSegment = {
   id: MoneyBillAllocationSegmentId;
   percent: number;
 };

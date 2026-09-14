@@ -30,9 +30,3 @@ export function getAuthBaseUrl(): string {
   }
   return getServerUrl();
 }
-
-/** Public Sentry DSN injected at build time; undefined keeps the SDK disabled. */
-export function getSentryDsn(): string | undefined {
-  const dsn = typeof __SENTRY_DSN__ === "string" ? __SENTRY_DSN__ : "";
-  return dsn.length > 0 ? dsn : undefined;
-}

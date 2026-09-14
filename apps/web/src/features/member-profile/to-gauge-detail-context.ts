@@ -1,5 +1,4 @@
 import type { memberProfileSchema } from "@orch/api/routers/agency-ops/member-profile/schemas";
-import { DEFAULT_WORK_SCHEDULE } from "@orch/api/routers/agency-ops/resourcing/work-schedule";
 import type { z } from "zod";
 
 import type { MemberProfileViewData } from "@/features/member-profile/agency-member-profile-types";
@@ -190,5 +189,3 @@ export function buildMemberProfileGaugeDetail(
     attendanceStreak: input.openGaugeKey === "present" ? input.attendanceStreak : undefined,
   });
 }
-
-export { DEFAULT_WORK_SCHEDULE };

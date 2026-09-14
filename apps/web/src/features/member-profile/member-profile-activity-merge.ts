@@ -30,7 +30,7 @@ export type MemberProfileTimelineActivity = {
   isBillable: boolean | null;
 };
 
-export type MemberProfileTimelineReview = {
+type MemberProfileTimelineReview = {
   kind: "review";
   id: string;
   body: string;
@@ -71,9 +71,7 @@ export function memberProfileActivityMergeKey(item: MemberProfileTimelineActivit
   return `${item.eventType}||${taskKey}||${item.description ?? ""}`;
 }
 
-export function activityToReportEntry(
-  item: MemberProfileTimelineActivity,
-): AgencyReportEntry | null {
+function activityToReportEntry(item: MemberProfileTimelineActivity): AgencyReportEntry | null {
   if (
     item.eventType === "leave" ||
     !item.projectId ||

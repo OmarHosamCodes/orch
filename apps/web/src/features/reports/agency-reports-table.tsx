@@ -278,9 +278,7 @@ export function AgencyReportsTable({
                             ) : (
                               <span
                                 className="block truncate text-start"
-                                title={
-                                  row.links.map((link) => link.url).join(" · ") || undefined
-                                }
+                                title={row.links.map((link) => link.url).join(" · ") || undefined}
                               >
                                 {row.links.map((link) => link.url).join(" · ") || "—"}
                               </span>

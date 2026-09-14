@@ -218,9 +218,7 @@ export function MemberProfileAlertsPanel({ alerts }: Props) {
                         disabled={alerts.pending || !detail.note.trim()}
                         onClick={() => void alerts.send(detail.id)}
                       >
-                        {alerts.pendingLabel === "Sending…"
-                          ? "Sending…"
-                          : "Send notification"}
+                        {alerts.pendingLabel === "Sending…" ? "Sending…" : "Send notification"}
                       </Button>
                       {detail.canSnooze ? (
                         <Button
@@ -244,9 +242,7 @@ export function MemberProfileAlertsPanel({ alerts }: Props) {
                         disabled={alerts.pending}
                         onClick={() => void alerts.remove(detail.id)}
                       >
-                        {alerts.pendingLabel === "Dismissing…"
-                          ? "Dismissing…"
-                          : "Dismiss alert"}
+                        {alerts.pendingLabel === "Dismissing…" ? "Dismissing…" : "Dismiss alert"}
                       </Button>
                     </div>
                   </div>

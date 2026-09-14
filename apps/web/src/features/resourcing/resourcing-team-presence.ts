@@ -33,7 +33,7 @@ export type PresenceMonthSegment = {
   kind: "working" | "out";
 };
 
-export type PresenceOverviewCell = {
+type PresenceOverviewCell = {
   monthKey: string;
   segments: PresenceMonthSegment[];
 };
@@ -43,7 +43,7 @@ export type PresenceOverviewRow = {
   months: PresenceOverviewCell[];
 };
 
-export const PRESENCE_WEEKDAY_LABELS_MON_FIRST = [
+const PRESENCE_WEEKDAY_LABELS_MON_FIRST = [
   "Mon",
   "Tue",
   "Wed",
@@ -53,9 +53,6 @@ export const PRESENCE_WEEKDAY_LABELS_MON_FIRST = [
   "Sun",
 ] as const;
 
-/** @deprecated Prefer presenceWeekdayLabels(weekStartsOn). */
-export const PRESENCE_WEEKDAY_LABELS = PRESENCE_WEEKDAY_LABELS_MON_FIRST;
-
 export function presenceWeekdayLabels(
   weekStartsOn: number = DEFAULT_WORK_SCHEDULE.weekStartsOn,
 ): string[] {
@@ -63,7 +60,7 @@ export function presenceWeekdayLabels(
 }
 
 /** Soft member tints from theme charts / state — cycled by stable index. */
-export const PRESENCE_MEMBER_TINT_CLASS = [
+const PRESENCE_MEMBER_TINT_CLASS = [
   "bg-chart-1/30 text-foreground",
   "bg-chart-2/30 text-foreground",
   "bg-chart-3/30 text-foreground",
@@ -74,8 +71,6 @@ export const PRESENCE_MEMBER_TINT_CLASS = [
   "bg-warning/25 text-foreground",
 ] as const;
 
-export const PRESENCE_OUT_PILL_CLASS = "bg-warning/20 text-warning ring-1 ring-warning/40";
-
 export function shortDisplayName(userName: string): string {
   const trimmed = userName.trim();
   if (!trimmed) return "?";
@@ -83,10 +78,7 @@ export function shortDisplayName(userName: string): string {
   return first.length > 12 ? `${first.slice(0, 11)}…` : first;
 }
 
-export function stableColorIndex(
-  userId: string,
-  modulo = PRESENCE_MEMBER_TINT_CLASS.length,
-): number {
+function stableColorIndex(userId: string, modulo = PRESENCE_MEMBER_TINT_CLASS.length): number {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;

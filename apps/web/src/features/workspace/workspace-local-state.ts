@@ -6,7 +6,7 @@ import type {
   WorkspaceNodeType,
 } from "@orch/workspace";
 
-export type EditorMode = "create" | "edit";
+type EditorMode = "create" | "edit";
 export type SaveState = "idle" | "saving" | "saved" | "error";
 export type NodePosition = { x: number; y: number };
 export type WorkspaceConnectionPair = {

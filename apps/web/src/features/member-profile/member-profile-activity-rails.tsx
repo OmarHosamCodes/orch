@@ -20,7 +20,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion"
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
-export type MemberProfileActivityRailsDay = {
+type MemberProfileActivityRailsDay = {
   date: string;
   title: string;
   subtitle: string;

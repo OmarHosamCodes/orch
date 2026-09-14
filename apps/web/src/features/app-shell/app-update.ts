@@ -1,8 +1,8 @@
 export const APP_UPDATE_POLL_MS = 60_000;
-export const APP_UPDATE_MIN_LOADER_MS = 1_000;
-export const APP_VERSION_PATH = "/version.json";
+const APP_UPDATE_MIN_LOADER_MS = 1_000;
+const APP_VERSION_PATH = "/version.json";
 
-export type AppVersionPayload = {
+type AppVersionPayload = {
   buildId: string;
 };
 
@@ -25,7 +25,7 @@ export function isRemoteBuildNewer(localBuildId: string, remoteBuildId: string |
   return remoteBuildId !== localBuildId;
 }
 
-export function isChunkLoadFailureMessage(message: string): boolean {
+function isChunkLoadFailureMessage(message: string): boolean {
   const normalized = message.toLowerCase();
   return (
     normalized.includes("failed to fetch dynamically imported module") ||

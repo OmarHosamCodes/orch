@@ -1,9 +1,8 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { ArrowUpIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { inkButton, paper } from "./surfaces";
+import { paper } from "./surfaces";
 
 export function EmptyState({ className, ...props }: ComponentProps<"div">) {
   return (
@@ -56,43 +55,5 @@ export function EmptyStateSuggestion({
       )}
       {...props}
     />
-  );
-}
-
-export function EmptyStateComposer({
-  placeholder,
-  onSend,
-  className,
-  style,
-  ...props
-}: Omit<ComponentProps<"div">, "children" | "placeholder"> & {
-  placeholder: string;
-  onSend?: () => void;
-}) {
-  return (
-    <div
-      data-slot="empty-state-composer"
-      style={{ animationDelay: "360ms", ...style }}
-      className={cn(
-        paper,
-        "fade-in slide-in-from-bottom-2 animate-in fill-mode-both flex h-13 w-full items-center justify-between rounded-full py-2 ps-5 pe-2.5 duration-500 motion-reduce:animate-none",
-        className,
-      )}
-      {...props}
-    >
-      <span className="text-foreground/35 text-[15px]">{placeholder}</span>
-      <button
-        type="button"
-        aria-label="Send"
-        onClick={onSend}
-        disabled={!onSend}
-        className={cn(
-          inkButton,
-          "flex size-8 items-center justify-center rounded-full disabled:pointer-events-none disabled:opacity-30",
-        )}
-      >
-        <ArrowUpIcon className="size-4" />
-      </button>
-    </div>
   );
 }

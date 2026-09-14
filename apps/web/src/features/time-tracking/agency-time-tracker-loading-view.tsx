@@ -1,4 +1,7 @@
-import { agencyTimeTrackerCardClass, agencyTimeTrackerShimmerClass } from "@/features/shared/agency-ui";
+import {
+  agencyTimeTrackerCardClass,
+  agencyTimeTrackerShimmerClass,
+} from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
 export function AgencyTimeTrackerLoadingView() {

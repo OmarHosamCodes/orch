@@ -2,8 +2,6 @@ import { cn } from "@/lib/utils";
 
 import { clampPlateRatio, type MoneyStatsPlateGlyphSignal } from "./money-stats-plate-signal";
 
-export { clampPlateRatio };
-
 const glyphMotionClass =
   "transition-[width,transform,stroke-dashoffset,opacity] duration-300 ease-out motion-reduce:transition-none";
 

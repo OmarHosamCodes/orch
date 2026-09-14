@@ -11,7 +11,6 @@ import {
   type NotificationPreferenceItem,
   type NotificationPreferenceType,
 } from "@/features/notifications/notifications-queries";
-import { notificationPreferenceLabel } from "@/features/notifications/notification-presentation";
 import { useTeamStore } from "@/features/team/team-store";
 import { resetAuthenticatedClientState } from "@/lib/authenticated-client-reset";
 import { authClient } from "@/lib/auth-client";
@@ -23,7 +22,6 @@ import { useTheme } from "@/stores/theme";
 import { useUserSettingsModalState, type UserSettingsPane } from "./use-user-settings-modal-state";
 
 export type { NotificationPreferenceItem, NotificationPreferenceType };
-export { notificationPreferenceLabel };
 
 export type UserSettingsModalInput = {
   open: boolean;

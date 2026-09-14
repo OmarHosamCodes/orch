@@ -6,7 +6,6 @@ import {
   UserMessageAttachments,
 } from "@/components/assistant-ui/attachment";
 import { File } from "@/components/assistant-ui/file";
-import { ThreadFollowupSuggestions } from "@/components/assistant-ui/follow-up-suggestions";
 import { Image } from "@/components/assistant-ui/image";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import {
@@ -66,7 +65,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
+type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
 /**
  * Optional component overrides for the thread. `AssistantMessage` and
@@ -75,7 +74,7 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
  * by name (toolkit `render`, `useAssistantDataUI`) take precedence over
  * `ToolFallback`.
  */
-export type ThreadComponents = {
+type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   UserMessage?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
@@ -157,7 +156,6 @@ const ThreadRoot: FC<{ composer?: ReactNode }> = ({ composer }) => {
 
       {hideComposerChrome ? null : (
         <div className="flex shrink-0 flex-col gap-2 px-3 pb-3">
-          <ThreadFollowupSuggestions />
           {composer === undefined ? <Composer /> : composer}
         </div>
       )}

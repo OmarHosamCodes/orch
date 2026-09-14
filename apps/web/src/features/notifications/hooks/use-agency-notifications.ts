@@ -39,7 +39,7 @@ export type AgencyNotificationsInput = {
   teamId: string;
 };
 
-export function notificationSentenceParts(notification: NotificationRecord) {
+function notificationSentenceParts(notification: NotificationRecord) {
   const actor = notification.actorName ?? "Someone";
   const payload = notification.payload;
 

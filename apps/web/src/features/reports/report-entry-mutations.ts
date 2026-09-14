@@ -58,7 +58,7 @@ export function removeReportEntriesFromCache(
   }
 }
 
-export function upsertReportEntryInCache(
+function upsertReportEntryInCache(
   queryClient: QueryClient,
   teamId: string,
   entry: AgencyReportEntry,
@@ -76,7 +76,7 @@ export function upsertReportEntryInCache(
   }
 }
 
-export async function invalidateReportEntryQueries(teamId: string, queryClient: QueryClient) {
+async function invalidateReportEntryQueries(teamId: string, queryClient: QueryClient) {
   await Promise.all([
     invalidateAgencyEntriesQueries(teamId),
     invalidateAgencyReportsQueries(teamId),

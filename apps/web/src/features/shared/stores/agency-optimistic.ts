@@ -32,7 +32,7 @@ export type AgencyOptimisticProject = {
 
 export type AgencyOptimisticTask = AgencyProjectTask;
 
-export type AgencyOptimisticTag = {
+type AgencyOptimisticTag = {
   id: string;
   teamId: string;
   name: string;
@@ -81,7 +81,7 @@ export type AgencyOptimisticActiveTimer = {
   updatedAt: string;
 };
 
-export type AgencyOptimisticContact = {
+type AgencyOptimisticContact = {
   id: string;
   teamId: string;
   clientId: string;
@@ -305,7 +305,8 @@ export const useAgencyOptimisticStore = create<AgencyOptimisticState>((set, get)
               name: patch.name ?? "",
               category: patch.category ?? "external",
               billableRateAmount: patch.billableRateAmount ?? null,
-              sourceBillableRateAmount: patch.sourceBillableRateAmount ?? patch.billableRateAmount ?? null,
+              sourceBillableRateAmount:
+                patch.sourceBillableRateAmount ?? patch.billableRateAmount ?? null,
               currency: patch.currency ?? "USD",
               createdAt: patch.createdAt ?? new Date().toISOString(),
               updatedAt: patch.updatedAt ?? new Date().toISOString(),

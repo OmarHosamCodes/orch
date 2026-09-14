@@ -6,7 +6,7 @@ import type {
   WorkspaceNodeType,
 } from "@orch/workspace";
 
-export interface CanvasRect {
+interface CanvasRect {
   x: number;
   y: number;
   width: number;

@@ -91,15 +91,9 @@ function isAgencyOpsPath(path: string[], ...segments: string[]) {
   return pathsEqual(path, segments);
 }
 
-export function isAgencyProjectTasksListQueryKey(queryKey: QueryKey, teamId: string) {
+function isAgencyProjectTasksListQueryKey(queryKey: QueryKey, teamId: string) {
   const path = getOrpcQueryPath(queryKey);
   if (!isAgencyOpsPath(path, "agencyOps", "projectTasks", "list")) return false;
-  return getOrpcQueryMeta(queryKey)?.input?.teamId === teamId;
-}
-
-export function isAgencyProjectsListQueryKey(queryKey: QueryKey, teamId: string) {
-  const path = getOrpcQueryPath(queryKey);
-  if (!isAgencyOpsPath(path, "agencyOps", "projects", "list")) return false;
   return getOrpcQueryMeta(queryKey)?.input?.teamId === teamId;
 }
 
@@ -116,14 +110,14 @@ export function isAgencyProjectJourneyQueryKey(
   return true;
 }
 
-export function isAgencyActiveTimerQueryKey(queryKey: QueryKey, teamId: string) {
+function isAgencyActiveTimerQueryKey(queryKey: QueryKey, teamId: string) {
   const path = getOrpcQueryPath(queryKey);
   if (!isAgencyOpsPath(path, "agencyOps", "timer", "getActive")) return false;
   const input = getOrpcQueryMeta(queryKey)?.input;
   return input?.teamId === teamId || input?.teamId === undefined;
 }
 
-export function isAgencyActiveMembersQueryKey(queryKey: QueryKey, teamId: string) {
+function isAgencyActiveMembersQueryKey(queryKey: QueryKey, teamId: string) {
   const path = getOrpcQueryPath(queryKey);
   if (!isAgencyOpsPath(path, "agencyOps", "timer", "listActiveMembers")) return false;
   return getOrpcQueryMeta(queryKey)?.input?.teamId === teamId;
@@ -137,7 +131,7 @@ export function isAgencyTimeEntriesListQueryKey(queryKey: QueryKey, teamId: stri
 
 import { isJourneyMilestoneTask } from "@/features/projects/agency-task-journey";
 
-export function taskVisibleToAssignee(
+function taskVisibleToAssignee(
   task: Pick<AgencyProjectTask, "assignedToTeam" | "assignees">,
   assigneeUserId: string,
 ): boolean {
@@ -168,16 +162,6 @@ export function taskVisibleToAssignee(
   }
   // #endregion
   return task.assignees.some((assignee) => assignee.userId === assigneeUserId);
-}
-
-export function taskMatchesAnyAssigneeFilter(
-  task: Pick<AgencyProjectTask, "assignedToTeam" | "assignees">,
-  assigneeUserIds: Iterable<string>,
-): boolean {
-  for (const assigneeUserId of assigneeUserIds) {
-    if (taskVisibleToAssignee(task, assigneeUserId)) return true;
-  }
-  return false;
 }
 
 function isDoneCompletionQuery(input: Record<string, unknown> | undefined) {
@@ -250,7 +234,7 @@ export function taskMatchesQueryInput(
   return true;
 }
 
-export function forEachAgencyProjectTasksListQuery(
+function forEachAgencyProjectTasksListQuery(
   teamId: string,
   apply: (queryKey: QueryKey, input: Record<string, unknown> | undefined) => void,
 ) {
@@ -359,7 +343,7 @@ function isInfiniteProjectTasksQueryKey(queryKey: QueryKey) {
   return queryKey.includes("infinite");
 }
 
-export function patchAllProjectTasksListData(
+function patchAllProjectTasksListData(
   teamId: string,
   apply: (
     current: AgencyProjectTasksCacheData | undefined,
@@ -617,17 +601,6 @@ export function reconcileCreatedProjectTaskInCache(
         );
       },
     });
-  });
-}
-
-export async function refetchAgencyProjectsListQueries(teamId: string) {
-  const queryClient = getQueryClient();
-  await queryClient.invalidateQueries({
-    predicate: (query) => isAgencyProjectsListQueryKey(query.queryKey, teamId),
-  });
-  await queryClient.refetchQueries({
-    predicate: (query) => isAgencyProjectsListQueryKey(query.queryKey, teamId),
-    type: "active",
   });
 }
 

@@ -6,9 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { mergeAgencyPresenceMembers } from "@/features/shared/agency-presence-members";
 import {
   useMergedAgencyActiveTimerQuery,
-  useMergedAgencyCapacityQuery,
   useMergedAgencyClientsQuery,
-  useMergedAgencyContactQuery,
   useMergedAgencyProjectTasksQuery,
   useMergedAgencyProjectsQuery,
   useMergedAgencyTimeEntriesQuery,
@@ -23,11 +21,7 @@ import {
 } from "@/features/shared/agency-query-options";
 import { useAgencyOptimisticStore } from "@/features/shared/stores/agency-optimistic";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
-import {
-  isAgencyActiveMembersQueryKey,
-  isAgencyActiveTimerQueryKey,
-  isAgencyTimeEntriesListQueryKey,
-} from "@/features/shared/agency-query-cache";
+import { isAgencyTimeEntriesListQueryKey } from "@/features/shared/agency-query-cache";
 import { ensureAgencyTaskChooserCatalog } from "@/features/shared/agency-task-chooser-catalog";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import type { AgencyProjectTask } from "@orch/api/schemas/agency-ops";
@@ -44,13 +38,6 @@ export type AgencyProjectTasksFilters = {
   page?: number;
   pageSize?: number;
   enabled?: boolean;
-};
-
-export type AgencyProjectTasksListPage = {
-  items: AgencyProjectTask[];
-  page: number;
-  pageSize: number;
-  total: number;
 };
 
 export async function ensureAgencyWorkBootQueries(
@@ -119,10 +106,6 @@ export async function ensureAgencyWorkBootQueries(
   ]);
 }
 
-export function prefetchAgencyWorkQueries(teamId: string, assigneeUserId: string) {
-  void ensureAgencyWorkBootQueries(getQueryClient(), teamId, assigneeUserId);
-}
-
 function isAgencyReportsOrpcQueryKey(queryKey: QueryKey, teamId: string, endpoint?: "dashboard") {
   const path = queryKey[0];
   if (
@@ -157,15 +140,6 @@ export async function invalidateAgencyDashboardQueries(teamId: string) {
   if (!teamId) return;
   await getQueryClient().invalidateQueries({
     predicate: (query) => isAgencyReportsOrpcQueryKey(query.queryKey, teamId, "dashboard"),
-  });
-}
-
-export async function invalidateAgencyTimerQueries(teamId: string) {
-  if (!teamId) return;
-  await getQueryClient().invalidateQueries({
-    predicate: (query) =>
-      isAgencyActiveTimerQueryKey(query.queryKey, teamId) ||
-      isAgencyActiveMembersQueryKey(query.queryKey, teamId),
   });
 }
 
@@ -246,82 +220,6 @@ export function useAgencyClientsQuery(
   }, [teamId, queryKey, registerClientsQuery, unregisterClientsQuery]);
 
   return useMergedAgencyClientsQuery(query, teamId);
-}
-
-export function useAgencyContactQuery(teamId: string, clientId: string) {
-  const registerContactQuery = useAgencyOpsStore((s) => s.registerContactQuery);
-  const unregisterContactQuery = useAgencyOpsStore((s) => s.unregisterContactQuery);
-
-  const queryKey = orpc.agencyOps.contacts.get.queryOptions({
-    input: { teamId, clientId },
-  }).queryKey;
-
-  const query = useQuery(
-    withAgencySyncQueryOptions(
-      {
-        ...orpc.agencyOps.contacts.get.queryOptions({
-          input: { teamId, clientId },
-        }),
-        enabled: Boolean(teamId) && Boolean(clientId),
-        placeholderData: keepPreviousData,
-      },
-      "cold",
-      { liveGated: true, teamId },
-    ),
-  );
-
-  useEffect(() => {
-    if (!teamId || !clientId) return;
-    registerContactQuery({ queryKey, teamId, clientId });
-    return () => unregisterContactQuery(queryKey);
-  }, [teamId, clientId, queryKey, registerContactQuery, unregisterContactQuery]);
-
-  return useMergedAgencyContactQuery(query, teamId, clientId);
-}
-
-export function useAgencyCapacityQuery(teamId: string, weekStart: string, weeks: number) {
-  const registerCapacityQuery = useAgencyOpsStore((s) => s.registerCapacityQuery);
-  const unregisterCapacityQuery = useAgencyOpsStore((s) => s.unregisterCapacityQuery);
-
-  const input = useMemo(() => ({ teamId, weekStart, weeks }), [teamId, weekStart, weeks]);
-
-  const queryKey = orpc.agencyOps.capacity.list.queryOptions({ input }).queryKey;
-
-  const query = useQuery(
-    withAgencySyncQueryOptions(
-      {
-        ...orpc.agencyOps.capacity.list.queryOptions({ input }),
-        enabled: Boolean(teamId),
-        placeholderData: keepPreviousData,
-      },
-      "cold",
-      { liveGated: true, teamId },
-    ),
-  );
-
-  useEffect(() => {
-    if (!teamId) return;
-    registerCapacityQuery({ queryKey, teamId });
-    return () => unregisterCapacityQuery(queryKey);
-  }, [teamId, queryKey, registerCapacityQuery, unregisterCapacityQuery]);
-
-  return useMergedAgencyCapacityQuery(query, teamId);
-}
-
-export function useAgencyProjectJourneyQuery(teamId: string, projectId: string) {
-  return useQuery(
-    withAgencySyncQueryOptions(
-      {
-        ...orpc.agencyOps.projects.journey.get.queryOptions({
-          input: { teamId, projectId },
-        }),
-        enabled: Boolean(teamId) && Boolean(projectId),
-        placeholderData: keepPreviousData,
-      },
-      "warm",
-      { liveGated: true, teamId, noPoll: true },
-    ),
-  );
 }
 
 export function useAgencyProjectTasksQuery(
@@ -426,10 +324,7 @@ export function useAgencyProjectTasksQuery(
   return useMergedAgencyProjectTasksQuery(query, teamId, stableFilters);
 }
 
-export type { AgencyPresenceMember } from "@/features/shared/agency-presence-members";
-export { mergeAgencyPresenceMembers } from "@/features/shared/agency-presence-members";
-
-export function useAgencyActiveMembersQuery(teamId: string) {
+function useAgencyActiveMembersQuery(teamId: string) {
   return useQuery(
     withAgencySyncQueryOptions(
       {

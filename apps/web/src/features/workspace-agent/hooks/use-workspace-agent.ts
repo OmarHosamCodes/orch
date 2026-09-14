@@ -205,6 +205,18 @@ export function useWorkspaceAgent() {
   const setExpanded = useWorkspaceAgentStore((s) => s.setExpanded);
   const toggleExpanded = useWorkspaceAgentStore((s) => s.toggleExpanded);
   const orchPresence = useWorkspaceAgentStore((s) => s.orchPresence);
+  const prevPresenceRef = useRef(orchPresence);
+  const [dockLandPulse, setDockLandPulse] = useState(false);
+
+  useEffect(() => {
+    const prev = prevPresenceRef.current;
+    prevPresenceRef.current = orchPresence;
+    if (prev !== "thread" || orchPresence !== "dock") return;
+    setDockLandPulse(true);
+    const timer = window.setTimeout(() => setDockLandPulse(false), 480);
+    return () => window.clearTimeout(timer);
+  }, [orchPresence]);
+
   const scopeModeActive = useWorkspaceAgentStore((s) => s.scopeModeActive);
   const toggleScopeMode = useWorkspaceAgentStore((s) => s.toggleScopeMode);
   const setScopeModeActive = useWorkspaceAgentStore((s) => s.setScopeModeActive);
@@ -1261,6 +1273,7 @@ export function useWorkspaceAgent() {
     setExpanded,
     toggleExpanded,
     orchPresence,
+    dockLandPulse,
     scopeModeActive,
     toggleScopeMode,
     scopeHintSeen,
@@ -1426,4 +1439,3 @@ export function useWorkspaceAgent() {
 }
 
 export type WorkspaceAgentViewModel = ReturnType<typeof useWorkspaceAgent>;
-export type WorkspaceAgentScopeChip = AgentScopeRef;

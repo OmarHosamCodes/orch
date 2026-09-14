@@ -5,7 +5,7 @@ import { agencyFocusRingClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/ui/dialog";
 
-export type AgencySettingsNavItem<TPane extends string> = {
+type AgencySettingsNavItem<TPane extends string> = {
   id: TPane;
   label: string;
   icon: LucideIcon;

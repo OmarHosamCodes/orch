@@ -15,7 +15,7 @@ import {
   LEGACY_AGENCY_SEGMENT_MAP,
 } from "@/features/shared/agency-segments";
 
-export const AGENCY_PRESERVED_SEARCH_KEYS = [
+const AGENCY_PRESERVED_SEARCH_KEYS = [
   "from",
   "to",
   "fields",
@@ -92,6 +92,7 @@ function resolveManagementPane(
   manage: string | null,
 ): AgencyManagementPaneId {
   if (manage === "invoices" || manage === "billing") return "money";
+  if (manage === "rates") return "tenure";
   if (isAgencyManagementPaneId(manage)) return manage;
   if (section === "billing") return "money";
   if (section === "resourcing" || section === "settings") return "resourcing";
@@ -119,6 +120,10 @@ function resolveLegacyTargetPath(pathname: string, params: URLSearchParams): str
     return agencyReportHref(report);
   }
 
+  if (manage === "tags") {
+    return "/agency";
+  }
+
   const isManagementQuery =
     section === "settings" ||
     section === "resourcing" ||
@@ -126,6 +131,7 @@ function resolveLegacyTargetPath(pathname: string, params: URLSearchParams): str
     section === "management" ||
     manage === "invoices" ||
     manage === "billing" ||
+    manage === "rates" ||
     isAgencyManagementPaneId(manage);
 
   if (isManagementQuery) {

@@ -61,8 +61,6 @@ export type MoneyBillMergedMemberRow = MoneyBillRowBase & {
   durationSeconds: number;
 };
 
-export type MoneyBillMergedAccountRow = MoneyBillMergedClientRow | MoneyBillMergedMemberRow;
-
 export type MoneyBillDisplayRow =
   | MoneyBillMergedClientRow
   | MoneyBillMergedMemberRow
@@ -357,11 +355,7 @@ export function buildMergedMoneyBillDisplayRows(input: {
   return rows;
 }
 
-export function isMoneyBillMergedRow(row: MoneyBillDisplayRow): row is MoneyBillMergedAccountRow {
-  return row.kind === "merged-client" || row.kind === "merged-member";
-}
-
-export type MoneyBillDisplaySectionId = "clients" | "team" | "adjustments";
+type MoneyBillDisplaySectionId = "clients" | "team" | "adjustments";
 
 export type MoneyBillDisplaySection = {
   id: MoneyBillDisplaySectionId;
@@ -422,25 +416,6 @@ export function groupMoneyBillDisplayRows(rows: MoneyBillDisplayRow[]): MoneyBil
   return sections;
 }
 
-export function moneyBillDisplayListInsight(rows: MoneyBillDisplayRow[]): string | null {
-  const clients = rows.filter((row) => row.kind === "merged-client");
-  const members = rows.filter((row) => row.kind === "merged-member");
-  const readyClients = clients.filter((row) => row.uninvoicedCents > 0);
-  const readyMembers = members.filter((row) => row.uninvoicedCents > 0);
-  const parts: string[] = [];
-  if (readyClients.length > 0) {
-    const totalSeconds = readyClients.reduce((sum, row) => sum + row.durationSeconds, 0);
-    parts.push(
-      `${readyClients.length} client${readyClients.length === 1 ? "" : "s"} ready · ${formatDuration(totalSeconds, "short")} unbilled`,
-    );
-  }
-  if (readyMembers.length > 0) {
-    parts.push(`${readyMembers.length} member${readyMembers.length === 1 ? "" : "s"} ready to pay`);
-  }
-  if (parts.length === 0) return null;
-  return parts.join(" · ");
-}
-
 export function filterMergedRowsByClientCategory(
   rows: MoneyBillDisplayRow[],
   category: "external" | null,
@@ -451,18 +426,4 @@ export function filterMergedRowsByClientCategory(
     if (row.kind !== "merged-client") return true;
     return (clientCategoryById.get(row.clientId) ?? "external") === category;
   });
-}
-
-export function moneyBillDisplayHueId(row: MoneyBillDisplayRow): string | null {
-  switch (row.kind) {
-    case "merged-client":
-      return row.clientId;
-    case "merged-member":
-    case "adjustment":
-      return null;
-    default: {
-      const _exhaustive: never = row;
-      return _exhaustive;
-    }
-  }
 }

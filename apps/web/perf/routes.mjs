@@ -101,5 +101,3 @@ export function resolveRoutes({ ci = false, nodeId = null } = {}) {
     })
     .filter(Boolean);
 }
-
-export { ALL_ROUTES };

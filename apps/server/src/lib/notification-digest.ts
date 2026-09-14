@@ -138,7 +138,7 @@ async function runMemberDigest(input: {
   });
 }
 
-export async function runNotificationDigestTick() {
+async function runNotificationDigestTick() {
   const now = new Date();
   await flushDueDeferredNotificationPushes(null, {});
 
@@ -181,9 +181,4 @@ export function startNotificationDigestScheduler() {
   setInterval(() => {
     void runNotificationDigestTick();
   }, intervalMs);
-}
-
-/** ponytail: test-only no-op retained for callers that cleared the old in-memory set */
-export function resetDigestSentForTest() {
-  // Durable dedupe lives in notification_digest_sent; nothing to clear in-process.
 }

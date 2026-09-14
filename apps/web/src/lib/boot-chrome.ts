@@ -5,12 +5,10 @@ import { NOTIFICATION_LIST_LIMIT } from "@/features/notifications/notification-l
 import { teamListQueryKey } from "@/features/team/team-queries";
 import { orpc } from "@/lib/orpc";
 
-export type BootTeams = Awaited<ReturnType<AppRouterClient["team"]["list"]>>;
-export type BootUnreadCount = Awaited<ReturnType<AppRouterClient["notifications"]["unreadCount"]>>;
-export type BootNotificationList = Awaited<ReturnType<AppRouterClient["notifications"]["list"]>>;
-export type BootActiveTimer = Awaited<
-  ReturnType<AppRouterClient["agencyOps"]["timer"]["getActive"]>
->;
+type BootTeams = Awaited<ReturnType<AppRouterClient["team"]["list"]>>;
+type BootUnreadCount = Awaited<ReturnType<AppRouterClient["notifications"]["unreadCount"]>>;
+type BootNotificationList = Awaited<ReturnType<AppRouterClient["notifications"]["list"]>>;
+type BootActiveTimer = Awaited<ReturnType<AppRouterClient["agencyOps"]["timer"]["getActive"]>>;
 
 export type BootShellChrome = {
   teams: BootTeams | null;

@@ -27,7 +27,7 @@ function formatHours(value: number): string {
   return Number.isInteger(rounded) ? `${rounded}h` : `${rounded}h`;
 }
 
-export function alertPlateShortLabel(kind: AlertPlateKind): string {
+function alertPlateShortLabel(kind: AlertPlateKind): string {
   switch (kind) {
     case "abnormal_day":
       return "Day hours";
@@ -46,7 +46,7 @@ export function alertPlateShortLabel(kind: AlertPlateKind): string {
   }
 }
 
-export function alertPlateTone(kind: AlertPlateKind): AlertPlateTone {
+function alertPlateTone(kind: AlertPlateKind): AlertPlateTone {
   switch (kind) {
     case "abnormal_day":
     case "waste_spike":

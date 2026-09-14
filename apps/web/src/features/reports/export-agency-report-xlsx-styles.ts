@@ -22,7 +22,7 @@ export const AGENCY_REPORT_EXPORT_FONT_SIZES = {
   body: 12,
 } as const;
 
-export const AGENCY_REPORT_EXPORT_ROW_HEIGHTS = {
+const AGENCY_REPORT_EXPORT_ROW_HEIGHTS = {
   client: 28,
   header: 24,
   data: 22,

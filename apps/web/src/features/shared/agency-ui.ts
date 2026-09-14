@@ -18,7 +18,7 @@ export function getAgencyPageScrollElement(): HTMLElement | null {
 }
 
 /** Offset of a list root from the agency page scroll top (for @tanstack/react-virtual scrollMargin). */
-export function getAgencyPageScrollMargin(listElement: HTMLElement | null): number {
+function getAgencyPageScrollMargin(listElement: HTMLElement | null): number {
   const scrollElement = getAgencyPageScrollElement();
   if (!scrollElement || !listElement) return 0;
 
@@ -151,25 +151,6 @@ export const agencyMyTasksClientGroupHeaderClass = cn(
   "sticky top-0 z-[1] truncate bg-card px-2 py-1.5 text-xs font-semibold tracking-wide text-muted",
 );
 
-/** Virtual-list height estimates — keep in sync with header padding/typography below. */
-export const AGENCY_TASK_CLIENT_GROUP_HEADER_HEIGHT = 44;
-export const AGENCY_TASK_PROJECT_GROUP_HEADER_HEIGHT = 38;
-
-export const agencyTaskClientGroupHeaderClass = cn(
-  "flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm",
-  "transition-colors hover:bg-default/50",
-);
-
-/** Muted band headers — time log day groups, task rail project groups, etc. */
-export const agencyMutedSectionHeaderClass = cn(
-  "flex min-h-10 items-center justify-between gap-3 border-y border-default bg-elevated/65 px-4 py-2 text-xs sm:px-5",
-);
-
-export const agencyTaskProjectGroupHeaderClass = cn(
-  agencyMutedSectionHeaderClass,
-  "w-full shrink-0 gap-2 text-left transition-colors hover:bg-muted/75",
-);
-
 export const agencyTaskRowContentClass = "relative flex gap-1.5 px-3 py-2.5";
 
 export const agencyTaskRowNestedContentClass = "relative flex gap-1.5 px-3 py-1.5";
@@ -213,56 +194,14 @@ export const agencyTimeTrackerPanelClass = "relative z-20 shrink-0 overflow-visi
 /** Log body inside the unified work pane — no second border/radius. */
 export const agencyTimeLogPanelClass = "flex min-h-0 flex-1 flex-col overflow-hidden";
 
-/** Tab strip sits inside the pane; radius belongs on the pane, not here. */
-export const agencyWorkTabShellClass = "shrink-0";
-
-export const agencyWorkTrackerCardClass =
+const agencyWorkTrackerCardClass =
   "shrink-0 overflow-hidden rounded-lg border border-border bg-card";
 
-export const agencyWorkTabBarClass =
-  "flex min-h-12 shrink-0 items-center justify-between gap-2 border-b border-default px-2 sm:px-3";
-
-export const agencyWorkTabClass = cn(
-  "inline-flex h-full shrink-0 items-center border-b-2 border-transparent px-2.5 text-sm font-medium text-muted transition-colors",
-  "hover:text-highlighted",
-  agencyFocusRingClass,
-  "motion-reduce:transition-none",
-);
-
-export const agencyWorkTabActiveClass = "border-highlighted font-semibold text-highlighted";
-
-export const agencyWorkTabCreateClass = cn(
-  "h-8 w-8 shrink-0 rounded-full p-0",
-  agencyFocusRingClass,
-);
-
-export const agencyWorkTableGridClass =
-  "grid min-h-14 w-full grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.75fr)_4.5rem] items-center gap-x-0 px-4 py-2 sm:px-5 sm:[&>*+*]:border-l sm:[&>*+*]:border-dashed sm:[&>*+*]:border-default sm:[&>*+*]:pl-4";
-
-export const agencyWorkTableGridDoneClass =
-  "grid min-h-14 w-full grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,0.75fr)_4.5rem] items-center gap-x-0 px-4 py-2 sm:px-5 sm:[&>*+*]:border-l sm:[&>*+*]:border-dashed sm:[&>*+*]:border-default sm:[&>*+*]:pl-4";
-
-export const agencyWorkTableGridDelegatedClass =
-  "grid min-h-14 w-full grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.85fr)_4.5rem] items-center gap-x-0 px-4 py-2 sm:px-5 sm:[&>*+*]:border-l sm:[&>*+*]:border-dashed sm:[&>*+*]:border-default sm:[&>*+*]:pl-4";
-
-/** Visual chrome only — pair with the matching row grid class so header cells align. */
-export const agencyWorkTableHeaderClass =
-  "min-h-10 border-b border-default bg-elevated/65 text-[11px] font-semibold text-muted";
-
 export const agencyWorkTableBodyScrollClass = "min-h-0 flex-1 overflow-y-auto p-0";
-
-export const agencyWorkTableStackClass = "flex flex-col gap-5";
-
-export const agencyWorkTableListClass = "overflow-hidden border-y border-default bg-default";
 
 /** Shared compact state treatment within the work-surface content pane. */
 export const agencyWorkSurfaceStateClass =
   "mx-auto flex w-full max-w-md flex-col items-center rounded-none border border-default bg-elevated/35 px-5 py-8 text-center";
-
-export const agencyWorkTableRowClass = cn(
-  agencyWorkTableGridClass,
-  "border-b border-dashed border-default transition-colors hover:bg-elevated/60 motion-reduce:transition-none",
-);
 
 export const agencyWorkPlayButtonClass = cn(
   "inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-default bg-elevated text-muted",
@@ -292,32 +231,8 @@ export const agencyTimeTrackerShimmerClass =
 export const agencyTimeTrackerDescriptionZoneClass =
   "group/desc relative flex min-h-0 min-w-0 flex-1 items-center overflow-visible";
 
-export const agencyTimeTrackerControlsZoneClass =
-  "flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2";
-
-export const agencyTimeTrackerSplitClass = "flex min-w-0 flex-row items-center gap-2 sm:gap-3";
-
-export const agencyTimeTrackerDescriptionCardClass = cn(
-  agencyWorkTrackerCardClass,
-  "group/desc relative flex min-h-14 min-w-0 flex-1 basis-0 flex-col justify-center gap-0 overflow-visible px-3 py-2",
-);
-
-export const agencyTimeTrackerControlsCardClass = cn(
-  agencyWorkTrackerCardClass,
-  "flex min-h-14 min-w-0 shrink-0 items-center px-3 py-2",
-);
-
-export const agencyTimeTrackerDescriptionLabelClass =
-  "text-xs font-semibold leading-none text-muted";
-
 export const agencyTimeTrackerDescriptionInputClass =
   "block h-9 w-full min-w-0 truncate rounded-md border-0 bg-transparent px-0 py-0 text-base font-normal leading-9 text-foreground shadow-none";
-
-export const agencyTimeTrackerActiveRowClass =
-  "flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2";
-
-export const agencyTimeTrackerStatusZoneClass =
-  "flex min-w-0 max-w-[14rem] items-center gap-1.5 sm:max-w-[18rem]";
 
 /** Tracker right cluster — single-height rail with hairline separators. */
 export const agencyTimeTrackerRailClass = "flex h-full shrink-0 items-center";
@@ -326,8 +241,6 @@ export const agencyTimeTrackerRailCellClass = "flex shrink-0 items-center gap-2 
 
 export const agencyTimeTrackerRailDividerClass =
   "h-6 w-px shrink-0 self-center bg-border data-vertical:h-6 data-vertical:w-px data-vertical:self-center";
-
-export const agencyTimeTrackerInnerDividerClass = agencyTimeTrackerRailDividerClass;
 
 export const agencyTimeTrackerMetricClass = cn(
   agencyWorkMetricClass,
@@ -391,11 +304,6 @@ export const agencyTaskChooserCreateActionMutedClass = cn(
   "motion-reduce:transition-none",
 );
 
-export const agencyTimeTrackerProjectEmptyTriggerClass = cn(
-  agencyTimeTrackerTaskChooserTriggerClass,
-  "text-info hover:text-info",
-);
-
 export const agencyTimeTrackerPrimaryActionClass =
   "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground hover:bg-primary/80";
 
@@ -417,12 +325,6 @@ export const agencyTimeTrackerSuggestionOptionClass = cn(
   agencyFocusRingClass,
   "motion-reduce:transition-none",
 );
-
-export const agencyTimeDayHeaderClass = cn(
-  "flex shrink-0 items-center justify-between gap-3 border-b border-default bg-muted/45 px-4 py-3 text-sm",
-);
-
-export const agencyTimeWeekHeaderClass = "sr-only";
 
 export const agencyTimeEntryRowClass = cn(
   "group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
@@ -481,8 +383,7 @@ export const agencyTimeEntryRailClass = cn(
 /** Day-header rail — same cell widths, no vertical separators. */
 export const agencyTimeEntryRailQuietClass = "flex shrink-0 items-center";
 
-export const agencyTimeEntryRailCellClass =
-  "box-border flex h-full shrink-0 items-center px-[10px]";
+const agencyTimeEntryRailCellClass = "box-border flex h-full shrink-0 items-center px-[10px]";
 
 export const agencyTimeEntryRailBillableClass = cn(
   agencyTimeEntryRailCellClass,
@@ -610,24 +511,10 @@ export const agencyMyTasksRailAddButtonClass = cn(
 
 export const agencyTimeEntryRowEditingClass = "bg-primary/5 hover:bg-primary/5";
 
-export const agencyTimeSuggestionChipClass = cn(
-  "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-default bg-elevated px-2 py-1",
-  "text-xs font-medium text-muted transition-colors hover:bg-default hover:text-highlighted",
-);
-
 export const agencyTimeWeekFooterClass = cn(
   "mt-[20px] flex h-[40px] shrink-0 items-center justify-between border-t border-default px-[20px]",
   "bg-elevated/40",
 );
 
-export const agencyTimeFooterMetricClass = agencyWorkMetricClass;
-
 export const agencyTimeLogSkeletonClass =
   "h-[4.5rem] border-b border-default bg-elevated/35 motion-reduce:animate-none animate-pulse";
-
-/** Structured agency task agent reply card. */
-export const agencyAgentMessageCardClass =
-  "rounded-xl border border-border bg-muted/20 px-3 py-2.5 text-sm text-foreground";
-
-export const agencyAgentMessageCodeClass =
-  "mt-2 overflow-x-auto rounded-lg border border-border bg-background px-2.5 py-2 font-mono text-xs text-foreground";

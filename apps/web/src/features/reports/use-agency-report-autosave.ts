@@ -6,7 +6,7 @@ import { orpcClient } from "@/lib/orpc";
 const DEBOUNCE_MS = 2_500;
 const MAX_WAIT_MS = 10_000;
 
-export type PendingReportActivityAction =
+type PendingReportActivityAction =
   | "created"
   | "renamed"
   | "entries_excluded"

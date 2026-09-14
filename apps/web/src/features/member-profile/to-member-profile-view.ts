@@ -4,7 +4,6 @@ import type { memberProfileSchema } from "@orch/api/routers/agency-ops/member-pr
 import type { z } from "zod";
 
 import type { MemberProfileViewData } from "@/features/member-profile/agency-member-profile-types";
-import type { AttendanceStreakModel } from "@/features/member-profile/member-profile-attendance-streak";
 import { computeAttendanceStreak } from "@/features/member-profile/member-profile-attendance-streak";
 import type { ProfilePaceParams } from "@/features/member-profile/member-profile-period";
 import {
@@ -374,5 +373,3 @@ export function buildMemberProfileView(input: BuildMemberProfileViewInput): Memb
     }),
   };
 }
-
-export type { AttendanceStreakModel };

@@ -31,22 +31,6 @@ export type ExpandTasksWithBlueprintsOptions = {
   journeyAnchorMode?: "assigned" | "discovery";
 };
 
-export function collectTaskBlueprintsFromTasks(
-  tasks: AgencyProjectTask[],
-): AgencyTaskBlueprintEntry[] {
-  const entries: AgencyTaskBlueprintEntry[] = [];
-  for (const task of tasks) {
-    for (const blueprint of task.viewerBlueprints ?? []) {
-      entries.push({
-        id: blueprint.id,
-        taskId: task.id,
-        description: blueprint.description,
-      });
-    }
-  }
-  return entries;
-}
-
 function resolveRowKind(task: AgencyProjectTask): AgencyTaskDisplayRowKind {
   if (isJourneyAnchorTask(task)) return "journey_anchor";
   if (isJourneyMilestoneTask(task)) return "journey_milestone";

@@ -7,7 +7,7 @@ function systemPrefersDark(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-export function getStoredTheme(): ThemePreference | null {
+function getStoredTheme(): ThemePreference | null {
   if (typeof localStorage === "undefined") return null;
   const value = localStorage.getItem(STORAGE_KEY);
   return value === "light" || value === "dark" ? value : null;
@@ -28,8 +28,4 @@ export function setTheme(theme: ThemePreference): void {
   if (typeof localStorage !== "undefined") {
     localStorage.setItem(STORAGE_KEY, theme);
   }
-}
-
-export function initTheme(): void {
-  applyTheme(resolveInitialTheme());
 }

@@ -203,17 +203,3 @@ export function WorkspaceAgentThinkingActivityView({
     </motion.details>
   );
 }
-
-export function toolPartsToThinkingSteps(
-  toolParts: Array<{
-    toolCallId: string;
-    toolName: string;
-    state: string;
-  }>,
-): WorkspaceAgentThinkingStep[] {
-  return toolParts.map((part) => ({
-    id: part.toolCallId,
-    name: part.toolName,
-    done: part.state === "output-available" || part.state === "output-error",
-  }));
-}
