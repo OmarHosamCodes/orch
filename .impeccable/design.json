@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-14T19:00:00Z",
+  "generatedAt": "2026-09-15T19:30:00Z",
   "title": "Design System: Orch",
   "extensions": {
     "colorMeta": {
@@ -279,6 +279,11 @@
         "name": "motion-ease-emphasized",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
         "purpose": "Task complete / pulse feedback."
+      },
+      {
+        "name": "shell-selection-rect",
+        "value": "bg-sidebar-accent; snaps under prefers-reduced-motion",
+        "purpose": "Traveling CSS selection rect behind rail rows and context-location-title only."
       }
     ],
     "breakpoints": [
@@ -349,9 +354,25 @@
       "name": "App Shell Rail Link",
       "kind": "nav",
       "refersTo": null,
-      "description": "Product rail row — soft violet active, never side-stripe.",
-      "html": "<a class=\"ds-rail-link ds-rail-link--active\" href=\"#\"><span class=\"ds-rail-label\">Tracker</span></a>",
-      "css": ".ds-rail-link { display: flex; align-items: center; gap: 0.625rem; height: 2.25rem; padding-inline: 0.625rem; border-radius: 0.625rem; color: var(--sidebar-foreground); font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 500; text-decoration: none; } .ds-rail-link:hover { background: var(--sidebar-accent); } .ds-rail-link--active { color: var(--chart-2); background: color-mix(in oklab, var(--chart-2) 10%, transparent); } .ds-rail-link:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 30%, transparent); }"
+      "description": "Product rail row. Traveling sidebar-accent selection rect behind the label; never a side-stripe or static violet tint.",
+      "html": "<div class=\"ds-rail-row\"><span class=\"ds-rail-blob\" aria-hidden=\"true\"></span><a class=\"ds-rail-link ds-rail-link--active\" href=\"#\"><span class=\"ds-rail-label\">Tracker</span></a></div>",
+      "css": ".ds-rail-row { position: relative; } .ds-rail-blob { position: absolute; inset: 0; z-index: 0; background: var(--sidebar-accent); border-radius: 0.625rem; pointer-events: none; } .ds-rail-link { position: relative; z-index: 1; display: flex; align-items: center; gap: 0.625rem; height: 2.25rem; padding-inline: 0.625rem; border-radius: 0.625rem; color: var(--sidebar-foreground); font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 500; text-decoration: none; background: transparent; } .ds-rail-link:hover { color: var(--sidebar-accent-foreground); } .ds-rail-link--active { color: var(--sidebar-accent-foreground); font-weight: 600; } .ds-rail-link:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent); }"
+    },
+    {
+      "name": "Current Title",
+      "kind": "nav",
+      "refersTo": "location-title",
+      "description": "Context-bar wayfinder: one leaf name plus chevron. Traveling selection rect on context-location-title only.",
+      "html": "<div class=\"ds-location\"><span class=\"ds-location-blob\" aria-hidden=\"true\"></span><button class=\"ds-location-title\" type=\"button\" aria-label=\"Dashboard. Switch location\" aria-haspopup=\"menu\"><span class=\"ds-location-label\" dir=\"auto\">Dashboard</span><svg class=\"ds-location-chevron\" viewBox=\"0 0 24 24\" width=\"12\" height=\"12\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"m6 9 6 6 6-6\"/></svg></button></div>",
+      "css": ".ds-location { position: relative; display: inline-flex; } .ds-location-blob { position: absolute; inset: 0; z-index: 0; background: var(--sidebar-accent); border-radius: 8px; pointer-events: none; } .ds-location-title { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 0.375rem; height: 32px; max-width: 100%; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--sidebar-accent-foreground); font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; line-height: 1; cursor: pointer; } .ds-location-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-location-chevron { flex: none; opacity: 0.5; } .ds-location-title:hover, .ds-location-title[aria-expanded=\"true\"] { background: color-mix(in oklab, var(--sidebar-foreground) 8%, transparent); } .ds-location-title:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent); }"
+    },
+    {
+      "name": "Location Destination Menu",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Grouped Products / Agency / Management popover. Text-only, 240–360px, 6px current dot, g x shortcuts.",
+      "html": "<div class=\"ds-location-menu\" role=\"menu\" aria-label=\"Locations\"><div class=\"ds-location-group\">Products</div><a class=\"ds-location-item\" role=\"menuitem\" href=\"#\"><span class=\"ds-location-dot\" aria-hidden=\"true\"></span><span dir=\"auto\">Canvas</span></a><a class=\"ds-location-item ds-location-item--current\" role=\"menuitem\" href=\"#\" aria-current=\"page\"><span class=\"ds-location-dot\" aria-hidden=\"true\"></span><span dir=\"auto\">Agency</span></a><div class=\"ds-location-group\">Agency</div><a class=\"ds-location-item\" role=\"menuitem\" href=\"#\"><span class=\"ds-location-dot\" aria-hidden=\"true\"></span><span dir=\"auto\">Tracker</span><span class=\"ds-location-shortcut\">g t</span></a></div>",
+      "css": ".ds-location-menu { min-width: 240px; max-width: 360px; padding: 6px; border-radius: 14.4px; background: var(--popover); color: var(--popover-foreground); font-family: var(--font-sans); box-shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18); } .ds-location-group { padding: 6px 8px 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); } .ds-location-item { display: flex; align-items: center; gap: 8px; min-height: 36px; width: 100%; padding: 0 8px; border-radius: 6px; color: var(--muted-foreground); font-size: 13px; font-weight: 500; text-decoration: none; } .ds-location-item:hover, .ds-location-item:focus-visible { background: var(--secondary); color: var(--foreground); outline: none; } .ds-location-item--current { color: var(--foreground); } .ds-location-dot { width: 6px; height: 6px; flex: none; border-radius: 9999px; background: var(--primary); opacity: 0; } .ds-location-item--current .ds-location-dot { opacity: 1; } .ds-location-shortcut { margin-left: auto; font-family: var(--font-mono); font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }"
     },
     {
       "name": "Tool Trace",
@@ -364,14 +385,15 @@
   ],
   "narrative": {
     "northStar": "Quiet instrument, photographic depth",
-    "overview": "Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained WebThreads field. Product shares one cool zinc family across light and dark — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.\n\nShipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. A shared static grain layer adds material presence across all routes without tinting surfaces.\n\nThe system rejects category defaults. No purple gradient heroes, no animated orbs as brand, no gradient text, no glassmorphism-as-default, no AI neon. The agent is a tool. The canvas is the product.",
+    "overview": "Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained field. Product uses one dark cool-zinc family — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.\n\nShipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. Inspiration (synthesize, don't copy): Apple whitespace, Linear surface ladder, Vercel hero atmosphere only.\n\nThe system rejects category defaults. No purple gradient heroes, no animated orbs as brand, no gradient text, no glassmorphism-as-default, no AI neon. The agent is a tool. The canvas is the product.",
     "keyCharacteristics": [
-      "Restrained color: zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome (`--primary` black in light, white in dark).",
+      "Restrained color: dark zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome white-on-black.",
       "Typographic hierarchy carries the system. `--font-sans`: Poppins for Latin, IBM Plex Sans Arabic for Arabic glyphs; IBM Plex Mono for tool traces and metrics.",
       "Surface ladder, not flat paper. Background → card → secondary/muted → border. Soft shadows only for true float (dialogs, popovers) via the theme shadow scale.",
       "Radii from `--radius` (`0.5rem`): controls use `rounded-2xl` (~14px); cards/dialogs use `radius-4xl` capped at 24px; dense tables pin `radius-dense` at 8px.",
       "Marketing stays focused: the root route is a single hero with one ambient WebThreads field and direct auth actions; product stays quiet. `prefers-reduced-motion` is mandatory.",
-      "Global grain is ambient texture: every route receives a static, pointer-transparent 256px pixel-noise tile at low opacity."
+      "Global grain is ambient texture: every route receives a static 256px pixel-noise tile at low opacity, painted into background and shell surfaces through a shared CSS image token. It never sits above content.",
+      "Authenticated location chrome is Current Title: one leaf name plus chevron on the connected 44px bar; destinations live in its grouped menu."
     ],
     "rules": [
       {
@@ -380,8 +402,8 @@
         "section": "colors"
       },
       {
-        "name": "The Soft Paper Rule",
-        "body": "Light mode page ground is cool near-white zinc (`oklch(0.99 0 0)`), never warm cream or emerald paper. Do not tint the ladder toward terracotta or purple wallpaper.",
+        "name": "The Dark Ground Rule",
+        "body": "Page ground is black zinc (`oklch(0 0 0)`), with depth coming from tonal surface steps rather than wallpaper.",
         "section": "colors"
       },
       {
@@ -391,13 +413,8 @@
       },
       {
         "name": "The Marketing Atmosphere Exception",
-        "body": "One restrained WebThreads field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.",
+        "body": "One restrained atmosphere field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.",
         "section": "colors"
-      },
-      {
-        "name": "The Global Grain Rule",
-        "body": "Use the shared --orch-grain-image token on painted background and shell surfaces. Keep it static and subtle; never place a grain overlay above content or add route-specific noise layers.",
-        "section": "elevation"
       },
       {
         "name": "The Bilingual Stack Rule",
@@ -428,6 +445,11 @@
         "name": "The Flat-By-Default Rule",
         "body": "Surfaces are flat at rest. Shadows appear for true float (dialogs, popovers, toasts) or brief state feedback.",
         "section": "elevation"
+      },
+      {
+        "name": "The Current Title Rule",
+        "body": "The context bar shows one leaf name plus chevron. Destinations live in its grouped menu. Nested pages get one quiet parent back, never a crumb trail.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -436,7 +458,9 @@
       "Do use Poppins + IBM Plex Sans Arabic (`--font-sans`) and IBM Plex Mono for system-reported truth.",
       "Do keep control radii on the `--radius` scale (`rounded-2xl` controls, `radius-4xl` cards); use full pills only for intentionally circular chrome (e.g. mobile nav trigger).",
       "Do put product nav in the rail/top-bar; make tool traces selectable and plain-prose-shaped.",
-      "Do keep the root landing to one clear hero action and let the global grain remain a quiet background texture.",
+      "Do keep location chrome as Current Title: one leaf plus chevron; traveling selection rect on `context-location-title` only.",
+      "Do mark current as the product and/or the destination whose label matches the leaf (member profile marks Agency only).",
+      "Do keep the root landing to one clear hero action and let the surface-owned grain remain a quiet background texture.",
       "Do respect `prefers-reduced-motion` for shell, marketing, and feedback animations."
     ],
     "donts": [
@@ -444,9 +468,12 @@
       "Don't flood product UI with violet wallpaper or gradient text.",
       "Don't use liquid glass / `ui-liquid-glass-*` for overlays or Canvas chrome; use opaque shadcn surfaces + hairlines.",
       "Don't wrap everything in a card; nested cards are always wrong.",
-      "Don't add a second grain/noise overlay to an individual route; use the shared --orch-grain-image surface token.",
+      "Don't add a second grain/noise overlay to an individual route; use the shared `--orch-grain-image` surface token.",
       "Don't put an uppercase eyebrow on every section or orchestrate entrance sequences in product surfaces.",
-      "Don't use side-stripe active indicators — use text + soft tint, or the quiet thread line for nested routes.",
+      "Don't use side-stripe active indicators — use the CSS selection rect + text emphasis, or the quiet thread line for nested routes.",
+      "Don't restore nested ancestor crumbs, dual product+place chips, or a command-field wayfinder in the context bar.",
+      "Don't put search, icons, or checkmarks in the location destination menu.",
+      "Don't wrap authenticated page content or the whole shell in gooey filters — chrome blobs only.",
       "Don't use em dashes in copy or UI text."
     ]
   }

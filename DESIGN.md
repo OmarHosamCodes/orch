@@ -141,6 +141,12 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.4xl}"
     padding: "20px"
+  location-title:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-inverted}"
+    rounded: "{rounded.lg}"
+    padding: "0 8px"
+    height: "32px"
   eyebrow:
     backgroundColor: "transparent"
     textColor: "{colors.ink-muted}"
@@ -167,6 +173,7 @@ The system rejects category defaults. No purple gradient heroes, no animated orb
 - Radii from `--radius` (`0.5rem`): controls use `rounded-2xl` (~14px); cards/dialogs use `radius-4xl` capped at 24px; dense tables pin `radius-dense` at 8px.
 - Marketing stays focused: the root route is a single hero with one ambient WebThreads field and direct auth actions; product stays quiet. `prefers-reduced-motion` is mandatory.
 - Global grain is ambient texture: every route receives a static 256px pixel-noise tile at low opacity, painted into background and shell surfaces through a shared CSS image token. It never sits above content.
+- Authenticated location chrome is Current Title: one leaf name plus chevron on the connected 44px bar; destinations live in its grouped menu.
 
 ## Colors
 
@@ -311,7 +318,18 @@ Controls share `rounded-2xl` (~14.4px from `--radius`), medium weight, and monoc
 ### Navigation
 
 - **Marketing:** The root landing is one full-viewport hero with a compact brand lockup and auth action. It has no feature index, pricing block, or footer. Legal pages may retain the centered marketing footer. No sticky chrome by default.
-- **Product:** Connected left rail + top context bar (`app-shell`). Active destination: a traveling liquid selection blob (`liquid-gooey`, opaque `sidebar-accent` fill) behind crisp labels — not a static tint or side-stripe. Nested routes keep the quiet 1px thread line. Rail expanded `15.5rem` on desktop.
+- **Product:** Connected left rail + always-on 44px top context bar (`app-shell`). Location chrome is Current Title: one leaf name plus chevron (`32px` high, `8px` inline padding, `dir="auto"`) opens a shadcn popover of grouped destinations. Nested pages add a quiet ChevronLeft back (`Back to ${parentLabel}`). Mobile keeps the bar; the hamburger lives in it and opens the rail sheet. Bell and CloudOff stay right. Active chrome: a measured CSS selection rect (`sidebar-accent` fill) behind the Current Title (`context-location-title` only) and behind rail rows — not a static tint or side-stripe. Nested rail routes keep the quiet 1px thread line. Rail expanded `15.5rem` on desktop.
+
+### Current Title (signature)
+
+One current place, not a nested trail. The leaf title is the wayfinder; destinations live in its menu.
+
+- **Trigger:** Semibold `0.8125rem` leaf name plus a `12px` chevron at 50% opacity. The traveling selection rect registers on `context-location-title` only. Hover and open fill `8%` sidebar-foreground over `8px` corners.
+- **Back:** Nested entity pages only (member, project, client, report, node, task). Icon-only ChevronLeft, `32px` hit, muted until hover.
+- **Menu:** Opaque shadcn popover, `240–360px`, no search. Groups Products / Agency / Management (~11 destinations). Full labels, `g x` shortcuts in IBM Plex Mono `10px`, quiet `6px` `--primary` current dot, no icons or checks. Current-mark is the product and/or the destination whose label matches the leaf; member profile marks Agency only.
+- **Overlays:** Leaf names from caches (members, projects, clients, nodes, session) with fallbacks Profile / Project / Client / Report / Node / Task.
+
+**The Current Title Rule.** The context bar shows one leaf name plus chevron. Destinations live in its grouped menu. Nested pages get one quiet parent back, never a crumb trail.
 
 ### Authentication
 
@@ -325,7 +343,7 @@ Label-scale tool name in mono, violet running indicator while live, hairline sep
 
 Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThreads hero field, a headline reveal, and a purposeful CTA response. The current root landing uses only the WebThreads field; the global grain is static. All motion degrades under `prefers-reduced-motion`.
 
-**Product chrome motion** uses `liquid-gooey` for shell destination selection (rail rows, context-bar crumb, notification overflow badge): one traveling blob with `effect="move"` and `transition="snappy"`. Route content commits instantly — no `shell-page-enter` / `shell-content-in` fades on authenticated hops. Wrap only the morphing chrome pieces in `<Liquid>`; never the page well, Canvas, or whole rail. This is opaque metaball chrome, not liquid glass (`ui-liquid-glass-*` stays banned). Other product surfaces may keep short state transitions (`120–220ms`) until migrated.
+**Product chrome motion** uses a CSS active-selection rect for shell destination selection: rail rows, and the context-bar Current Title (`context-location-title`) as the only bar target. The notification overflow badge stays a static pill. Route content commits instantly — no `shell-page-enter` / `shell-content-in` fades on authenticated hops. Keep selection chrome behind labels only; never the page well, Canvas, or whole rail. This is opaque shell chrome, not liquid glass (`ui-liquid-glass-*` stays banned). Other product surfaces may keep short state transitions (`120–220ms`) until migrated.
 
 ## Do's and Don'ts
 
@@ -336,6 +354,8 @@ Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThr
 - **Do** use Poppins + IBM Plex Sans Arabic (`--font-sans`) and IBM Plex Mono for system-reported truth.
 - **Do** keep control radii on the `--radius` scale (`rounded-2xl` controls, `radius-4xl` cards); use full pills only for intentionally circular chrome (e.g. mobile nav trigger).
 - **Do** put product nav in the rail/top-bar; make tool traces selectable and plain-prose-shaped.
+- **Do** keep location chrome as Current Title: one leaf plus chevron; traveling selection rect on `context-location-title` only.
+- **Do** mark current as the product and/or the destination whose label matches the leaf (member profile marks Agency only).
 - **Do** keep the root landing to one clear hero action and let the surface-owned grain remain a quiet background texture.
 - **Do** respect `prefers-reduced-motion` for shell, marketing, and feedback animations.
 
@@ -347,6 +367,8 @@ Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThr
 - **Don't** wrap everything in a card; nested cards are always wrong.
 - **Don't** add a second grain/noise overlay to an individual route; use the shared `--orch-grain-image` surface token.
 - **Don't** put an uppercase eyebrow on every section or orchestrate entrance sequences in product surfaces.
-- **Don't** use side-stripe active indicators — use the traveling liquid blob + text emphasis, or the quiet thread line for nested routes.
+- **Don't** use side-stripe active indicators — use the CSS selection rect + text emphasis, or the quiet thread line for nested routes.
+- **Don't** restore nested ancestor crumbs, dual product+place chips, or a command-field wayfinder in the context bar.
+- **Don't** put search, icons, or checkmarks in the location destination menu.
 - **Don't** wrap authenticated page content or the whole shell in gooey filters — chrome blobs only.
 - **Don't** use em dashes in copy or UI text.
