@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import {
   AgencyTimeEntryDayGroupView,
@@ -54,12 +54,10 @@ export function AgencyTimeEntryWeekHeaderView({
   weekStartKey,
   isPinned = false,
 }: AgencyTimeEntryWeekHeaderViewProps) {
-  const reduceMotion = useReducedMotion();
-
   return (
     <motion.header
       data-week-head={weekStartKey}
-      layout={!reduceMotion}
+      layout
       className={cn(agencyTimeWeekHeadStateClass(isPinned), "motion-reduce:transition-none")}
     >
       <h2 className={agencyWorkWeekLabelClass}>{label}</h2>

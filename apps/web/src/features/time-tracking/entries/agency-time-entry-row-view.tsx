@@ -1,6 +1,5 @@
 import { AnimatePresence } from "motion/react";
 import { MoreVertical, Play, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import {
@@ -115,16 +114,8 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
     agencyTaskChooserTriggerClass,
     "h-auto min-h-0 w-auto max-w-full gap-1 px-2 py-0 text-xs shadow-none",
   );
-  const [addingNote, setAddingNote] = useState(false);
-  const descriptionInputRef = useRef<HTMLInputElement>(null);
   const descriptionMode = entryDescriptionDisplayMode(descriptionDraft);
-  const showDescriptionField =
-    descriptionMode === "visible" || editingDescription || addingNote;
-
-  useEffect(() => {
-    if (!addingNote) return;
-    descriptionInputRef.current?.focus();
-  }, [addingNote]);
+  const showDescriptionField = descriptionMode === "visible" || editingDescription;
 
   return (
     <div
@@ -157,16 +148,13 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
         ) : null}
         {showDescriptionField ? (
           <Input
-            ref={descriptionInputRef}
+            autoFocus={descriptionMode === "omitted"}
             value={descriptionDraft}
             onChange={(e) => onDescriptionChange(e.target.value)}
             onFocus={() => onEditingDescriptionChange(true)}
             onBlur={() => {
               onDescriptionBlur();
               onEditingDescriptionChange(false);
-              if (entryDescriptionDisplayMode(descriptionDraft) === "omitted") {
-                setAddingNote(false);
-              }
             }}
             onKeyDown={onDescriptionKeyDown}
             disabled={editSaving || rowUpdating}
@@ -186,10 +174,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
               "group-hover/row:opacity-100 focus-visible:opacity-100 motion-reduce:opacity-100",
               agencyFocusRingClass,
             )}
-            onClick={() => {
-              setAddingNote(true);
-              onEditingDescriptionChange(true);
-            }}
+            onClick={() => onEditingDescriptionChange(true)}
           >
             Add note
           </button>
