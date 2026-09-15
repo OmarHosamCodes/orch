@@ -470,7 +470,7 @@ export const agencyTimeEntryDayGroupClass =
 export const agencyTimeWeekGroupClass = "flex flex-col";
 
 export const agencyTimeWeekGroupHeaderClass =
-  "flex h-[40px] shrink-0 items-center justify-between gap-3 bg-transparent";
+  "sticky top-0 z-10 flex min-h-[62px] shrink-0 items-center justify-between gap-3 bg-background/95 py-2";
 
 export const agencyTimeWeekGroupBodyClass = "flex flex-col gap-[20px] bg-background";
 

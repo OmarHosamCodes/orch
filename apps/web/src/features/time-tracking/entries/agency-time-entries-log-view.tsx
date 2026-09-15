@@ -34,6 +34,16 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
       ) : null}
 
       <div ref={view.scrollContainerRef} className={agencyWorkTableBodyScrollClass}>
+        {view.pinnedWeekOverlay ? (
+          <div className="sticky top-0 z-20 h-0 overflow-visible">
+            <AgencyTimeEntryWeekHeaderView
+              label={view.pinnedWeekOverlay.label}
+              totalSeconds={view.pinnedWeekOverlay.totalSeconds}
+              weekStartKey={view.pinnedWeekOverlay.weekStartKey}
+              isPinned
+            />
+          </div>
+        ) : null}
         {view.isLoading ? (
           <SurfaceShimmer className="min-h-64 rounded-none" label="Loading time entries" />
         ) : view.entriesEmpty ? (
@@ -85,6 +95,8 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
                     <AgencyTimeEntryWeekHeaderView
                       label={item.week.label}
                       totalSeconds={item.week.totalSeconds}
+                      weekStartKey={item.week.weekStartKey}
+                      isPinned={view.pinnedWeekKeys.has(item.week.weekStartKey)}
                     />
                   ) : null}
                   <AgencyTimeEntryDayGroupView

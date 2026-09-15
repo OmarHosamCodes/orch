@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useAgencyTimeEntriesLogStore } from "@/features/time-tracking/stores/agency-time-entries-log";
@@ -12,6 +12,8 @@ import { useAgencyProjectTasksForChooserQuery } from "@/features/shared/agency-t
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { findProjectTaskInCache } from "@/features/shared/agency-query-cache";
 import { useTeamWorkSchedule } from "@/features/shared/use-team-work-schedule";
+import { useStickyWeekHead } from "@/features/time-tracking/hooks/use-sticky-week-head";
+import { pinnedWeekKeyFromVirtualTop } from "@/features/time-tracking/week-head-state";
 import {
   flattenTimeEntryWeeksForVirtualization,
   groupEntriesByWeek,
@@ -39,8 +41,8 @@ import type { AgencyDayBulkDraft } from "@/features/time-tracking/entries/agency
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 500] as const;
 const ESTIMATED_ENTRY_ROW_HEIGHT = 56;
-const ESTIMATED_DAY_HEADER_HEIGHT = 48;
-const WEEK_HEADER_HEIGHT = 40;
+const ESTIMATED_DAY_HEADER_HEIGHT = 52;
+const WEEK_HEADER_HEIGHT = 62;
 const DAY_GAP = 20;
 
 type UseAgencyTimeEntriesLogOptions = {
@@ -102,6 +104,12 @@ export type AgencyTimeEntriesLogViewModel = {
   onApplyBulk: () => void;
   onCreateTag: (name: string) => void;
   onRequestOpenTaskChooser: () => void;
+  pinnedWeekKeys: Set<string>;
+  pinnedWeekOverlay: {
+    weekStartKey: string;
+    label: string;
+    totalSeconds: number;
+  } | null;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   showPagination: boolean;
   page: number;
@@ -136,6 +144,7 @@ export function useAgencyTimeEntriesLog({
   const resetForTeam = useAgencyTimeEntriesLogStore((s) => s.resetForTeam);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const [selectedEntryIds, setSelectedEntryIds] = useState<Set<string>>(() => new Set());
   const [bulkEditDayKey, setBulkEditDayKey] = useState<string | null>(null);
   const [bulkFieldEditOpen, setBulkFieldEditOpen] = useState(false);
@@ -209,6 +218,30 @@ export function useAgencyTimeEntriesLog({
     },
     overscan: 3,
   });
+
+  const observerPinnedKeys = useStickyWeekHead(scrollRoot);
+  const virtualItems = virtualizer.getVirtualItems();
+  const firstVisibleIndex = virtualItems[0]?.index ?? -1;
+  const overlayWeekKey = pinnedWeekKeyFromVirtualTop(
+    virtualDays.map((item) => item.week?.weekStartKey ?? null),
+    firstVisibleIndex,
+  );
+  const overlayWeek =
+    virtualDays.find((item) => item.week?.weekStartKey === overlayWeekKey)?.week ?? null;
+  const firstVisibleHasWeek = Boolean(virtualDays[firstVisibleIndex]?.week);
+  const pinnedWeekKeys = useMemo(() => {
+    const next = new Set(observerPinnedKeys);
+    if (overlayWeekKey && !firstVisibleHasWeek) next.add(overlayWeekKey);
+    return next;
+  }, [firstVisibleHasWeek, observerPinnedKeys, overlayWeekKey]);
+  const pinnedWeekOverlay =
+    overlayWeek && !firstVisibleHasWeek && pinnedWeekKeys.has(overlayWeek.weekStartKey)
+      ? overlayWeek
+      : null;
+
+  useLayoutEffect(() => {
+    setScrollRoot(scrollContainerRef.current);
+  }, [entries.length, entriesQuery.isPending]);
 
   const maxPage = useMemo(() => {
     if (pageSize <= 0) return 1;
@@ -483,7 +516,7 @@ export function useAgencyTimeEntriesLog({
     entriesEmpty: entries.length === 0,
     weekGroups,
     virtualDays,
-    virtualItems: virtualizer.getVirtualItems(),
+    virtualItems,
     virtualTotalSize: virtualizer.getTotalSize(),
     measureVirtualDay: virtualizer.measureElement,
     projects,
@@ -518,6 +551,8 @@ export function useAgencyTimeEntriesLog({
     onApplyBulk: () => void applyBulkPatch(),
     onCreateTag: createTag,
     onRequestOpenTaskChooser: requestOpenTaskChooser,
+    pinnedWeekKeys,
+    pinnedWeekOverlay,
     scrollContainerRef,
     showPagination: totalEntries > pageSize,
     page,
