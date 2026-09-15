@@ -1,6 +1,11 @@
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { MoreVertical, Play, Trash2 } from "lucide-react";
 
+import { agencyTapScale } from "@/features/shared/agency-motion";
+import {
+  timeEntryHoverRevealVariants,
+  timeEntryWasteTransition,
+} from "@/features/time-tracking/agency-time-entry-motion";
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import {
   AgencyTimeEntryMoreAction,
@@ -25,7 +30,6 @@ import {
   agencyTimeEntryRailClass,
   agencyTimeEntryRailDurationClass,
   agencyTimeEntryDurationInputClass,
-  agencyTimeEntryHoverRevealClass,
   agencyTimeEntryRailTimeClass,
   agencyTimeEntryRowClass,
   agencyTimeEntryRowEditingClass,
@@ -46,9 +50,15 @@ const descriptionLeadingSlotClass = "flex w-8 shrink-0 items-center justify-star
 type AgencyTimeEntryRowViewProps = {
   view: AgencyTimeEntryRowViewModel;
   className?: string;
+  /** Child row inside an expanded multi-entry group — keep actions fully visible. */
+  multiGroupChild?: boolean;
 };
 
-export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowViewProps) {
+export function AgencyTimeEntryRowView({
+  view,
+  className,
+  multiGroupChild = false,
+}: AgencyTimeEntryRowViewProps) {
   const {
     group,
     projects,
@@ -118,7 +128,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
   const showDescriptionField = descriptionMode === "visible" || editingDescription;
 
   return (
-    <div
+    <motion.div
       data-entry-id={primaryEntryId}
       tabIndex={0}
       className={cn(
@@ -126,6 +136,9 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
         (editingDescription || editingDuration || timeEditorOpen) && agencyTimeEntryRowEditingClass,
         className,
       )}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
       {...agentScopeableProps({
         kind: "timeEntry",
         id: primaryEntryId,
@@ -135,15 +148,17 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
       <div className={cn(agencyTimeEntryMainClass, "gap-3 pr-2")}>
         {isMulti ? (
           <div className={descriptionLeadingSlotClass}>
-            <button
+            <motion.button
               type="button"
               className={cn(agencyWorkCountBadgeClass, agencyFocusRingClass)}
+              inherit={false}
+              whileTap={agencyTapScale}
               aria-label={expanded ? "Collapse entries" : "Expand entries"}
               aria-expanded={expanded}
               onClick={onToggleExpand}
             >
               {group.entries.length}
-            </button>
+            </motion.button>
           </div>
         ) : null}
         {showDescriptionField ? (
@@ -167,17 +182,18 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
             aria-label={isMulti ? "Edit description for all entries in group" : "Add description"}
           />
         ) : (
-          <button
+          <motion.button
             type="button"
-            className={cn(
-              "h-8 shrink-0 px-0 text-xs text-muted opacity-0 transition-opacity",
-              "group-hover/row:opacity-100 focus-visible:opacity-100 motion-reduce:opacity-100",
-              agencyFocusRingClass,
-            )}
+            className={cn("h-8 shrink-0 px-0 text-xs text-muted", agencyFocusRingClass)}
+            variants={timeEntryHoverRevealVariants}
+            initial={multiGroupChild ? "hover" : "rest"}
+            animate={multiGroupChild ? "hover" : undefined}
+            whileFocus="hover"
+            whileTap={agencyTapScale}
             onClick={() => onEditingDescriptionChange(true)}
           >
             Add note
-          </button>
+          </motion.button>
         )}
         <div
           className={cn(
@@ -203,10 +219,11 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
             className={cn(taskChooserTriggerClass, "h-8 max-w-full")}
           />
         </div>
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence initial={false}>
           {isWaste ? (
             <AgencyWasteTag
               key="waste-tag"
+              motionTransition={timeEntryWasteTransition}
               onDismiss={canDismissWaste ? onToggleWaste : undefined}
               dismissLabel={
                 isMulti && canDismissWaste ? `Unmark ${wasteCount} entries as waste` : undefined
@@ -227,7 +244,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
       </div>
 
       <div className={agencyTimeEntryRailClass}>
-        <div className={cn(agencyTimeEntryRailBillableClass, agencyTimeEntryHoverRevealClass)}>
+        <div className={agencyTimeEntryRailBillableClass}>
           <AgencyTimeEntryLinkHoverTrigger
             links={links}
             disabled={editSaving || rowUpdating}
@@ -237,7 +254,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           />
         </div>
 
-        <div className={cn(agencyTimeEntryRailTimeClass, agencyTimeEntryHoverRevealClass)}>
+        <div className={agencyTimeEntryRailTimeClass}>
           {!isMulti ? (
             <div className="flex w-full min-w-0 items-center justify-center gap-0.5 overflow-hidden">
               <Input
@@ -292,7 +309,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
 
-        <div className={cn(agencyTimeEntryRailCalendarClass, agencyTimeEntryHoverRevealClass)}>
+        <div className={agencyTimeEntryRailCalendarClass}>
           <AgencyTimeEntryDatePicker
             date={editDraft.date}
             disabled={editSaving || rowUpdating}
@@ -331,17 +348,19 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           ) : null}
         </div>
 
-        <div className={cn(agencyTimeEntryRailPlayClass, agencyTimeEntryHoverRevealClass)}>
+        <div className={agencyTimeEntryRailPlayClass}>
           {isMulti && !expanded ? (
-            <button
+            <motion.button
               type="button"
               className={cn(agencyTimeEntryIconButtonClass, !canRestart && "opacity-50")}
+              inherit={false}
+              whileTap={canRestart ? agencyTapScale : undefined}
               disabled={!canRestart}
               aria-label={`Restart timer for ${group.taskTitle || group.projectName}`}
               onClick={onRestart}
             >
               <Play className="size-3.5" />
-            </button>
+            </motion.button>
           ) : (
             <AgencyTimeEntryPlayAction
               entry={{
@@ -355,17 +374,19 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
 
-        <div className={cn(agencyTimeEntryRailMoreClass, agencyTimeEntryHoverRevealClass)}>
+        <div className={agencyTimeEntryRailMoreClass}>
           {isMulti && !expanded ? (
             <Popover>
               <PopoverTrigger asChild>
-                <button
+                <motion.button
                   type="button"
                   className={agencyTimeEntryIconButtonClass}
+                  inherit={false}
+                  whileTap={agencyTapScale}
                   aria-label="Entry actions"
                 >
                   <MoreVertical className="size-3.5" />
-                </button>
+                </motion.button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-44 p-1">
                 <Button
@@ -431,6 +452,6 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

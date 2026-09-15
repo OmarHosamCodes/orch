@@ -1,3 +1,5 @@
+import { MotionConfig } from "motion/react";
+
 import { useAgencyTimeEntriesLog } from "@/features/time-tracking/hooks/use-agency-time-entries-log";
 import { AgencyTimeEntryRowContainer } from "@/features/time-tracking/containers/agency-time-entry-row-container";
 import type { AgencyTimeEntryGroupRowRenderer } from "@/features/time-tracking/entries/agency-time-entry-row-renderer";
@@ -45,5 +47,9 @@ export function AgencyTimeEntriesLogContainer({
     />
   );
 
-  return <AgencyTimeEntriesLogView view={view} renderGroupRow={renderGroupRow} />;
+  return (
+    <MotionConfig reducedMotion="user">
+      <AgencyTimeEntriesLogView view={view} renderGroupRow={renderGroupRow} />
+    </MotionConfig>
+  );
 }

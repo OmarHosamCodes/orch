@@ -1,31 +1,23 @@
 import type { Transition, Variants } from "motion/react";
 
-/** Matches `--motion-ease-out` in index.css (ease-out-quart). */
-const CHOOSER_EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
+import {
+  AGENCY_EASE,
+  AGENCY_MS,
+  agencyBaseTransition,
+  agencyStaggerIndex,
+  agencyTapScale,
+} from "@/features/shared/agency-motion";
 
 /** Seconds — align with `--motion-duration-fast|base|panel`. */
-export const CHOOSER_MS = {
-  fast: 0.12,
-  base: 0.18,
-  panel: 0.22,
-} as const;
+export const CHOOSER_MS = AGENCY_MS;
 
-const CHOOSER_STAGGER_CAP = 8;
 const CHOOSER_STAGGER_STEP = 0.05;
 
-export const chooserTapScale = { scale: 0.98 } as const;
+export const chooserTapScale = agencyTapScale;
 
-export const chooserBaseTransition: Transition = {
-  type: "tween",
-  duration: CHOOSER_MS.base,
-  ease: CHOOSER_EASE,
-};
+export const chooserBaseTransition: Transition = agencyBaseTransition;
 
-const chooserCollapseTransition: Transition = {
-  type: "tween",
-  duration: CHOOSER_MS.base,
-  ease: CHOOSER_EASE,
-};
+const chooserCollapseTransition: Transition = agencyBaseTransition;
 
 export const chooserListContainerVariants: Variants = {
   hidden: {},
@@ -44,7 +36,7 @@ export const chooserListItemVariants: Variants = {
     y: 0,
     transition: {
       ...chooserBaseTransition,
-      delay: 0.02 + chooserStaggerIndex(index) * CHOOSER_STAGGER_STEP,
+      delay: 0.02 + agencyStaggerIndex(index) * CHOOSER_STAGGER_STEP,
     },
   }),
 };
@@ -56,7 +48,7 @@ export const chooserCollapseVariants: Variants = {
     transition: {
       type: "tween",
       duration: CHOOSER_MS.fast,
-      ease: CHOOSER_EASE,
+      ease: AGENCY_EASE,
     },
   },
   expanded: {
@@ -75,22 +67,14 @@ export const chooserEmptyVariants: Variants = {
   },
   exit: {
     opacity: 0,
-    transition: { type: "tween", duration: CHOOSER_MS.fast * 0.75, ease: CHOOSER_EASE },
+    transition: { type: "tween", duration: CHOOSER_MS.fast * 0.75, ease: AGENCY_EASE },
   },
 };
 
-export const chooserStarPopTransition: Transition = {
-  type: "tween",
-  duration: CHOOSER_MS.base,
-  ease: CHOOSER_EASE,
-};
+export const chooserStarPopTransition: Transition = agencyBaseTransition;
 
 export const chooserSelectFlashTransition: Transition = {
   type: "tween",
   duration: CHOOSER_MS.fast,
-  ease: CHOOSER_EASE,
+  ease: AGENCY_EASE,
 };
-
-function chooserStaggerIndex(index: number): number {
-  return Math.min(index, CHOOSER_STAGGER_CAP - 1);
-}

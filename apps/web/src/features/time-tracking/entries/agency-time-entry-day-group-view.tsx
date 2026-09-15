@@ -1,4 +1,12 @@
+import { AnimatePresence, motion } from "motion/react";
 import { Copy, Pencil, Trash2, TrashIcon, X } from "lucide-react";
+
+import { agencyTapScale } from "@/features/shared/agency-motion";
+import {
+  timeEntryBulkCheckboxVariants,
+  timeEntryChildVariants,
+  timeEntryHoverRevealVariants,
+} from "@/features/time-tracking/agency-time-entry-motion";
 
 import {
   agencyTimeEntryBulkActionClass,
@@ -103,126 +111,148 @@ export function AgencyTimeEntryDayGroupView({
   const lastDisplayIndex = displayGroups.length - 1;
 
   return (
-    <section
+    <motion.section
       className={cn(
         agencyTimeEntryDayGroupClass,
         bulkEditActive && hasSelection && "border-primary/30",
       )}
       data-bulk-edit={bulkEditActive ? "true" : undefined}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
     >
       <header
         className={cn(
           agencyTimeEntrySectionHeaderClass,
           agencyTimeEntryDayHeadClass,
-          "justify-between gap-3 bg-transparent",
-          bulkEditActive ? "pr-5 pl-4" : null,
+          "justify-between gap-0 bg-transparent",
+          bulkEditActive && "pl-0",
           bulkEditActive && hasSelection && agencyTimeEntrySectionHeaderBulkActiveClass,
         )}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+        <AnimatePresence initial={false}>
           {bulkEditActive && onToggleEntrySelected ? (
-            <label className={agencyTimeEntryBulkSelectColumnClass}>
+            <motion.label
+              key="day-bulk-select"
+              className={agencyTimeEntryBulkSelectColumnClass}
+              variants={timeEntryBulkCheckboxVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+              inherit={false}
+            >
               <Checkbox
                 checked={partiallySelected ? "indeterminate" : allSelected}
                 onCheckedChange={() => onToggleEntrySelected(dayEntryIds)}
                 aria-label="Select all entries for day"
                 className="size-3.5"
               />
-            </label>
+            </motion.label>
           ) : null}
+        </AnimatePresence>
 
-          <span className="min-w-0 shrink truncate text-sm font-semibold text-highlighted">
-            {formatAgencyDayLabel(day.dateKey)}
-          </span>
-
-          {bulkEditActive ? (
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              {hasSelection ? (
-                <>
-                  <span
-                    className="shrink-0 font-mono text-xs tabular-nums text-primary"
-                    aria-live="polite"
-                  >
-                    {selectedCount} selected
-                  </span>
-                  <span className="h-3 w-px shrink-0 bg-border" aria-hidden />
-                  <div className="flex min-w-0 flex-wrap items-center gap-0.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      className={cn(
-                        agencyTimeEntryBulkActionClass,
-                        "text-destructive hover:text-destructive",
-                      )}
-                      disabled={!hasSelection}
-                      onClick={() => onDeleteSelected?.(selectedDayEntryIds)}
-                    >
-                      <Trash2 className="size-3.5" />
-                      Delete
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      className={cn(
-                        agencyTimeEntryBulkActionClass,
-                        "hover:text-warning",
-                        wastePending && "opacity-60",
-                      )}
-                      disabled={!hasSelection || wastePending}
-                      onClick={() => onMarkSelectedAsWaste?.(selectedDayEntryIds)}
-                    >
-                      <TrashIcon className="size-3.5" />
-                      Mark as waste
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      className={cn(
-                        agencyTimeEntryBulkActionClass,
-                        bulkFieldEditOpen && "bg-elevated text-highlighted",
-                      )}
-                      disabled={!hasSelection}
-                      aria-pressed={bulkFieldEditOpen}
-                      onClick={() => onToggleBulkFieldEdit?.()}
-                    >
-                      <Pencil className="size-3.5" />
-                      Bulk edit
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <span className="truncate text-xs text-muted">Select entries to edit</span>
-              )}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-3">
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <span className="text-xs text-muted">Total</span>
-            <span className={agencyWorkMetricClass}>
-              {formatDuration(day.totalSeconds, "clock")}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center justify-between gap-3",
+            bulkEditActive && "pl-3",
+          )}
+        >
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span className="min-w-0 shrink truncate text-sm font-semibold text-highlighted">
+              {formatAgencyDayLabel(day.dateKey)}
             </span>
+
+            {bulkEditActive ? (
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                {hasSelection ? (
+                  <>
+                    <span
+                      className="shrink-0 font-mono text-xs tabular-nums text-primary"
+                      aria-live="polite"
+                    >
+                      {selectedCount} selected
+                    </span>
+                    <span className="h-3 w-px shrink-0 bg-border" aria-hidden />
+                    <div className="flex min-w-0 flex-wrap items-center gap-0.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className={cn(
+                          agencyTimeEntryBulkActionClass,
+                          "text-destructive hover:text-destructive",
+                        )}
+                        disabled={!hasSelection}
+                        onClick={() => onDeleteSelected?.(selectedDayEntryIds)}
+                      >
+                        <Trash2 className="size-3.5" />
+                        Delete
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className={cn(
+                          agencyTimeEntryBulkActionClass,
+                          "hover:text-warning",
+                          wastePending && "opacity-60",
+                        )}
+                        disabled={!hasSelection || wastePending}
+                        onClick={() => onMarkSelectedAsWaste?.(selectedDayEntryIds)}
+                      >
+                        <TrashIcon className="size-3.5" />
+                        Mark as waste
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className={cn(
+                          agencyTimeEntryBulkActionClass,
+                          bulkFieldEditOpen && "bg-elevated text-highlighted",
+                        )}
+                        disabled={!hasSelection}
+                        aria-pressed={bulkFieldEditOpen}
+                        onClick={() => onToggleBulkFieldEdit?.()}
+                      >
+                        <Pencil className="size-3.5" />
+                        Bulk edit
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <span className="truncate text-xs text-muted">Select entries to edit</span>
+                )}
+              </div>
+            ) : null}
           </div>
-          {onToggleDayBulkEdit ? (
-            <button
-              type="button"
-              className={cn(
-                agencyTimeEntryIconButtonClass,
-                bulkEditActive && "bg-elevated text-highlighted",
-                !bulkEditActive &&
-                  "opacity-0 transition-opacity group-hover/day:opacity-100 focus-visible:opacity-100 motion-reduce:opacity-100",
-              )}
-              aria-label={bulkEditActive ? "Exit bulk edit" : "Bulk edit day"}
-              aria-pressed={bulkEditActive}
-              onClick={() => onToggleDayBulkEdit(day.dateKey)}
-            >
-              {bulkEditActive ? <X className="size-4" /> : <Copy className="size-4" />}
-            </button>
-          ) : null}
+
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <span className="text-xs text-muted">Total</span>
+              <span className={agencyWorkMetricClass}>
+                {formatDuration(day.totalSeconds, "clock")}
+              </span>
+            </div>
+            {onToggleDayBulkEdit ? (
+              <motion.button
+                type="button"
+                className={cn(
+                  agencyTimeEntryIconButtonClass,
+                  bulkEditActive && "bg-elevated text-highlighted",
+                )}
+                variants={timeEntryHoverRevealVariants}
+                initial="rest"
+                animate={bulkEditActive ? "hover" : undefined}
+                whileTap={agencyTapScale}
+                aria-label={bulkEditActive ? "Exit bulk edit" : "Bulk edit day"}
+                aria-pressed={bulkEditActive}
+                onClick={() => onToggleDayBulkEdit(day.dateKey)}
+              >
+                {bulkEditActive ? <X className="size-4" /> : <Copy className="size-4" />}
+              </motion.button>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -288,42 +318,55 @@ export function AgencyTimeEntryDayGroupView({
       ) : null}
 
       <ul className="flex min-w-0 flex-col">
-        {displayGroups.map((group, index) => {
-          const primaryEntry = group.entries[0];
-          if (!primaryEntry) return null;
-          const groupExpandKey = `${day.dateKey}||${group.collapseKey}`;
-          const groupEntryIds = group.entries.map((entry) => entry.id);
-          const selected = groupEntryIds.every((entryId) => selectedEntryIds?.has(entryId));
-          return (
-            <li
-              key={groupExpandKey}
-              className={cn(
-                bulkEditActive && "flex items-stretch",
-                selected && agencyTimeEntryBulkRowSelectedClass,
-                "motion-reduce:transition-none transition-colors duration-150",
-              )}
-            >
-              {bulkEditActive && onToggleEntrySelected ? (
-                <label className={agencyTimeEntryBulkSelectColumnClass}>
-                  <Checkbox
-                    checked={selected}
-                    onCheckedChange={() => onToggleEntrySelected(groupEntryIds)}
-                    aria-label={`Select ${group.entries.length === 1 ? "entry" : `${group.entries.length} entries`}`}
-                    className="size-3.5"
-                  />
-                </label>
-              ) : null}
-              <div className="min-w-0 flex-1">
-                {renderGroupRow({
-                  group,
-                  groupExpandKey,
-                  omitBottomBorder: index === lastDisplayIndex,
-                })}
-              </div>
-            </li>
-          );
-        })}
+        <AnimatePresence initial={false}>
+          {displayGroups.map((group, index) => {
+            const primaryEntry = group.entries[0];
+            if (!primaryEntry) return null;
+            const groupExpandKey = `${day.dateKey}||${group.collapseKey}`;
+            const groupEntryIds = group.entries.map((entry) => entry.id);
+            const selected = groupEntryIds.every((entryId) => selectedEntryIds?.has(entryId));
+            return (
+              <motion.li
+                key={groupExpandKey}
+                custom={index}
+                inherit={false}
+                variants={bulkEditActive ? timeEntryChildVariants : undefined}
+                initial={bulkEditActive ? "hidden" : false}
+                animate={bulkEditActive ? "show" : undefined}
+                exit={bulkEditActive ? "exit" : undefined}
+                className={cn(
+                  bulkEditActive && "flex items-stretch",
+                  selected && agencyTimeEntryBulkRowSelectedClass,
+                )}
+              >
+                {bulkEditActive && onToggleEntrySelected ? (
+                  <motion.label
+                    className={agencyTimeEntryBulkSelectColumnClass}
+                    variants={timeEntryBulkCheckboxVariants}
+                    initial="hidden"
+                    animate="show"
+                    inherit={false}
+                  >
+                    <Checkbox
+                      checked={selected}
+                      onCheckedChange={() => onToggleEntrySelected(groupEntryIds)}
+                      aria-label={`Select ${group.entries.length === 1 ? "entry" : `${group.entries.length} entries`}`}
+                      className="size-3.5"
+                    />
+                  </motion.label>
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  {renderGroupRow({
+                    group,
+                    groupExpandKey,
+                    omitBottomBorder: index === lastDisplayIndex,
+                  })}
+                </div>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
       </ul>
-    </section>
+    </motion.section>
   );
 }

@@ -1,5 +1,3 @@
-import { motion } from "motion/react";
-
 import {
   AgencyTimeEntryDayGroupView,
   type AgencyDayBulkDraft,
@@ -38,28 +36,21 @@ type AgencyTimeEntryWeekGroupViewProps = {
   projects?: AgencyProject[];
   tasks?: AgencyProjectTask[];
   wastePending?: boolean;
-  isPinned?: boolean;
 };
 
 type AgencyTimeEntryWeekHeaderViewProps = {
   label: string;
   totalSeconds: number;
   weekStartKey?: string;
-  isPinned?: boolean;
 };
 
 export function AgencyTimeEntryWeekHeaderView({
   label,
   totalSeconds,
   weekStartKey,
-  isPinned = false,
 }: AgencyTimeEntryWeekHeaderViewProps) {
   return (
-    <motion.header
-      data-week-head={weekStartKey}
-      layout
-      className={cn(agencyTimeWeekHeadStateClass(isPinned), "motion-reduce:transition-none")}
-    >
+    <header data-week-head={weekStartKey} className={agencyTimeWeekHeadStateClass()}>
       <h2 className={agencyWorkWeekLabelClass}>{label}</h2>
       <p className={cn("inline-flex items-baseline gap-2", agencyWorkWeekLabelClass)}>
         <span>Week total:</span>
@@ -67,7 +58,7 @@ export function AgencyTimeEntryWeekHeaderView({
           {formatDuration(totalSeconds, "clock")}
         </span>
       </p>
-    </motion.header>
+    </header>
   );
 }
 
@@ -92,7 +83,6 @@ export function AgencyTimeEntryWeekGroupView({
   projects,
   tasks,
   wastePending,
-  isPinned = false,
 }: AgencyTimeEntryWeekGroupViewProps) {
   return (
     <section className={agencyTimeWeekGroupClass}>
@@ -100,7 +90,6 @@ export function AgencyTimeEntryWeekGroupView({
         label={week.label}
         totalSeconds={week.totalSeconds}
         weekStartKey={week.weekStartKey}
-        isPinned={isPinned}
       />
 
       <div className={agencyTimeWeekGroupBodyClass}>

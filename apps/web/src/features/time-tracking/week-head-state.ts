@@ -1,11 +1,9 @@
 import { cn } from "@/lib/utils";
 
-export function agencyTimeWeekHeadStateClass(isPinned: boolean): string {
+export function agencyTimeWeekHeadStateClass(): string {
   return cn(
     "sticky top-0 z-10 flex items-center justify-between gap-3 bg-background/95 backdrop-blur-sm",
-    isPinned
-      ? "min-h-9 py-1 text-xs text-muted-foreground"
-      : "min-h-[62px] py-2 text-sm text-highlighted",
+    "min-h-[62px] py-2 text-sm text-highlighted",
   );
 }
 

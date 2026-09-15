@@ -1,7 +1,9 @@
 import { AlertTriangle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { AgencyTimeEntryDayGroupView } from "@/features/time-tracking/entries/agency-time-entry-day-group-view";
 import { AgencyTimeEntryWeekHeaderView } from "@/features/time-tracking/entries/agency-time-entry-week-group-view";
+import { timeEntryOverlayVariants } from "@/features/time-tracking/agency-time-entry-motion";
 import { AgencyWorkSurfacePaginationFooter } from "@/features/task-management/work-surface/agency-work-surface-pagination-footer";
 import { Button } from "@/ui/button";
 import { Skeleton } from "@/ui/skeleton";
@@ -60,16 +62,26 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
       ) : null}
 
       <div ref={view.scrollContainerRef} className={agencyWorkTableBodyScrollClass}>
-        {view.pinnedWeekOverlay ? (
-          <div className="sticky top-0 z-20 h-0 overflow-visible">
-            <AgencyTimeEntryWeekHeaderView
-              label={view.pinnedWeekOverlay.label}
-              totalSeconds={view.pinnedWeekOverlay.totalSeconds}
-              weekStartKey={view.pinnedWeekOverlay.weekStartKey}
-              isPinned
-            />
-          </div>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {view.pinnedWeekOverlay ? (
+            <motion.div
+              key={view.pinnedWeekOverlay.weekStartKey}
+              className="sticky top-0 z-20 h-0 overflow-visible"
+              inherit={false}
+              layout={false}
+              variants={timeEntryOverlayVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+            >
+              <AgencyTimeEntryWeekHeaderView
+                label={view.pinnedWeekOverlay.label}
+                totalSeconds={view.pinnedWeekOverlay.totalSeconds}
+                weekStartKey={view.pinnedWeekOverlay.weekStartKey}
+              />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
         {view.isLoading ? (
           <AgencyTimeEntriesLogSkeleton />
         ) : view.entriesEmpty ? (
@@ -122,7 +134,6 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
                       label={item.week.label}
                       totalSeconds={item.week.totalSeconds}
                       weekStartKey={item.week.weekStartKey}
-                      isPinned={view.pinnedWeekKeys.has(item.week.weekStartKey)}
                     />
                   ) : null}
                   <AgencyTimeEntryDayGroupView

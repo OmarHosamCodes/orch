@@ -4,8 +4,10 @@ import type { AgencyTagOption } from "@/features/time-tracking/choosers/agency-t
 import type { TimeEntryDraft } from "@/features/time-tracking/agency-time-entry";
 import type { CollapsedEntryGroup } from "@/features/time-tracking/group-time-entries";
 
+import { AnimatePresence, motion } from "motion/react";
+
 import { AgencyTimeEntryRowView } from "@/features/time-tracking/entries/agency-time-entry-row-view";
-import { AgencyCollapse } from "@/features/shared/agency-collapse";
+import { timeEntryChildVariants } from "@/features/time-tracking/agency-time-entry-motion";
 import {
   agencyTimeEntryGroupBorderClass,
   agencyTimeEntryMultiChildClass,
@@ -61,6 +63,7 @@ export function AgencyTimeEntryRowContainer({
     return (
       <AgencyTimeEntryRowView
         view={view}
+        multiGroupChild={multiGroupChild}
         className={cn(
           omitBottomBorder ? "border-b-0" : undefined,
           multiGroupChild && agencyTimeEntryMultiChildClass,
@@ -72,18 +75,28 @@ export function AgencyTimeEntryRowContainer({
   return (
     <div className={cn(omitBottomBorder ? undefined : agencyTimeEntryGroupBorderClass)}>
       <AgencyTimeEntryRowView view={view} className="border-b-0" />
-      <AgencyCollapse open={view.expandedChildGroups.length > 0}>
+      <AnimatePresence initial={false}>
         {view.expandedChildGroups.map((childGroup, index) => (
-          <AgencyTimeEntryRowContainer
+          <motion.div
             key={childGroup.entries[0]!.id}
-            {...props}
-            group={childGroup}
-            expanded={false}
-            multiGroupChild
-            omitBottomBorder={index === view.expandedChildGroups.length - 1}
-          />
+            custom={index}
+            className="overflow-visible"
+            inherit={false}
+            variants={timeEntryChildVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+          >
+            <AgencyTimeEntryRowContainer
+              {...props}
+              group={childGroup}
+              expanded={false}
+              multiGroupChild
+              omitBottomBorder={index === view.expandedChildGroups.length - 1}
+            />
+          </motion.div>
         ))}
-      </AgencyCollapse>
+      </AnimatePresence>
     </div>
   );
 }
