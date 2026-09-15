@@ -475,9 +475,6 @@ export const agencyTimeEntryDayHeadClass =
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";
 
-export const agencyTimeWeekGroupHeaderClass =
-  "sticky top-0 z-10 flex min-h-[62px] shrink-0 items-center justify-between gap-3 bg-background/95 py-2";
-
 export const agencyTimeWeekGroupBodyClass = "flex flex-col gap-[20px] bg-background";
 
 /** Stack of week sections — same gutter as days so week boundaries stay invisible. */
