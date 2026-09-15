@@ -462,9 +462,12 @@ export const agencyTimeEntryBulkActionClass = cn(
   "motion-reduce:transition-none",
 );
 
-/** One day block — solid surface so background gutters read as hard separation. */
+/** One day card — Week stack surface so days read as Harvest stacks. */
 export const agencyTimeEntryDayGroupClass =
-  "@container/entries overflow-hidden rounded-surface border border-default bg-default";
+  "@container/entries group/day overflow-hidden rounded-surface border border-border bg-card";
+
+export const agencyTimeEntryDayHeadClass =
+  "flex min-h-[52px] items-center justify-between gap-3 border-b border-border/40 px-4";
 
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";

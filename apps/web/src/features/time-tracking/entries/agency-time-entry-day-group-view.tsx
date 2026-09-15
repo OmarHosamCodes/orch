@@ -6,6 +6,7 @@ import {
   agencyTimeEntryBulkSelectColumnClass,
   agencyTimeEntryBulkToolbarClass,
   agencyTimeEntryDayGroupClass,
+  agencyTimeEntryDayHeadClass,
   agencyTimeEntryIconButtonClass,
   agencyTimeEntrySectionHeaderBulkActiveClass,
   agencyTimeEntrySectionHeaderClass,
@@ -112,8 +113,9 @@ export function AgencyTimeEntryDayGroupView({
       <header
         className={cn(
           agencyTimeEntrySectionHeaderClass,
-          "justify-between gap-3",
-          bulkEditActive ? "pr-5" : "px-5",
+          agencyTimeEntryDayHeadClass,
+          "justify-between gap-3 bg-transparent",
+          bulkEditActive ? "pr-5 pl-4" : null,
           bulkEditActive && hasSelection && agencyTimeEntrySectionHeaderBulkActiveClass,
         )}
       >
@@ -211,6 +213,8 @@ export function AgencyTimeEntryDayGroupView({
               className={cn(
                 agencyTimeEntryIconButtonClass,
                 bulkEditActive && "bg-elevated text-highlighted",
+                !bulkEditActive &&
+                  "opacity-0 transition-opacity group-hover/day:opacity-100 focus-visible:opacity-100 motion-reduce:opacity-100",
               )}
               aria-label={bulkEditActive ? "Exit bulk edit" : "Bulk edit day"}
               aria-pressed={bulkEditActive}
