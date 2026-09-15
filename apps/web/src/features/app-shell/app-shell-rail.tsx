@@ -1,18 +1,16 @@
-import { Menu } from "lucide-react";
-import { useState } from "react";
 import { useLocation } from "@/lib/navigation";
 
 import { AppShellAccountMenu } from "@/features/app-shell/app-shell-account-menu";
 import { AppShellCommandPalette } from "@/features/app-shell/app-shell-command-palette";
 import { AppShellNotifications } from "@/features/app-shell/app-shell-notifications";
 import { AppShellRailDestinations } from "@/features/app-shell/app-shell-rail-destinations";
+import { useAppShellStore } from "@/features/app-shell/app-shell-store";
 import { AppShellTeamControl } from "@/features/app-shell/app-shell-team-control";
-import { shellFocusRingClass, shellRailFooterClass } from "@/features/app-shell/app-shell-ui";
+import { shellRailFooterClass } from "@/features/app-shell/app-shell-ui";
 import { resolveShellRailNavItemId } from "@/features/app-shell/shell-nav-selection";
 import { ShellLiquidNavProvider } from "@/features/app-shell/shell-liquid-nav";
 import { useBilling } from "@/features/billing/billing-queries";
 import { useAgencySegmentShortcuts } from "@/features/shared/use-agency-segment-shortcuts";
-import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/ui/sheet";
 
@@ -45,29 +43,14 @@ export function AppShellRail() {
 
 export function AppShellRailOverlays() {
   const location = useLocation();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavOpen = useAppShellStore((s) => s.mobileNavOpen);
+  const setMobileNavOpen = useAppShellStore((s) => s.setMobileNavOpen);
   const { isPro, checkout, billingQuery } = useBilling();
   const showUpgrade = !isPro && !billingQuery.isPending;
   const activeNavId = resolveShellRailNavItemId(location.pathname);
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "app-shell__mobile-nav-trigger md:hidden",
-          "border border-default bg-default text-highlighted shadow-sm",
-          "hover:bg-elevated hover:text-highlighted",
-          shellFocusRingClass,
-        )}
-        aria-label="Open navigation"
-        onClick={() => setMobileNavOpen(true)}
-      >
-        <Menu className="size-4" />
-      </Button>
-
       <AppShellCommandPalette />
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>

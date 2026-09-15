@@ -1,4 +1,3 @@
-import { Liquid } from "liquid-gooey";
 import {
   createContext,
   useCallback,
@@ -9,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 
-import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
 type SelectionRect = {
@@ -59,7 +57,7 @@ type ShellLiquidNavProviderProps = {
   scrollRootClassName?: string;
 };
 
-/** Traveling liquid selection blob for rail or context-bar destinations. */
+/** Active selection rect for rail or context-bar destinations. */
 export function ShellLiquidNavProvider({
   activeId,
   children,
@@ -69,7 +67,6 @@ export function ShellLiquidNavProvider({
   const containerRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef(new Map<string, HTMLElement>());
   const [rect, setRect] = useState<SelectionRect | null>(null);
-  const reducedMotion = usePrefersReducedMotion();
 
   const remeasure = useCallback(() => {
     const container = containerRef.current;
@@ -133,44 +130,17 @@ export function ShellLiquidNavProvider({
     <ShellLiquidNavContext.Provider value={{ registerItem }}>
       <div ref={containerRef} className={cn("relative", className)}>
         {rect ? (
-          reducedMotion ? (
-            <div
-              className="pointer-events-none absolute z-0 bg-sidebar-accent motion-reduce:transition-none"
-              style={{
-                left: rect.x,
-                top: rect.y,
-                width: rect.width,
-                height: rect.height,
-                borderRadius: rect.radius,
-              }}
-              aria-hidden
-            />
-          ) : (
-            <Liquid
-              className="pointer-events-none absolute inset-0 z-0 overflow-visible"
-              fill="var(--color-sidebar-accent)"
-              blur={5}
-              contrast={16}
-              filterPadding={20}
-            >
-              <Liquid.Item
-                effect="move"
-                x={rect.x}
-                y={rect.y}
-                transition="snappy"
-                move={{ springiness: 0.88, trail: 0.32, stretch: 0.18, wobble: 0.2 }}
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  width: rect.width,
-                  height: rect.height,
-                }}
-              >
-                <div className="h-full w-full" style={{ borderRadius: rect.radius }} aria-hidden />
-              </Liquid.Item>
-            </Liquid>
-          )
+          <div
+            className="pointer-events-none absolute z-0 bg-sidebar-accent motion-reduce:transition-none"
+            style={{
+              left: rect.x,
+              top: rect.y,
+              width: rect.width,
+              height: rect.height,
+              borderRadius: rect.radius,
+            }}
+            aria-hidden
+          />
         ) : null}
         <div className="relative z-[1]">{children}</div>
       </div>

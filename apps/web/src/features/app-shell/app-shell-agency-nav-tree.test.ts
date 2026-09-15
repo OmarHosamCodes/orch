@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   agencyShellCrumbLabel,
   agencyShellNavItemCount,
+  agencyShellNavItemId,
   agencyShellNavItems,
   managementGroupHref,
 } from "./app-shell-agency-nav-tree";
@@ -16,6 +17,9 @@ describe("agencyShellNavItems", () => {
       true,
     );
     expect(items.some((item) => item.kind === "segment" && item.id === "management")).toBe(false);
+    const first = items[0];
+    if (!first) throw new Error("expected nav items");
+    expect(agencyShellNavItemId(first)).toBe("agency-tab-work");
   });
 });
 

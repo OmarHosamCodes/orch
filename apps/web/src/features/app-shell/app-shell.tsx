@@ -1,4 +1,6 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+
+import { GlobalGrain } from "@/components/global-grain";
 import { useLocation } from "@/lib/navigation";
 
 import { AppShellContextBar } from "@/features/app-shell/app-shell-context-bar";
@@ -10,6 +12,7 @@ import { useAppShellStore, useShellMode } from "@/features/app-shell/app-shell-s
 import { useAgencyTrackingFavicon } from "@/features/time-tracking/hooks/use-agency-time-tracker";
 import { useAgencyActiveTimerQuery } from "@/features/shared/agency-queries";
 import { WorkspaceAgentHost } from "@/features/workspace-agent/workspace-agent-host";
+import { scheduleIdle } from "@/lib/schedule-idle";
 import { cn } from "@/lib/utils";
 import { useCurrentAgencyTeamStore } from "@/features/time-tracking/stores/agency-timer";
 
@@ -27,6 +30,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const toggleCommandPalette = useAppShellStore((s) => s.toggleCommandPalette);
 
   const isSpatialMode = shellMode === "spatial";
+  const [agentReady, setAgentReady] = useState(false);
+
+  useEffect(() => scheduleIdle(() => setAgentReady(true)), []);
 
   useEffect(() => {
     setCurrentPath(location.pathname);
@@ -51,6 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={cn("app-shell", isSpatialMode ? "app-shell--spatial" : "app-shell--execution")}>
+      <GlobalGrain />
       <AppShellRail />
       <AppShellContextBar />
       <main className="app-shell__main relative">
@@ -62,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </main>
       <AppShellRailOverlays />
-      <WorkspaceAgentHost />
+      {agentReady ? <WorkspaceAgentHost /> : null}
     </div>
   );
 }

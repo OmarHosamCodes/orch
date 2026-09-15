@@ -19,9 +19,10 @@ describe("resolveShellRailNavItemId", () => {
 });
 
 describe("resolveShellContextNavItemId", () => {
-  test("maps context crumb targets", () => {
-    expect(resolveShellContextNavItemId("/canvas")).toBe("context-canvas-title");
-    expect(resolveShellContextNavItemId("/agency/reports")).toBe("context-agency-segment");
-    expect(resolveShellContextNavItemId("/agency/members/u1")).toBe("context-profile");
+  test("unifies the traveling blob on the Current Title", () => {
+    expect(resolveShellContextNavItemId("/canvas")).toBe("context-location-title");
+    expect(resolveShellContextNavItemId("/agency/reports")).toBe("context-location-title");
+    expect(resolveShellContextNavItemId("/agency/members/u1")).toBe("context-location-title");
+    expect(resolveShellContextNavItemId("/node/abc")).toBe("context-location-title");
   });
 });

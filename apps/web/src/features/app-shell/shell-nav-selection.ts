@@ -15,10 +15,7 @@ export type ShellRailNavItemId =
   | "agency-tenure"
   | "agency-money";
 
-export type ShellContextNavItemId =
-  | "context-canvas-title"
-  | "context-agency-segment"
-  | "context-profile";
+export type ShellContextNavItemId = "context-location-title";
 
 export type ShellNavItemId = ShellRailNavItemId | ShellContextNavItemId;
 
@@ -53,19 +50,16 @@ export function resolveShellRailNavItemId(pathname: string): ShellRailNavItemId 
   }
 }
 
-/** Context-bar crumb that morphs in sync with the rail selection. */
+/** Context-bar Current Title that morphs in sync with the rail selection. */
 export function resolveShellContextNavItemId(pathname: string): ShellContextNavItemId | null {
-  if (pathname.startsWith("/canvas") || pathname.startsWith("/node/")) {
-    return "context-canvas-title";
+  if (
+    pathname.startsWith("/canvas") ||
+    pathname.startsWith("/node/") ||
+    pathname.startsWith("/agency") ||
+    pathname === "/profile"
+  ) {
+    return "context-location-title";
   }
 
-  if (!pathname.startsWith("/agency")) {
-    return null;
-  }
-
-  if (pathname === "/agency/me" || pathname.startsWith("/agency/members/")) {
-    return "context-profile";
-  }
-
-  return "context-agency-segment";
+  return null;
 }

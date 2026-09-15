@@ -19,16 +19,19 @@ type AppShellState = {
   /** Last visited Management pane — Management group label navigates here. */
   lastManagementPane: AgencyManagementPaneId;
   currentPath: string;
+  mobileNavOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
   toggleCommandPalette: () => void;
   setLastManagementPane: (pane: AgencyManagementPaneId) => void;
   setCurrentPath: (path: string) => void;
+  setMobileNavOpen: (open: boolean) => void;
 };
 
 export const useAppShellStore = create<AppShellState>((set, get) => ({
   commandPaletteOpen: false,
   lastManagementPane: readLastManagementPane(),
   currentPath: "/",
+  mobileNavOpen: false,
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   toggleCommandPalette: () => set({ commandPaletteOpen: !get().commandPaletteOpen }),
   setLastManagementPane: (pane) => {
@@ -38,6 +41,7 @@ export const useAppShellStore = create<AppShellState>((set, get) => ({
     set({ lastManagementPane: pane });
   },
   setCurrentPath: (path) => set({ currentPath: path }),
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 }));
 
 export function useShellMode(): AppShellMode {
