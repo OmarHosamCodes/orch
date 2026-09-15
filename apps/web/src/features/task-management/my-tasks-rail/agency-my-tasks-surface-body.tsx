@@ -1,5 +1,5 @@
-import { ListTodo, Loader2, PanelRightClose, PanelRightOpen, X } from "lucide-react";
-import { MotionConfig, motion } from "motion/react";
+import { ListTodo, Loader2, X } from "lucide-react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
 import type { AgencyMyTasksRailViewModel } from "@/features/task-management/hooks/use-agency-my-tasks-rail";
@@ -8,10 +8,12 @@ import {
   railFastTransition,
   railTapScale,
 } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-motion";
+import { AgencyMyTasksEstimatePopover } from "@/features/task-management/my-tasks-rail/agency-my-tasks-estimate-popover";
+import { AgencyMemberChooser } from "@/features/shared/choosers/agency-member-chooser";
+import { ASSIGNEE_STACK_MAX_WIDTH_PX } from "@/features/shared/choosers/agency-member-stack";
 import {
   agencyEmptyPanelClass,
   agencyErrorPanelClass,
-  agencyMyTasksCountTickClass,
   agencyMyTasksFilterPillActiveClass,
   agencyMyTasksFilterPillClass,
   agencyMyTasksFilterPillClearIconClass,
@@ -20,25 +22,16 @@ import {
   agencyMyTasksRailComposerFormClass,
   agencyMyTasksRailComposerRowClass,
   agencyTimeTrackerTaskChooserTriggerClass,
-  agencyTaskRailClass,
-  agencyTaskRailCollapsedClass,
-  agencyTaskRailCollapsedWidthClass,
-  agencyTaskRailExpandedWidthClass,
-  agencyTaskRailWidthTransitionClass,
 } from "@/features/shared/agency-ui";
-import { AgencyMyTasksEstimatePopover } from "@/features/task-management/my-tasks-rail/agency-my-tasks-estimate-popover";
-import { AgencyMemberChooser } from "@/features/shared/choosers/agency-member-chooser";
-import { ASSIGNEE_STACK_MAX_WIDTH_PX } from "@/features/shared/choosers/agency-member-stack";
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import { Button } from "@/ui/button";
-import { Sheet, SheetContent, SheetTitle } from "@/ui/sheet";
 import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-type AgencyMyTasksRailViewProps = {
+type AgencyMyTasksSurfaceViewProps = {
   view: AgencyMyTasksRailViewModel;
-  renderList: () => ReactNode;
+  list: ReactNode;
 };
 
 function FilterPill({
@@ -83,41 +76,16 @@ function FilterPill({
   );
 }
 
-function RailPanel({
-  view,
-  list,
-  className,
-  showCollapseControl,
-}: {
-  view: AgencyMyTasksRailViewModel;
-  list: ReactNode;
-  className?: string;
-  showCollapseControl?: boolean;
-}) {
+export function AgencyMyTasksSurfaceBody({ view, list }: AgencyMyTasksSurfaceViewProps) {
   const canSubmit = Boolean(view.composerTaskId) && !view.isAddingTask;
   const addArmed = Boolean(view.composerTaskId) || view.isAddingTask;
 
   return (
     <div
-      className={cn(agencyTaskRailClass, className)}
+      className="flex h-full min-h-0 flex-col overflow-hidden"
       data-od-id="my-tasks-rail"
       aria-label="My Tasks"
     >
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-default px-3 py-2.5 sm:px-4">
-        <h2 className="min-w-0 text-sm font-semibold tracking-tight text-foreground">My Tasks</h2>
-        {showCollapseControl ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Collapse My Tasks"
-            onClick={() => view.setCollapsed(true)}
-          >
-            <PanelRightClose />
-          </Button>
-        ) : null}
-      </header>
-
       <form
         className={agencyMyTasksRailComposerFormClass}
         aria-label={view.composerFormAriaLabel}
@@ -211,7 +179,7 @@ function RailPanel({
           </p>
         ) : null}
         {view.composerStatus ? (
-          <p className="sr-only" aria-live="polite">
+          <p className="text-xs text-muted" aria-live="polite">
             {view.composerStatus}
           </p>
         ) : null}
@@ -220,7 +188,7 @@ function RailPanel({
       <div
         role="group"
         aria-label="Task filters"
-        className="flex shrink-0 flex-wrap gap-1.5 border-b border-default px-3 py-2 sm:px-4"
+        className="flex shrink-0 flex-wrap gap-1 border-b border-default px-3 py-2 sm:px-4"
       >
         <TooltipProvider delayDuration={200}>
           <FilterPill
@@ -241,7 +209,7 @@ function RailPanel({
         </TooltipProvider>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3 pt-1.5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-2 sm:px-4">
         {view.isLoading ? (
           <SurfaceShimmer className="min-h-40 mx-1" label="Loading tasks" />
         ) : view.errorMessage ? (
@@ -254,7 +222,7 @@ function RailPanel({
           </div>
         ) : view.isEmpty ? (
           <motion.div
-            className={cn(agencyEmptyPanelClass, "mx-1 my-2 p-5")}
+            className={cn(agencyEmptyPanelClass, "p-5")}
             variants={railEmptyVariants}
             initial="hidden"
             animate="show"
@@ -270,108 +238,5 @@ function RailPanel({
         )}
       </div>
     </div>
-  );
-}
-
-export function AgencyMyTasksRailView({ view, renderList }: AgencyMyTasksRailViewProps) {
-  const sheet = (
-    <Sheet open={view.sheetOpen} onOpenChange={view.setSheetOpen}>
-      <SheetContent
-        side="right"
-        className="flex w-full max-w-[min(100vw,24rem)] flex-col p-0 sm:max-w-96"
-      >
-        <SheetTitle className="sr-only">My Tasks</SheetTitle>
-        {view.sheetOpen ? (
-          <RailPanel
-            view={view}
-            list={renderList()}
-            className="h-full w-full min-w-0 rounded-none border-0 shadow-none"
-          />
-        ) : null}
-      </SheetContent>
-    </Sheet>
-  );
-
-  const mobileFab = (
-    <Button
-      type="button"
-      size="icon"
-      className="fixed right-4 bottom-4 z-40 size-12 rounded-full shadow-md"
-      aria-label="Open My Tasks"
-      onClick={() => view.setSheetOpen(true)}
-    >
-      <ListTodo />
-      {view.openCount > 0 ? (
-        <span
-          key={view.countTickKey}
-          className={cn(
-            "absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-success text-xs font-semibold text-success-foreground tabular-nums",
-            agencyMyTasksCountTickClass,
-          )}
-        >
-          {view.openCount > 99 ? "99+" : view.openCount}
-        </span>
-      ) : null}
-    </Button>
-  );
-
-  const dockedRail = (
-    <aside
-      className={cn(
-        agencyTaskRailWidthTransitionClass,
-        view.collapsed
-          ? cn(agencyTaskRailCollapsedClass, agencyTaskRailCollapsedWidthClass)
-          : cn(agencyTaskRailClass, agencyTaskRailExpandedWidthClass),
-      )}
-      aria-label={view.collapsed ? "My Tasks collapsed" : undefined}
-    >
-      {view.collapsed ? (
-        <div className="flex h-full w-full min-w-0 flex-col items-center justify-start gap-2.5 pt-0">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-9 rounded-full"
-            aria-label="Expand My Tasks"
-            onClick={() => view.setCollapsed(false)}
-          >
-            <PanelRightOpen />
-          </Button>
-          <div
-            className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-            aria-label={`${view.openCount} open tasks`}
-          >
-            <span
-              key={view.countTickKey}
-              className={cn("tabular-nums", agencyMyTasksCountTickClass)}
-            >
-              {view.openCount > 99 ? "99+" : view.openCount}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="h-full w-full min-w-0">
-          <RailPanel
-            view={view}
-            list={renderList()}
-            className="h-full w-full min-w-0 rounded-none border-0 bg-transparent"
-            showCollapseControl
-          />
-        </div>
-      )}
-    </aside>
-  );
-
-  return (
-    <MotionConfig reducedMotion="user">
-      {view.isDocked ? (
-        dockedRail
-      ) : (
-        <>
-          {mobileFab}
-          {sheet}
-        </>
-      )}
-    </MotionConfig>
   );
 }

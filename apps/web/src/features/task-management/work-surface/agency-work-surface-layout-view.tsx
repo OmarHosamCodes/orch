@@ -22,7 +22,7 @@ export function AgencyWorkSurfaceLayoutView({
 }: AgencyWorkSurfaceLayoutViewProps) {
   return (
     <div
-      className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-4 font-sans lg:flex-row lg:gap-5"
+      className="shimmer-container relative flex min-h-0 min-w-0 flex-1 flex-col gap-4 font-sans lg:flex-row lg:gap-5"
       data-agency-work-surface
     >
       <div className={cn(agencyTimePaneStackClass, "relative min-h-0 min-w-0 flex-1 basis-0")}>

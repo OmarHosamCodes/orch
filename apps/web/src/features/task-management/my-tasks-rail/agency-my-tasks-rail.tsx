@@ -1,1 +1,2 @@
-export { AgencyMyTasksRail } from "@/features/task-management/containers/agency-my-tasks-rail-container";
+/** @deprecated Tracker uses {@link AgencyTrackerRightPanelContainer} instead. */
+export { AgencyTrackerRightPanelContainer as AgencyMyTasksRail } from "@/features/task-management/containers/agency-tracker-right-panel-container";

@@ -1,9 +1,9 @@
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type { ReactNode } from "react";
 
-import { agencyMyTasksClientGroupHeaderClass } from "@/features/shared/agency-ui";
 import type { AgencyTaskThreadTitlePayload } from "@/features/task-management/hooks/use-agency-task-thread-shell";
-import { useAgencyMyTasksRail } from "@/features/task-management/hooks/use-agency-my-tasks-rail";
+import { useAgencyTrackerRightPanelContext } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-context";
+import { AgencyMyTasksRailRow } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-row";
 import {
   railLayoutTransition,
   railListContainerVariants,
@@ -11,12 +11,12 @@ import {
   railSectionExit,
   railStaggerIndex,
 } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-motion";
-import { AgencyMyTasksEditDialog } from "@/features/task-management/my-tasks-rail/agency-my-tasks-edit-dialog";
-import { AgencyMyTasksRailRow } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-row";
-import { AgencyMyTasksRailView } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-view";
+import { AgencyMyTasksSurfaceBody } from "@/features/task-management/my-tasks-rail/agency-my-tasks-surface-body";
+import type { TrackerRightPanelSurface } from "@/features/task-management/stores/agency-tracker-right-panel";
+import { AgencyTrackerRightPanelView } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-view";
+import { agencyMyTasksClientGroupHeaderClass } from "@/features/shared/agency-ui";
 
-type AgencyMyTasksRailProps = {
-  teamId: string;
+type AgencyTrackerRightPanelContainerProps = {
   openThreadTaskId: string | null;
   onTitleOpenThread: (task: AgencyTaskThreadTitlePayload) => void;
 };
@@ -31,12 +31,12 @@ function projectLabelForTask(
   return project.name;
 }
 
-export function AgencyMyTasksRail({
-  teamId,
+export function AgencyTrackerRightPanelContainer({
   openThreadTaskId,
   onTitleOpenThread,
-}: AgencyMyTasksRailProps) {
-  const view = useAgencyMyTasksRail({ teamId });
+}: AgencyTrackerRightPanelContainerProps) {
+  const panel = useAgencyTrackerRightPanelContext();
+  const tasksView = panel.tasksView;
 
   const renderList = (): ReactNode => {
     let rowIndex = 0;
@@ -51,7 +51,7 @@ export function AgencyMyTasksRail({
           transition={railLayoutTransition}
         >
           <AnimatePresence initial={false} mode="popLayout">
-            {view.clientGroups.map((group) => (
+            {tasksView.clientGroups.map((group) => (
               <motion.section
                 key={group.clientId}
                 aria-label={group.clientName}
@@ -71,15 +71,15 @@ export function AgencyMyTasksRail({
                   <AnimatePresence initial={false} mode="popLayout">
                     {group.tasks.map((task) => {
                       const stagger = railStaggerIndex(rowIndex++);
-                      const project = view.projects.find((item) => item.id === task.projectId);
+                      const project = tasksView.projects.find((item) => item.id === task.projectId);
                       const assignerMember =
-                        view.members.find((member) => member.userId === task.createdByUserId) ??
+                        tasksView.members.find((member) => member.userId === task.createdByUserId) ??
                         null;
                       return (
                         <AgencyMyTasksRailRow
                           key={task.id}
                           task={task}
-                          view={view}
+                          view={tasksView}
                           projectName={project?.name ?? "Project"}
                           assignerMember={assignerMember}
                           variants={railListItemVariants}
@@ -114,19 +114,26 @@ export function AgencyMyTasksRail({
     );
   };
 
+  const renderSurface = (surface: TrackerRightPanelSurface) => {
+    switch (surface.kind) {
+      case "my-tasks":
+        return <AgencyMyTasksSurfaceBody view={tasksView} list={renderList()} />;
+      default: {
+        const _exhaustive: never = surface.kind;
+        return _exhaustive;
+      }
+    }
+  };
+
   return (
-    <>
-      <AgencyMyTasksRailView view={view} renderList={renderList} />
-      {view.editingTask ? (
-        <AgencyMyTasksEditDialog
-          open
-          onOpenChange={view.onEditOpenChange}
-          teamId={view.teamId}
-          task={view.editingTask}
-          projectLabel={projectLabelForTask(view.projects, view.editingTask.projectId)}
-          members={view.members}
-        />
-      ) : null}
-    </>
+    <AgencyTrackerRightPanelView
+      panel={panel}
+      renderSurface={renderSurface}
+      editProjectLabel={
+        tasksView.editingTask
+          ? projectLabelForTask(tasksView.projects, tasksView.editingTask.projectId)
+          : "Project"
+      }
+    />
   );
 }

@@ -593,8 +593,21 @@ body:has(.app-shell) {
 .app-shell {
   --app-shell-rail-expanded: 15.5rem;
   --app-shell-rail-width: var(--app-shell-rail-expanded);
-  --app-shell-context-bar-height: 2.75rem;
   --shell-chrome-inset: 0.75rem;
+  /* Rail + context-bar top band — matches .app-shell__rail padding and team block. */
+  --shell-chrome-band-padding: 0.5rem;
+  /* Two-line team card + avatar (natural rendered height ~3.625rem). */
+  --shell-chrome-band-block: 3.625rem;
+  /* Quiet gap between header band and primary nav / page well (matches rail flex gap). */
+  --shell-chrome-band-gap: 0.25rem;
+  /* Compact Current Title row — not stretched to the taller team card. */
+  --app-shell-context-bar-padding: 0.375rem;
+  --app-shell-context-bar-row: 1.875rem;
+  --app-shell-context-bar-height: calc(
+    var(--app-shell-context-bar-padding) + var(--app-shell-context-bar-row)
+  );
+  /* Page-well outer edge (main inset) plus inner p-surface gutter. */
+  --shell-content-inline: calc(var(--shell-chrome-inset) + var(--surface-gutter));
   position: relative;
   display: grid;
   height: 100vh;
@@ -618,10 +631,10 @@ body:has(.app-shell) {
 .app-shell__rail {
   display: none;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--shell-chrome-band-gap);
   width: 100%;
   min-height: 0;
-  padding: 0.5rem;
+  padding: var(--shell-chrome-band-padding);
   overflow: hidden;
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
@@ -639,13 +652,13 @@ body:has(.app-shell) {
 /* Taller two-line rows: team header at the top, profile row in the footer. */
 .app-shell__rail-header {
   flex: none;
-  height: 2.75rem;
+  height: var(--shell-chrome-band-block);
 }
 
 .app-shell__team-card {
   display: flex;
   width: 100%;
-  min-height: 3.25rem;
+  min-height: var(--shell-chrome-band-block);
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.625rem;
@@ -1047,6 +1060,7 @@ body:has(.app-shell) {
 
 .app-shell__context-bar {
   display: flex;
+  box-sizing: border-box;
   min-width: 0;
   height: var(--app-shell-context-bar-height);
   grid-column: 1;
@@ -1055,8 +1069,8 @@ body:has(.app-shell) {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  /* Match the page-well interior: chrome inset + surface gutter. */
-  padding-inline: calc(var(--shell-chrome-inset) + var(--surface-gutter));
+  padding-top: var(--app-shell-context-bar-padding);
+  padding-inline: var(--shell-content-inline);
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
 }
@@ -1070,7 +1084,7 @@ body:has(.app-shell) {
 
   .app-shell__context-bar {
     height: 100%;
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--app-shell-context-bar-padding));
   }
 
   .app-shell__main {
@@ -1093,7 +1107,6 @@ body:has(.app-shell) {
   min-width: 0;
   flex: 1;
   align-items: center;
-  height: 100%;
 }
 
 .app-shell__context-bar [data-slot="breadcrumb-list"] {
@@ -1145,7 +1158,7 @@ body:has(.app-shell) {
 }
 
 .app-shell__context-crumb--switcher {
-  height: 2rem;
+  height: var(--app-shell-context-bar-row);
   padding-inline: 0.5rem;
 }
 
@@ -1161,7 +1174,8 @@ body:has(.app-shell) {
 }
 
 .app-shell__context-bar .app-shell__utilities {
-  height: 100%;
+  height: auto;
+  align-self: center;
 }
 
 .app-shell__main {
@@ -1203,11 +1217,18 @@ body:has(.app-shell) {
   .app-shell__context-bar {
     grid-column: 2;
     grid-row: 1;
+    /* Content container = page-well outer edge; inner p-surface gutter stays in the well. */
+    padding-inline: var(--shell-chrome-inset);
   }
 
   .app-shell__main {
     grid-column: 2;
     grid-row: 2;
+    /* Quiet breath between the title bar and page well. */
+    padding-top: var(--shell-chrome-band-gap);
+    padding-right: max(var(--shell-chrome-inset), env(safe-area-inset-right));
+    padding-bottom: max(var(--shell-chrome-inset), env(safe-area-inset-bottom));
+    padding-left: max(var(--shell-chrome-inset), env(safe-area-inset-left));
   }
 }
 
