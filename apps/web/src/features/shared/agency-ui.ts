@@ -335,6 +335,9 @@ export const agencyTimeEntryRowClass = cn(
   "agency-entry-row group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
 );
 
+export const agencyTimeEntryHoverRevealClass =
+  "opacity-20 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 motion-reduce:opacity-100";
+
 /** Nested child row inside an expanded multi-entry group. */
 export const agencyTimeEntryMultiChildClass = "border-b border-dotted border-border/40";
 

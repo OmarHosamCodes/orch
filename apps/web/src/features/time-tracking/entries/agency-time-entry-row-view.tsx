@@ -1,5 +1,6 @@
 import { AnimatePresence } from "motion/react";
 import { MoreVertical, Play, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import {
@@ -25,6 +26,7 @@ import {
   agencyTimeEntryRailClass,
   agencyTimeEntryRailDurationClass,
   agencyTimeEntryDurationInputClass,
+  agencyTimeEntryHoverRevealClass,
   agencyTimeEntryRailTimeClass,
   agencyTimeEntryRowClass,
   agencyTimeEntryRowEditingClass,
@@ -37,6 +39,7 @@ import {
 import { reportEntryWasteTextClass } from "@/features/reports/agency-report-grouping";
 import { AgencyPartialWasteChip, AgencyWasteTag } from "@/features/shared/agency-waste-badge";
 import { agentScopeableProps } from "@/features/shared/agent-scopeable";
+import { entryDescriptionDisplayMode } from "@/features/time-tracking/entry-description-display";
 import { cn } from "@/lib/utils";
 
 const descriptionLeadingSlotClass = "flex w-8 shrink-0 items-center justify-start";
@@ -112,6 +115,16 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
     agencyTaskChooserTriggerClass,
     "h-auto min-h-0 w-auto max-w-full gap-1 px-2 py-0 text-xs shadow-none",
   );
+  const [addingNote, setAddingNote] = useState(false);
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
+  const descriptionMode = entryDescriptionDisplayMode(descriptionDraft);
+  const showDescriptionField =
+    descriptionMode === "visible" || editingDescription || addingNote;
+
+  useEffect(() => {
+    if (!addingNote) return;
+    descriptionInputRef.current?.focus();
+  }, [addingNote]);
 
   return (
     <div
@@ -142,23 +155,45 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
             </button>
           </div>
         ) : null}
-        <Input
-          value={descriptionDraft}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          onFocus={() => onEditingDescriptionChange(true)}
-          onBlur={() => {
-            onDescriptionBlur();
-          }}
-          onKeyDown={onDescriptionKeyDown}
-          disabled={editSaving || rowUpdating}
-          placeholder="Add description"
-          className={cn(
-            agencyWorkTitleClass,
-            "field-sizing-content h-8 w-auto min-w-0 max-w-[14rem] shrink border-0 bg-transparent px-0 py-0 font-normal leading-8 shadow-none focus-visible:ring-0",
-            isWaste && reportEntryWasteTextClass,
-          )}
-          aria-label={isMulti ? "Edit description for all entries in group" : "Add description"}
-        />
+        {showDescriptionField ? (
+          <Input
+            ref={descriptionInputRef}
+            value={descriptionDraft}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            onFocus={() => onEditingDescriptionChange(true)}
+            onBlur={() => {
+              onDescriptionBlur();
+              onEditingDescriptionChange(false);
+              if (entryDescriptionDisplayMode(descriptionDraft) === "omitted") {
+                setAddingNote(false);
+              }
+            }}
+            onKeyDown={onDescriptionKeyDown}
+            disabled={editSaving || rowUpdating}
+            placeholder="Add note"
+            className={cn(
+              agencyWorkTitleClass,
+              "field-sizing-content h-8 w-auto min-w-0 max-w-[14rem] shrink border-0 bg-transparent px-0 py-0 font-normal leading-8 shadow-none focus-visible:ring-0",
+              isWaste && reportEntryWasteTextClass,
+            )}
+            aria-label={isMulti ? "Edit description for all entries in group" : "Add description"}
+          />
+        ) : (
+          <button
+            type="button"
+            className={cn(
+              "h-8 shrink-0 px-0 text-xs text-muted opacity-0 transition-opacity",
+              "group-hover/row:opacity-100 focus-visible:opacity-100 motion-reduce:opacity-100",
+              agencyFocusRingClass,
+            )}
+            onClick={() => {
+              setAddingNote(true);
+              onEditingDescriptionChange(true);
+            }}
+          >
+            Add note
+          </button>
+        )}
         <div
           className={cn(
             "flex h-8 min-w-0 max-w-[min(100%,18rem)] shrink items-center truncate",
@@ -207,7 +242,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
       </div>
 
       <div className={agencyTimeEntryRailClass}>
-        <div className={agencyTimeEntryRailBillableClass}>
+        <div className={cn(agencyTimeEntryRailBillableClass, agencyTimeEntryHoverRevealClass)}>
           <AgencyTimeEntryLinkHoverTrigger
             links={links}
             disabled={editSaving || rowUpdating}
@@ -217,7 +252,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           />
         </div>
 
-        <div className={agencyTimeEntryRailTimeClass}>
+        <div className={cn(agencyTimeEntryRailTimeClass, agencyTimeEntryHoverRevealClass)}>
           {!isMulti ? (
             <div className="flex w-full min-w-0 items-center justify-center gap-0.5 overflow-hidden">
               <Input
@@ -272,7 +307,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
 
-        <div className={agencyTimeEntryRailCalendarClass}>
+        <div className={cn(agencyTimeEntryRailCalendarClass, agencyTimeEntryHoverRevealClass)}>
           <AgencyTimeEntryDatePicker
             date={editDraft.date}
             disabled={editSaving || rowUpdating}
@@ -311,7 +346,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           ) : null}
         </div>
 
-        <div className={agencyTimeEntryRailPlayClass}>
+        <div className={cn(agencyTimeEntryRailPlayClass, agencyTimeEntryHoverRevealClass)}>
           {isMulti && !expanded ? (
             <button
               type="button"
@@ -335,7 +370,7 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
 
-        <div className={agencyTimeEntryRailMoreClass}>
+        <div className={cn(agencyTimeEntryRailMoreClass, agencyTimeEntryHoverRevealClass)}>
           {isMulti && !expanded ? (
             <Popover>
               <PopoverTrigger asChild>
