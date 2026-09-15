@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import {
+  AgencyCommandBar,
+  agencyCommandBarCustomRangeTriggerClass,
+} from "@/features/shared/command-bar/agency-command-bar";
 import { RangePresetChooser } from "@/features/shared/command-bar/range-preset-chooser";
 import { MemberProfileActivityRails } from "@/features/member-profile/member-profile-activity-rails";
 import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
@@ -42,7 +46,6 @@ import {
   agencyWorkMetaClass,
   agencyWorkTitleClass,
 } from "@/features/shared/agency-ui";
-import { agencyCommandBarShellClass } from "@/features/shared/command-bar/agency-command-bar-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 import {
@@ -278,47 +281,46 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
   return (
     <TooltipProvider delayDuration={120}>
       <div className="mx-auto max-w-7xl space-y-5 p-surface">
-        <div
-          className={cn(agencyCommandBarShellClass, "relative w-full overflow-hidden")}
-          aria-busy={viewModel.refreshing || undefined}
+        <AgencyCommandBar.Root
+          className="w-full"
+          busy={viewModel.refreshing}
+          busyLabel="Refreshing profile"
         >
-          {viewModel.refreshing ? (
-            <>
-              <span
-                className="agency-command-bar-shimmer pointer-events-none absolute inset-0 z-10 rounded-[inherit]"
-                aria-hidden
-              />
-              <span className="sr-only" role="status">
-                Refreshing profile
-              </span>
-            </>
-          ) : null}
-          <RangePresetChooser
-            value={period.rangePreset}
-            onChange={period.onRangePresetChange}
-            tenureAvailable={period.tenureAvailable}
-            tenurePeriodLabel={period.tenurePeriodLabel}
-            tenureQuarterLabel={period.tenureQuarterLabel}
-            tenureQuarterMonths={period.tenureQuarterMonths}
-            tenureMonthIndexes={period.tenureMonthIndexes}
-            onTenureMonthIndexesChange={period.onTenureMonthIndexesChange}
-          />
-          {period.rangePreset === "custom" ? (
-            <MemberProfileLeaveRangePicker
-              triggerId="profile-period-custom-range"
-              startDate={period.customFromDate}
-              endDate={period.customToDate}
-              emptyLabel="Select period dates"
-              ariaLabel="Custom period date range"
-              triggerClassName="h-9 min-h-9 w-auto max-w-[22rem] py-1.5 text-xs font-semibold"
-              onRangeChange={(next) => {
-                period.onCustomFromChange(next.startDate);
-                period.onCustomToChange(next.endDate);
-              }}
+          <AgencyCommandBar.Start>
+            <RangePresetChooser
+              value={period.rangePreset}
+              onChange={period.onRangePresetChange}
+              tenureAvailable={period.tenureAvailable}
+              tenurePeriodLabel={period.tenurePeriodLabel}
+              tenureQuarterLabel={period.tenureQuarterLabel}
+              tenureQuarterMonths={period.tenureQuarterMonths}
+              tenureMonthIndexes={period.tenureMonthIndexes}
+              onTenureMonthIndexesChange={period.onTenureMonthIndexesChange}
             />
-          ) : null}
-          <MemberProfileRosterSwitcher memberNav={viewModel.memberNav} />
-        </div>
+            {period.rangePreset === "custom" ? (
+              <MemberProfileLeaveRangePicker
+                triggerId="profile-period-custom-range"
+                startDate={period.customFromDate}
+                endDate={period.customToDate}
+                emptyLabel="Select period dates"
+                ariaLabel="Custom period date range"
+                triggerClassName={agencyCommandBarCustomRangeTriggerClass}
+                onRangeChange={(next) => {
+                  period.onCustomFromChange(next.startDate);
+                  period.onCustomToChange(next.endDate);
+                }}
+              />
+            ) : null}
+          </AgencyCommandBar.Start>
+          <AgencyCommandBar.End>
+            <AgencyCommandBar.Apply
+              disabled={!period.hasPendingChanges}
+              onClick={period.onApply}
+            />
+            {period.canReset ? <AgencyCommandBar.Reset onClick={period.onReset} /> : null}
+            <MemberProfileRosterSwitcher memberNav={viewModel.memberNav} />
+          </AgencyCommandBar.End>
+        </AgencyCommandBar.Root>
 
         <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)_minmax(17.5rem,20rem)] xl:items-start">
           <aside className="space-y-4 max-xl:order-1">

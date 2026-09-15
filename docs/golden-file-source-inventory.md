@@ -19,16 +19,16 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 928 |
+| golden-feature | 927 |
 | server-operation | 12 |
-| shared-infrastructure | 392 |
+| shared-infrastructure | 395 |
 | static-presentation | 17 |
 
 ## Counts by domain
 
 | Domain | Artifacts |
 | --- | ---: |
-| agency-shared | 143 |
+| agency-shared | 144 |
 | agent | 126 |
 | api-platform | 13 |
 | architecture | 4 |
@@ -37,7 +37,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | ci | 3 |
 | clients | 13 |
 | configuration | 3 |
-| dashboard | 7 |
+| dashboard | 6 |
 | database-platform | 44 |
 | deployment | 6 |
 | environment | 5 |
@@ -54,7 +54,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | task-management | 100 |
 | team | 19 |
 | time-tracking | 120 |
-| web-platform | 160 |
+| web-platform | 162 |
 | workspace | 137 |
 
 ## Artifacts
@@ -114,7 +114,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/perf/baseline.json` | performance | test-config | shared-infrastructure | web-performance | Cross-cutting performance test-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
 | `apps/web/perf/budgets.json` | performance | test-config | shared-infrastructure | web-performance | Cross-cutting performance test-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
 | `apps/web/perf/check-filters.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: React component or hook code, process or filesystem tooling; structure: recognized build, test, database, runtime, or package config |
-| `apps/web/perf/global-setup.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling, exported declarations; structure: recognized build, test, database, runtime, or package config |
+| `apps/web/perf/global-setup.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling, exported declarations, environment contract; structure: recognized build, test, database, runtime, or package config |
 | `apps/web/perf/report.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling, exported declarations; structure: recognized build, test, database, runtime, or package config |
 | `apps/web/perf/routes.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: exported declarations; structure: recognized build, test, database, runtime, or package config |
 | `apps/web/perf/run-lighthouse.mjs` | performance | test-tooling | shared-infrastructure | web-performance | Cross-cutting performance test-tooling support rather than a feature-owned business workflow. | content: process or filesystem tooling, exported declarations, environment contract; structure: recognized build, test, database, runtime, or package config |
@@ -244,7 +244,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/clients/containers/agency-clients-table-container.tsx` | clients | container | golden-feature | clients-domain | Feature-owned clients artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
 | `apps/web/src/features/clients/hooks/use-agency-client-detail.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
 | `apps/web/src/features/clients/hooks/use-agency-clients-table.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: TanStack Query orchestration, feature query orchestration, React component or hook code; structure: hook naming |
-| `apps/web/src/features/dashboard/agency-dashboard-command-bar.test.ts` | dashboard | test | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/dashboard/agency-dashboard-surface-view.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-dashboard-surface.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-project-share-morph.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -505,9 +504,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/shared/choosers/agency-member-stack.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/choosers/use-agency-member-chooser.ts` | agency-shared | feature-hook | shared-infrastructure | agency-platform | Cross-cutting agency-shared feature-hook support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/shared/command-bar/agency-command-bar-ui.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/shared/command-bar/agency-list-filter-command-bar.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/shared/command-bar/agency-time-range-command-bar.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
-| `apps/web/src/features/shared/command-bar/agency-time-range-command-bar.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/shared/command-bar/agency-command-bar.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/shared/command-bar/agency-time-range-can-reset.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/shared/command-bar/agency-time-range-can-reset.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/shared/command-bar/range-preset-chooser.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/shared/command-bar/range-preset-chooser.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/date/member-profile-date-picker.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/date/member-profile-leave-range-picker.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -890,7 +890,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/lib/auth-session.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/lib/auth-session.ts` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/lib/authenticated-boot.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations, TanStack Query orchestration; structure: test filename |
-| `apps/web/src/lib/authenticated-boot.ts` | web-platform | web-query | shared-infrastructure | web-platform | Cross-cutting web-platform web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, exported declarations; structure: source role and exported behavior |
+| `apps/web/src/lib/authenticated-boot.ts` | web-platform | web-query | shared-infrastructure | web-platform | Cross-cutting web-platform web-query support rather than a feature-owned business workflow. | content: oRPC procedures or clients, TanStack Query orchestration, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/lib/authenticated-client-reset.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations, TanStack Query orchestration; structure: test filename |
 | `apps/web/src/lib/authenticated-client-reset.ts` | web-platform | web-query | shared-infrastructure | web-platform | Cross-cutting web-platform web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/lib/authenticated-parent-freshness.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
@@ -912,6 +912,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/lib/router-search.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/lib/safe-redirect-path.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/lib/safe-redirect-path.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/lib/schedule-idle.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/lib/schedule-idle.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/lib/schemas/index.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/lib/sentry-transaction-name.test.ts` | web-platform | test | shared-infrastructure | web-platform | Cross-cutting web-platform test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/lib/sentry-transaction-name.ts` | web-platform | domain-logic | shared-infrastructure | web-platform | Cross-cutting web-platform domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |

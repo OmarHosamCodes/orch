@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  rangePresetLabel,
-  rangePresets,
-} from "@/features/shared/command-bar/agency-time-range-command-bar";
+import { rangePresetLabel, rangePresets } from "@/features/shared/command-bar/range-preset-chooser";
 
 describe("rangePresets", () => {
   test("includes Today and This month when tenure is unavailable", () => {
