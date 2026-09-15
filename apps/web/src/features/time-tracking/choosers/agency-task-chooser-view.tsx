@@ -286,7 +286,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             className={agencyTaskChooserPanelClass}
           >
             <MotionConfig reducedMotion="user">
-              <div className="border-b border-border p-3">
+              <div className="shrink-0 border-b border-border p-3">
                 <div className="relative">
                   <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -301,6 +301,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                     onChange={(e) => onSearchChange(e.target.value)}
                     onKeyDown={onSearchKeyDown}
                     placeholder={searchPlaceholder}
+                    aria-label={searchPlaceholder}
                     className={cn(agencyTaskChooserSearchInputClass, agencyInputPlaceholderClass)}
                   />
                 </div>
@@ -311,7 +312,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 ref={listRef}
                 role="listbox"
                 aria-label={pickProject ? "Projects" : "Tasks"}
-                className="max-h-[min(24rem,60vh)] overflow-y-auto [overflow-anchor:none] px-1.5 py-2"
+                className="min-h-0 max-h-[min(24rem,60vh)] overflow-y-auto [overflow-anchor:none] px-1.5 py-2"
               >
                 {loading ? (
                   <SkeletonGroup className="space-y-1.5 px-1 py-1">
@@ -373,7 +374,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 )}
               </div>
 
-              <div className="border-t border-border px-3 py-2.5">
+              <div className="shrink-0 border-t border-border px-3 py-2.5">
                 <motion.button
                   type="button"
                   className={cn(

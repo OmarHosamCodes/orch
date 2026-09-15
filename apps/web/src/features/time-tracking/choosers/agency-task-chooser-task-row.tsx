@@ -102,11 +102,14 @@ export function AgencyTaskChooserTaskRow({
       <motion.button
         type="button"
         id={optionId}
+        role="option"
+        aria-selected={selected}
+        title={title}
         data-selected-task={selected ? "true" : undefined}
         data-best-match-task={!selected && bestMatch ? "true" : undefined}
         data-task-id={taskId}
         className={cn(
-          "flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-left",
+          "flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-start",
           agencyFocusRingClass,
         )}
         whileTap={chooserTapScale}
@@ -118,6 +121,7 @@ export function AgencyTaskChooserTaskRow({
         }}
       >
         <span
+          dir="auto"
           className={cn(
             "min-w-0 flex-1 truncate text-sm font-normal leading-snug",
             selected ? "font-medium text-primary" : "text-muted-foreground",
@@ -132,7 +136,7 @@ export function AgencyTaskChooserTaskRow({
         aria-label={favorited ? "Remove task from favorites" : "Add task to favorites"}
         className={cn(
           "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground",
-          "pointer-events-none opacity-0 transition-opacity",
+          "[@media(hover:hover)]:pointer-events-none [@media(hover:hover)]:opacity-0 transition-opacity",
           "group-hover:pointer-events-auto group-hover:opacity-100",
           "focus-visible:pointer-events-auto focus-visible:opacity-100",
           favorited && "pointer-events-auto text-warning opacity-100",

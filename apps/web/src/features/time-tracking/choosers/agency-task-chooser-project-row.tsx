@@ -70,6 +70,9 @@ export function AgencyTaskChooserProjectRow({
       <motion.button
         type="button"
         id={optionId}
+        role="option"
+        aria-selected={active}
+        title={projectName}
         className={cn(
           "flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left",
           agencyFocusRingClass,
@@ -122,7 +125,7 @@ export function AgencyTaskChooserProjectRow({
         aria-label={favorited ? "Remove project from favorites" : "Add project to favorites"}
         className={cn(
           "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground",
-          "pointer-events-none opacity-0 transition-opacity",
+          "[@media(hover:hover)]:pointer-events-none [@media(hover:hover)]:opacity-0 transition-opacity",
           "group-hover:pointer-events-auto group-hover:opacity-100",
           "focus-visible:pointer-events-auto focus-visible:opacity-100",
           favorited && "pointer-events-auto text-warning opacity-100",

@@ -186,10 +186,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
                   onInteractOutside={(event) => {
                     if (isElapsedStartEditorTarget(event.target)) event.preventDefault();
                   }}
-                  className={cn(
-                    "w-auto min-w-0 gap-1.5 rounded-surface border border-default p-2.5 shadow-lg ring-0",
-                    "data-[state=closed]:animate-none",
-                  )}
+                  className={cn("w-auto min-w-0 gap-1.5 p-2.5", "data-[state=closed]:animate-none")}
                   data-elapsed-start-editor=""
                 >
                   <div className="flex items-center gap-3">
@@ -366,7 +363,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
                   <MoreVertical className="size-5" />
                 </MotionButton>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-44 p-1">
+              <PopoverContent align="end" size="menu">
                 <AgencyBillableToggleMenuItem
                   isBillable={view.isBillable}
                   disabled={controlsDisabled}

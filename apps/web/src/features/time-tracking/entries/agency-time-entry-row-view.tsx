@@ -388,7 +388,7 @@ export function AgencyTimeEntryRowView({
                   <MoreVertical className="size-3.5" />
                 </motion.button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-44 p-1">
+              <PopoverContent align="end" size="menu">
                 <Button
                   variant="ghost"
                   size="sm"

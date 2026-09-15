@@ -97,7 +97,7 @@ export function AgencyTimeEntryMoreAction({
         </motion.button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-44 p-1">
+      <PopoverContent align="end" size="menu">
         {canToggleBillable ? (
           <AgencyBillableToggleMenuItem
             isBillable={isBillable}

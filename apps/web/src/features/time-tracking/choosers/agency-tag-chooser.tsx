@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
+import { Checkbox } from "@/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import {
   agencyFocusRingClass,
@@ -100,7 +101,7 @@ export function AgencyTagChooser({
           {compact ? null : <span className="truncate text-sm font-normal">{label}</span>}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-2">
+      <PopoverContent align="end" size="chooser" className="p-2">
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -108,37 +109,31 @@ export function AgencyTagChooser({
           className={cn("mb-2 h-8", agencyFocusRingClass)}
           aria-label="Search tags"
         />
-        <ul className="max-h-48 space-y-0.5 overflow-y-auto">
+        <ul className="min-h-0 max-h-48 space-y-0.5 overflow-y-auto">
           {filtered.map((tag) => {
             const checked = value.includes(tag.id);
             return (
               <li key={tag.id}>
-                <button
-                  type="button"
+                <label
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm",
-                    checked ? "bg-elevated text-highlighted" : "text-muted hover:bg-elevated",
+                    "flex min-h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-start text-sm",
+                    checked
+                      ? "bg-accent text-accent-foreground"
+                      : "text-foreground hover:bg-accent",
                   )}
-                  onClick={() => toggleTag(tag.id)}
                 >
-                  <span
-                    className={cn(
-                      "flex size-3.5 items-center justify-center rounded-sm border",
-                      checked
-                        ? "border-highlighted bg-highlighted text-background"
-                        : "border-default",
-                    )}
-                    aria-hidden
-                  >
-                    {checked ? "✓" : null}
+                  <Checkbox checked={checked} onCheckedChange={() => toggleTag(tag.id)} />
+                  <span dir="auto" className="min-w-0 break-words">
+                    {tag.name}
                   </span>
-                  {tag.name}
-                </button>
+                </label>
               </li>
             );
           })}
-          {filtered.length === 0 && !search.trim() ? (
-            <li className="px-2 py-3 text-xs text-muted">No tags yet</li>
+          {filtered.length === 0 ? (
+            <li className="px-2 py-3 text-xs text-muted">
+              {search.trim() ? "No matching tags" : "No tags yet"}
+            </li>
           ) : null}
         </ul>
         {search.trim() && !exactMatch && onCreateTag ? (
