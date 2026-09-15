@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useId, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import type { AgencyTimeRangeFilters } from "@/features/shared/use-agency-time-range-filters";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -9,6 +9,7 @@ import { useAgencyPresenceMembers } from "@/features/shared/agency-queries";
 export type UseAgencyDashboardSurfaceProps = {
   teamId: string;
   filters: AgencyTimeRangeFilters;
+  policyReady: boolean;
   onSelectProject?: (projectId: string) => void;
   onSelectClient?: (clientId: string) => void;
   onSelectMember?: (userId: string) => void;
@@ -19,6 +20,7 @@ export type AgencyDashboardSurfaceViewModel = ReturnType<typeof useAgencyDashboa
 export function useAgencyDashboardSurface({
   teamId,
   filters,
+  policyReady,
   onSelectProject,
   onSelectClient,
   onSelectMember,
@@ -26,10 +28,6 @@ export function useAgencyDashboardSurface({
   const { range, projectId, memberUserId, clientId, clientIds, projectIds, memberUserIds } =
     filters;
   const { members: presenceMembers } = useAgencyPresenceMembers(teamId);
-  const [hourBreakdownOpen, setHourBreakdownOpen] = useState(false);
-  const totalButtonId = useId();
-  const breakdownPanelId = useId();
-
   const dashboardQuery = useQuery({
     ...orpc.agencyOps.reports.dashboard.queryOptions({
       input: {
@@ -44,7 +42,7 @@ export function useAgencyDashboardSurface({
         memberUserIds,
       },
     }),
-    enabled: Boolean(teamId),
+    enabled: Boolean(teamId) && policyReady,
     placeholderData: keepPreviousData,
   });
 
@@ -71,7 +69,7 @@ export function useAgencyDashboardSurface({
   const errorMessage = getErrorMessage(dashboardQuery.error, "Try refreshing.");
 
   return {
-    isLoading: dashboardQuery.isLoading,
+    isLoading: dashboardQuery.isLoading || !policyReady,
     isError: dashboardQuery.isError,
     errorMessage,
     summary,
@@ -81,10 +79,6 @@ export function useAgencyDashboardSurface({
     sortedTeamMembers,
     sortedRankedProjects,
     isDark: true,
-    hourBreakdownOpen,
-    setHourBreakdownOpen,
-    totalButtonId,
-    breakdownPanelId,
     onSelectProject,
     onSelectClient,
     onSelectMember,

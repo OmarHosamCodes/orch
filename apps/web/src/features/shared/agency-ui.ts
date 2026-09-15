@@ -214,9 +214,8 @@ export const agencyWorkPlayButtonClass = cn(
 /** Ghost icon control for entry rails — play and menu share this (no circle chrome). */
 export const agencyTimeEntryIconButtonClass = cn(
   "inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted",
-  "transition-colors hover:bg-elevated hover:text-highlighted",
+  "hover:bg-elevated hover:text-highlighted",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 /** Week stack tracker bar — 56px card, one row, overflow visible for popovers. */
@@ -310,15 +309,14 @@ export const agencyTaskChooserCreateActionMutedClass = cn(
 );
 
 export const agencyTimeTrackerPrimaryActionClass =
-  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground hover:bg-primary/80";
+  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground transition-none hover:bg-primary/80";
 
 export const agencyTimeTrackerStopActionClass =
-  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-destructive px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground hover:bg-destructive/90";
+  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-destructive px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground transition-none hover:bg-destructive/90";
 
 export const agencyTimeTrackerIconActionClass = cn(
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 export const agencyTimeTrackerSuggestionPanelClass = cn(
@@ -326,17 +324,13 @@ export const agencyTimeTrackerSuggestionPanelClass = cn(
 );
 
 export const agencyTimeTrackerSuggestionOptionClass = cn(
-  "flex w-full min-w-0 flex-col items-stretch gap-0.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent/35",
+  "flex w-full min-w-0 flex-col items-stretch gap-0.5 rounded-md px-2.5 py-2 text-left hover:bg-accent/35",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 export const agencyTimeEntryRowClass = cn(
-  "agency-entry-row group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
+  "agency-entry-row group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans hover:bg-elevated/50",
 );
-
-export const agencyTimeEntryHoverRevealClass =
-  "opacity-20 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 motion-reduce:opacity-100";
 
 /** Nested child row inside an expanded multi-entry group. */
 export const agencyTimeEntryMultiChildClass = "border-b border-dotted border-border/40";
@@ -349,7 +343,7 @@ export const agencyTimeEntryClockTimeInputClass = cn(
   // Override shared Input defaults (rounded-4xl, bg-input/30, focus ring).
   "h-7 w-[4.25rem] min-w-0 shrink appearance-none rounded-none border border-transparent bg-transparent px-0.5 py-0",
   "text-center font-mono text-xs font-medium tabular-nums text-muted shadow-none outline-none",
-  "transition-colors hover:border-border",
+  "hover:border-border",
   "focus-visible:border-primary focus-visible:bg-transparent focus-visible:text-highlighted focus-visible:ring-0",
   "disabled:cursor-not-allowed disabled:opacity-60",
 );
@@ -369,7 +363,7 @@ export const agencyTimeTrackerDateTriggerClass = cn(
 export const agencyTimeEntryDurationInputClass = cn(
   "h-8 w-full min-w-0 appearance-none rounded-none border border-transparent bg-transparent px-0 py-0",
   "text-center font-mono text-sm font-semibold tabular-nums text-highlighted shadow-none outline-none",
-  "transition-colors hover:border-border",
+  "hover:border-border",
   "focus-visible:border-primary focus-visible:bg-transparent focus-visible:ring-0",
   "disabled:cursor-not-allowed disabled:opacity-60",
   "aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive",
@@ -432,10 +426,8 @@ export const agencyTimeEntryRailActionsClass =
   "flex h-full w-[112px] shrink-0 items-center justify-end gap-1 pr-2";
 
 /** Day band — same rail geometry as rows so totals lock to the duration column. */
-export const agencyTimeEntrySectionHeaderClass = cn(
-  "flex h-10 items-center border-b border-border/30 bg-muted/20 font-sans",
-  "motion-reduce:transition-none transition-colors duration-150",
-);
+export const agencyTimeEntrySectionHeaderClass =
+  "flex h-10 items-center border-b border-border/30 bg-muted/20 font-sans";
 
 /** Bulk mode with a selection — soft Operator Violet surface, still quiet. */
 export const agencyTimeEntrySectionHeaderBulkActiveClass = "border-b-primary/25 bg-primary/5";
@@ -453,16 +445,13 @@ export const agencyTimeEntryBulkSelectColumnClass =
 
 export const agencyTimeEntryBulkRowSelectedClass = "bg-primary/5";
 
-export const agencyTimeEntryBulkToolbarClass = cn(
-  "flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/[0.04] px-4 py-2 sm:px-5",
-  "motion-reduce:transition-none transition-colors duration-150",
-);
+export const agencyTimeEntryBulkToolbarClass =
+  "flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/[0.04] px-4 py-2 sm:px-5";
 
 export const agencyTimeEntryBulkActionClass = cn(
   "h-7 gap-1 rounded-md px-2 text-xs font-medium text-muted",
   "hover:bg-elevated hover:text-highlighted",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 /** One day card — Week stack surface so days read as Harvest stacks. */
@@ -470,7 +459,7 @@ export const agencyTimeEntryDayGroupClass =
   "@container/entries group/day overflow-hidden rounded-surface border border-border bg-card";
 
 export const agencyTimeEntryDayHeadClass =
-  "flex min-h-[52px] items-center justify-between gap-3 border-b border-border/40 px-4";
+  "flex min-h-[52px] items-center justify-between gap-3 border-b border-border/40 pr-4 pl-3";
 
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";

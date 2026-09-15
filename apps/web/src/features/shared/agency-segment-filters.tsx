@@ -124,7 +124,7 @@ function TimeRangeCommandBar({
           values={timeRange.memberUserIds}
           options={timeRange.memberOptions}
           onValuesChange={timeRange.onMemberUserIdsChange}
-          searchPlaceholder="Search users or groups"
+          searchPlaceholder="Search people"
         />
         <RangePresetChooser
           value={timeRange.rangePreset}
@@ -190,7 +190,7 @@ function ListFilterCommandBar({
           options={listFilters.peopleOptions}
           onValuesChange={listFilters.onSelectedPeopleIdsChange}
           disabled={listFilters.peopleLoading}
-          searchPlaceholder="Search users or groups"
+          searchPlaceholder="Search people"
         />
         <AgencyMultiSelectFilter
           label="All Clients"

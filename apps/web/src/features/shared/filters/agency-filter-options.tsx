@@ -1,7 +1,7 @@
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-import type { AgencyFilterOption } from "./agency-multi-select-filter";
+import type { AgencyFilterOption } from "@/features/shared/filters/agency-filter-option-match";
 
 export type AgencyFilterRow =
   | { kind: "heading"; key: string; label: string }
@@ -26,7 +26,11 @@ export function AgencyFilterOptions({
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => (rows[index]?.kind === "heading" ? 28 : 34),
+    estimateSize: (index) => {
+      const row = rows[index];
+      if (row?.kind === "heading") return 32;
+      return row?.option.secondary ? 52 : 40;
+    },
     getItemKey: (index) => rows[index]!.key,
     overscan: 4,
     rangeExtractor: (range) => {
@@ -52,7 +56,7 @@ export function AgencyFilterOptions({
   return (
     <div
       ref={scrollRef}
-      className="max-h-64 overflow-x-hidden overflow-y-auto overscroll-contain"
+      className="max-h-80 overflow-x-hidden overflow-y-auto overscroll-contain"
       role={single ? "listbox" : "group"}
       aria-label={label}
       onFocusCapture={(event) => {
@@ -95,7 +99,7 @@ export function AgencyFilterOptions({
               style={{ height: item.size, transform: `translateY(${item.start}px)` }}
             >
               {row.kind === "heading" ? (
-                <p className="truncate px-2.5 pt-2 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+                <p className="truncate px-2.5 pt-2.5 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
                   {row.label}
                 </p>
               ) : (

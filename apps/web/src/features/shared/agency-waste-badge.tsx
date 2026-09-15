@@ -1,12 +1,14 @@
-import { motion } from "motion/react";
+import { motion, type Transition } from "motion/react";
 import { X } from "lucide-react";
 
+import {
+  agencyBaseTransition,
+  agencyFastTransition,
+  agencyTapScale,
+} from "@/features/shared/agency-motion";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { Badge } from "@/ui/badge";
 import { cn } from "@/lib/utils";
-
-/** Matches `--motion-ease-out` (ease-out-quart). */
-const WASTE_EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
 type AgencyWasteDismissibleProps = {
   className?: string;
@@ -15,6 +17,8 @@ type AgencyWasteDismissibleProps = {
   /** Screen-reader label for the X. Defaults to "Unmark as waste". */
   dismissLabel?: string;
   disabled?: boolean;
+  /** Enter/exit tween. Defaults to the shared agency base transition. */
+  motionTransition?: Transition;
 };
 
 function WasteDismissButton({
@@ -40,8 +44,8 @@ function WasteDismissButton({
       )}
       aria-label={label}
       disabled={disabled}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.86 }}
-      transition={{ duration: 0.12, ease: WASTE_EASE }}
+      whileTap={prefersReducedMotion ? undefined : agencyTapScale}
+      transition={agencyFastTransition}
       onClick={(event) => {
         event.stopPropagation();
         onDismiss();
@@ -63,6 +67,7 @@ export function AgencyWasteTag({
   onDismiss,
   dismissLabel = "Unmark as waste",
   disabled = false,
+  motionTransition = agencyBaseTransition,
 }: AgencyWasteDismissibleProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const dismissible = Boolean(onDismiss);
@@ -73,7 +78,7 @@ export function AgencyWasteTag({
       initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92 }}
-      transition={{ duration: 0.18, ease: WASTE_EASE }}
+      transition={motionTransition}
     >
       <Badge
         variant="destructive"

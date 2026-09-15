@@ -122,7 +122,12 @@ function buildProjectFilterGroups(
       currentGroup = { groupLabel: project.clientName, options: [] };
       groups.push(currentGroup);
     }
-    currentGroup.options!.push({ value: project.id, label: project.name });
+    currentGroup.options!.push({
+      value: project.id,
+      label: project.name,
+      secondary: project.clientName,
+      searchText: project.clientName,
+    });
   }
 
   return groups;
@@ -428,12 +433,16 @@ export function useAgencyTimeRangeFilters({
   const members = (membersQuery.data?.items ?? []).map((member) => ({
     userId: member.userId,
     userName: member.userName,
-    avatar: null,
   }));
   const clientOptions = clients.map((client) => ({ value: client.id, label: client.name }));
-  const memberOptions = members.map((member) => ({
+  const memberOptions = (membersQuery.data?.items ?? []).map((member) => ({
     value: member.userId,
     label: member.userName,
+    avatar: {
+      userId: member.userId,
+      name: member.userName,
+      avatarUrl: member.userAvatar,
+    },
   }));
   const canReset = agencyTimeRangeCanReset({
     rangePreset: effectiveDraftRangePreset,

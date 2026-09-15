@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import type {
+  AgencyFilterOption,
   AgencyFilterOptionGroup,
   AgencyMultiSelectStatusFilter,
 } from "@/features/shared/filters/agency-multi-select-filter";
@@ -141,16 +142,27 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
   const tasks = tasksQuery.data?.items ?? [];
 
   const peopleOptions = useMemo(() => {
-    const people = new Map<string, string>();
+    const people = new Map<string, AgencyFilterOption>();
     for (const member of membersQuery.data?.items ?? []) {
-      people.set(member.userId, member.userName);
+      people.set(member.userId, {
+        value: member.userId,
+        label: member.userName,
+        avatar: {
+          userId: member.userId,
+          name: member.userName,
+          avatarUrl: member.userAvatar,
+        },
+      });
     }
     for (const entry of entries) {
-      people.set(entry.userId, entry.userName);
+      if (people.has(entry.userId)) continue;
+      people.set(entry.userId, {
+        value: entry.userId,
+        label: entry.userName,
+        avatar: { userId: entry.userId, name: entry.userName },
+      });
     }
-    return Array.from(people, ([value, label]) => ({ value, label })).sort((a, b) =>
-      a.label.localeCompare(b.label),
-    );
+    return Array.from(people.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [entries, membersQuery.data?.items]);
 
   const clientOptions = useMemo(
@@ -171,7 +183,12 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
         currentGroup = { groupLabel: project.clientName, options: [] };
         groups.push(currentGroup);
       }
-      currentGroup.options!.push({ value: project.id, label: project.name });
+      currentGroup.options!.push({
+        value: project.id,
+        label: project.name,
+        secondary: project.clientName,
+        searchText: project.clientName,
+      });
     }
 
     return groups;
@@ -200,6 +217,8 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
               (group) => ({
                 value: group.groupKey,
                 label: group.title,
+                secondary: `${project.name} · ${clientGroup.clientName}`,
+                searchText: `${project.name} ${clientGroup.clientName}`,
               }),
             ),
           })),

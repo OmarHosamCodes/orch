@@ -50,11 +50,20 @@ function ensureSyncedQuery(
   return queryClient.ensureQueryData(prefetchAgencySyncQueryOptions(options, tier) as any);
 }
 
-async function resolveDashboardRange(queryClient: QueryClient, teamId: string) {
-  const now = new Date();
+function defaultDashboardRange(now = new Date()) {
   const endIso = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999),
   ).toISOString();
+  return {
+    from: new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29),
+    ).toISOString(),
+    to: endIso,
+  };
+}
+
+async function resolveDashboardRange(queryClient: QueryClient, teamId: string) {
+  const now = new Date();
 
   const policyData = await ensureSyncedQuery(
     queryClient,
@@ -75,12 +84,7 @@ async function resolveDashboardRange(queryClient: QueryClient, teamId: string) {
     }
   }
 
-  return {
-    from: new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29),
-    ).toISOString(),
-    to: endIso,
-  };
+  return defaultDashboardRange(now);
 }
 
 async function ensureManagementBootQueries(
@@ -129,6 +133,11 @@ async function ensureManagementBootQueries(
       break;
     }
     case "money":
+      await ensureSyncedQuery(
+        queryClient,
+        orpc.agencyOps.moneySettings.get.queryOptions({ input: { teamId } }),
+        "cold",
+      );
       break;
     default: {
       const _exhaustive: never = pane;
@@ -148,8 +157,13 @@ export async function ensureAgencySegmentBootQueries(
       await ensureAgencyWorkBootQueries(queryClient, teamId, userId);
       break;
     case "dashboard": {
-      const range = await resolveDashboardRange(queryClient, teamId);
-      await Promise.all([
+      const defaultRange = defaultDashboardRange();
+      const [policyData] = await Promise.all([
+        ensureSyncedQuery(
+          queryClient,
+          orpc.agencyOps.tenure.policy.get.queryOptions({ input: { teamId } }),
+          "cold",
+        ),
         ensureSyncedQuery(
           queryClient,
           orpc.agencyOps.projects.list.queryOptions({ input: { teamId } }),
@@ -158,15 +172,22 @@ export async function ensureAgencySegmentBootQueries(
         ensureSyncedQuery(
           queryClient,
           orpc.agencyOps.reports.dashboard.queryOptions({
-            input: {
-              teamId,
-              from: range.from,
-              to: range.to,
-            },
+            input: { teamId, from: defaultRange.from, to: defaultRange.to },
           }),
           "cold",
         ),
       ]);
+      const range = await resolveDashboardRange(queryClient, teamId);
+      if (range.from !== defaultRange.from || range.to !== defaultRange.to) {
+        await ensureSyncedQuery(
+          queryClient,
+          orpc.agencyOps.reports.dashboard.queryOptions({
+            input: { teamId, from: range.from, to: range.to },
+          }),
+          "cold",
+        );
+      }
+      void policyData;
       break;
     }
     case "clients": {
