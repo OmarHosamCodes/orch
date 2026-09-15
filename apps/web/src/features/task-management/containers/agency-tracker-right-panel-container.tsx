@@ -11,8 +11,8 @@ import {
   railSectionExit,
   railStaggerIndex,
 } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-motion";
-import { AgencyMyTasksSurfaceBody } from "@/features/task-management/my-tasks-rail/agency-my-tasks-surface-body";
 import type { TrackerRightPanelSurface } from "@/features/task-management/stores/agency-tracker-right-panel";
+import { AgencyTrackerRightPanelSurfaceBind } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-surface-bind";
 import { AgencyTrackerRightPanelView } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-view";
 import { agencyMyTasksClientGroupHeaderClass } from "@/features/shared/agency-ui";
 
@@ -114,16 +114,13 @@ export function AgencyTrackerRightPanelContainer({
     );
   };
 
-  const renderSurface = (surface: TrackerRightPanelSurface) => {
-    switch (surface.kind) {
-      case "my-tasks":
-        return <AgencyMyTasksSurfaceBody view={tasksView} list={renderList()} />;
-      default: {
-        const _exhaustive: never = surface.kind;
-        return _exhaustive;
-      }
-    }
-  };
+  const renderSurface = (surface: TrackerRightPanelSurface) => (
+    <AgencyTrackerRightPanelSurfaceBind
+      surface={surface}
+      tasksView={tasksView}
+      list={renderList()}
+    />
+  );
 
   return (
     <AgencyTrackerRightPanelView

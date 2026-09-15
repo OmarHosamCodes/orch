@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAgencyMyTasksRail } from "@/features/task-management/hooks/use-agency-my-tasks-rail";
+import { buildSurfaceMenuItems } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-surface-menu-view";
 import {
   useAgencyTrackerRightPanelStore,
   type TrackerRightPanelSurface,
+  type TrackerRightPanelSurfaceKind,
 } from "@/features/task-management/stores/agency-tracker-right-panel";
 
 type UseAgencyTrackerRightPanelOptions = {
@@ -17,14 +19,15 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
   const isOpen = useAgencyTrackerRightPanelStore((s) => s.isOpen);
   const surfaces = useAgencyTrackerRightPanelStore((s) => s.surfaces);
   const activeSurfaceId = useAgencyTrackerRightPanelStore((s) => s.activeSurfaceId);
-  const hasSurfaceKind = useAgencyTrackerRightPanelStore((s) => s.hasSurfaceKind);
-  const openMyTasks = useAgencyTrackerRightPanelStore((s) => s.openMyTasks);
+  const canOpenSurface = useAgencyTrackerRightPanelStore((s) => s.canOpenSurface);
+  const openSurface = useAgencyTrackerRightPanelStore((s) => s.openSurface);
   const activateSurface = useAgencyTrackerRightPanelStore((s) => s.activateSurface);
   const closeSurface = useAgencyTrackerRightPanelStore((s) => s.closeSurface);
   const closeOthers = useAgencyTrackerRightPanelStore((s) => s.closeOthers);
   const closeToRight = useAgencyTrackerRightPanelStore((s) => s.closeToRight);
   const openPanel = useAgencyTrackerRightPanelStore((s) => s.openPanel);
   const closePanel = useAgencyTrackerRightPanelStore((s) => s.closePanel);
+  const tickBreaks = useAgencyTrackerRightPanelStore((s) => s.tickBreaks);
 
   const [isDocked, setIsDocked] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -35,6 +38,11 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => tickBreaks(), 1000);
+    return () => window.clearInterval(interval);
+  }, [tickBreaks]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -65,25 +73,70 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
 
   const pendingSurfaceIds = useMemo(() => {
     const pending = new Set<string>();
-    if (!activeSurfaceId) return pending;
-    const active = surfaces.find((surface) => surface.id === activeSurfaceId);
-    if (!active) return pending;
-    if (
-      active.kind === "my-tasks" &&
-      (tasksView.isAddingTask || (tasksView.runningTaskId && runningTaskOnMyTasks))
-    ) {
-      pending.add(active.id);
+    for (const surface of surfaces) {
+      if (
+        surface.kind === "my-tasks" &&
+        (tasksView.isAddingTask || (tasksView.runningTaskId && runningTaskOnMyTasks))
+      ) {
+        pending.add(surface.id);
+      }
+      if (surface.kind === "break" && surface.startedAt != null && surface.remainingSeconds > 0) {
+        pending.add(surface.id);
+      }
     }
     return pending;
   }, [
-    activeSurfaceId,
     runningTaskOnMyTasks,
     surfaces,
     tasksView.isAddingTask,
     tasksView.runningTaskId,
   ]);
 
-  const canAddMyTasks = !hasSurfaceKind("my-tasks");
+  const surfaceMenuItems = useMemo(
+    () => buildSurfaceMenuItems(canOpenSurface),
+    [canOpenSurface, surfaces],
+  );
+
+  const onOpenSurfaceKind = useCallback(
+    (kind: TrackerRightPanelSurfaceKind) => {
+      if (!canOpenSurface(kind)) return;
+      openSurface(kind);
+      if (!isDocked) setSheetOpen(true);
+    },
+    [canOpenSurface, isDocked, openSurface],
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function isTypingTarget(target: EventTarget | null): boolean {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target.isContentEditable
+      );
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTypingTarget(event.target)) return;
+      if (!document.querySelector('[data-od-id="tracker-right-panel"]:focus-within')) return;
+      const key = event.key.toLowerCase();
+      if (key === "t" && canOpenSurface("my-tasks")) {
+        event.preventDefault();
+        onOpenSurfaceKind("my-tasks");
+      } else if (key === "b" && canOpenSurface("break")) {
+        event.preventDefault();
+        onOpenSurfaceKind("break");
+      } else if (key === "a" && canOpenSurface("agent")) {
+        event.preventDefault();
+        onOpenSurfaceKind("agent");
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [canOpenSurface, isOpen, onOpenSurfaceKind]);
 
   function onActivateSurface(surface: TrackerRightPanelSurface) {
     activateSurface(surface.id);
@@ -104,13 +157,13 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
     closeToRight(surface.id);
   }
 
-  function onAddMyTasks() {
-    openMyTasks();
+  function onOpenPanel() {
+    openPanel();
     if (!isDocked) setSheetOpen(true);
   }
 
-  function onOpenPanel() {
-    openPanel();
+  function onOpenPanelToSurface(surfaceId: string) {
+    activateSurface(surfaceId);
     if (!isDocked) setSheetOpen(true);
   }
 
@@ -124,13 +177,17 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
     if (!nextOpen) closePanel();
   }
 
+  const isEmptyOpen = isOpen && surfaces.length === 0;
+
   return {
     tasksView,
     isOpen,
+    isEmptyOpen,
     surfaces,
     activeSurfaceId,
     pendingSurfaceIds,
-    canAddMyTasks,
+    surfaceMenuItems,
+    onOpenSurfaceKind,
     isDocked,
     sheetOpen,
     openTaskCount: tasksView.openCount,
@@ -139,8 +196,8 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
     onCloseSurface,
     onCloseOthers,
     onCloseToRight,
-    onAddMyTasks,
     onOpenPanel,
+    onOpenPanelToSurface,
     onCollapsePanel,
     onSheetOpenChange,
   };

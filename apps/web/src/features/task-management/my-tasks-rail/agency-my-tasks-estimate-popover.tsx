@@ -68,7 +68,7 @@ export function AgencyMyTasksEstimatePopover({
           {triggerLabel ? <span className="tabular-nums">{triggerLabel}</span> : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-60 gap-3 rounded-surface p-surface">
+      <PopoverContent align="end" size="form" tone="morph" className="gap-3 p-surface">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium text-foreground">Estimate</p>
           {triggerLabel ? (

@@ -8,7 +8,14 @@ import {
   panelTapScale,
 } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-motion";
 import { trackerRightPanelSurfaceTitle } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-meta";
-import type { TrackerRightPanelSurface } from "@/features/task-management/stores/agency-tracker-right-panel";
+import {
+  AgencyTrackerRightPanelSurfaceMenuView,
+  type AgencyTrackerRightPanelSurfaceMenuItem,
+} from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-surface-menu-view";
+import type {
+  TrackerRightPanelSurface,
+  TrackerRightPanelSurfaceKind,
+} from "@/features/task-management/stores/agency-tracker-right-panel";
 import { agencyTrackerRightPanelTabStripClass } from "@/features/shared/agency-ui";
 import { Button } from "@/ui/button";
 import {
@@ -20,7 +27,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -29,12 +35,12 @@ export type AgencyTrackerRightPanelTabStripProps = {
   surfaces: TrackerRightPanelSurface[];
   activeSurfaceId: string | null;
   pendingSurfaceIds: ReadonlySet<string>;
-  canAddMyTasks: boolean;
+  surfaceMenuItems: AgencyTrackerRightPanelSurfaceMenuItem[];
   onActivate: (surface: TrackerRightPanelSurface) => void;
   onCloseSurface: (surface: TrackerRightPanelSurface) => void;
   onCloseOthers: (surface: TrackerRightPanelSurface) => void;
   onCloseToRight: (surface: TrackerRightPanelSurface) => void;
-  onAddMyTasks: () => void;
+  onOpenSurfaceKind: (kind: TrackerRightPanelSurfaceKind) => void;
   onCollapsePanel?: () => void;
 };
 
@@ -42,15 +48,16 @@ export function AgencyTrackerRightPanelTabStrip({
   surfaces,
   activeSurfaceId,
   pendingSurfaceIds,
-  canAddMyTasks,
+  surfaceMenuItems,
   onActivate,
   onCloseSurface,
   onCloseOthers,
   onCloseToRight,
-  onAddMyTasks,
+  onOpenSurfaceKind,
   onCollapsePanel,
 }: AgencyTrackerRightPanelTabStripProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
+  const canAddAnySurface = surfaceMenuItems.some((item) => !item.disabled);
 
   useEffect(() => {
     const activeTab = tabListRef.current?.querySelector<HTMLElement>("[data-active-tab='true']");
@@ -77,13 +84,13 @@ export function AgencyTrackerRightPanelTabStrip({
         {surfaces.map((surface, surfaceIndex) => {
           const active = surface.id === activeSurfaceId;
           const pending = pendingSurfaceIds.has(surface.id);
-          const title = trackerRightPanelSurfaceTitle(surface.kind);
+          const title = trackerRightPanelSurfaceTitle(surface);
           return (
             <ContextMenu key={surface.id}>
               <ContextMenuTrigger asChild>
                 <div
                   className={cn(
-                    "group/tab flex h-7 max-w-40 shrink-0 items-center gap-0.5 rounded-md pr-0.5 pl-2 text-xs font-medium",
+                    "group/tab flex h-7 max-w-44 shrink-0 items-center gap-0.5 rounded-md pr-0.5 pl-2 text-xs font-medium",
                     active
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
@@ -148,17 +155,20 @@ export function AgencyTrackerRightPanelTabStrip({
               type="button"
               className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
               aria-label="Add panel surface"
-              disabled={!canAddMyTasks}
-              whileTap={canAddMyTasks ? panelTapScale : undefined}
+              disabled={!canAddAnySurface}
+              whileTap={canAddAnySurface ? panelTapScale : undefined}
               transition={panelFastTransition}
             >
               <Plus className="size-3.5" aria-hidden />
             </motion.button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="min-w-40">
-            <DropdownMenuItem disabled={!canAddMyTasks} onClick={onAddMyTasks}>
-              My Tasks
-            </DropdownMenuItem>
+          <DropdownMenuContent align="start" className="min-w-48 p-0">
+            <AgencyTrackerRightPanelSurfaceMenuView
+              items={surfaceMenuItems}
+              onOpenSurface={onOpenSurfaceKind}
+              showHeader={false}
+              className="p-1"
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

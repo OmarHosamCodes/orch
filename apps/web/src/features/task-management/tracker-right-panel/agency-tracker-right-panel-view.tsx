@@ -1,9 +1,10 @@
-import { ListTodo, Loader2, PanelRightOpen } from "lucide-react";
+import { LayoutPanelLeft } from "lucide-react";
 import { MotionConfig, motion } from "motion/react";
 import type { ReactNode } from "react";
 
 import type { AgencyTrackerRightPanelViewModel } from "@/features/task-management/hooks/use-agency-tracker-right-panel";
 import { AgencyMyTasksEditDialog } from "@/features/task-management/my-tasks-rail/agency-my-tasks-edit-dialog";
+import { AgencyTrackerRightPanelCollapsedRailView } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-collapsed-rail-view";
 import { AgencyTrackerRightPanelHostView } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-host-view";
 import { panelHostVariants } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-motion";
 import type { TrackerRightPanelSurface } from "@/features/task-management/stores/agency-tracker-right-panel";
@@ -12,7 +13,6 @@ import {
   agencyTaskRailCollapsedClass,
   agencyTaskRailCollapsedWidthClass,
   agencyTaskRailWidthTransitionClass,
-  agencyTrackerRightPanelCollapsedLabelClass,
   agencyTrackerRightPanelInlineClass,
 } from "@/features/shared/agency-ui";
 import { Button } from "@/ui/button";
@@ -25,47 +25,6 @@ type AgencyTrackerRightPanelViewProps = {
   editProjectLabel: string;
 };
 
-function AgencyTrackerRightPanelCollapsedChrome({
-  panel,
-}: {
-  panel: AgencyTrackerRightPanelViewModel;
-}) {
-  const hasPending = panel.pendingSurfaceIds.size > 0;
-
-  return (
-    <div className="flex h-full w-full min-w-0 flex-col" aria-label="My Tasks collapsed">
-      <div className="flex h-full w-full min-w-0 flex-col items-center justify-start gap-2 pt-0 pb-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-9 shrink-0 rounded-full"
-          aria-label="Open My Tasks"
-          onClick={() => panel.onOpenPanel()}
-        >
-          <PanelRightOpen />
-        </Button>
-        {panel.openTaskCount > 0 ? (
-          <div
-            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success/15 text-xs font-semibold text-success tabular-nums"
-            aria-label={`${panel.openTaskCount} open tasks`}
-          >
-            <span key={panel.openTaskCountTickKey} className={agencyMyTasksCountTickClass}>
-              {panel.openTaskCount > 99 ? "99+" : panel.openTaskCount}
-            </span>
-          </div>
-        ) : null}
-        {hasPending ? (
-          <Loader2 className="size-4 shrink-0 animate-spin text-muted" aria-label="Panel busy" />
-        ) : (
-          <ListTodo className="size-4 shrink-0 text-muted" aria-hidden />
-        )}
-        <span className={agencyTrackerRightPanelCollapsedLabelClass}>My Tasks</span>
-      </div>
-    </div>
-  );
-}
-
 export function AgencyTrackerRightPanelView({
   panel,
   renderSurface,
@@ -76,13 +35,14 @@ export function AgencyTrackerRightPanelView({
       surfaces={panel.surfaces}
       activeSurfaceId={panel.activeSurfaceId}
       pendingSurfaceIds={panel.pendingSurfaceIds}
-      canAddMyTasks={panel.canAddMyTasks}
+      isEmptyOpen={panel.isEmptyOpen}
+      surfaceMenuItems={panel.surfaceMenuItems}
       renderSurface={renderSurface}
       onActivate={panel.onActivateSurface}
       onCloseSurface={panel.onCloseSurface}
       onCloseOthers={panel.onCloseOthers}
       onCloseToRight={panel.onCloseToRight}
-      onAddMyTasks={panel.onAddMyTasks}
+      onOpenSurfaceKind={panel.onOpenSurfaceKind}
       onCollapsePanel={panel.isOpen ? panel.onCollapsePanel : undefined}
       className="h-full min-h-0"
     />
@@ -94,10 +54,10 @@ export function AgencyTrackerRightPanelView({
         type="button"
         size="icon"
         className="fixed right-4 bottom-4 z-40 size-12 rounded-full shadow-md"
-        aria-label="Open My Tasks"
+        aria-label="Open panel"
         onClick={() => panel.onOpenPanel()}
       >
-        <ListTodo />
+        <LayoutPanelLeft />
         {panel.openTaskCount > 0 ? (
           <span
             key={panel.openTaskCountTickKey}
@@ -118,7 +78,7 @@ export function AgencyTrackerRightPanelView({
         side="right"
         className="flex w-full max-w-[min(100vw,24rem)] flex-col p-0 sm:max-w-96"
       >
-        <SheetTitle className="sr-only">My Tasks</SheetTitle>
+        <SheetTitle className="sr-only">Tracker panel</SheetTitle>
         {panel.sheetOpen ? host : null}
       </SheetContent>
     </Sheet>
@@ -132,19 +92,15 @@ export function AgencyTrackerRightPanelView({
           agencyTaskRailWidthTransitionClass,
           panel.isOpen
             ? agencyTrackerRightPanelInlineClass
-            : cn(
-                agencyTaskRailCollapsedClass,
-                agencyTaskRailCollapsedWidthClass,
-                "self-stretch overflow-hidden",
-              ),
+            : cn(agencyTaskRailCollapsedClass, agencyTaskRailCollapsedWidthClass, "self-stretch"),
         )}
         variants={panelHostVariants}
         initial={false}
         animate="show"
         layout={false}
-        aria-label={panel.isOpen ? "My Tasks panel" : undefined}
+        aria-label={panel.isOpen ? "Tracker panel" : undefined}
       >
-        {panel.isOpen ? host : <AgencyTrackerRightPanelCollapsedChrome panel={panel} />}
+        {panel.isOpen ? host : <AgencyTrackerRightPanelCollapsedRailView panel={panel} />}
       </motion.aside>
     </MotionConfig>
   ) : null;
