@@ -326,7 +326,7 @@ export function AgencyMyTasksRailView({ view, renderList }: AgencyMyTasksRailVie
       aria-label={view.collapsed ? "My Tasks collapsed" : undefined}
     >
       {view.collapsed ? (
-        <div className="flex h-full w-full min-w-0 flex-col items-center justify-start gap-2.5">
+        <div className="flex h-full w-full min-w-0 flex-col items-center justify-start gap-2.5 pt-0">
           <Button
             type="button"
             variant="ghost"

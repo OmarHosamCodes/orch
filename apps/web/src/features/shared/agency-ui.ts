@@ -104,7 +104,7 @@ export const agencyTaskRailClass =
 /** Collapsed rail: top-aligned open count and expand control. */
 export const agencyTaskRailCollapsedClass = cn(
   agencyTaskRailClass,
-  "relative items-center justify-start gap-2.5 px-2 pt-2.5 pb-2",
+  "relative items-center justify-start gap-2.5 px-2 pt-0 pb-2",
 );
 
 /**

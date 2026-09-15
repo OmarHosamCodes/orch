@@ -4,16 +4,42 @@ import { AgencyTimeEntryDayGroupView } from "@/features/time-tracking/entries/ag
 import { AgencyTimeEntryWeekHeaderView } from "@/features/time-tracking/entries/agency-time-entry-week-group-view";
 import { AgencyWorkSurfacePaginationFooter } from "@/features/task-management/work-surface/agency-work-surface-pagination-footer";
 import { Button } from "@/ui/button";
-import { SurfaceShimmer } from "@/ui/skeleton";
+import { Skeleton } from "@/ui/skeleton";
 import type { AgencyTimeEntriesLogViewModel } from "@/features/time-tracking/hooks/use-agency-time-entries-log";
 import type { AgencyTimeEntryGroupRowRenderer } from "@/features/time-tracking/entries/agency-time-entry-row-renderer";
-import { agencyMetricClass, agencyWorkTableBodyScrollClass } from "@/features/shared/agency-ui";
+import {
+  agencyMetricClass,
+  agencyTimeEntryDayGroupClass,
+  agencyTimeEntryDayHeadClass,
+  agencyWorkTableBodyScrollClass,
+} from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
 type AgencyTimeEntriesLogViewProps = {
   view: AgencyTimeEntriesLogViewModel;
   renderGroupRow: AgencyTimeEntryGroupRowRenderer;
 };
+
+function AgencyTimeEntriesLogSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true" aria-label="Loading time entries">
+      {["a", "b", "c"].map((key) => (
+        <section key={key} className={agencyTimeEntryDayGroupClass}>
+          <div className={agencyTimeEntryDayHeadClass}>
+            <Skeleton className="h-4 w-28 rounded-md" />
+            <Skeleton className="h-4 w-16 rounded-md" />
+          </div>
+          <div className="border-b border-border/40 px-4 py-3">
+            <Skeleton className="h-4 w-2/3 rounded-md" />
+          </div>
+          <div className="px-4 py-3">
+            <Skeleton className="h-4 w-1/2 rounded-md" />
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
 
 export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEntriesLogViewProps) {
   return (
@@ -45,7 +71,7 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
           </div>
         ) : null}
         {view.isLoading ? (
-          <SurfaceShimmer className="min-h-64 rounded-none" label="Loading time entries" />
+          <AgencyTimeEntriesLogSkeleton />
         ) : view.entriesEmpty ? (
           <div className="border-b border-dashed border-default bg-elevated/25 px-4 py-10 text-center">
             <p className="text-sm font-semibold text-highlighted">No time logged yet</p>
