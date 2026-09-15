@@ -156,7 +156,7 @@ export function MemberProfileRosterSwitcher({ memberNav }: { memberNav: MemberNa
             <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-[18.5rem] overflow-hidden p-0">
+        <PopoverContent align="end" size="chooser" className="overflow-hidden">
           <div className="border-b border-border p-2">
             <div className="relative">
               <Search

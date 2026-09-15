@@ -39,6 +39,7 @@ import {
 } from "@/features/reports/agency-report-merge-tasks";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
+import { Label } from "@/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
@@ -573,42 +574,48 @@ function ClientsFiltersRoot({
                       New client
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent align="end" className="w-72 space-y-2 p-3">
+                  <PopoverContent align="end" size="form" tone="morph" className="p-4">
                     <form
                       onSubmit={(event) => {
                         event.preventDefault();
                         void createClient();
                       }}
                     >
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
-                        New client
-                      </p>
+                      <p className="text-sm font-medium text-foreground">New client</p>
                       <Input
                         value={newClientName}
                         onChange={(event) => setNewClientName(event.target.value)}
                         placeholder="Client name"
-                        className="mt-2"
+                        aria-label="Client name"
+                        className="mt-3"
                         autoFocus
                       />
-                      <div className="mt-2">
-                        <label className="text-[11px] font-bold text-muted">Category</label>
-                        <select
+                      <div className="mt-3 space-y-1.5">
+                        <Label htmlFor="new-client-category" className="text-xs font-medium">
+                          Category
+                        </Label>
+                        <Select
                           value={newClientCategory}
-                          onChange={(event) =>
-                            setNewClientCategory(event.target.value as "internal" | "external")
+                          onValueChange={(value) =>
+                            setNewClientCategory(value === "internal" ? "internal" : "external")
                           }
-                          className="mt-1 flex h-9 w-full rounded-md border border-default bg-default px-3 text-sm text-highlighted"
                         >
-                          <option value="external">External</option>
-                          <option value="internal">Internal</option>
-                        </select>
+                          <SelectTrigger id="new-client-category" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="external">External</SelectItem>
+                            <SelectItem value="internal">Internal</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="mt-2">
-                        <label className="text-[11px] font-bold text-muted">
+                      <div className="mt-3">
+                        <Label htmlFor="new-client-rate" className="text-xs font-medium">
                           Billable rate / hour
-                        </label>
-                        <div className="mt-1 flex gap-2">
+                        </Label>
+                        <div className="mt-1.5 flex gap-2">
                           <Input
+                            id="new-client-rate"
                             value={newClientBillableRate}
                             onChange={(event) => setNewClientBillableRate(event.target.value)}
                             type="number"
@@ -637,7 +644,7 @@ function ClientsFiltersRoot({
                       <Button
                         type="submit"
                         size="sm"
-                        className="mt-2 w-full"
+                        className="mt-4 w-full"
                         disabled={
                           !newClientName.trim() ||
                           isClientMutationPending ||

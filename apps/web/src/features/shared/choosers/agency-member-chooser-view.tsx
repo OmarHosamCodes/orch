@@ -172,11 +172,8 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
           </button>
         )}
       </PopoverTrigger>
-      <PopoverContent
-        align={contentAlign}
-        className="w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
-      >
-        <div className="border-b border-white/10 p-2">
+      <PopoverContent align={contentAlign} size="chooser" className="overflow-hidden">
+        <div className="shrink-0 border-b border-border p-2">
           <div className="relative">
             <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
             <Input
@@ -184,14 +181,15 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder}
+              aria-label="Search members"
               className={cn(
-                "h-9 rounded-lg border-default bg-default pl-8 text-sm",
+                "h-9 rounded-lg border-default bg-default pl-8 text-base md:text-sm",
                 agencyInputPlaceholderClass,
               )}
             />
           </div>
         </div>
-        <div className="max-h-[24rem] overflow-x-hidden overflow-y-auto px-2 py-2">
+        <div className="min-h-0 max-h-[24rem] overflow-x-hidden overflow-y-auto p-1">
           {loading ? (
             <SkeletonGroup className="space-y-2 px-3 py-1">
               {[1, 2, 3].map((rowIndex) => (
@@ -210,6 +208,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={() => multiple?.onToggleEntireTeam()}
+                  aria-pressed={assignedToTeam}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UsersRound className="size-3 text-muted" aria-hidden />
@@ -238,6 +237,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={() => single?.onClearSelection()}
+                  aria-pressed={!single?.value}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UsersRound className="size-3 text-muted" aria-hidden />
@@ -263,6 +263,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={single?.onSelectUnassigned}
+                  aria-pressed={isUnassigned}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UserRound className="size-3 text-muted" aria-hidden />
@@ -293,6 +294,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     <button
                       key={member.userId}
                       type="button"
+                      aria-pressed={selected}
                       className={cn(
                         "flex w-full min-w-0 items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-default/80",
                         selected && "bg-primary/10 hover:bg-primary/10",
@@ -313,13 +315,13 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                       />
                       <span
                         className={cn(
-                          "min-w-0 flex-1 truncate text-xs font-semibold",
+                          "min-w-0 flex-1 truncate text-sm font-medium",
                           selected ? "text-primary" : "text-highlighted",
                         )}
                       >
                         {member.userName}
                       </span>
-                      {mode === "multiple" && selected ? (
+                      {selected ? (
                         <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
                       ) : null}
                     </button>

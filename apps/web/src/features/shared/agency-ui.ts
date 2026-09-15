@@ -101,10 +101,10 @@ export const agencyEmptyPanelClass = shellEmptyPanelClass;
 export const agencyTaskRailClass =
   "flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card";
 
-/** Collapsed rail: top-aligned open count and expand control. */
+/** Collapsed rail: icon-only expand + surface markers. */
 export const agencyTaskRailCollapsedClass = cn(
   agencyTaskRailClass,
-  "relative items-center justify-start gap-2.5 px-2 pt-0 pb-2",
+  "relative items-center justify-start px-1.5 py-1.5",
 );
 
 /**
@@ -119,7 +119,7 @@ export const agencyTaskRailExpandedWidthClass = cn(
 
 export const agencyTaskRailCollapsedWidthClass = cn(
   "hidden min-h-0 shrink-0 grow-0 flex-col overflow-hidden",
-  "lg:flex lg:h-full lg:w-[5.5rem] lg:min-w-[5.5rem] lg:max-w-[5.5rem] lg:basis-[5.5rem]",
+  "lg:flex lg:h-full lg:w-[3.25rem] lg:min-w-[3.25rem] lg:max-w-[3.25rem] lg:basis-[3.25rem]",
 );
 
 /** Smooth dock width change — keep in sync with `RAIL_MS.rail` (320ms). */
@@ -140,10 +140,6 @@ export const agencyTrackerRightPanelInlineClass = cn(
 export const agencyTrackerRightPanelTabStripClass = cn(
   "flex w-full min-w-0 shrink-0 items-stretch border-b border-default bg-card",
 );
-
-/** Collapsed rail label — vertical My Tasks spine copy. */
-export const agencyTrackerRightPanelCollapsedLabelClass =
-  "text-[10px] font-semibold tracking-wide text-muted [writing-mode:vertical-rl] rotate-180";
 
 /** Filter pills in My Tasks rail — inactive = offer, active = selected + clear. */
 export const agencyMyTasksFilterPillClass = cn(
@@ -288,13 +284,13 @@ export const agencyTimeTrackerTaskChooserTriggerClass = cn(
 );
 
 export const agencyTaskChooserPanelClass = cn(
-  "flex w-[26rem] max-w-[calc(100vw-2rem)] flex-col gap-0 rounded-surface border border-border bg-popover p-0 font-sans text-popover-foreground shadow-lg ring-0",
+  "w-[26rem] max-w-[calc(100vw-2rem)] p-0",
   // Exit animation can stall Presence unmount and leave a click-eating layer.
   "data-[state=closed]:animate-none",
 );
 
 export const agencyTaskChooserSearchInputClass = cn(
-  "h-9 rounded-lg border-border bg-card pl-8 font-sans text-sm transition-[border-color,box-shadow] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+  "h-9 rounded-lg border-border bg-card pl-8 font-sans text-base md:text-sm transition-[border-color,box-shadow] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
 );
 
 export const agencyTaskChooserRowClass = cn(
@@ -526,6 +522,6 @@ export const agencyMyTasksRailAddButtonClass = cn(
 export const agencyTimeEntryRowEditingClass = "bg-primary/5 hover:bg-primary/5";
 
 export const agencyTimeWeekFooterClass = cn(
-  "mt-[20px] flex h-[40px] shrink-0 items-center justify-between border-t border-default px-[20px]",
+  "mt-[20px] flex h-10 shrink-0 items-center justify-between rounded-surface border border-border px-5",
   "bg-elevated/40",
 );

@@ -43,7 +43,7 @@ export function TeamCardOpenIndicator({ open }: { open: boolean }) {
   );
 }
 
-/** Editorial team identity card button — text left, logo right. Pair with TeamCardOpenIndicator. */
+/** Editorial team identity card button — logo left, text right. Pair with TeamCardOpenIndicator. */
 export const AppShellTeamCardButton = forwardRef<HTMLButtonElement, AppShellTeamCardButtonProps>(
   function AppShellTeamCardButton(
     { name, meta, mark, className, ariaLabel, ...triggerProps },
@@ -58,11 +58,11 @@ export const AppShellTeamCardButton = forwardRef<HTMLButtonElement, AppShellTeam
         title={name}
         {...triggerProps}
       >
+        <span className="app-shell__team-card-mark">{mark}</span>
         <span className="app-shell__team-card-copy">
           <span className="app-shell__team-card-name">{name}</span>
           <span className="app-shell__team-card-meta">{meta}</span>
         </span>
-        <span className="app-shell__team-card-mark">{mark}</span>
       </button>
     );
   },

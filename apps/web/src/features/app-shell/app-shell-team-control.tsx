@@ -144,14 +144,12 @@ export function AppShellTeamControl({ className, variant = "compact" }: AppShell
                 meta={secondaryLabel}
                 ariaLabel={displayName ? `Team: ${displayName}` : "Select team"}
                 mark={
-                  <span className="app-shell__team-card-avatar-ring">
-                    <TeamMark
-                      name={displayName}
-                      image={displayImage}
-                      teamId={displayTeamId}
-                      className="size-9 rounded-full after:rounded-full"
-                    />
-                  </span>
+                  <TeamMark
+                    name={displayName}
+                    image={displayImage}
+                    teamId={displayTeamId}
+                    className="size-9 rounded-lg after:hidden"
+                  />
                 }
               />
             </DropdownMenuTrigger>

@@ -71,7 +71,7 @@ export function MemberProfileOffDayRangePanel({
   const [monthCount, setMonthCount] = useState(1);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 640px)");
+    const media = window.matchMedia("(min-width: 768px)");
     const sync = () => setMonthCount(media.matches ? 2 : 1);
     sync();
     media.addEventListener("change", sync);
@@ -85,7 +85,7 @@ export function MemberProfileOffDayRangePanel({
   const draftLabel = rangeLabel(draftStart, draftEnd, emptyLabel);
 
   return (
-    <div className="max-h-[min(85vh,34rem)] overflow-y-auto">
+    <div className="min-h-0 max-h-[min(85vh,34rem)] overflow-y-auto">
       <Calendar
         mode="range"
         numberOfMonths={monthCount}
@@ -106,7 +106,7 @@ export function MemberProfileOffDayRangePanel({
         }}
         autoFocus
       />
-      <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2.5">
+      <div className="flex flex-col items-stretch gap-3 border-t border-border px-3 py-3 md:flex-row md:items-center">
         <div className="relative min-h-4 min-w-0 flex-1 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
@@ -115,13 +115,13 @@ export function MemberProfileOffDayRangePanel({
               animate={{ opacity: 1, x: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, x: -8 }}
               transition={{ duration: 0.16, ease: EASE }}
-              className="truncate text-xs text-muted-foreground"
+              className="text-xs leading-relaxed text-muted-foreground"
             >
               {draftLabel}
             </motion.p>
           </AnimatePresence>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel
           </Button>

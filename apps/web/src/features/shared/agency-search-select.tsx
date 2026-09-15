@@ -89,11 +89,8 @@ export function AgencySearchSelect({
           <ChevronDown className="size-3.5 shrink-0 opacity-70" aria-hidden />
         </button>
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="z-[60] w-[min(calc(100vw-2rem),20rem)] overflow-hidden p-0"
-      >
-        <div className="border-b border-white/10 p-2">
+      <PopoverContent align="start" size="chooser" className="z-[60] overflow-hidden">
+        <div className="shrink-0 border-b border-border p-2">
           <div className="relative">
             <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
             <Input
@@ -101,14 +98,15 @@ export function AgencySearchSelect({
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
               className={cn(
-                "h-9 rounded-lg border-default bg-default pl-8 font-sans text-sm",
+                "h-9 rounded-lg border-default bg-default pl-8 font-sans text-base md:text-sm",
                 agencyInputPlaceholderClass,
               )}
             />
           </div>
         </div>
-        <div className="max-h-48 overflow-y-auto px-1 py-1">
+        <div className="min-h-0 max-h-48 overflow-y-auto p-1">
           {filteredOptions.length === 0 ? (
             <p className="px-3 py-4 text-center text-xs text-muted">No matches.</p>
           ) : (
@@ -118,9 +116,10 @@ export function AgencySearchSelect({
                 <button
                   key={option.value || "__empty"}
                   type="button"
+                  aria-pressed={selected}
                   className={cn(
-                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-default/80",
-                    selected && "bg-primary/10 hover:bg-primary/10",
+                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-start transition-colors hover:bg-accent",
+                    selected && "bg-accent text-accent-foreground",
                     agencyFocusRingClass,
                     "motion-reduce:transition-none",
                   )}
@@ -128,14 +127,16 @@ export function AgencySearchSelect({
                 >
                   <span
                     className={cn(
-                      "min-w-0 flex-1 truncate text-sm font-semibold",
+                      "min-w-0 flex-1 text-sm font-medium break-words",
                       selected ? "text-primary" : "text-highlighted",
                     )}
                   >
                     <AgencySearchHighlight text={option.label} query={searchTerm} />
                   </span>
                   {option.description ? (
-                    <span className="shrink-0 text-[11px] text-muted">{option.description}</span>
+                    <span className="min-w-0 max-w-[45%] text-xs text-muted-foreground break-words">
+                      {option.description}
+                    </span>
                   ) : null}
                   {selected ? (
                     <Check className="size-3.5 shrink-0 text-primary" aria-hidden />

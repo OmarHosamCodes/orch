@@ -1,18 +1,18 @@
-import { ExternalLink, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
-import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import {
-  agencyFocusRingClass,
   agencyPanelClass,
   agencySectionTitleClass,
   agencyWorkMetaClass,
+  agencyWorkMetricClass,
+  agencyWorkTitleClass,
 } from "@/features/shared/agency-ui";
 import { formatHoursMinutes } from "@/features/resourcing/tenure-utils";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
+import { AgencyPeopleDirectoryGallery } from "./agency-people-directory-gallery";
 import type { PeopleConfigBadge } from "./people-config-completion";
-import { PeopleConfigProgress } from "./people-config-progress";
 
 export type PeopleDirectoryCard = {
   userId: string;
@@ -47,10 +47,133 @@ type AgencyPeopleDirectoryProps = {
   isStaleLoadError?: boolean;
 };
 
-function badgeClass(badge: NonNullable<PeopleConfigBadge>): string {
-  if (badge === "Override") return "bg-elevated text-muted font-medium";
-  if (badge === "Incomplete") return "bg-amber-500/10 text-amber-800 dark:text-amber-200";
-  return "bg-elevated text-muted";
+function TeamDefaultsArticle({
+  policyEnabled,
+  policyEffectiveLabel,
+  quarterlyMinHours,
+  monthlyMinHours,
+  requiredDailyHours,
+  offDayReduceHours,
+  weekStartLabel,
+  departmentCount,
+  attentionCount,
+  canReviewDefaults,
+  onReviewDefaults,
+}: Pick<
+  AgencyPeopleDirectoryProps,
+  | "policyEnabled"
+  | "policyEffectiveLabel"
+  | "quarterlyMinHours"
+  | "monthlyMinHours"
+  | "requiredDailyHours"
+  | "offDayReduceHours"
+  | "weekStartLabel"
+  | "departmentCount"
+  | "attentionCount"
+  | "canReviewDefaults"
+  | "onReviewDefaults"
+>) {
+  const workSchedule =
+    requiredDailyHours != null || offDayReduceHours != null || weekStartLabel
+      ? [
+          requiredDailyHours != null ? `${requiredDailyHours}h/day` : null,
+          offDayReduceHours != null ? `${formatHoursMinutes(offDayReduceHours)}/off day` : null,
+          weekStartLabel ? `starts ${weekStartLabel}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "—";
+
+  return (
+    <article className={cn(agencyPanelClass, "overflow-hidden")}>
+      <div className="flex flex-col gap-4 p-4 sm:gap-5 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h2 className={cn(agencyWorkTitleClass, "text-base tracking-tight")}>
+                Team defaults
+              </h2>
+              <span className={agencyWorkMetaClass}>
+                {policyEffectiveLabel
+                  ? `Effective ${policyEffectiveLabel}`
+                  : policyEnabled
+                    ? "Tenure tracking on"
+                    : "Tenure tracking off"}
+              </span>
+              {attentionCount > 0 ? (
+                <span className="text-warning text-xs font-medium">
+                  {attentionCount} need attention
+                </span>
+              ) : (
+                <span className="text-success text-xs font-medium">Roster clear</span>
+              )}
+            </div>
+            <p className={cn(agencyWorkMetaClass, "max-w-prose text-pretty")}>
+              {policyEnabled
+                ? "New members inherit this baseline. Open it when exceptions need a source of truth."
+                : "Tenure tracking is off. Turn it on here when the team is ready for quarter minimums."}
+            </p>
+          </div>
+          {canReviewDefaults ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1.5 self-start"
+              onClick={onReviewDefaults}
+            >
+              <SlidersHorizontal className="size-3.5 opacity-70" aria-hidden />
+              Review team defaults
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="bg-muted/35 rounded-2xl px-3 py-3 sm:px-4">
+          <dl
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            aria-label="Current team defaults"
+          >
+            <div className="min-w-0 space-y-0.5">
+              <dt className={agencyWorkMetaClass}>Quarter minimum</dt>
+              <dd className={cn(agencyWorkMetricClass, "text-base leading-none")}>
+                {quarterlyMinHours != null ? `${quarterlyMinHours}h` : "—"}
+              </dd>
+            </div>
+            <div className="min-w-0 space-y-0.5">
+              <dt className={agencyWorkMetaClass}>Month minimum</dt>
+              <dd className={cn(agencyWorkMetricClass, "text-base leading-none")}>
+                {monthlyMinHours != null ? `${monthlyMinHours}h` : "—"}
+              </dd>
+            </div>
+            <div className="min-w-0 space-y-0.5">
+              <dt className={agencyWorkMetaClass}>Tracking</dt>
+              <dd
+                className={cn(
+                  agencyWorkMetricClass,
+                  "text-base leading-none",
+                  policyEnabled ? "text-success" : "text-muted",
+                )}
+              >
+                {policyEnabled ? "On" : "Off"}
+              </dd>
+            </div>
+            <div className="min-w-0 space-y-0.5 sm:col-span-2 lg:col-span-2">
+              <dt className={agencyWorkMetaClass}>Work schedule</dt>
+              <dd className={cn(agencyWorkMetricClass, "text-sm leading-snug sm:text-base")}>
+                {workSchedule}
+              </dd>
+            </div>
+            <div className="min-w-0 space-y-0.5">
+              <dt className={agencyWorkMetaClass}>Departments</dt>
+              <dd className={cn(agencyWorkMetricClass, "text-base leading-none")}>
+                {departmentCount}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export function AgencyPeopleDirectory({
@@ -116,106 +239,19 @@ export function AgencyPeopleDirectory({
         </div>
       ) : (
         <>
-          <article
-            className={cn(
-              agencyPanelClass,
-              "grid gap-4 p-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] sm:items-start sm:gap-6 sm:p-6",
-            )}
-          >
-            <div className="min-w-0 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-elevated text-muted inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium">
-                  {policyEffectiveLabel
-                    ? `Effective ${policyEffectiveLabel}`
-                    : policyEnabled
-                      ? "Tenure tracking on"
-                      : "Tenure tracking off"}
-                </span>
-                {attentionCount > 0 ? (
-                  <span className="bg-amber-500/10 text-amber-800 dark:text-amber-200 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                    <span
-                      className="size-1.5 rounded-full bg-current motion-safe:animate-pulse"
-                      aria-hidden
-                    />
-                    {attentionCount} need attention
-                  </span>
-                ) : (
-                  <span className="bg-success/15 text-success inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                    <span className="size-1.5 rounded-full bg-current" aria-hidden />
-                    Roster clear
-                  </span>
-                )}
-              </div>
-              <h2 className="text-highlighted text-lg font-semibold tracking-tight text-balance">
-                Team defaults
-              </h2>
-              <p className={cn(agencyWorkMetaClass, "max-w-prose text-pretty")}>
-                {policyEnabled
-                  ? "New members inherit this baseline. Open it when exceptions need a source of truth."
-                  : "Tenure tracking is off. Turn it on here when the team is ready for quarter minimums."}
-              </p>
-              {canReviewDefaults ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={onReviewDefaults}
-                >
-                  <SlidersHorizontal className="size-3.5 opacity-70" aria-hidden />
-                  Review team defaults
-                </Button>
-              ) : null}
-            </div>
-            <dl
-              className="border-border grid gap-2 border-t pt-4 text-sm sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6"
-              aria-label="Current team defaults"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <dt className="text-muted">Quarter minimum</dt>
-                <dd className="text-highlighted font-mono tabular-nums">
-                  {quarterlyMinHours != null ? `${quarterlyMinHours}h` : "—"}
-                </dd>
-              </div>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <dt className="text-muted">Month minimum</dt>
-                <dd className="text-highlighted font-mono tabular-nums">
-                  {monthlyMinHours != null ? `${monthlyMinHours}h` : "—"}
-                </dd>
-              </div>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <dt className="text-muted">Work schedule</dt>
-                <dd className="text-highlighted font-mono tabular-nums text-end">
-                  {requiredDailyHours != null || offDayReduceHours != null || weekStartLabel
-                    ? [
-                        requiredDailyHours != null ? `${requiredDailyHours}h/day` : null,
-                        offDayReduceHours != null
-                          ? `${formatHoursMinutes(offDayReduceHours)}/off day`
-                          : null,
-                        weekStartLabel ? `starts ${weekStartLabel}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")
-                    : "—"}
-                </dd>
-              </div>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <dt className="text-muted">Tracking</dt>
-                <dd
-                  className={cn(
-                    "font-mono text-sm font-semibold",
-                    policyEnabled ? "text-success" : "text-muted",
-                  )}
-                >
-                  {policyEnabled ? "On" : "Off"}
-                </dd>
-              </div>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <dt className="text-muted">Departments</dt>
-                <dd className="text-highlighted font-mono tabular-nums">{departmentCount}</dd>
-              </div>
-            </dl>
-          </article>
+          <TeamDefaultsArticle
+            policyEnabled={policyEnabled}
+            policyEffectiveLabel={policyEffectiveLabel}
+            quarterlyMinHours={quarterlyMinHours}
+            monthlyMinHours={monthlyMinHours}
+            requiredDailyHours={requiredDailyHours}
+            offDayReduceHours={offDayReduceHours}
+            weekStartLabel={weekStartLabel}
+            departmentCount={departmentCount}
+            attentionCount={attentionCount}
+            canReviewDefaults={canReviewDefaults}
+            onReviewDefaults={onReviewDefaults}
+          />
 
           <div className="space-y-3">
             <header className="flex flex-wrap items-end justify-between gap-2">
@@ -237,78 +273,11 @@ export function AgencyPeopleDirectory({
                 </p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {cards.map((card) => (
-                  <article
-                    key={card.userId}
-                    className={cn(
-                      agencyPanelClass,
-                      "flex min-h-11 flex-col items-stretch gap-3 p-4",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => onSelectMember(card.userId)}
-                      className={cn(
-                        agencyFocusRingClass,
-                        "flex flex-col items-stretch gap-3 text-start",
-                        "rounded-xl transition-colors duration-150 ease-out",
-                        "hover:bg-elevated/70 active:bg-elevated",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <AgencyMemberAvatar
-                          name={card.userName}
-                          userId={card.userId}
-                          avatarUrl={card.userAvatar}
-                          size="md"
-                          alt={card.userName}
-                          className="size-11 rounded-2xl"
-                        />
-                        {card.badge ? (
-                          <span
-                            className={cn(
-                              "inline-flex rounded-full px-2 py-0.5 text-xs font-semibold",
-                              badgeClass(card.badge),
-                            )}
-                          >
-                            {card.badge}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="truncate text-sm font-semibold text-highlighted">
-                          {card.userName}
-                        </h3>
-                        <p className="text-muted truncate text-xs">{card.subtitle}</p>
-                        <p className="text-muted mt-1 truncate text-xs">{card.detail}</p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <p className="text-muted text-xs">
-                          <span className="font-mono tabular-nums text-highlighted">
-                            {card.completionPercent}%
-                          </span>{" "}
-                          configured
-                        </p>
-                        <PeopleConfigProgress
-                          value={card.completionPercent}
-                          label={`${card.userName} configuration progress`}
-                        />
-                      </div>
-                    </button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted hover:text-highlighted h-8 gap-1.5 self-start px-2"
-                      onClick={() => onOpenProfile(card.userId)}
-                    >
-                      <ExternalLink className="size-3.5" aria-hidden="true" />
-                      Open profile
-                    </Button>
-                  </article>
-                ))}
-              </div>
+              <AgencyPeopleDirectoryGallery
+                cards={cards}
+                onSelectMember={onSelectMember}
+                onOpenProfile={onOpenProfile}
+              />
             )}
           </div>
         </>

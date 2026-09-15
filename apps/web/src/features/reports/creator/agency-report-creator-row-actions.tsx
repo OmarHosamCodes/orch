@@ -37,7 +37,7 @@ export function AgencyReportCreatorRowActions({
           variant="ghost"
           size="sm"
           className={cn(
-            "h-8 w-8 p-0 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100",
+            "h-8 w-8 p-0 [@media(hover:hover)]:opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100",
             (disabled || wastePending || menuOpen) && "opacity-100",
             agencyFocusRingClass,
           )}
@@ -53,7 +53,7 @@ export function AgencyReportCreatorRowActions({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-48 p-1" onClick={(event) => event.stopPropagation()}>
+      <PopoverContent align="end" size="menu" onClick={(event) => event.stopPropagation()}>
         <Button
           variant="ghost"
           size="sm"

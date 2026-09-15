@@ -33,7 +33,7 @@ export function AgencySubtitleBreadcrumb({ teamId }: AgencySubtitleBreadcrumbPro
           <CloudOff className="size-4" aria-hidden="true" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 space-y-3 p-3">
+      <PopoverContent align="end" size="form" className="space-y-3 p-3">
         <div className="space-y-1">
           <p className={shellLabelClass}>Sync status</p>
           <p className="text-sm font-semibold text-highlighted">{syncDetails.label}</p>
@@ -45,12 +45,11 @@ export function AgencySubtitleBreadcrumb({ teamId }: AgencySubtitleBreadcrumbPro
             <p className={shellLabelClass}>Failed sources</p>
             <ul className="space-y-2">
               {syncDetails.errors.map((error) => (
-                <li
-                  key={`${error.label}-${error.message}`}
-                  className="rounded-xl border border-error/20 bg-error/5 px-3 py-2"
-                >
+                <li key={`${error.label}-${error.message}`} className="border-t border-border py-2">
                   <p className="text-xs font-semibold text-highlighted">{error.label}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted">{error.message}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted break-words">
+                    {error.message}
+                  </p>
                 </li>
               ))}
             </ul>

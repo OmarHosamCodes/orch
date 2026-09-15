@@ -29,7 +29,7 @@ export function AgencyReportActivityMenuView({
           <span className="hidden sm:inline">Activity</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className="w-80 p-0">
+      <PopoverContent align={align} size="chooser">
         <div className="border-b border-default px-3 py-2.5">
           <p className="text-sm font-semibold text-highlighted">Activity</p>
         </div>

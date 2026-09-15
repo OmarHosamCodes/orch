@@ -242,7 +242,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" side="bottom" className="w-[380px] p-0">
+      <PopoverContent align="end" side="bottom" size="inbox">
         <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <div className="min-w-0">

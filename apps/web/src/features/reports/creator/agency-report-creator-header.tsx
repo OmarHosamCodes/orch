@@ -276,7 +276,7 @@ function ReportHeaderActions({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-44 p-1">
+        <PopoverContent align="end" size="menu">
           <Button
             variant="ghost"
             size="sm"

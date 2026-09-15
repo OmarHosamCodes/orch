@@ -3,6 +3,7 @@ import { useLocation } from "@/lib/navigation";
 import { AppShellAccountMenu } from "@/features/app-shell/app-shell-account-menu";
 import { AppShellCommandPalette } from "@/features/app-shell/app-shell-command-palette";
 import { AppShellNotifications } from "@/features/app-shell/app-shell-notifications";
+import { FeaturedRailAlerts } from "@/features/notifications/featured-rail-alerts";
 import { AppShellRailDestinations } from "@/features/app-shell/app-shell-rail-destinations";
 import { useAppShellStore } from "@/features/app-shell/app-shell-store";
 import { AppShellTeamControl } from "@/features/app-shell/app-shell-team-control";
@@ -34,6 +35,7 @@ export function AppShellRail() {
       </div>
 
       <div className={shellRailFooterClass}>
+        <FeaturedRailAlerts />
         <AppShellNotifications variant="featured" />
         <AppShellAccountMenu variant="sidebar" />
       </div>
@@ -67,6 +69,7 @@ export function AppShellRailOverlays() {
             </ShellLiquidNavProvider>
           </nav>
           <div className="flex flex-col gap-1 pt-2">
+            <FeaturedRailAlerts />
             <AppShellNotifications variant="featured" />
             <AppShellAccountMenu variant="sidebar" />
             {showUpgrade ? (

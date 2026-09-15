@@ -228,6 +228,26 @@ export function useAgencyClientsQuery(
   return useMergedAgencyClientsQuery(query, teamId);
 }
 
+export function useAgencyClientsBookIndexQuery(
+  teamId: string,
+  options: { archiveFilter?: AgencyClientArchiveFilter } = {},
+) {
+  const archiveFilter = options.archiveFilter ?? "nonarchived";
+  const input = useMemo(() => ({ teamId, archiveFilter }), [teamId, archiveFilter]);
+
+  return useQuery(
+    withAgencySyncQueryOptions(
+      {
+        ...orpc.agencyOps.clients.bookIndex.queryOptions({ input }),
+        enabled: Boolean(teamId),
+        placeholderData: keepPreviousData,
+      },
+      "cold",
+      { liveGated: true, teamId },
+    ),
+  );
+}
+
 export function useAgencyProjectTasksQuery(
   teamId: string,
   filters: AgencyProjectTasksFilters = {},
