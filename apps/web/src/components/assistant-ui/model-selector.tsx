@@ -394,10 +394,8 @@ function ModelSelectorContent({
       align={align}
       side={renderedSide ?? side ?? "bottom"}
       sideOffset={sideOffset}
-      className={cn(
-        "bg-popover/95 w-72 min-w-(--radix-popover-trigger-width) overflow-hidden rounded-xl p-0 shadow-lg backdrop-blur-sm",
-        className,
-      )}
+      size="chooser"
+      className={cn("min-w-(--radix-popover-trigger-width) overflow-hidden", className)}
       {...props}
     >
       <Command

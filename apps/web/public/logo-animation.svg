@@ -1,66 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- dark theme: background oklch(0.15 0.02 269.18), primary oklch(0.922 0 0) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Solid eclipse">
   <style>
-    .line-1 {
-      stroke-dasharray: 12;
-      stroke-dashoffset: 12;
-      animation: type-1 4s ease-in-out infinite;
-    }
-    .line-2 {
-      stroke-dasharray: 8;
-      stroke-dashoffset: 8;
-      animation: type-2 4s ease-in-out infinite;
-    }
-    .line-3 {
-      stroke-dasharray: 10;
-      stroke-dashoffset: 10;
-      animation: type-3 4s ease-in-out infinite;
-    }
-    .dot {
-      transform-origin: 22px 20px;
-      animation: pop-dot 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
-    }
-
-    @keyframes type-1 {
-      0%, 10% { stroke-dashoffset: 12; }
-      25%, 85% { stroke-dashoffset: 0; }
-      92%, 100% { stroke-dashoffset: 12; }
-    }
-    @keyframes type-2 {
-      0%, 25% { stroke-dashoffset: 8; }
-      40%, 85% { stroke-dashoffset: 0; }
-      92%, 100% { stroke-dashoffset: 8; }
-    }
-    @keyframes type-3 {
-      0%, 40% { stroke-dashoffset: 10; }
-      55%, 85% { stroke-dashoffset: 0; }
-      92%, 100% { stroke-dashoffset: 10; }
-    }
-    @keyframes pop-dot {
-      0%, 55% {
-        transform: scale(0);
-        opacity: 0;
-      }
-      62% {
-        transform: scale(1.4);
-        opacity: 1;
-      }
-      68%, 85% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      92%, 100% {
-        transform: scale(0);
-        opacity: 0;
-      }
-    }
+    .mark { transform-box: fill-box; transform-origin: center; animation: settle 1.8s ease-in-out infinite; }
+    .dot { transform-box: fill-box; transform-origin: center; animation: dot-pulse 1.8s ease-in-out infinite; }
+    @keyframes settle { 0%, 100% { transform: scale(.96); } 50% { transform: scale(1); } }
+    @keyframes dot-pulse { 0%, 100% { transform: scale(.9); opacity: .75; } 50% { transform: scale(1); opacity: 1; } }
   </style>
-
-
-
-  <path class="line-1" d="M10 12h12" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-  <path class="line-2" d="M10 16h8" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-  <path class="line-3" d="M10 20h10" stroke="#e5e5e5" stroke-width="2" stroke-linecap="round"/>
-
-  <circle class="dot" cx="22" cy="20" r="2" fill="#e5e5e5"/>
+  <defs>
+    <mask id="bite">
+      <rect width="64" height="64" fill="#fff"/>
+      <circle cx="46" cy="20" r="9" fill="#000"/>
+    </mask>
+  </defs>
+  <circle class="mark" cx="32" cy="32" r="20" fill="oklch(1 0 0)" mask="url(#bite)"/>
+  <circle class="dot" cx="46" cy="20" r="3.2" fill="oklch(0.58 0.21 260.84)"/>
 </svg>

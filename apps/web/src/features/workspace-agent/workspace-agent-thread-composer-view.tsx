@@ -288,7 +288,12 @@ export function WorkspaceAgentThreadComposerView({
           />
         ) : null}
 
-        <Popover open={composerTriggerOpen}>
+        <Popover
+          open={composerTriggerOpen}
+          onOpenChange={(open) => {
+            if (!open) onDismissComposerTrigger();
+          }}
+        >
           <PopoverAnchor asChild>
             <div className="relative w-full">
               <ThreadComposer
@@ -320,7 +325,7 @@ export function WorkspaceAgentThreadComposerView({
                         className="w-auto border-0 bg-transparent p-0 shadow-none"
                         data-workspace-agent-overlay
                       >
-                        <ComposerMenu open className="relative inset-auto mb-0 w-72">
+                        <ComposerMenu open className="relative inset-auto mb-0 w-72 shrink-0">
                           <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
                             Attach
                           </p>
@@ -398,6 +403,7 @@ export function WorkspaceAgentThreadComposerView({
                               <ComposerMenuItem
                                 key={mode.preset}
                                 active={selected}
+                                aria-pressed={selected}
                                 onClick={() => {
                                   onSelectToolPreset(mode.preset);
                                   onToolsMenuOpenChange(false);
@@ -492,10 +498,11 @@ export function WorkspaceAgentThreadComposerView({
                   data-workspace-agent-overlay
                   onOpenAutoFocus={(event) => event.preventDefault()}
                 >
-                  <ComposerMenu open className="relative inset-auto mb-0 w-72">
+                  <ComposerMenu open className="relative inset-auto mb-0 w-72 shrink-0">
                     {composerTriggerSuggestions.map((suggestion) => (
                       <ComposerMenuItem
                         key={`${suggestion.kind}-${suggestion.id}`}
+                        data-composer-suggestion
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => onPickComposerTrigger(suggestion)}
                       >

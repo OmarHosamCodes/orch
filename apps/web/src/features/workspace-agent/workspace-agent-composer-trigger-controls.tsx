@@ -39,17 +39,48 @@ export function ComposerTriggerKeyboard({
   onPickComposerTrigger: (suggestion: WorkspaceAgentComposerTriggerSuggestion) => void;
   onDismissComposerTrigger: () => void;
 }) {
+  const scopeRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (!composerTriggerOpen) return;
 
     function onKeyDown(event: KeyboardEvent) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const input = scopeRef.current?.closest("form")?.querySelector("textarea");
+      const suggestions = Array.from(
+        document.querySelectorAll<HTMLButtonElement>("[data-composer-suggestion]"),
+      );
+      const focusedIndex = suggestions.findIndex((item) => item === target);
+      if (target !== input && focusedIndex === -1) return;
+      if (event.isComposing) return;
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (!suggestions.length) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const next =
+          focusedIndex === -1
+            ? event.key === "ArrowDown"
+              ? 0
+              : suggestions.length - 1
+            : (focusedIndex + (event.key === "ArrowDown" ? 1 : -1) + suggestions.length) %
+              suggestions.length;
+        suggestions[next]?.focus();
+        return;
+      }
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
         onDismissComposerTrigger();
+        input?.focus();
         return;
       }
-      if (event.key === "Enter" && !event.shiftKey && !event.metaKey && !event.ctrlKey) {
+      if (
+        target === input &&
+        event.key === "Enter" &&
+        !event.shiftKey &&
+        !event.metaKey &&
+        !event.ctrlKey
+      ) {
         const first = composerTriggerSuggestions[0];
         if (!first) return;
         event.preventDefault();
@@ -67,7 +98,7 @@ export function ComposerTriggerKeyboard({
     onPickComposerTrigger,
   ]);
 
-  return null;
+  return <span ref={scopeRef} hidden />;
 }
 
 export function suggestionRowLabel(suggestion: WorkspaceAgentComposerTriggerSuggestion) {

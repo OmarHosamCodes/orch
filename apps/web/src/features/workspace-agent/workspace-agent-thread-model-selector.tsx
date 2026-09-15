@@ -25,7 +25,7 @@ function ToggleChip({
       type="button"
       aria-pressed={pressed}
       className={cn(
-        "inline-flex h-8 flex-1 items-center justify-center rounded-full border px-3 text-sm font-medium",
+        "inline-flex h-8 flex-1 items-center justify-center rounded-full border px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         pressed
           ? "border-border bg-secondary text-secondary-foreground"
           : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -109,6 +109,7 @@ export function WorkspaceAgentThreadModelSelector({
         <TooltipContent side="top">{modelTooltip}</TooltipContent>
       </Tooltip>
       <ModelSelector.Content
+        searchable={false}
         align="start"
         side="top"
         sideOffset={8}

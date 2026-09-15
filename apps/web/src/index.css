@@ -693,7 +693,6 @@ body:has(.app-shell) {
   flex: 1;
   flex-direction: column;
   gap: 0.125rem;
-  padding-inline-end: 0.25rem;
 }
 
 .app-shell__team-card-name {
@@ -723,17 +722,6 @@ body:has(.app-shell) {
 .app-shell__team-card-mark {
   display: inline-flex;
   flex: none;
-}
-
-.app-shell__team-card-avatar-ring {
-  display: inline-flex;
-  padding: 0.125rem;
-  border-radius: 9999px;
-  background: linear-gradient(
-    145deg,
-    color-mix(in oklab, var(--color-primary) 85%, white 15%) 0%,
-    color-mix(in oklab, var(--color-primary) 55%, transparent) 100%
-  );
 }
 
 .app-shell__team-card-indicator {
