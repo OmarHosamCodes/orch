@@ -66,6 +66,7 @@ import {
   useAgencyTagsQuery,
 } from "@/features/time-tracking/hooks/use-agency-tags";
 import type { AgencyTagOption } from "@/features/time-tracking/choosers/agency-tag-chooser";
+import { shouldBlockTrackerChrome } from "@/features/time-tracking/tracker-chrome-ready";
 
 const emptyElapsedDraft = "";
 
@@ -774,7 +775,12 @@ export function useAgencyTimeTracker({
     tasks,
     projectsLoading: projectsQuery.isPending,
     tasksLoading: tasksQuery.isPending,
-    isTrackerLoading: projectsQuery.isPending || (tasksQuery.isPending && tasks.length === 0),
+    isTrackerLoading: shouldBlockTrackerChrome({
+      hasTeam: Boolean(teamId),
+      projectsPending: projectsQuery.isPending,
+      tasksPending: tasksQuery.isPending,
+      taskCount: tasks.length,
+    }),
     activeTimer,
     elapsedLabel,
     canStartTimer,
