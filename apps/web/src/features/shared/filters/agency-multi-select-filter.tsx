@@ -13,6 +13,7 @@ import {
 import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
 import { agencyCommandBarFilterTriggerClass } from "@/features/shared/command-bar/agency-command-bar-ui";
 import { cn } from "@/lib/utils";
+import { AgencyFilterOptions, type AgencyFilterRow } from "./agency-filter-options";
 
 export type AgencyFilterOption = {
   value: string;
@@ -54,7 +55,7 @@ type AgencyMultiSelectFilterProps = {
 };
 
 function optionMatchesQuery(option: AgencyFilterOption, query: string): boolean {
-  const haystack = cn(option.label, option.searchText ?? "").toLowerCase();
+  const haystack = `${option.label} ${option.searchText ?? ""}`.toLowerCase();
   return haystack.includes(query);
 }
 
@@ -122,14 +123,6 @@ function FilterCheckbox({
         {label}
       </span>
     </label>
-  );
-}
-
-function SectionHeader({ children }: { children: ReactNode }) {
-  return (
-    <p className="min-w-0 truncate px-2.5 pt-2 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
-      {children}
-    </p>
   );
 }
 
@@ -208,6 +201,29 @@ export function AgencyMultiSelectFilter({
         ...(group.sections?.flatMap((section) => section.options) ?? []),
       ])
     : filteredFlatOptions;
+
+  const rows = useMemo(() => {
+    const result: AgencyFilterRow[] = [];
+    const appendOptions = (entries: AgencyFilterOption[], prefix: string) => {
+      for (const option of entries) {
+        result.push({ kind: "option", key: `${prefix}/${option.value}`, option });
+      }
+    };
+    if (groups) {
+      filteredGroups.forEach((group, groupIndex) => {
+        const key = `group/${groupIndex}`;
+        result.push({ kind: "heading", key, label: group.groupLabel });
+        if (group.sections) {
+          group.sections.forEach((section, sectionIndex) => {
+            const sectionKey = `${key}/${sectionIndex}`;
+            result.push({ kind: "heading", key: sectionKey, label: section.sectionLabel });
+            appendOptions(section.options, sectionKey);
+          });
+        } else appendOptions(group.options ?? [], key);
+      });
+    } else appendOptions(filteredFlatOptions, "options");
+    return result;
+  }, [groups, filteredGroups, filteredFlatOptions]);
 
   const selectedOptions = flatOptions.filter((option) => selected.has(option.value));
   const buttonLabel =
@@ -350,11 +366,7 @@ export function AgencyMultiSelectFilter({
           </div>
         ) : null}
 
-        <div
-          className="max-h-72 overflow-x-hidden overflow-y-auto px-1 py-1"
-          role={isSingle ? "listbox" : undefined}
-          aria-label={isSingle ? label : undefined}
-        >
+        <div className="px-1 py-1">
           {!isSingle ? (
             <FilterCheckbox
               checked={allVisibleSelected}
@@ -368,23 +380,14 @@ export function AgencyMultiSelectFilter({
             <p className="px-4 py-4 text-center text-xs text-muted">
               {query ? "No matching options." : "No options."}
             </p>
-          ) : groups ? (
-            filteredGroups.map((group) => (
-              <div key={group.groupLabel} className="min-w-0">
-                <SectionHeader>{group.groupLabel}</SectionHeader>
-
-                {group.sections
-                  ? group.sections.map((section) => (
-                      <div key={`${group.groupLabel}-${section.sectionLabel}`}>
-                        <SectionHeader>{section.sectionLabel}</SectionHeader>
-                        {section.options.map((option) => renderOption(option))}
-                      </div>
-                    ))
-                  : (group.options ?? []).map((option) => renderOption(option))}
-              </div>
-            ))
           ) : (
-            filteredFlatOptions.map((option) => renderOption(option))
+            <AgencyFilterOptions
+              key={query}
+              rows={rows}
+              single={isSingle}
+              label={label}
+              renderOption={renderOption}
+            />
           )}
         </div>
       </PopoverContent>
