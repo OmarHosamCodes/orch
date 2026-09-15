@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
 
 import { seedBootChromeQueries, type BootShellChrome } from "@/lib/boot-chrome";
+import { orpc } from "@/lib/orpc";
 import type { BootSession } from "@/lib/session-boot";
 
 export async function loadAuthenticatedShell(input: {
@@ -13,10 +14,19 @@ export async function loadAuthenticatedShell(input: {
 }): Promise<{ session: NonNullable<BootSession>; teamCount: number }> {
   const bootStartedAt = Date.now();
   const preferredTeamId = input.preferredTeamId || undefined;
-  const [session, chrome] = await Promise.all([
-    input.fetchSession(),
-    input.fetchChrome(preferredTeamId),
-  ]);
+  const sessionPromise = input.fetchSession();
+  const chromePromise = input.fetchChrome(preferredTeamId);
+  const session = await sessionPromise;
+  const billingPromise =
+    session && typeof window !== "undefined"
+      ? input.queryClient
+          .prefetchQuery({
+            ...orpc.billing.state.queryOptions(),
+            staleTime: 5 * 60 * 1000,
+          })
+          .catch(() => undefined)
+      : Promise.resolve();
+  const [chrome] = await Promise.all([chromePromise, billingPromise]);
 
   if (!session) {
     const redirectTo = `${input.location.pathname}${input.location.searchStr}`;

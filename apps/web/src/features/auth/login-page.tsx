@@ -1,16 +1,18 @@
 import { ArrowRight, Loader2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Link } from "@/lib/navigation";
 
-import Scanner from "@/components/marketing/bits/Scanner";
 import { BrandMark } from "@/features/app-shell/components/brand-mark";
 import { useLoginPage } from "@/features/auth/hooks/use-login-page";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
+import { scheduleIdle } from "@/lib/schedule-idle";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
 
 const GOOGLE_LOGO_URL =
   "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1755835725776";
+
+const Scanner = lazy(() => import("@/components/marketing/bits/Scanner"));
 
 function AuthLanyard({ children }: { children: ReactNode }) {
   return (
@@ -41,6 +43,15 @@ function AuthLanyard({ children }: { children: ReactNode }) {
 export function LoginPage() {
   const { session, redirectTo, error, pending, lastUsedEmail, handleGoogleSignIn } = useLoginPage();
   const reducedMotion = usePrefersReducedMotion();
+  const [showFx, setShowFx] = useState(false);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setShowFx(false);
+      return;
+    }
+    return scheduleIdle(() => setShowFx(true));
+  }, [reducedMotion]);
 
   if (!session.isPending && session.data) {
     return <Navigate to={redirectTo} replace />;
@@ -49,34 +60,38 @@ export function LoginPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-background font-sans text-foreground">
       <div className="pointer-events-none absolute inset-0 opacity-35" aria-hidden="true">
-        <Scanner
-          color1="#6b7280"
-          color2="#5b5bd6"
-          color3="#f2f2f5"
-          speed={reducedMotion ? 0 : 0.5}
-          sweepSpeed={reducedMotion ? 0 : 0.25}
-          sweepWidth={1.6}
-          sweepFalloff={6}
-          scale={1.5}
-          frequency={2}
-          ripple={0.22}
-          bandDensity={11}
-          lineSharpness={5.5}
-          glow={0.22}
-          scanDirection="vertical"
-          colorSpread={0.7}
-          brightness={0.85}
-          contrast={1.15}
-          softness={1.4}
-          vignette={0.45}
-          scanline
-          grain
-          grainIntensity={0.05}
-          opacity={0.7}
-          mouseInteraction={!reducedMotion}
-          mouseRadius={0.5}
-          mouseStrength={0.35}
-        />
+        {showFx ? (
+          <Suspense fallback={null}>
+            <Scanner
+              color1="#6b7280"
+              color2="#5b5bd6"
+              color3="#f2f2f5"
+              speed={reducedMotion ? 0 : 0.5}
+              sweepSpeed={reducedMotion ? 0 : 0.25}
+              sweepWidth={1.6}
+              sweepFalloff={6}
+              scale={1.5}
+              frequency={2}
+              ripple={0.22}
+              bandDensity={11}
+              lineSharpness={5.5}
+              glow={0.22}
+              scanDirection="vertical"
+              colorSpread={0.7}
+              brightness={0.85}
+              contrast={1.15}
+              softness={1.4}
+              vignette={0.45}
+              scanline
+              grain
+              grainIntensity={0.05}
+              opacity={0.7}
+              mouseInteraction={!reducedMotion}
+              mouseRadius={0.5}
+              mouseStrength={0.35}
+            />
+          </Suspense>
+        ) : null}
       </div>
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,transparent_0%,color-mix(in_oklab,var(--background)_14%,transparent)_62%,var(--background)_100%)]"

@@ -59,16 +59,53 @@ export async function loadBootShellChrome(
   client: BootChromeClient,
   preferredTeamId?: string | null,
 ): Promise<BootShellChrome> {
-  let teams: BootTeams;
-  try {
-    teams = await client.team.list();
-  } catch {
+  const speculativeTeamId = preferredTeamId || undefined;
+
+  if (!speculativeTeamId) {
+    let teams: BootTeams;
+    try {
+      teams = await client.team.list();
+    } catch {
+      return emptyChrome();
+    }
+    const teamId = resolveBootTeamId(teams.items, preferredTeamId);
+    if (!teamId) {
+      return { ...emptyChrome(), teams };
+    }
+    const [unread, notifications, timer] = await Promise.all([
+      settleOrNull(client.notifications.unreadCount({ teamId })),
+      settleOrNull(client.notifications.list({ teamId, limit: NOTIFICATION_LIST_LIMIT })),
+      settleOrNull(client.agencyOps.timer.getActive({ teamId })),
+    ]);
+    return { teams, teamId, unread, notifications, timer };
+  }
+
+  const [teamsResult, unreadGuess, notificationsGuess, timerGuess] = await Promise.all([
+    settleOrNull(client.team.list()),
+    settleOrNull(client.notifications.unreadCount({ teamId: speculativeTeamId })),
+    settleOrNull(
+      client.notifications.list({ teamId: speculativeTeamId, limit: NOTIFICATION_LIST_LIMIT }),
+    ),
+    settleOrNull(client.agencyOps.timer.getActive({ teamId: speculativeTeamId })),
+  ]);
+
+  if (teamsResult == null) {
     return emptyChrome();
   }
 
-  const teamId = resolveBootTeamId(teams.items, preferredTeamId);
+  const teamId = resolveBootTeamId(teamsResult.items, preferredTeamId);
   if (!teamId) {
-    return { ...emptyChrome(), teams };
+    return { ...emptyChrome(), teams: teamsResult };
+  }
+
+  if (teamId === speculativeTeamId) {
+    return {
+      teams: teamsResult,
+      teamId,
+      unread: unreadGuess,
+      notifications: notificationsGuess,
+      timer: timerGuess,
+    };
   }
 
   const [unread, notifications, timer] = await Promise.all([
@@ -76,8 +113,7 @@ export async function loadBootShellChrome(
     settleOrNull(client.notifications.list({ teamId, limit: NOTIFICATION_LIST_LIMIT })),
     settleOrNull(client.agencyOps.timer.getActive({ teamId })),
   ]);
-
-  return { teams, teamId, unread, notifications, timer };
+  return { teams: teamsResult, teamId, unread, notifications, timer };
 }
 
 function seedIfNotNewer<T>(

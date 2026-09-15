@@ -4,7 +4,6 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { type ReactNode } from "react";
 
-import { GlobalGrain } from "@/components/global-grain";
 import { RouteError, RouteNotFound } from "@/features/app-shell/route-status";
 import { Toaster } from "@/ui/sonner";
 import appCss from "@/index.css?url";
@@ -30,6 +29,13 @@ export const Route = createRootRouteWithContext<{
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
+      {
+        rel: "preload",
+        href: "/fonts/poppins-latin-500-normal.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "preload",
         href: "/fonts/poppins-latin-600-normal.woff2",
@@ -63,7 +69,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body>
         {children}
-        <GlobalGrain />
         <Toaster position="bottom-right" />
         {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-left" /> : null}
         {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}

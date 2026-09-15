@@ -66,8 +66,8 @@ void main(){
     float sl = -2.0 * k * dx;
     float dd = abs(ps.y - yc) / sqrt(1.0 + sl * sl);
     float w = uThin * (0.0016 + 0.0032 * jit);
-    core += on * pw(w / (w + dd), 3.2);
-    halo += on * pw(w * 11.0 / (w * 11.0 + dd), 1.9) * 0.085;
+    core += on * pw(w / (w + dd), 2.2);
+    halo += on * pw(w * 14.0 / (w * 14.0 + dd), 1.55) * 0.14;
   }
   float env = mix(0.20, 1.0, sat((ps.x + 0.52) / 0.95));
   core *= env; halo *= env;
@@ -204,7 +204,7 @@ export default function FibreArc(props: Props) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false });
+    const gl = canvas.getContext("webgl", { antialias: true, alpha: false, depth: false });
     if (!gl) {
       console.error("FibreArc: WebGL unavailable");
       return;
@@ -249,7 +249,7 @@ export default function FibreArc(props: Props) {
       clock = (clock + dt * (v.speed as number)) % 3600;
 
       const ptr = ptrRef.current;
-      const k = 1 - Math.exp(-6 * dt);
+      const k = 1 - Math.exp(-3.2 * dt);
       ptr.on += (ptr.onTarget - ptr.on) * k;
       ptr.x += ((ptr.onTarget > 0 ? ptr.tx : 0.5) - ptr.x) * k;
       ptr.y += ((ptr.onTarget > 0 ? ptr.ty : 0.5) - ptr.y) * k;

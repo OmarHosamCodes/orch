@@ -1,11 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource/lato";
-@import "@fontsource-variable/merriweather";
-@import "@fontsource-variable/roboto-mono";
-@import "@fontsource-variable/ibm-plex-sans";
-@import "@fontsource-variable/roboto";
 @import "tw-shimmer";
 
 /* Poppins: everything except Arabic (latin glyphs only) */
@@ -341,9 +336,9 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-  --font-lato: Lato, sans-serif;
-  --font-merriweather: Merriweather, serif;
-  --font-roboto-mono: Roboto Mono, monospace;
+  --font-lato: var(--font-sans);
+  --font-merriweather: var(--font-sans);
+  --font-roboto-mono: var(--font-mono);
   --shadow-blur: var(--shadow-blur);
   --shadow-offset-x: var(--shadow-offset-x);
   --shadow-opacity: var(--shadow-opacity);
@@ -351,7 +346,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-heading: "Roboto Variable", sans-serif;
+  --font-heading: var(--font-sans);
   --radius: 0.5rem;
   --spacing: var(--spacing);
   --letter-spacing: var(--letter-spacing);
@@ -527,9 +522,8 @@ body {
     @apply h-full min-h-0 overflow-hidden;
   }
   :root {
-    --font-heading: var(--font-lato);
-    --font-body: var(--font-merriweather);
-    --font-mono: var(--font-roboto-mono);
+    --font-heading: var(--font-sans);
+    --font-body: var(--font-sans);
   }
   h1 {
     font-family: var(--font-heading);
@@ -607,7 +601,9 @@ body:has(.app-shell) {
   height: 100dvh;
   overflow: hidden;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows:
+    var(--app-shell-context-bar-height)
+    minmax(0, 1fr);
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
 }
@@ -691,7 +687,7 @@ body:has(.app-shell) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-merriweather);
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.2;
@@ -843,7 +839,7 @@ body:has(.app-shell) {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: var(--font-merriweather);
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.25;
@@ -1046,17 +1042,16 @@ body:has(.app-shell) {
 }
 
 .app-shell__mobile-nav-trigger {
-  position: fixed;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 44;
-  border-radius: 9999px;
+  flex: none;
 }
 
 .app-shell__context-bar {
-  display: none;
+  display: flex;
   min-width: 0;
   height: var(--app-shell-context-bar-height);
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 2;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
@@ -1066,12 +1061,20 @@ body:has(.app-shell) {
   color: var(--color-sidebar-foreground);
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
+  .app-shell {
+    grid-template-rows:
+      calc(var(--app-shell-context-bar-height) + env(safe-area-inset-top, 0px))
+      minmax(0, 1fr);
+  }
+
   .app-shell__context-bar {
-    display: flex;
-    grid-column: 2;
-    grid-row: 1;
-    z-index: 2;
+    height: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .app-shell__main {
+    padding-top: var(--shell-chrome-inset);
   }
 }
 
@@ -1136,9 +1139,19 @@ body:has(.app-shell) {
 }
 
 .app-shell__context-crumb--current {
-  font-family: var(--font-merriweather);
+  font-family: var(--font-sans);
   font-weight: 600;
   color: var(--color-sidebar-accent-foreground);
+}
+
+.app-shell__context-crumb--switcher {
+  height: 2rem;
+  padding-inline: 0.5rem;
+}
+
+.app-shell__context-crumb--switcher:hover,
+.app-shell__context-crumb--switcher[aria-expanded="true"] {
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 8%, transparent);
 }
 
 .app-shell__context-crumb--current [data-slot="breadcrumb-page"] {
@@ -1153,7 +1166,7 @@ body:has(.app-shell) {
 
 .app-shell__main {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 2;
   display: flex;
   min-height: 0;
   min-width: 0;
@@ -1185,6 +1198,11 @@ body:has(.app-shell) {
     grid-template-rows:
       var(--app-shell-context-bar-height)
       minmax(0, 1fr);
+  }
+
+  .app-shell__context-bar {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .app-shell__main {

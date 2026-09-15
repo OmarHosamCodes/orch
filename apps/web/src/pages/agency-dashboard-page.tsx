@@ -21,6 +21,7 @@ function AgencyDashboardBody({ teamId }: { teamId: string }) {
     <AgencyDashboardSurface
       teamId={teamId}
       filters={filters.applied}
+      policyReady={!filters.isTenurePolicyPending}
       onSelectProject={(projectId) => navigate(agencyProjectHref(projectId))}
       onSelectClient={(clientId) => navigate(agencyClientHref(clientId))}
       onSelectMember={(userId) => navigate(agencyMemberHref(userId))}

@@ -26,11 +26,6 @@
       "project": ["src/**/*.{ts,tsx}", "vite*.ts", "scripts/**/*.mjs", "perf/**/*.mjs"],
       "ignoreDependencies": [
         "tailwindcss",
-        "@fontsource-variable/ibm-plex-sans",
-        "@fontsource-variable/merriweather",
-        "@fontsource-variable/roboto",
-        "@fontsource-variable/roboto-mono",
-        "@fontsource/lato",
         "tw-animate-css",
         "tw-shimmer",
         "shadcn"

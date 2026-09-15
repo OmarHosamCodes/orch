@@ -96,10 +96,10 @@ try {
   await page.keyboard.press("Escape");
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   await page.getByRole("button", { name: "All Tasks", exact: true }).click();
-  await page.getByRole("checkbox", { name: "Select all", exact: true }).check();
+  await page.getByRole("checkbox", { name: /^Select \d+ matching$/ }).check();
   assert.equal(await page.locator("output").innerText(), "1500 selected");
   await page.getByRole("textbox").fill("Task 29-4-9");
-  await page.getByRole("checkbox", { name: "Select all", exact: true }).uncheck();
+  await page.getByRole("checkbox", { name: /^Select \d+ matching$/ }).uncheck();
   assert.equal(await page.locator("output").innerText(), "1499 selected");
   await page.getByRole("textbox").fill("");
   await page.getByRole("checkbox", { name: "Task 0-0-0", exact: true }).focus();

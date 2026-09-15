@@ -8,40 +8,37 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const perfDir = resolve(__dirname);
 const storageStatePath = resolve(perfDir, ".auth", "storage-state.json");
 
-const DEFAULT_EMAIL = "founder@orch.test";
-const DEFAULT_PASSWORD = "orch1234";
-
 /**
  * @param {{ baseUrl: string; email?: string; password?: string }} options
  */
-export async function runGlobalSetup({
-  baseUrl,
-  email = DEFAULT_EMAIL,
-  password = DEFAULT_PASSWORD,
-}) {
+export async function runGlobalSetup({ baseUrl }) {
   await mkdir(resolve(perfDir, ".auth"), { recursive: true });
+
+  const existing = process.env.PERF_STORAGE_STATE;
+  if (existing) {
+    await writeStorageStateMarker(existing);
+    return existing;
+  }
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
+  try {
+    await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
+    await context.storageState({ path: storageStatePath });
+    await writeStorageStateMarker(storageStatePath);
 
-  await page.getByRole("button", { name: /sign in with email and password/i }).click();
-  const emailInput = page.locator('input[type="email"]');
-  await emailInput.waitFor({ state: "visible", timeout: 10_000 });
-  await emailInput.fill(email);
-  await page.locator('input[type="password"]').fill(password);
-  await page.getByRole("button", { name: /^sign in$/i }).click();
+    if (process.env.PERF_REQUIRE_AUTH === "1") {
+      throw new Error(
+        "Login is Google-only and /api/auth/sign-in/email is disabled. Pass PERF_STORAGE_STATE to a Playwright storageState JSON captured after a real sign-in.",
+      );
+    }
 
-  await page.waitForURL((url) => !url.pathname.startsWith("/login"), {
-    timeout: 30_000,
-  });
-
-  await context.storageState({ path: storageStatePath });
-  await browser.close();
-
-  return storageStatePath;
+    return storageStatePath;
+  } finally {
+    await browser.close();
+  }
 }
 
 /**
