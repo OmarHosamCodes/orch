@@ -117,7 +117,7 @@ export function AppShellTeamControl({ className, variant = "compact" }: AppShell
 
   if (teamListQuery.isPending) {
     return variant === "sidebar" ? (
-      <Skeleton className={cn("h-[3.25rem] w-full rounded-[0.875rem]", className)} />
+      <Skeleton className={cn("h-[3.625rem] w-full rounded-[0.875rem]", className)} />
     ) : (
       <Skeleton className={cn("size-8 rounded-full", className)} />
     );

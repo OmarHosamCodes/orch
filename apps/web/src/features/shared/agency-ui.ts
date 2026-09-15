@@ -129,6 +129,22 @@ export const agencyTaskRailWidthTransitionClass = cn(
   "ease-[cubic-bezier(0.25,1,0.5,1)]",
 );
 
+/** Tracker right panel — inline dock beside tracker+log (T3 topology). */
+export const agencyTrackerRightPanelInlineClass = cn(
+  "hidden min-h-0 shrink-0 grow-0 self-stretch flex-col overflow-hidden",
+  "lg:flex lg:h-full lg:w-80 lg:min-w-80 lg:max-w-80 lg:basis-80",
+  "xl:w-96 xl:min-w-96 xl:max-w-96 xl:basis-96",
+);
+
+/** Tab strip chrome for the tracker right panel host. */
+export const agencyTrackerRightPanelTabStripClass = cn(
+  "flex w-full min-w-0 shrink-0 items-stretch border-b border-default bg-card",
+);
+
+/** Collapsed rail label — vertical My Tasks spine copy. */
+export const agencyTrackerRightPanelCollapsedLabelClass =
+  "text-[10px] font-semibold tracking-wide text-muted [writing-mode:vertical-rl] rotate-180";
+
 /** Filter pills in My Tasks rail — inactive = offer, active = selected + clear. */
 export const agencyMyTasksFilterPillClass = cn(
   "inline-flex h-7 max-w-full items-center gap-1 rounded-full border border-dashed border-default bg-transparent px-2.5 text-xs font-medium text-muted",

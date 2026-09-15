@@ -3,6 +3,8 @@ import { type CSSProperties } from "react";
 
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { AgencyDashboardHoursInstrument } from "@/features/dashboard/agency-dashboard-hours-instrument";
+import { DashboardTeamActivityCellView } from "@/features/dashboard/dashboard-team-activity-cell-view";
+import { DashboardTeamMemberActivitySheetView } from "@/features/dashboard/dashboard-team-member-activity-sheet-view";
 import {
   agencyEmptyPanelClass,
   agencyErrorPanelClass,
@@ -86,58 +88,6 @@ function AllocationSegment({
   );
 }
 
-type TeamMemberActivity = {
-  description: string;
-  projectName: string;
-  clientName: string | null;
-};
-
-function TeamMemberActivityCell({
-  activity,
-  isTracking,
-}: {
-  activity: TeamMemberActivity | null;
-  isTracking: boolean;
-}) {
-  if (!activity) {
-    return <span className="text-muted">No activity</span>;
-  }
-
-  const meta = activity.clientName
-    ? `${activity.projectName} · ${activity.clientName}`
-    : activity.projectName;
-
-  return (
-    <div className="min-w-0 max-w-xl">
-      <p className="truncate font-semibold text-highlighted">
-        {activity.description || "(no description)"}
-      </p>
-      <div className="mt-0.5 flex min-w-0 items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-bold",
-            isTracking ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted",
-          )}
-          aria-label={isTracking ? "Timer running" : "Idle"}
-        >
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              isTracking ? "bg-primary motion-safe:animate-pulse" : "bg-muted-foreground/45",
-            )}
-            aria-hidden
-          />
-          {isTracking ? "In progress" : "Idle"}
-        </span>
-        <span className="shrink-0 text-muted" aria-hidden>
-          ·
-        </span>
-        <p className="min-w-0 truncate text-[11px] text-muted">{meta}</p>
-      </div>
-    </div>
-  );
-}
-
 type AgencyDashboardSurfaceViewProps = {
   viewModel: AgencyDashboardSurfaceViewModel;
 };
@@ -152,6 +102,9 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
     activeTimerByUserId,
     sortedTeamMembers,
     sortedRankedProjects,
+    selectedMemberSheet,
+    openMemberActivity,
+    closeMemberActivity,
     isDark,
     onSelectProject,
     onSelectClient,
@@ -212,7 +165,13 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
             </header>
             <div className="overflow-x-auto">
               <TooltipProvider delayDuration={120}>
-                <table className="w-full min-w-[50rem] text-left text-xs">
+                <table className="w-full table-fixed text-left text-xs">
+                  <colgroup>
+                    <col className="w-[14rem]" />
+                    <col />
+                    <col className="w-[7.5rem]" />
+                    <col className="w-[10rem]" />
+                  </colgroup>
                   <thead className="border-b border-default bg-elevated text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
                     <tr>
                       <th scope="col" className="px-4 py-2.5">
@@ -238,8 +197,16 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
                             description: liveTimer.description,
                             projectName: liveTimer.projectName,
                             clientName: liveTimer.clientName ?? null,
+                            startedAt: liveTimer.startedAt,
                           }
-                        : member.latestEntry;
+                        : member.latestEntry
+                          ? {
+                              description: member.latestEntry.description,
+                              projectName: member.latestEntry.projectName,
+                              clientName: member.latestEntry.clientName,
+                              startedAt: member.latestEntry.startedAt,
+                            }
+                          : null;
 
                       return (
                         <tr
@@ -272,10 +239,19 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3">
-                            <TeamMemberActivityCell activity={activity} isTracking={isTracking} />
+                          <td className="max-w-0 px-4 py-3">
+                            <DashboardTeamActivityCellView
+                              activity={activity}
+                              isTracking={isTracking}
+                              onOpen={() => openMemberActivity(member.userId)}
+                            />
                           </td>
-                          <td className={cn("px-4 py-3 text-right", agencyMetricClass)}>
+                          <td
+                            className={cn(
+                              "whitespace-nowrap px-4 py-3 text-right",
+                              agencyMetricClass,
+                            )}
+                          >
                             {formatDuration(member.totalSeconds)}
                           </td>
                           <td className="px-4 py-3">
@@ -306,8 +282,19 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
               </TooltipProvider>
             </div>
           </section>
+
         </div>
       )}
+
+      <DashboardTeamMemberActivitySheetView
+        member={selectedMemberSheet}
+        isDark={isDark}
+        open={selectedMemberSheet !== null}
+        onOpenChange={(open) => {
+          if (!open) closeMemberActivity();
+        }}
+        onOpenProfile={onSelectMember}
+      />
     </div>
   );
 }
