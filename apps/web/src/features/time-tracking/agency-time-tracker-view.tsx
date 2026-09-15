@@ -24,6 +24,7 @@ import {
   agencyTimeTrackerRailDividerClass,
   agencyTimeTrackerStopActionClass,
   agencyTimeTrackerTaskChooserTriggerClass,
+  agencyTimeTrackerTaskSlotClass,
   agencyWorkTimeRangeClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
   const elapsedLabel = view.elapsedLabel ?? "00:00:00";
   const taskChooserTriggerClass = cn(
     agencyTimeTrackerTaskChooserTriggerClass,
-    "max-w-[14rem]",
+    "max-w-full",
     view.taskChooserWarning &&
       "text-warning hover:text-warning [&_svg]:text-warning [&_span]:text-warning",
   );
@@ -86,7 +87,7 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
         <div className={agencyTimeTrackerRailClass}>
           <TrackerRailDivider />
 
-          <div className={agencyTimeTrackerRailCellClass}>
+          <div className={cn(agencyTimeTrackerRailCellClass, agencyTimeTrackerTaskSlotClass)}>
             <AgencyTaskChooser
               teamId={view.teamId}
               value={view.selectedTaskId}

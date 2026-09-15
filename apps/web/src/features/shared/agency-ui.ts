@@ -219,11 +219,14 @@ export const agencyTimeEntryIconButtonClass = cn(
   "motion-reduce:transition-none",
 );
 
-/** Match entry-row content height (`agencyTimeEntryRowClass` min-h-[52px]). */
+/** Week stack tracker bar — 56px card, one row, overflow visible for popovers. */
 export const agencyTimeTrackerCardClass = cn(
   agencyWorkTrackerCardClass,
-  "agency-tracker-card flex min-h-[52px] min-w-0 flex-row items-center overflow-visible px-3 sm:px-4",
+  "agency-tracker-card flex min-h-14 min-w-0 flex-nowrap flex-row items-center overflow-visible px-3 sm:px-4",
 );
+
+export const agencyTimeTrackerTaskSlotClass =
+  "min-w-0 max-w-[220px] shrink truncate sm:max-w-[260px]";
 
 /** Whole-surface loading shimmer — one sweep, no stacked placeholders. */
 export const agencyTimeTrackerShimmerClass =
