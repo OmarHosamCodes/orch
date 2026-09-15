@@ -1,23 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import { useAgencyClientsActions } from "@/features/shared/agency-segment-filters";
+import { clientContactCompleteness } from "@/features/clients/client-contact-completeness";
+import {
+  clientBookCorridor,
+  clientBookNeeds,
+  groupClientsByCorridor,
+  type ClientBookCorridorId,
+  type ClientBookNeedId,
+} from "@/features/clients/clients-book-corridors";
 import { agencyListSearchMatches } from "@/features/shared/agency-list-search";
 import {
+  useAgencyClientsBookIndexQuery,
   useAgencyClientsQuery,
   useAgencyProjectTasksQuery,
   useAgencyProjectsQuery,
   useAgencyTimeEntriesQuery,
 } from "@/features/shared/agency-queries";
+import { useAgencyClientsActions } from "@/features/shared/agency-segment-filters";
 import { catalogRateAmount, parseBillableRateAmount } from "@/features/shared/format-rate";
 import {
   selectIsClientMutationPending,
-  selectIsContactMutationPending,
   useAgencyOpsStore,
 } from "@/features/shared/stores/agency-ops";
 import type { AgencyListFiltersApplied } from "@/features/shared/use-agency-list-filters";
-import { startOfWeekUtc } from "@/features/shared/use-agency-time-range-filters";
-import { useTeamWorkSchedule } from "@/features/shared/use-team-work-schedule";
 import { getTaskGroupKey } from "@/features/task-management/agency-task-utils";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -41,19 +47,34 @@ type AgencyClientsTableProject = {
   deletedAt: string | null;
 };
 
+export type AgencyClientsBookRow = AgencyClientsTableClient & {
+  corridor: ClientBookCorridorId;
+  weekDurationSeconds: number;
+  weekShare: number;
+  monthUninvoicedDurationSeconds: number;
+  outstandingAmount: number;
+  billingCurrency: string;
+  needs: ClientBookNeedId[];
+  projects: AgencyClientsTableProject[];
+};
+
+type AgencyClientsBookCorridor = {
+  id: ClientBookCorridorId;
+  label: string;
+  items: AgencyClientsBookRow[];
+};
+
 export type AgencyClientsTableViewModel = {
   openNewClient: () => void;
   isOwner: boolean;
-  filteredClients: AgencyClientsTableClient[];
-  projectsByClient: Map<string, AgencyClientsTableProject[]>;
-  weekHoursByClient: Map<string, number>;
+  corridors: AgencyClientsBookCorridor[];
+  filteredClients: AgencyClientsBookRow[];
   clients: AgencyClientsTableClient[];
   isLoading: boolean;
   isError: boolean;
   errorMessage: string;
   refetch: () => void;
   isClientMutationPending: boolean;
-  isContactMutationPending: boolean;
   editClientId: string;
   setEditClientId: (id: string) => void;
   editNameDraft: string;
@@ -84,7 +105,6 @@ export function useAgencyClientsTable({
   const { openNewClient } = useAgencyClientsActions();
   const agencyOps = useAgencyOpsStore();
   const isClientMutationPending = useAgencyOpsStore(selectIsClientMutationPending);
-  const isContactMutationPending = useAgencyOpsStore(selectIsContactMutationPending);
 
   const [editClientId, setEditClientId] = useState("");
   const [createProjectClientId, setCreateProjectClientId] = useState("");
@@ -93,7 +113,6 @@ export function useAgencyClientsTable({
   const [editBillableRateDraft, setEditBillableRateDraft] = useState("");
   const [editCurrencyDraft, setEditCurrencyDraft] = useState("USD");
 
-  const workSchedule = useTeamWorkSchedule(teamId);
   const teamQuery = useQuery({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
@@ -101,6 +120,9 @@ export function useAgencyClientsTable({
   const isOwner = teamQuery.data?.role === "owner";
 
   const clientsQuery = useAgencyClientsQuery(teamId, { archiveFilter: filters.archiveFilter });
+  const bookIndexQuery = useAgencyClientsBookIndexQuery(teamId, {
+    archiveFilter: filters.archiveFilter,
+  });
   const projectsQuery = useAgencyProjectsQuery(teamId, { trashFilter: "all" });
   const entriesQuery = useAgencyTimeEntriesQuery(teamId, 1, 100);
   const tasksQuery = useAgencyProjectTasksQuery(teamId, {
@@ -117,16 +139,8 @@ export function useAgencyClientsTable({
   }));
   const entries = entriesQuery.data?.items ?? [];
   const tasks = tasksQuery.data?.items ?? [];
-
-  const weekHoursByClient = useMemo(() => {
-    const weekStartMs = startOfWeekUtc(workSchedule.weekStartsOn).getTime();
-    const totals = new Map<string, number>();
-    for (const entry of entries) {
-      if (new Date(entry.startedAt).getTime() < weekStartMs) continue;
-      totals.set(entry.clientId, (totals.get(entry.clientId) ?? 0) + entry.durationSeconds);
-    }
-    return totals;
-  }, [entries, workSchedule.weekStartsOn]);
+  const canViewBilling = bookIndexQuery.data?.canViewBilling ?? false;
+  const bookItems = bookIndexQuery.data?.items ?? [];
 
   const projectsByClient = useMemo(() => {
     const map = new Map<string, AgencyClientsTableProject[]>();
@@ -139,10 +153,14 @@ export function useAgencyClientsTable({
     return map;
   }, [projects]);
 
+  const bookByClient = useMemo(() => {
+    return new Map(bookItems.map((item) => [item.clientId, item]));
+  }, [bookItems]);
+
   const filteredClients = useMemo(() => {
     const term = filters.filterTerm;
     const { peopleSet, clientsSet, projectsSet, tasksSet } = filters;
-    return clients.filter((client) => {
+    const matching = clients.filter((client) => {
       const clientProjects = projects.filter((project) => project.clientId === client.id);
       if (
         term &&
@@ -178,7 +196,65 @@ export function useAgencyClientsTable({
       }
       return true;
     });
-  }, [clients, entries, filters, projects, tasks]);
+
+    const maxWeek = matching.reduce((highest, client) => {
+      const week = bookByClient.get(client.id)?.weekDurationSeconds ?? 0;
+      return Math.max(highest, week);
+    }, 0);
+
+    const rows: AgencyClientsBookRow[] = matching.map((client) => {
+      const book = bookByClient.get(client.id);
+      const weekDurationSeconds = book?.weekDurationSeconds ?? 0;
+      const monthUninvoicedDurationSeconds = book?.monthUninvoicedDurationSeconds ?? 0;
+      const outstandingAmount = book?.outstandingAmount ?? 0;
+      const rateMissing =
+        catalogRateAmount(client.sourceBillableRateAmount, client.billableRateAmount) === null;
+      const contactIncomplete =
+        clientContactCompleteness({
+          name: book?.contactName,
+          email: book?.contactEmail,
+          phone: book?.contactPhone,
+        }) !== "complete";
+      return {
+        ...client,
+        corridor: clientBookCorridor({
+          category: client.category,
+          archivedAt: client.archivedAt,
+          weekDurationSeconds,
+          monthUninvoicedDurationSeconds,
+          canViewBilling,
+        }),
+        weekDurationSeconds,
+        weekShare: maxWeek > 0 ? weekDurationSeconds / maxWeek : 0,
+        monthUninvoicedDurationSeconds,
+        outstandingAmount,
+        billingCurrency: book?.billingCurrency ?? client.currency,
+        needs: clientBookNeeds({
+          category: client.category,
+          canViewBilling,
+          monthUninvoicedDurationSeconds,
+          outstandingAmount,
+          rateMissing,
+          contactIncomplete,
+        }),
+        projects: projectsByClient.get(client.id) ?? [],
+      };
+    });
+
+    rows.sort((left, right) => {
+      if (right.weekDurationSeconds !== left.weekDurationSeconds) {
+        return right.weekDurationSeconds - left.weekDurationSeconds;
+      }
+      if (right.outstandingAmount !== left.outstandingAmount) {
+        return right.outstandingAmount - left.outstandingAmount;
+      }
+      return left.name.localeCompare(right.name);
+    });
+
+    return rows;
+  }, [bookByClient, canViewBilling, clients, entries, filters, projects, projectsByClient, tasks]);
+
+  const corridors = useMemo(() => groupClientsByCorridor(filteredClients), [filteredClients]);
 
   function openEdit(clientId: string) {
     const client = clients.find((entry) => entry.id === clientId);
@@ -250,19 +326,18 @@ export function useAgencyClientsTable({
     });
   }
 
-  const isLoading = clientsQuery.isPending || projectsQuery.isPending;
-  const isError = clientsQuery.isError || projectsQuery.isError;
+  const isLoading = clientsQuery.isPending || projectsQuery.isPending || bookIndexQuery.isPending;
+  const isError = clientsQuery.isError || projectsQuery.isError || bookIndexQuery.isError;
   const errorMessage = getErrorMessage(
-    clientsQuery.error ?? projectsQuery.error,
+    clientsQuery.error ?? projectsQuery.error ?? bookIndexQuery.error,
     "Try refreshing.",
   );
 
   return {
     openNewClient,
     isOwner,
+    corridors,
     filteredClients,
-    projectsByClient,
-    weekHoursByClient,
     clients,
     isLoading,
     isError,
@@ -270,9 +345,9 @@ export function useAgencyClientsTable({
     refetch: () => {
       void clientsQuery.refetch();
       void projectsQuery.refetch();
+      void bookIndexQuery.refetch();
     },
     isClientMutationPending,
-    isContactMutationPending,
     editClientId,
     setEditClientId: (id) => {
       if (id) openEdit(id);

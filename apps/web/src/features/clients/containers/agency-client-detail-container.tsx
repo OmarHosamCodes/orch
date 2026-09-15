@@ -1,3 +1,5 @@
+import { AgencyProjectCreateDialog } from "@/features/projects/agency-project-create-dialog";
+
 import { AgencyClientDetailView } from "../agency-client-detail-view";
 import { useAgencyClientDetail } from "../hooks/use-agency-client-detail";
 
@@ -20,10 +22,19 @@ export function AgencyClientDetailContainer({
     onArchived: onBack,
   });
   return (
-    <AgencyClientDetailView
-      viewModel={viewModel}
-      onBack={onBack}
-      onSelectProject={onSelectProject}
-    />
+    <>
+      <AgencyClientDetailView
+        viewModel={viewModel}
+        onBack={onBack}
+        onSelectProject={onSelectProject}
+      />
+      <AgencyProjectCreateDialog
+        open={viewModel.createProjectOpen}
+        onOpenChange={viewModel.setCreateProjectOpen}
+        teamId={teamId}
+        clients={viewModel.createProjectClients}
+        lockClientId={clientId}
+      />
+    </>
   );
 }

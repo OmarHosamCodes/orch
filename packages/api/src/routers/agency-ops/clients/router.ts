@@ -7,6 +7,7 @@ import {
 } from "../shared/schemas";
 import {
   listAgencyClients,
+  listAgencyClientsBookIndex,
   getAgencyClient,
   getAgencyClientCommercialSummary,
   createAgencyClient,
@@ -65,6 +66,32 @@ export const clientsRouter = {
         return z
           .object({ items: z.array(agencyClientSchema) })
           .parse(await listAgencyClients(context.session.user.id, input));
+      }),
+    bookIndex: protectedProProcedure
+      .input(
+        teamScopedInputSchema.extend({
+          includeArchived: z.boolean().optional(),
+          archiveFilter: z.enum(["all", "archived", "nonarchived"]).optional(),
+        }),
+      )
+      .handler(async ({ context, input }) => {
+        return z
+          .object({
+            canViewBilling: z.boolean(),
+            items: z.array(
+              z.object({
+                clientId: z.string().min(1),
+                weekDurationSeconds: z.number().int().nonnegative(),
+                monthUninvoicedDurationSeconds: z.number().int().nonnegative(),
+                outstandingAmount: z.number().int().nonnegative(),
+                billingCurrency: z.string().min(1),
+                contactName: z.string(),
+                contactEmail: z.string(),
+                contactPhone: z.string(),
+              }),
+            ),
+          })
+          .parse(await listAgencyClientsBookIndex(context.session.user.id, input));
       }),
     get: protectedProProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
