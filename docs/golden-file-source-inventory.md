@@ -1,6 +1,6 @@
 # Golden File Source Inventory
 
-Generated on 2026-09-15 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
+Generated on 2026-09-16 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
 
 ## Scope policy
 
@@ -19,9 +19,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 973 |
+| golden-feature | 978 |
 | server-operation | 12 |
-| shared-infrastructure | 402 |
+| shared-infrastructure | 403 |
 | static-presentation | 17 |
 
 ## Counts by domain
@@ -29,7 +29,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | Domain | Artifacts |
 | --- | ---: |
 | agency-shared | 147 |
-| agent | 126 |
+| agent | 131 |
 | api-platform | 13 |
 | architecture | 4 |
 | auth | 14 |
@@ -38,7 +38,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | clients | 15 |
 | configuration | 3 |
 | dashboard | 13 |
-| database-platform | 44 |
+| database-platform | 45 |
 | deployment | 6 |
 | environment | 5 |
 | integrations | 2 |
@@ -1285,6 +1285,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/agent/conversation-contracts.test.ts` | agent | test | golden-feature | agent-domain | Feature-owned agent artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/agent/conversation-contracts.ts` | agent | domain-logic | golden-feature | agent-domain | Feature-owned agent artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/agent/router.ts` | agent | api-router | golden-feature | agent-domain | Feature-owned agent artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
+| `packages/api/src/routers/agent/run-abort-policy.test.ts` | agent | test | golden-feature | agent-domain | Feature-owned agent artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `packages/api/src/routers/agent/run-lifecycle.ts` | agent | api-service | golden-feature | agent-domain | Feature-owned agent artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
+| `packages/api/src/routers/agent/run-service.test.ts` | agent | test | golden-feature | agent-domain | Feature-owned agent artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `packages/api/src/routers/agent/run-service.ts` | agent | api-service | golden-feature | agent-domain | Feature-owned agent artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agent/schemas.ts` | agent | api-contract | golden-feature | agent-domain | Feature-owned agent artifact in the canonical api-contract layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/agent/service.integration.test.ts` | agent | test | golden-feature | agent-domain | Feature-owned agent artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/agent/service.ts` | agent | api-service | golden-feature | agent-domain | Feature-owned agent artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
@@ -1407,6 +1411,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/migrations/0063_agency_period_fx.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0064_agency_time_entry_links.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0065_agency_money_pending_adjustment_target.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
+| `packages/db/src/migrations/0066_agent_runs.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/meta/0000_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0001_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0002_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
@@ -1418,6 +1423,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/migrations/meta/_journal.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/schema.ts` | database-platform | persistence-schema | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-schema support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/agency-ops.ts` | agency-shared | persistence-schema | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
+| `packages/db/src/schema/agent.ts` | agent | persistence-schema | golden-feature | agent-domain | Feature-owned agent artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/auth.ts` | auth | persistence-schema | golden-feature | identity-domain | Feature-owned auth artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/index.ts` | database-platform | persistence-schema | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-schema support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/notifications.ts` | notifications | persistence-schema | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |

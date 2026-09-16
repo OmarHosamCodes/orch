@@ -775,8 +775,9 @@ export function useWorkspaceAgent() {
   }, []);
 
   const stopGeneration = useCallback(() => {
+    void transport.cancelActiveRun();
     void stop();
-  }, [stop]);
+  }, [stop, transport]);
 
   const retryLastTurn = useCallback(() => {
     setError(null);
