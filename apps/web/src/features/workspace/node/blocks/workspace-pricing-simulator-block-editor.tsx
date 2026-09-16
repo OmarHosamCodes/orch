@@ -2,6 +2,7 @@ import { getPricingSimulatorSummary, type WorkspacePricingSimulatorBlock } from 
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -151,13 +152,12 @@ export function WorkspacePricingSimulatorBlockEditor({
             </div>
 
             <div className="flex items-center gap-3">
-              <input
+              <BlockSlider
                 id={control.key}
                 value={block[control.key]}
                 min={control.min}
                 max={control.max}
-                type="range"
-                className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-muted/35 accent-primary"
+                className="w-auto flex-1"
                 onChange={(event) =>
                   updateControl(
                     control.key,

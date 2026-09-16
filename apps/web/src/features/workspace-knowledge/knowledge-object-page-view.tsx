@@ -2,6 +2,13 @@ import { Link } from "@/lib/navigation";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select";
 
 type KnowledgeObjectBacklink = {
   id: string;
@@ -103,30 +110,37 @@ export function KnowledgeObjectPageView({
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-highlighted">Link to</h2>
         <div className="flex flex-wrap gap-2">
-          <select
-            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-            value={linkRelationType}
-            onChange={(event) => onLinkRelationTypeChange(event.target.value)}
-            aria-label="Relation type"
+          <Select value={linkRelationType} onValueChange={onLinkRelationTypeChange}>
+            <SelectTrigger aria-label="Relation type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="start">
+              <SelectItem value="about">about</SelectItem>
+              <SelectItem value="supports">supports</SelectItem>
+              <SelectItem value="related">related</SelectItem>
+              <SelectItem value="mentions">mentions</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={linkTargetId || "__empty"}
+            onValueChange={(next) => onLinkTargetIdChange(next === "__empty" ? "" : next)}
           >
-            <option value="about">about</option>
-            <option value="supports">supports</option>
-            <option value="related">related</option>
-            <option value="mentions">mentions</option>
-          </select>
-          <select
-            className="h-9 min-w-48 flex-1 rounded-md border border-input bg-transparent px-3 text-sm"
-            value={linkTargetId}
-            onChange={(event) => onLinkTargetIdChange(event.target.value)}
-            aria-label="Link target"
-          >
-            <option value="">Choose a target</option>
-            {linkTargets.map((target) => (
-              <option key={target.id} value={target.id}>
-                {target.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger aria-label="Link target" className="min-w-48 flex-1">
+              <SelectValue placeholder="Choose a target" />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              align="start"
+              className="w-(--radix-select-trigger-width)"
+            >
+              <SelectItem value="__empty">Choose a target</SelectItem>
+              {linkTargets.map((target) => (
+                <SelectItem key={target.id} value={target.id}>
+                  {target.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button type="button" disabled={linkPending || !linkTargetId} onClick={onCreateLink}>
             Link
           </Button>

@@ -18,6 +18,7 @@ import { useMemo } from "react";
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -351,12 +352,11 @@ export function WorkspaceContentRoiTrackerBlockEditor({
                         {item.conversionInfluence}
                       </span>
                     </div>
-                    <input
-                      type="range"
+                    <BlockSlider
                       min={1}
                       max={10}
                       value={item.conversionInfluence}
-                      className="mt-2 h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
+                      className="mt-2"
                       aria-label={`Conversion influence for ${item.title || "content row"}`}
                       onChange={(event) =>
                         mutateItem(item.id, (entry) => {
@@ -375,12 +375,11 @@ export function WorkspaceContentRoiTrackerBlockEditor({
                         {item.repurposeValue}
                       </span>
                     </div>
-                    <input
-                      type="range"
+                    <BlockSlider
                       min={1}
                       max={10}
                       value={item.repurposeValue}
-                      className="mt-2 h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
+                      className="mt-2"
                       aria-label={`Repurpose value for ${item.title || "content row"}`}
                       onChange={(event) =>
                         mutateItem(item.id, (entry) => {

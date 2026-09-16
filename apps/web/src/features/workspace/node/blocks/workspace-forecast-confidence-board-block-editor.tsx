@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -469,13 +470,11 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                               {deal.confidence}%
                             </span>
                           </div>
-                          <input
-                            type="range"
+                          <BlockSlider
                             min={10}
                             max={100}
                             step={1}
                             value={deal.confidence}
-                            className="h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
                             aria-label={`Confidence for ${deal.clientName || "forecast deal"}`}
                             onChange={(event) =>
                               mutateDeal(deal.id, (entry) => {

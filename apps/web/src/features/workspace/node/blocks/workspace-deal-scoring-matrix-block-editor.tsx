@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -287,13 +288,11 @@ export function WorkspaceDealScoringMatrixBlockEditor({
                     {deal.score}
                   </span>
                 </div>
-                <input
+                <BlockSlider
                   value={deal.score}
-                  type="range"
                   min={0}
                   max={100}
                   step={1}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                   aria-label={`Score for ${deal.clientName || "deal"}`}
                   onChange={(event) =>
                     mutateDeal(deal.id, (target) => {

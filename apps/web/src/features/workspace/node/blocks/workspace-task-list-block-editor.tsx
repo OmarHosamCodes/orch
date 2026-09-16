@@ -14,6 +14,7 @@ import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-che
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -228,12 +229,10 @@ export function WorkspaceTaskListBlockEditor({
                         <BlockFieldLabel>Urgency</BlockFieldLabel>
                         <span className="text-xs font-semibold">{task.urgency}</span>
                       </div>
-                      <input
+                      <BlockSlider
                         value={task.urgency}
-                        type="range"
                         min={1}
                         max={10}
-                        className="h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
                         onChange={(event) =>
                           updateTask(task.id, (entry) => {
                             entry.urgency = clampTenPointScale(event.target.value);
@@ -247,12 +246,10 @@ export function WorkspaceTaskListBlockEditor({
                         <BlockFieldLabel>Importance</BlockFieldLabel>
                         <span className="text-xs font-semibold">{task.importance}</span>
                       </div>
-                      <input
+                      <BlockSlider
                         value={task.importance}
-                        type="range"
                         min={1}
                         max={10}
-                        className="h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
                         onChange={(event) =>
                           updateTask(task.id, (entry) => {
                             entry.importance = clampTenPointScale(event.target.value);

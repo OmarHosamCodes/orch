@@ -9,6 +9,7 @@ import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Input } from "@/ui/input";
 import { cn } from "@/lib/utils";
@@ -343,12 +344,11 @@ export function WorkspaceContentQualityRadarBlockEditor({
                   </span>
                 </div>
 
-                <input
+                <BlockSlider
                   value={block.scores[dimension]}
-                  type="range"
                   min={1}
                   max={10}
-                  className="mt-4 h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
+                  className="mt-4"
                   aria-label={`Score for ${workspaceContentQualityDimensionLabels[dimension]}`}
                   onChange={(event) => updateScore(dimension, event.target.value)}
                 />

@@ -31,6 +31,7 @@ import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-
 import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-checkbox";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { WorkspaceOrchestratorSourcesModal } from "@/features/workspace/node/blocks/workspace-orchestrator-sources-modal";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
@@ -933,13 +934,12 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                             {item.task.urgency}/10
                           </span>
                         </div>
-                        <input
+                        <BlockSlider
                           value={item.task.urgency}
-                          type="range"
                           min={1}
                           max={10}
                           disabled={isDerivedTask(item)}
-                          className="h-1.5 w-full appearance-none rounded-full bg-destructive/20 accent-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                          className="bg-destructive/20 accent-destructive disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label={`Urgency for ${item.task.text || "task"}`}
                           onChange={(event) => updateTaskUrgency(item, event.target.value)}
                         />
@@ -954,13 +954,12 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                             {item.task.importance}/10
                           </span>
                         </div>
-                        <input
+                        <BlockSlider
                           value={item.task.importance}
-                          type="range"
                           min={1}
                           max={10}
                           disabled={isDerivedTask(item)}
-                          className="h-1.5 w-full appearance-none rounded-full bg-primary/20 accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                          className="bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label={`Importance for ${item.task.text || "task"}`}
                           onChange={(event) => updateTaskImportance(item, event.target.value)}
                         />

@@ -8,6 +8,7 @@ import { Columns2, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -309,12 +310,10 @@ export function WorkspaceDecisionMatrixBlockEditor({
                   <span>Weight</span>
                   <span>{criterion.weight}/10</span>
                 </div>
-                <input
+                <BlockSlider
                   value={criterion.weight}
-                  type="range"
                   min={1}
                   max={10}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                   aria-label={`Weight for ${criterion.label || "criterion"}`}
                   onChange={(event) => updateCriterionWeight(criterion.id, event.target.value)}
                 />
@@ -330,12 +329,11 @@ export function WorkspaceDecisionMatrixBlockEditor({
                   <span>Score</span>
                   <span>{option.scores[criterion.id] ?? 0}/10</span>
                 </div>
-                <input
+                <BlockSlider
                   value={option.scores[criterion.id] ?? 0}
-                  type="range"
                   min={0}
                   max={10}
-                  className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
+                  className="mt-2"
                   aria-label={`Score for ${option.label || "option"} on ${criterion.label || "criterion"}`}
                   onChange={(event) =>
                     updateOptionScore(option.id, criterion.id, event.target.value)

@@ -10,6 +10,7 @@ import { Trash2, UserPlus } from "lucide-react";
 import { Fragment, useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -356,14 +357,12 @@ export function WorkspaceTalentGridBlockEditor({
                         {member.performance}/5
                       </span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`performance-${member.id}`}
                       value={member.performance}
-                      type="range"
                       min={1}
                       max={5}
                       step={1}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) => updateMemberPerformance(member.id, event.target.value)}
                     />
                   </div>
@@ -380,14 +379,12 @@ export function WorkspaceTalentGridBlockEditor({
                         {member.potential}/5
                       </span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`potential-${member.id}`}
                       value={member.potential}
-                      type="range"
                       min={1}
                       max={5}
                       step={1}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) => updateMemberPotential(member.id, event.target.value)}
                     />
                   </div>

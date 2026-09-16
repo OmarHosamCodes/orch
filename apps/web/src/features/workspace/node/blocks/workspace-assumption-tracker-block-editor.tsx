@@ -16,6 +16,7 @@ import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -401,13 +402,11 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                       <Label htmlFor={`confidence-${assumption.id}`}>Confidence</Label>
                       <span>{assumption.confidence}/5</span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`confidence-${assumption.id}`}
                       value={assumption.confidence}
-                      type="range"
                       min={1}
                       max={5}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) =>
                         mutateBlock(tabId, block.id, (entry) => {
                           if (entry.type !== "assumption-tracker") {

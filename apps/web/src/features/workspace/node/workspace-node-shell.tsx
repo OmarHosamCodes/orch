@@ -31,6 +31,13 @@ import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context
 import type { WorkspaceSaveBadge } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select";
 import { cn } from "@/lib/utils";
 
 type WorkspaceTeamSummary = { id: string; name: string; role: WorkspaceTeamRole };
@@ -188,21 +195,31 @@ export function WorkspaceNodeShell({
               </div>
               {canManageNodeSharing ? (
                 <div className="mt-2.5 flex items-center gap-2">
-                  <select
-                    value={nodeShareTeamId}
-                    className="h-8 w-full rounded-xl border border-default bg-background px-2.5 text-xs text-foreground"
+                  <Select
+                    value={nodeShareTeamId || "__empty"}
                     disabled={teams.length === 0}
-                    onChange={(event) => onNodeShareTeamIdChange(event.target.value)}
+                    onValueChange={(next) =>
+                      onNodeShareTeamIdChange(next === "__empty" ? "" : next)
+                    }
                   >
-                    <option value="" disabled>
-                      Select team
-                    </option>
-                    {teams.map((team) => (
-                      <option key={team.id} value={team.id}>
-                        {team.name} ({team.role})
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger aria-label="Select team" className="w-full">
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      align="start"
+                      className="w-(--radix-select-trigger-width)"
+                    >
+                      <SelectItem value="__empty" disabled>
+                        Select team
+                      </SelectItem>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name} ({team.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     size="sm"
                     disabled={isShareTogglePending || (!isNodeSharedWithTeam && !nodeShareTeamId)}
