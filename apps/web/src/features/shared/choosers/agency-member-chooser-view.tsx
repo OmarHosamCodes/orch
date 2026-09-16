@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Plus, Search, UserRound, UsersRound } from "lucide-react";
+import { Check, ChevronDown, Plus, Search, UserRound, UsersRound, X } from "lucide-react";
 
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { shouldShowAssigneeStackPlus } from "@/features/shared/choosers/agency-member-stack";
@@ -85,7 +85,13 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
               stackVisible.map((member, index) => (
                 <span
                   key={member.userId}
-                  className={cn("relative", index > 0 && "-ml-2")}
+                  className={cn(
+                    "relative",
+                    "transition-[margin,transform,opacity] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+                    "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-[var(--motion-duration-fast)]",
+                    "motion-reduce:animate-none motion-reduce:transition-none",
+                    index > 0 && "-ml-2",
+                  )}
                   style={{ zIndex: index + 1 }}
                 >
                   <AgencyMemberAvatar
@@ -172,7 +178,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
           </button>
         )}
       </PopoverTrigger>
-      <PopoverContent align={contentAlign} size="chooser" className="overflow-hidden">
+      <PopoverContent align={contentAlign} size="chooser" className="z-[60] overflow-hidden">
         <div className="shrink-0 border-b border-border p-2">
           <div className="relative">
             <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
@@ -189,6 +195,36 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
             />
           </div>
         </div>
+        {mode === "multiple" && !assignedToTeam && stackMembers.length > 0 ? (
+          <div className="flex flex-wrap gap-1 border-b border-border px-2 py-2">
+            {stackMembers.map((member) => (
+              <button
+                key={member.userId}
+                type="button"
+                className={cn(
+                  "inline-flex max-w-full items-center gap-1 rounded-full border border-default bg-elevated py-0.5 pr-0.5 pl-0.5",
+                  "transition-colors hover:bg-muted",
+                  agencyFocusRingClass,
+                  "motion-reduce:transition-none",
+                )}
+                onClick={() => multiple?.onToggleMember(member.userId)}
+                aria-label={`Remove ${member.userName}`}
+              >
+                <AgencyMemberAvatar
+                  name={member.userName}
+                  userId={member.userId}
+                  avatarUrl={member.userAvatar}
+                  size="sm"
+                  className="size-5 rounded-full"
+                />
+                <span className="max-w-[7rem] truncate text-[11px] font-medium text-highlighted">
+                  {member.userName}
+                </span>
+                <X className="mr-1 size-3 text-muted" aria-hidden />
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="min-h-0 max-h-[24rem] overflow-x-hidden overflow-y-auto p-1">
           {loading ? (
             <SkeletonGroup className="space-y-2 px-3 py-1">

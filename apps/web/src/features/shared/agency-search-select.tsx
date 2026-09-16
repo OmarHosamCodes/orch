@@ -1,5 +1,5 @@
 import { Check, ChevronDown, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { agencyListSearchMatches } from "@/features/shared/agency-list-search";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
@@ -12,6 +12,7 @@ type AgencySearchSelectOption = {
   value: string;
   label: string;
   description?: string;
+  glyph?: ReactNode;
 };
 
 type AgencySearchSelectProps = {
@@ -24,6 +25,7 @@ type AgencySearchSelectProps = {
   emptyOption?: AgencySearchSelectOption;
   disabled?: boolean;
   className?: string;
+  variant?: "field" | "chip";
   "aria-label"?: string;
 };
 
@@ -37,17 +39,20 @@ export function AgencySearchSelect({
   emptyOption,
   disabled = false,
   className,
+  variant = "field",
   "aria-label": ariaLabel,
 }: AgencySearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const isChip = variant === "chip";
 
-  const selectedLabel = useMemo(() => {
-    if (!value) {
-      return emptyOption?.label ?? placeholder;
-    }
-    return options.find((option) => option.value === value)?.label ?? placeholder;
-  }, [value, options, emptyOption, placeholder]);
+  const selectedOption = useMemo(() => {
+    if (!value) return emptyOption ?? null;
+    return options.find((option) => option.value === value) ?? emptyOption ?? null;
+  }, [value, options, emptyOption]);
+
+  const selectedLabel = selectedOption?.label ?? placeholder;
+  const selectedGlyph = selectedOption?.glyph;
 
   const filteredOptions = useMemo(() => {
     const list = emptyOption ? [emptyOption, ...options] : options;
@@ -76,20 +81,38 @@ export function AgencySearchSelect({
           type="button"
           disabled={disabled}
           aria-label={ariaLabel}
+          aria-expanded={open}
           className={cn(
-            "flex h-9 w-full min-w-0 items-center gap-2 rounded-xl border border-default bg-default px-2.5 text-sm font-sans",
-            "transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
-            value || emptyOption ? "text-foreground" : "text-muted",
+            "flex min-w-0 items-center gap-1.5 font-sans",
+            "transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+            "hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
             agencyFocusRingClass,
             "motion-reduce:transition-none",
+            isChip
+              ? "h-8 w-fit max-w-full rounded-full border border-default bg-elevated px-2 text-xs font-semibold"
+              : "h-9 w-full rounded-xl border border-default bg-default px-2.5 text-sm",
+            value || emptyOption ? "text-foreground" : "text-muted",
             className,
           )}
         >
+          {selectedGlyph ? (
+            <span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+              {selectedGlyph}
+            </span>
+          ) : null}
           <span className="min-w-0 flex-1 truncate text-left">{selectedLabel}</span>
-          <ChevronDown className="size-3.5 shrink-0 opacity-70" aria-hidden />
+          <ChevronDown
+            className={cn(
+              "shrink-0 opacity-70 transition-transform duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+              open && "rotate-180",
+              isChip ? "size-3" : "size-3.5",
+              "motion-reduce:transition-none",
+            )}
+            aria-hidden
+          />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" size="chooser" className="z-[60] overflow-hidden">
+      <PopoverContent align="start" size="chooser" className="z-[60] overflow-hidden p-0">
         <div className="shrink-0 border-b border-border p-2">
           <div className="relative">
             <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
@@ -106,7 +129,7 @@ export function AgencySearchSelect({
             />
           </div>
         </div>
-        <div className="min-h-0 max-h-48 overflow-y-auto p-1">
+        <div className="min-h-0 max-h-64 overflow-y-auto p-1">
           {filteredOptions.length === 0 ? (
             <p className="px-3 py-4 text-center text-xs text-muted">No matches.</p>
           ) : (
@@ -118,26 +141,34 @@ export function AgencySearchSelect({
                   type="button"
                   aria-pressed={selected}
                   className={cn(
-                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-start transition-colors hover:bg-accent",
+                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-start",
+                    "transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent",
                     selected && "bg-accent text-accent-foreground",
                     agencyFocusRingClass,
                     "motion-reduce:transition-none",
                   )}
                   onClick={() => handleSelect(option.value)}
                 >
-                  <span
-                    className={cn(
-                      "min-w-0 flex-1 text-sm font-medium break-words",
-                      selected ? "text-primary" : "text-highlighted",
-                    )}
-                  >
-                    <AgencySearchHighlight text={option.label} query={searchTerm} />
-                  </span>
-                  {option.description ? (
-                    <span className="min-w-0 max-w-[45%] text-xs text-muted-foreground break-words">
-                      {option.description}
+                  {option.glyph ? (
+                    <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                      {option.glyph}
                     </span>
                   ) : null}
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span
+                      className={cn(
+                        "min-w-0 text-sm font-medium break-words",
+                        selected ? "text-primary" : "text-highlighted",
+                      )}
+                    >
+                      <AgencySearchHighlight text={option.label} query={searchTerm} />
+                    </span>
+                    {option.description ? (
+                      <span className="text-[11px] text-muted-foreground break-words">
+                        {option.description}
+                      </span>
+                    ) : null}
+                  </span>
                   {selected ? (
                     <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
                   ) : null}
