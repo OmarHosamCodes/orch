@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { checkRegression, computeRouteScore, formatCls, formatMs, scoreToGrade } from "./score.mjs";
+import { checkRegression, computeRouteScore, formatCls, formatMs } from "./score.mjs";
 
 /**
  * @param {{
