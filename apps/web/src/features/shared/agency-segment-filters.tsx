@@ -164,19 +164,25 @@ function TimeRangeCommandBar({
   );
 }
 
+type ListFilterSegment = "clients" | "projects";
+
 function ListFilterCommandBar({
   listFilters,
   searchPlaceholder,
+  segment,
   showArchiveFilter = false,
   showTrashFilter = false,
   children,
 }: {
   listFilters: ReturnType<typeof useAgencyListFilters>;
   searchPlaceholder: string;
+  segment: ListFilterSegment;
   showArchiveFilter?: boolean;
   showTrashFilter?: boolean;
   children?: ReactNode;
 }) {
+  const showProjects = segment === "projects";
+
   return (
     <AgencyCommandBar.Root busy={listFilters.isRefreshing} busyLabel="Refreshing list">
       <AgencyCommandBar.Start>
@@ -184,14 +190,6 @@ function ListFilterCommandBar({
           value={listFilters.filterTerm}
           onValueChange={listFilters.onFilterTermChange}
           placeholder={searchPlaceholder}
-        />
-        <AgencyMultiSelectFilter
-          label="All People"
-          values={listFilters.selectedPeopleIds}
-          options={listFilters.peopleOptions}
-          onValuesChange={listFilters.onSelectedPeopleIdsChange}
-          disabled={listFilters.peopleLoading}
-          searchPlaceholder="Search people"
         />
         <AgencyMultiSelectFilter
           label="All Clients"
@@ -202,29 +200,17 @@ function ListFilterCommandBar({
           searchPlaceholder="Search clients"
           statusFilter={showArchiveFilter ? listFilters.archiveStatusFilter : undefined}
         />
-        <AgencyMultiSelectFilter
-          label="All Projects"
-          values={listFilters.selectedProjectIds}
-          groups={listFilters.projectFilterGroups}
-          onValuesChange={listFilters.onSelectedProjectIdsChange}
-          disabled={listFilters.projectsLoading}
-          searchPlaceholder="Search projects or clients"
-          statusFilter={
-            showTrashFilter
-              ? listFilters.trashStatusFilter
-              : showArchiveFilter
-                ? listFilters.archiveStatusFilter
-                : undefined
-          }
-        />
-        <AgencyMultiSelectFilter
-          label="All Tasks"
-          values={listFilters.selectedTaskIds}
-          groups={listFilters.taskFilterGroups}
-          onValuesChange={listFilters.onSelectedTaskIdsChange}
-          disabled={listFilters.tasksLoading}
-          searchPlaceholder="Search tasks, projects, or clients"
-        />
+        {showProjects ? (
+          <AgencyMultiSelectFilter
+            label="All Projects"
+            values={listFilters.selectedProjectIds}
+            groups={listFilters.projectFilterGroups}
+            onValuesChange={listFilters.onSelectedProjectIdsChange}
+            disabled={listFilters.projectsLoading}
+            searchPlaceholder="Search projects or clients"
+            statusFilter={showTrashFilter ? listFilters.trashStatusFilter : undefined}
+          />
+        ) : null}
       </AgencyCommandBar.Start>
       <AgencyCommandBar.End>
         <AgencyCommandBar.Apply
@@ -565,6 +551,7 @@ function ClientsFiltersRoot({
               <ListFilterCommandBar
                 listFilters={listFilters}
                 searchPlaceholder="Filter clients"
+                segment="clients"
                 showArchiveFilter
               >
                 <Popover open={newClientOpen} onOpenChange={setNewClientOpen}>
@@ -702,7 +689,7 @@ function ProjectsFiltersRoot({
               <ListFilterCommandBar
                 listFilters={listFilters}
                 searchPlaceholder="Search projects"
-                showArchiveFilter
+                segment="projects"
                 showTrashFilter
               >
                 <Button
