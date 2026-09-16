@@ -15,6 +15,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
 import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
@@ -372,12 +373,13 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                   >
                     Review Date
                   </Label>
-                  <Input
+                  <AgencyDateField
                     id={`review-${assumption.id}`}
                     value={assumption.reviewDate ?? ""}
-                    type="date"
-                    className="rounded-xl"
-                    onChange={(event) =>
+                    displayStyle="short"
+                    className="h-8 rounded-xl"
+                    aria-label="Review date"
+                    onChange={(next) =>
                       mutateBlock(tabId, block.id, (entry) => {
                         if (entry.type !== "assumption-tracker") {
                           return;
@@ -388,7 +390,21 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                         if (!target) {
                           return;
                         }
-                        target.reviewDate = event.target.value || null;
+                        target.reviewDate = next || null;
+                      })
+                    }
+                    onClear={() =>
+                      mutateBlock(tabId, block.id, (entry) => {
+                        if (entry.type !== "assumption-tracker") {
+                          return;
+                        }
+                        const target = entry.assumptions.find(
+                          (candidate) => candidate.id === assumption.id,
+                        );
+                        if (!target) {
+                          return;
+                        }
+                        target.reviewDate = null;
                       })
                     }
                   />

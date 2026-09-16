@@ -18,7 +18,7 @@ import {
 } from "@/features/shared/command-bar/agency-command-bar";
 import { RangePresetChooser } from "@/features/shared/command-bar/range-preset-chooser";
 import { MemberProfileActivityRails } from "@/features/member-profile/member-profile-activity-rails";
-import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import {
   MemberProfileLeaveRangePicker,
   MemberProfileOffDayRangePanel,
@@ -699,7 +699,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
               <Label htmlFor="review-date" className={agencyFormLabelClass}>
                 Review date
               </Label>
-              <MemberProfileDatePicker
+              <AgencyDateField
                 id="review-date"
                 value={viewModel.reviewDraft.reviewDate}
                 onChange={(value) => viewModel.setReviewDraft({ reviewDate: value })}
@@ -901,7 +901,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
               </div>
               <div className={agencyFormFieldClass}>
                 <Label className={agencyFormLabelClass}>Date of birth</Label>
-                <MemberProfileDatePicker
+                <AgencyDateField
                   id="hr-dob"
                   value={viewModel.hrDraft.dateOfBirth}
                   onChange={(value) => viewModel.setHrDraft({ dateOfBirth: value })}

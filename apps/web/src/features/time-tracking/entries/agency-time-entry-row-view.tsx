@@ -12,7 +12,7 @@ import {
   AgencyTimeEntryPlayAction,
 } from "@/features/time-tracking/entries/agency-time-entry-actions";
 import { AgencyBillableToggleMenuItem } from "@/features/time-tracking/entries/agency-billable-toggle-menu-item";
-import { AgencyTimeEntryDatePicker } from "@/features/time-tracking/entries/agency-time-entry-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { AgencyTimeEntryLinkHoverTrigger } from "@/features/time-tracking/agency-time-entry-link-hover-trigger";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -310,10 +310,13 @@ export function AgencyTimeEntryRowView({
         </div>
 
         <div className={agencyTimeEntryRailCalendarClass}>
-          <AgencyTimeEntryDatePicker
-            date={editDraft.date}
+          <AgencyDateField
+            variant="icon"
+            value={editDraft.date}
             disabled={editSaving || rowUpdating}
-            onDateChange={onStartDateChange}
+            onChange={onStartDateChange}
+            align="center"
+            aria-label="Entry date"
           />
         </div>
 

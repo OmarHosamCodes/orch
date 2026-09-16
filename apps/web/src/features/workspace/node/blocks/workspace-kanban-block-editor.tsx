@@ -3,6 +3,7 @@ import { Calendar, ChevronUp, Expand, Plus, Trash2, User } from "lucide-react";
 import { useMemo, useState, type DragEvent } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -246,27 +247,29 @@ export function WorkspaceKanbanBlockEditor({
                                   entry.assignee = event.target.value.slice(0, 120);
                                 })
                               }
-                            />
-                          </div>
+                          />
                         </div>
 
                         <div className="space-y-1">
                           <label className="px-1 text-xs font-semibold text-muted-foreground">
                             Due date
                           </label>
-                          <div className="relative">
-                            <Calendar className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                              value={card.dueDate ?? ""}
-                              type="date"
-                              className="rounded-xl pl-9"
-                              onChange={(event) =>
-                                mutateKanbanCard(tabId, block.id, card.id, (entry) => {
-                                  const nextValue = event.target.value;
-                                  entry.dueDate = nextValue || null;
-                                })
-                              }
-                            />
+                          <AgencyDateField
+                            value={card.dueDate ?? ""}
+                            displayStyle="short"
+                            className="h-8 rounded-xl"
+                            aria-label="Due date"
+                            onChange={(next) =>
+                              mutateKanbanCard(tabId, block.id, card.id, (entry) => {
+                                entry.dueDate = next || null;
+                              })
+                            }
+                            onClear={() =>
+                              mutateKanbanCard(tabId, block.id, card.id, (entry) => {
+                                entry.dueDate = null;
+                              })
+                            }
+                          />
                           </div>
                         </div>
                       </div>

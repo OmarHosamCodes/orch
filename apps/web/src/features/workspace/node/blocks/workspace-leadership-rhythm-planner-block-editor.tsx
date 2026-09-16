@@ -18,6 +18,7 @@ import { Calendar, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
@@ -318,13 +319,19 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
 
                   <div>
                     <BlockFieldLabel className="mb-1.5 block">Next Date</BlockFieldLabel>
-                    <Input
-                      type="date"
+                    <AgencyDateField
                       value={meeting.nextDate ?? ""}
-                      className="rounded-xl"
-                      onChange={(event) =>
+                      displayStyle="short"
+                      className="h-8 rounded-xl"
+                      aria-label="Next date"
+                      onChange={(next) =>
                         mutateMeeting(meeting.id, (entry) => {
-                          entry.nextDate = event.target.value || null;
+                          entry.nextDate = next || null;
+                        })
+                      }
+                      onClear={() =>
+                        mutateMeeting(meeting.id, (entry) => {
+                          entry.nextDate = null;
                         })
                       }
                     />

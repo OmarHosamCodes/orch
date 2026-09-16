@@ -5,10 +5,11 @@ import {
   type WorkspaceTaskListBlock,
   type WorkspaceTaskPriority,
 } from "@orch/workspace";
-import { Calendar, ChevronUp, Clock, Plus, Settings2, Trash2 } from "lucide-react";
+import { ChevronUp, Clock, Plus, Settings2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-checkbox";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
@@ -178,19 +179,22 @@ export function WorkspaceTaskListBlockEditor({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <BlockFieldLabel>Due Date</BlockFieldLabel>
-                    <div className="relative">
-                      <Calendar className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        type="date"
-                        value={task.dueDate ?? ""}
-                        className="rounded-xl pl-10"
-                        onChange={(event) =>
-                          updateTask(task.id, (entry) => {
-                            entry.dueDate = event.target.value || null;
-                          })
-                        }
-                      />
-                    </div>
+                    <AgencyDateField
+                      value={task.dueDate ?? ""}
+                      displayStyle="short"
+                      className="h-8 rounded-xl"
+                      aria-label="Due date"
+                      onChange={(next) =>
+                        updateTask(task.id, (entry) => {
+                          entry.dueDate = next || null;
+                        })
+                      }
+                      onClear={() =>
+                        updateTask(task.id, (entry) => {
+                          entry.dueDate = null;
+                        })
+                      }
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

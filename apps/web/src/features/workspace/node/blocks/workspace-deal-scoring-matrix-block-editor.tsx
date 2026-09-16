@@ -13,6 +13,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
 import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
@@ -268,13 +269,19 @@ export function WorkspaceDealScoringMatrixBlockEditor({
                   <Label>
                     <BlockFieldLabel>Due Date</BlockFieldLabel>
                   </Label>
-                  <Input
+                  <AgencyDateField
                     value={deal.dueDate ?? ""}
-                    type="date"
-                    className="w-full rounded-xl"
-                    onChange={(event) =>
+                    displayStyle="short"
+                    className="h-8 w-full rounded-xl"
+                    aria-label="Due date"
+                    onChange={(next) =>
                       mutateDeal(deal.id, (target) => {
-                        target.dueDate = event.target.value || null;
+                        target.dueDate = next || null;
+                      })
+                    }
+                    onClear={() =>
+                      mutateDeal(deal.id, (target) => {
+                        target.dueDate = null;
                       })
                     }
                   />

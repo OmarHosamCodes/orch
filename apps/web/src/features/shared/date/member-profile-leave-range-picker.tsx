@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { agencyFocusRingClass } from "@/features/shared/agency-ui";
+import {
+  formatAgencyDisplayDay,
+  formatAgencyDateKey,
+  parseAgencyDateKey,
+} from "@/features/shared/date/agency-date-field";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
@@ -13,35 +18,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 /** Matches `--motion-ease-out` (ease-out-quart). */
 const EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
-function parseLocalDateKey(value: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  if (!match) return undefined;
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function formatLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatDisplayDay(value: string): string {
-  const date = parseLocalDateKey(value);
-  if (!date) return value || "Pick a date";
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function rangeLabel(startDate: string, endDate: string, emptyLabel: string): string {
   if (!startDate || !endDate) return emptyLabel;
-  if (startDate === endDate) return formatDisplayDay(startDate);
-  return `${formatDisplayDay(startDate)} → ${formatDisplayDay(endDate)}`;
+  if (startDate === endDate) return formatAgencyDisplayDay(startDate);
+  return `${formatAgencyDisplayDay(startDate)} → ${formatAgencyDisplayDay(endDate)}`;
 }
 
 type RangeValue = { startDate: string; endDate: string };
@@ -78,8 +59,8 @@ export function MemberProfileOffDayRangePanel({
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  const from = parseLocalDateKey(draftStart);
-  const to = parseLocalDateKey(draftEnd);
+  const from = parseAgencyDateKey(draftStart);
+  const to = parseAgencyDateKey(draftEnd);
   const selected: DateRange | undefined = from ? { from, to: to ?? from } : undefined;
   const canConfirm = Boolean(draftStart && draftEnd && draftEnd >= draftStart);
   const draftLabel = rangeLabel(draftStart, draftEnd, emptyLabel);
@@ -98,11 +79,11 @@ export function MemberProfileOffDayRangePanel({
           if (lockStart && from) {
             const picked = range.to ?? range.from;
             const end = picked < from ? from : picked;
-            setDraftEnd(formatLocalDateKey(end));
+            setDraftEnd(formatAgencyDateKey(end));
             return;
           }
-          setDraftStart(formatLocalDateKey(range.from));
-          setDraftEnd(formatLocalDateKey(range.to ?? range.from));
+          setDraftStart(formatAgencyDateKey(range.from));
+          setDraftEnd(formatAgencyDateKey(range.to ?? range.from));
         }}
         autoFocus
       />

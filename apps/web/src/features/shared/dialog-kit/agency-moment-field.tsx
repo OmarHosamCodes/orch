@@ -1,6 +1,6 @@
 import { Clock } from "lucide-react";
 
-import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { AgencyKitReveal } from "@/features/shared/dialog-kit/agency-kit-reveal";
 import {
   agencyFocusRingClass,
@@ -45,7 +45,7 @@ export function AgencyMomentField({
     <div className={isChip ? "flex min-w-0 flex-col gap-1" : agencyFormFieldClass}>
       {label && !isChip ? <span className={agencyFormLabelClass}>{label}</span> : null}
       <div className="flex min-w-0 flex-col gap-2">
-        <MemberProfileDatePicker
+        <AgencyDateField
           id={dateId}
           value={dateValue}
           onChange={onDateChange}

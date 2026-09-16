@@ -5,7 +5,7 @@ import { AgencyBillableToggleMenuItem } from "@/features/time-tracking/entries/a
 import { AgencyDescriptionDatalistField } from "@/features/time-tracking/agency-description-datalist-field";
 import { AgencyTimeEntryLinkHoverTrigger } from "@/features/time-tracking/agency-time-entry-link-hover-trigger";
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
-import { AgencyTimeEntryDatePicker } from "@/features/time-tracking/entries/agency-time-entry-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { formatAgencyDayLabel } from "@/features/time-tracking/format-agency-day-label";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -264,10 +264,13 @@ export function AgencyTimeTrackerView({ view }: AgencyTimeTrackerViewProps) {
                   decorative
                   className="h-5 self-center data-vertical:h-5 data-vertical:self-center"
                 />
-                <AgencyTimeEntryDatePicker
-                  date={view.manualDraft.date}
+                <AgencyDateField
+                  variant="label"
+                  value={view.manualDraft.date}
                   disabled={view.isManualCreatePending}
-                  onDateChange={view.onManualDateChange}
+                  onChange={view.onManualDateChange}
+                  align="center"
+                  aria-label="Entry date"
                   label={
                     view.manualDraft.date ? formatAgencyDayLabel(view.manualDraft.date) : "Date"
                   }

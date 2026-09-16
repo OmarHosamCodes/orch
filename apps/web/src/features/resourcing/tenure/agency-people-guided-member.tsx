@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import {
   agencyFocusRingClass,
@@ -313,7 +313,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-hr-dob">
                         Date of birth
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-hr-dob"
                         value={hrDraft.dateOfBirth}
                         disabled={!canEditHr}
@@ -609,7 +609,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-rate-effective">
                         Effective from
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-rate-effective"
                         value={rateDraft.effectiveFrom}
                         disabled={!canEditRates}
@@ -636,7 +636,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-tenure-intern-start">
                         Intern start
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-tenure-intern-start"
                         value={tenureDraft.internStart}
                         disabled={!canEditTenure}
@@ -650,7 +650,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-tenure-intern-end">
                         Intern end
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-tenure-intern-end"
                         value={tenureDraft.internEnd}
                         disabled={!canEditTenure}

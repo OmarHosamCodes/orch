@@ -11,6 +11,7 @@ import { Plus, Trash2, Users } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-checkbox";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
@@ -297,14 +298,20 @@ export function WorkspaceCohortHealthDashboardBlockEditor({
                       >
                         Start Date
                       </Label>
-                      <Input
+                      <AgencyDateField
                         id={`start-${cohort.id}`}
-                        type="date"
                         value={cohort.startDate ?? ""}
-                        className="rounded-xl"
-                        onChange={(event) =>
+                        displayStyle="short"
+                        className="h-8 rounded-xl"
+                        aria-label="Start date"
+                        onChange={(next) =>
                           mutateCohort(cohort.id, (entry) => {
-                            entry.startDate = event.target.value || null;
+                            entry.startDate = next || null;
+                          })
+                        }
+                        onClear={() =>
+                          mutateCohort(cohort.id, (entry) => {
+                            entry.startDate = null;
                           })
                         }
                       />

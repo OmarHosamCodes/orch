@@ -28,6 +28,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-checkbox";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
@@ -986,13 +987,14 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                       <label className="px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
                         Due Date
                       </label>
-                      <Input
+                      <AgencyDateField
                         value={item.task.dueDate ?? ""}
-                        type="date"
-                        className="rounded-xl"
+                        displayStyle="short"
+                        className="h-8 rounded-xl"
                         disabled={isDerivedTask(item)}
                         aria-label={`Due date for ${item.task.text || "task"}`}
-                        onChange={(event) => updateTaskDueDate(item, event.target.value)}
+                        onChange={(next) => updateTaskDueDate(item, next)}
+                        onClear={() => updateTaskDueDate(item, "")}
                       />
                     </div>
 
