@@ -56,6 +56,12 @@ export type OrchUIDataParts = {
     status: "pending";
     note: string;
   };
+  orchCreatedObject: {
+    kind: "node" | "block" | "knowledge";
+    id: string;
+    title: string;
+    href: string;
+  };
 };
 
 export type OrchAgencyQuestionAnswer = {
@@ -217,47 +223,33 @@ function toolCallToPrimaryDataPart(tool: AgentToolCall): OrchUIMessage["parts"][
   if (tool.status !== "completed" || !isRecord(tool.output)) return null;
 
   switch (tool.name) {
-    case "ask_agency_question": {
+    case "apply_canvas_action":
+    case "apply_knowledge_action": {
       const output = tool.output;
-      if (
-        typeof output.questionId !== "string" ||
-        typeof output.prompt !== "string" ||
-        (output.kind !== "single" && output.kind !== "multi" && output.kind !== "text") ||
-        !Array.isArray(output.options) ||
-        typeof output.allowFreeText !== "boolean" ||
-        output.status !== "pending" ||
-        typeof output.note !== "string"
-      ) {
-        return null;
-      }
-      const options = output.options.flatMap((option) => {
-        if (
-          !isRecord(option) ||
-          typeof option.id !== "string" ||
-          typeof option.label !== "string"
-        ) {
-          return [];
-        }
-        return [
-          {
-            id: option.id,
-            label: option.label,
-            ...(typeof option.hint === "string" ? { hint: option.hint } : {}),
-          },
-        ];
-      });
+      const title = typeof output.label === "string" ? output.label : "Created";
+      const href = typeof output.boardHref === "string" ? output.boardHref : "/canvas";
+      const id =
+        typeof output.objectId === "string"
+          ? output.objectId
+          : typeof output.blockId === "string"
+            ? output.blockId
+            : typeof output.nodeId === "string"
+              ? output.nodeId
+              : null;
+      if (!id) return null;
       return {
-        type: "data-orchQuestion",
-        id: output.questionId,
+        type: "data-orchCreatedObject",
+        id,
         data: {
-          questionId: output.questionId,
-          prompt: output.prompt,
-          kind: output.kind,
-          options,
-          allowFreeText: output.allowFreeText,
-          ...(typeof output.context === "string" ? { context: output.context } : {}),
-          status: "pending",
-          note: output.note,
+          kind:
+            tool.name === "apply_knowledge_action"
+              ? "knowledge"
+              : typeof output.blockId === "string"
+                ? "block"
+                : "node",
+          id,
+          title,
+          href,
         },
       };
     }
@@ -435,6 +427,14 @@ export function createOrchEventToChunkMapper() {
             type: "data-orchPlan",
             id: event.plan.planId,
             data: event.plan,
+          },
+        ];
+      case "created_object":
+        return [
+          {
+            type: "data-orchCreatedObject",
+            id: event.object.id,
+            data: event.object,
           },
         ];
       case "proposal":

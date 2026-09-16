@@ -34,6 +34,7 @@ import {
   handleWebSocketMessage,
   type AgencyWebSocketData,
 } from "./lib/ws-handler";
+import { startAgentDetectionScheduler } from "./lib/agent-detection";
 import { startNotificationDigestScheduler } from "./lib/notification-digest";
 import { sendWebPushForNotification } from "./lib/web-push";
 
@@ -169,6 +170,7 @@ const port = env.PORT ?? 7000;
 await bootstrapAgencyLiveRedisSubscriber();
 registerNotificationPushHandler(sendWebPushForNotification);
 startNotificationDigestScheduler();
+startAgentDetectionScheduler();
 void recoverStaleRuns();
 
 // Log startup information in development

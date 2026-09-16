@@ -3,9 +3,7 @@ import { createWorkspaceId } from "@orch/workspace";
 import { z } from "zod";
 
 import { agencyActionLabel, agencyActionSchema, agencyDraftPlanSchema } from "./agency-actions";
-import { createAskAgencyQuestionTool } from "./agency-question";
 import type { AgencyAgentRuntime, DashboardAgentToolPreset } from "./types";
-import { createUiPresentTool } from "./ui-present-tool";
 
 export const AGENCY_LIST_DEFAULT_PAGE_SIZE = 10;
 export const AGENCY_PROJECTS_DEFAULT_LIMIT = 50;
@@ -72,8 +70,6 @@ export function takeTopNWithTruncated<T>(items: T[], limit: number) {
 
 function buildAgencyReadTools(runtime: AgencyAgentRuntime) {
   return [
-    createUiPresentTool(),
-    createAskAgencyQuestionTool(),
     tool({
       name: "get_current_time",
       description: "Get the current ISO timestamp for time-sensitive planning questions.",
@@ -440,7 +436,7 @@ function buildAgencyProposeTool(runtime: AgencyAgentRuntime) {
   return tool({
     name: "propose_agency_action",
     description:
-      "Propose one Agency write with before/after. Does not apply the write. Then call ui_present to illustrate before/after and ask the user to Approve or Reject. action is { type, ...fields } with type time_entry.*|timer.*|project.*|task.*|tag.*|client.*.",
+      "Propose one Agency write with before/after. Does not apply the write. The user must Approve or Reject. action is { type, ...fields } with type time_entry.*|timer.*|project.*|task.*|tag.*|client.*.",
     inputSchema: z.object({
       // Opaque at schema layer — agencyActionSchema.parse in execute.
       action: z.any(),
@@ -464,7 +460,7 @@ function buildAgencyProposeTool(runtime: AgencyAgentRuntime) {
       return {
         ...proposal,
         action: agencyActionSchema.parse(proposal.action),
-        note: "Pending approval. Call ui_present with a before/after illustration, then tell the user to Approve or Reject.",
+        note: "Pending approval. Tell the user to Approve or Reject.",
       };
     },
   });
@@ -472,19 +468,12 @@ function buildAgencyProposeTool(runtime: AgencyAgentRuntime) {
 
 export function buildAgencyAgentTools(
   runtime: AgencyAgentRuntime,
-  preset: DashboardAgentToolPreset = "ask",
+  _preset: DashboardAgentToolPreset = "agent",
 ) {
-  const reads = buildAgencyReadTools(runtime);
-  switch (preset) {
-    case "plan":
-      return [...reads, buildAgencyPlanTool()];
-    case "agent":
-      return [...reads, buildAgencyProposeTool(runtime)];
-    case "ask":
-      return reads;
-    default: {
-      const _exhaustive: never = preset;
-      return _exhaustive;
-    }
-  }
+  void _preset;
+  return [
+    ...buildAgencyReadTools(runtime),
+    buildAgencyPlanTool(),
+    buildAgencyProposeTool(runtime),
+  ];
 }

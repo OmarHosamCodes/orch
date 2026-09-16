@@ -76,8 +76,8 @@ import {
 import { getKnowledgeObject, queryKnowledgeObjects } from "../workspace/knowledge-service";
 import {
   createAgencyProposalRecord,
-  createCanvasProposalRecord,
-  createKnowledgeProposalRecord,
+  applyCanvasForYou,
+  applyKnowledgeForYou,
 } from "./agency-proposals";
 import {
   buildDashboardConversationDeletionResult,
@@ -393,8 +393,8 @@ function createCanvasAgentRuntime(
   teamId?: string | null,
 ): CanvasAgentRuntime {
   return {
-    createProposal: async (input) =>
-      createCanvasProposalRecord(actorUserId, {
+    applyCanvasAction: async (input) =>
+      applyCanvasForYou(actorUserId, {
         action: input.action,
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
@@ -414,8 +414,8 @@ function createCanvasAgentRuntime(
         objectType: input.objectType,
         teamId: input.teamId ?? teamId ?? undefined,
       }),
-    createKnowledgeProposal: async (input) =>
-      createKnowledgeProposalRecord(actorUserId, {
+    applyKnowledgeAction: async (input) =>
+      applyKnowledgeForYou(actorUserId, {
         action: input.action,
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
@@ -1196,7 +1196,7 @@ async function executeDashboardConversationRun(args: {
         await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
-      if (event.type === "plan" || event.type === "proposal" || event.type === "question") {
+      if (event.type === "plan" || event.type === "proposal" || event.type === "question" || event.type === "created_object") {
         await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }

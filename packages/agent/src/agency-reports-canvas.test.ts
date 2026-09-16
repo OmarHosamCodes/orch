@@ -58,24 +58,19 @@ describe("agency month-reports bootstrap gates", () => {
     expect(shouldBootstrapAgencyMonthReports("agent")).toBe(false);
   });
 
-  test("retry notes prefer ui_present and steer Plan/Agent away from hours canvas", () => {
-    expect(agencyToolRetryNote("ask")).toContain("ui_present a schema canvas");
-    expect(agencyToolRetryNote("plan")).toContain("draft_agency_plan");
-    expect(agencyToolRetryNote("plan")).toContain("ui_present a schema plan overview");
-    expect(agencyToolRetryNote("plan")).toContain("dump a hours canvas");
-    expect(agencyToolRetryNote("agent")).toContain("propose_agency_action");
-    expect(agencyToolRetryNote("agent")).toContain("ui_present before/after");
+  test("retry notes ask for Agency tools without ui_present", () => {
+    expect(agencyToolRetryNote("ask")).toContain("get_agency_reports_summary");
+    expect(agencyToolRetryNote("ask")).not.toContain("ui_present");
+    expect(agencyToolRetryNote("agent")).toContain("get_agency_reports_summary");
   });
 
-  test("ui_present retry notes require a canvas after tools ran", () => {
-    expect(agencyUiPresentRetryNote("ask")).toContain("did not call ui_present");
-    expect(agencyUiPresentRetryNote("plan")).toContain("schema overview of the plan");
-    expect(agencyUiPresentRetryNote("agent")).toContain("before/after schema canvas");
+  test("ui_present retry notes are retired", () => {
+    expect(agencyUiPresentRetryNote("ask")).not.toContain("ui_present");
   });
 
-  test("question retry note is Plan-only", () => {
+  test("question retry note is retired", () => {
     expect(agencyQuestionRetryNote("ask")).toBeNull();
     expect(agencyQuestionRetryNote("agent")).toBeNull();
-    expect(agencyQuestionRetryNote("plan")).toContain("ask_agency_question");
+    expect(agencyQuestionRetryNote("plan")).toBeNull();
   });
 });

@@ -501,7 +501,7 @@ export async function confirmAgencyPlan(
   return { planId: plan.planId, proposals };
 }
 
-export async function createCanvasProposalRecord(
+export async function applyCanvasForYou(
   actorUserId: string,
   input: {
     action: unknown;
@@ -526,8 +526,7 @@ export async function createCanvasProposalRecord(
   const snapshotNodes = input.nodes ?? (await getWorkspaceSnapshot(actorUserId, {})).nodes;
   const preview = await applyCanvasAction(snapshotNodes, action);
   const storedAction = stampCanvasCreateIds(action, preview.after);
-  const now = new Date();
-  const id = createWorkspaceId("aap");
+  const saved = await saveWorkspaceNodes(actorUserId, { nodes: preview.nextNodes });
   const label = input.label?.trim() || canvasActionLabel(storedAction);
   const createdNodeId =
     storedAction.type === "node.create" && preview.after && typeof preview.after === "object"
@@ -539,41 +538,38 @@ export async function createCanvasProposalRecord(
           ? storedAction.nodeId
           : null
         : null;
+  const blockId =
+    storedAction.type.startsWith("block.") && "blockId" in storedAction
+      ? String(storedAction.blockId)
+      : null;
   const boardHref = createdNodeId ? `/node/${createdNodeId}` : "/canvas";
-
-  await db.insert(agentAgencyProposal).values({
-    id,
-    domain: "canvas",
-    teamId:
-      input.teamId ?? (storedAction.type === "node.create" ? (storedAction.teamId ?? null) : null),
-    actorUserId,
-    conversationId: input.conversationId ?? null,
-    messageId: null,
-    action: storedAction,
-    beforeState: preview.before,
-    afterState: preview.after,
-    label,
-    status: "pending",
-    illustrationArtifactId: null,
-    error: null,
-    expiresAt: new Date(now.getTime() + PROPOSAL_TTL_MS),
-    createdAt: now,
-    updatedAt: now,
-  });
-
+  void saved;
+  void input.conversationId;
   return {
-    proposalId: id,
-    status: "pending" as const,
-    action: storedAction,
-    before: preview.before,
-    after: preview.after,
-    nextNodes: preview.nextNodes,
+    applied: true as const,
+    nodeId: createdNodeId || null,
+    blockId,
     label,
     boardHref,
+    after: preview.after,
+    nextNodes: preview.nextNodes,
   };
 }
 
-export async function createKnowledgeProposalRecord(
+export async function createCanvasProposalRecord(
+  actorUserId: string,
+  input: {
+    action: unknown;
+    label?: string;
+    conversationId?: string | null;
+    teamId?: string | null;
+    nodes?: WorkspaceNode[];
+  },
+) {
+  return applyCanvasForYou(actorUserId, input);
+}
+
+export async function applyKnowledgeForYou(
   actorUserId: string,
   input: {
     action: unknown;
@@ -586,36 +582,43 @@ export async function createKnowledgeProposalRecord(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const action = knowledgeActionSchema.parse(input.action);
-  const now = new Date();
-  const id = createWorkspaceId("aap");
-  const label = input.label?.trim() || knowledgeActionLabel(action);
-  await db.insert(agentAgencyProposal).values({
-    id,
-    domain: "knowledge",
-    teamId: input.teamId ?? null,
-    actorUserId,
-    conversationId: input.conversationId ?? null,
-    messageId: null,
+  const applied = await applyKnowledgeAction(actorUserId, {
     action,
-    beforeState: null,
-    afterState: action,
-    label,
-    status: "pending",
-    illustrationArtifactId: null,
-    error: null,
-    expiresAt: new Date(now.getTime() + PROPOSAL_TTL_MS),
-    createdAt: now,
-    updatedAt: now,
+    teamId: input.teamId,
   });
+  const objectId =
+    applied && typeof applied === "object" && "objectId" in applied
+      ? String((applied as { objectId?: string }).objectId ?? "")
+      : null;
+  const after =
+    applied && typeof applied === "object" && "after" in applied
+      ? (applied as { after?: { objectType?: string; title?: string } }).after
+      : null;
+  const objectType =
+    after && typeof after === "object" && "objectType" in after
+      ? String((after as { objectType?: string }).objectType ?? "")
+      : null;
+  const label = input.label?.trim() || knowledgeActionLabel(action);
+  void input.conversationId;
   return {
-    proposalId: id,
-    status: "pending" as const,
-    action,
-    before: null,
-    after: action,
+    applied: true as const,
+    objectId: objectId || null,
+    objectType: typeof objectType === "string" ? objectType : null,
     label,
-    boardHref: "/canvas",
+    boardHref: objectId ? `/canvas` : "/canvas",
   };
+}
+
+export async function createKnowledgeProposalRecord(
+  actorUserId: string,
+  input: {
+    action: unknown;
+    label?: string;
+    conversationId?: string | null;
+    teamId?: string | null;
+  },
+) {
+  return applyKnowledgeForYou(actorUserId, input);
 }
 
 export async function confirmCanvasPlan(
@@ -626,29 +629,23 @@ export async function confirmCanvasPlan(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const plan = canvasDraftPlanSchema.parse(input.plan);
-  const proposals = [];
+  const created = [];
   let draftNodes = (await getWorkspaceSnapshot(actorUserId, {})).nodes;
   let lastCreated = null as ReturnType<typeof readLastCreatedCanvasTarget>;
   for (const step of plan.steps) {
     const boundAction = bindCanvasPlanStepAction(step.action, draftNodes, lastCreated);
-    const proposal = await createCanvasProposalRecord(actorUserId, {
+    const applied = await applyCanvasForYou(actorUserId, {
       action: boundAction,
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
       nodes: draftNodes,
     });
-    proposals.push(proposal);
-    draftNodes = proposal.nextNodes;
-    lastCreated = readLastCreatedCanvasTarget(boundAction, proposal.after) ?? lastCreated;
+    created.push(applied);
+    draftNodes = applied.nextNodes;
+    lastCreated = readLastCreatedCanvasTarget(boundAction, applied.after) ?? lastCreated;
   }
-  await appendConfirmProposalsToAssistantMessage(
-    actorUserId,
-    input.conversationId,
-    "propose_canvas_action",
-    proposals,
-  );
-  return { planId: plan.planId, proposals };
+  return { planId: plan.planId, proposals: [], created };
 }
 
 async function loadProposalForActor(
@@ -814,23 +811,17 @@ export async function confirmKnowledgePlan(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const plan = knowledgeDraftPlanSchema.parse(input.plan);
-  const proposals = [];
+  const created = [];
   for (const step of plan.steps) {
-    const proposal = await createKnowledgeProposalRecord(actorUserId, {
+    const applied = await applyKnowledgeForYou(actorUserId, {
       action: step.action,
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
     });
-    proposals.push(proposal);
+    created.push(applied);
   }
-  await appendConfirmProposalsToAssistantMessage(
-    actorUserId,
-    input.conversationId,
-    "propose_knowledge_action",
-    proposals,
-  );
-  return { planId: plan.planId, proposals };
+  return { planId: plan.planId, proposals: [], created };
 }
 
 export async function confirmAgentPlan(

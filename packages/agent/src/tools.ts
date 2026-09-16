@@ -61,7 +61,6 @@ import { tool } from "@openrouter/sdk/lib/tool";
 import { z } from "zod";
 
 import { type CanvasAction, canvasActionSchema } from "./canvas-actions";
-import { createUiPresentTool } from "./ui-present-tool";
 
 type DashboardSearchMatch = {
   matchType: "node" | "tab" | "block";
@@ -2809,7 +2808,6 @@ export function buildDashboardAgentTools(
       : "Prefer the summary response and avoid full raw payloads unless the answer is blocked or you are preparing a replace mutation.";
 
   const tools = [
-    createUiPresentTool(),
     tool({
       name: "list_dashboard_nodes",
       description: "List the current dashboard nodes with structural summaries.",

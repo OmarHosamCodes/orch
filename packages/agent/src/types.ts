@@ -31,7 +31,7 @@ export {
   type UiSchemaNode,
 } from "./ui-artifact";
 
-export const DEFAULT_AGENT_MODEL = "openai/gpt-5-nano";
+export const DEFAULT_AGENT_MODEL = "openrouter/auto-beta";
 export const DASHBOARD_CONVERSATION_TITLE_LIMIT = 80;
 export const DASHBOARD_CONVERSATION_HISTORY_LIMIT = 50;
 export const DASHBOARD_CONVERSATION_MESSAGE_WINDOW = 20;
@@ -350,6 +350,16 @@ export const agentChatTurnStreamPlanEventSchema = z.object({
   }),
 });
 
+export const agentChatTurnStreamCreatedObjectEventSchema = z.object({
+  type: z.literal("created_object"),
+  object: z.object({
+    kind: z.enum(["node", "block", "knowledge"]),
+    id: z.string().trim().min(1),
+    title: z.string().trim().min(1).max(200),
+    href: z.string().trim().min(1),
+  }),
+});
+
 export const agentChatTurnStreamProposalEventSchema = z.object({
   type: z.literal("proposal"),
   proposal: z.object({
@@ -405,6 +415,7 @@ export const agentChatTurnStreamEventSchema = z.discriminatedUnion("type", [
   agentChatTurnStreamToolEventSchema,
   agentChatTurnStreamArtifactEventSchema,
   agentChatTurnStreamPlanEventSchema,
+  agentChatTurnStreamCreatedObjectEventSchema,
   agentChatTurnStreamProposalEventSchema,
   agentChatTurnStreamQuestionEventSchema,
   agentChatTurnStreamErrorEventSchema,
@@ -689,18 +700,17 @@ export type AgencyAgentRuntime = {
 };
 
 export type CanvasAgentRuntime = {
-  createProposal: (input: {
+  applyCanvasAction: (input: {
     action: unknown;
     label?: string;
     conversationId?: string | null;
   }) => Promise<{
-    proposalId: string;
-    status: "pending";
-    action: unknown;
-    before: unknown;
-    after: unknown;
+    applied: true;
+    nodeId: string | null;
+    blockId: string | null;
     label: string;
-    boardHref?: string | null;
+    boardHref: string;
+    after: unknown;
   }>;
   queryKnowledge?: (input: {
     teamId?: string;
@@ -714,17 +724,15 @@ export type CanvasAgentRuntime = {
     objectType?: KnowledgeObjectType;
     teamId?: string;
   }) => Promise<unknown>;
-  createKnowledgeProposal?: (input: {
+  applyKnowledgeAction?: (input: {
     action: unknown;
     label?: string;
     conversationId?: string | null;
   }) => Promise<{
-    proposalId: string;
-    status: "pending";
-    action: unknown;
-    before: unknown;
-    after: unknown;
+    applied: true;
+    objectId: string | null;
+    objectType: string | null;
     label: string;
-    boardHref?: string | null;
+    boardHref: string;
   }>;
 };

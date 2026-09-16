@@ -13,6 +13,10 @@ export type DashboardAgentStreamEvent =
   | { type: "token"; delta: string }
   | { type: "tool"; tool: AgentToolCall }
   | { type: "artifact"; artifact: AiUiArtifact }
+  | {
+      type: "created_object";
+      object: { kind: "node" | "block" | "knowledge"; id: string; title: string; href: string };
+    }
   | { type: "plan"; plan: AgentStreamDraftPlan }
   | { type: "question"; question: AgencyAgentQuestion }
   | {

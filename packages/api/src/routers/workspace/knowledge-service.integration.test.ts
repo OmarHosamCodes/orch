@@ -304,7 +304,7 @@ describe("workspace knowledge dual-write", () => {
     expect(board.items.some((item) => item.id === project.id && item.kind === "agency")).toBe(true);
   });
 
-  test("private note capture applies immediately and team create stays pending", async () => {
+  test("private and team note capture apply immediately", async () => {
     const ownerUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Capture Team" });
     const privateNote = await knowledgeCapture.captureKnowledgeAction(ownerUserId, {
@@ -332,12 +332,12 @@ describe("workspace knowledge dual-write", () => {
       },
       teamId: team.id,
     });
-    expect(teamNote.status).toBe("pending");
-    expect(teamNote.proposalId).toBeTruthy();
+    expect(teamNote.status).toBe("applied");
+    expect(teamNote.proposalId).toBeNull();
     const pendingRows = await db
       .select()
       .from(workspaceObject)
       .where(eq(workspaceObject.ownerUserId, ownerUserId));
-    expect(pendingRows.some((row) => row.title === "Team thought")).toBe(false);
+    expect(pendingRows.some((row) => row.title === "Team thought")).toBe(true);
   });
 });

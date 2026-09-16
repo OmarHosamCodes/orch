@@ -143,6 +143,19 @@ describe("agentChatTurnStreamEventSchema", () => {
     ).toBe("proposal");
   });
 
+  test("accepts created_object stream events", () => {
+    const event = agentChatTurnStreamEventSchema.parse({
+      type: "created_object",
+      object: {
+        kind: "node",
+        id: "node-1",
+        title: "Brief",
+        href: "/node/node-1",
+      },
+    });
+    expect(event.type).toBe("created_object");
+  });
+
   test("accepts question stream events", () => {
     const event = agentChatTurnStreamEventSchema.parse({
       type: "question",
