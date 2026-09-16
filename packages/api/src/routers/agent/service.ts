@@ -21,6 +21,7 @@ import {
   resolveUnlockedSurfaces,
   runDashboardAgent,
   streamDashboardAgent,
+  finalizeAssistantResponseText,
   titleSeedFromAgentTurn,
   type AgencyAgentRuntime,
   type AgentChatTurnInput,
@@ -37,6 +38,7 @@ import {
   type DashboardConversationSummary,
   type DashboardConversationUsageLatest,
   type DashboardConversationUsageSummary,
+  type MemoryAgentRuntime,
 } from "@orch/agent";
 import { db } from "@orch/db";
 import type { AgencyOpsMemberProfileAlertContext } from "@orch/db/schema";
@@ -86,7 +88,7 @@ import {
   buildDashboardMessagePreview,
   normalizeDashboardConversationTitle,
 } from "./conversation-contracts";
-import { getMemoryForPrompt, insertInboxNote } from "./memory-service";
+import { getMemoryForPrompt, insertInboxNote, upsertFact } from "./memory-service";
 import {
   AGENT_TOKEN_FLUSH_CHARS,
   AGENT_TOKEN_FLUSH_MS,
@@ -98,6 +100,7 @@ import {
   hasRunListener,
   insertAgentRun,
   persistRunStreamEvent,
+  scheduleDetachedRun,
   subscribeRun,
 } from "./run-service";
 
@@ -388,6 +391,17 @@ function createAgencyAgentRuntime(
   };
 }
 
+function createMemoryAgentRuntime(actorUserId: string, sourceRunId?: string): MemoryAgentRuntime {
+  return {
+    rememberFact: async (input) =>
+      upsertFact(actorUserId, {
+        key: input.key,
+        value: input.value,
+        sourceRunId,
+      }),
+  };
+}
+
 function createCanvasAgentRuntime(
   actorUserId: string,
   conversationId: string,
@@ -622,12 +636,17 @@ export async function getDashboardConversation(
     )
     .orderBy(asc(dashboardConversationMessage.createdAt), asc(dashboardConversationMessage.id));
 
+  const running = await findRunningChatRun(actorUserId, {
+    conversationId: input.conversationId,
+  });
   const detail = dashboardConversationDetailSchema.parse({
     ...mapConversationSummary({
       row: conversation,
       lastMessagePreview: buildDashboardMessagePreview(messages.at(-1)?.content ?? ""),
     }),
     messages: messages.map(mapConversationMessage),
+    activeRunId: running?.runId ?? null,
+    activeRunLastSeq: running?.lastSeq ?? 0,
   });
 
   return detail;
@@ -834,10 +853,15 @@ export async function appendDashboardConversationTurn(
   const canvasRuntime = needsCanvas
     ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId)
     : null;
+  const memoryRuntime = createMemoryAgentRuntime(userId);
+  const memoryText = formatMemoryForPrompt(await getMemoryForPrompt(userId, {}));
+  const messagesWithMemory: AgentModelInputMessage[] = memoryText
+    ? [{ role: "system", content: memoryText }, ...recentMessages]
+    : recentMessages;
 
   const result = await runDashboardAgent(
     [
-      ...recentMessages,
+      ...messagesWithMemory,
       {
         role: "user",
         content: turnModelContent,
@@ -861,6 +885,7 @@ export async function appendDashboardConversationTurn(
       toolPreset,
       agencyRuntime,
       canvasRuntime,
+      memoryRuntime,
     },
   );
   const nextUsageSummary = buildNextConversationUsageSummary(
@@ -1082,29 +1107,31 @@ export async function* streamDashboardConversationTurn(
   });
   await persistRunStreamEvent(userId, { runId, event: startedEvent });
 
-  void executeDashboardConversationRun({
-    actorUserId: userId,
-    runId,
-    serverSignal: serverController.signal,
-    conversation,
-    createdConversation,
-    userMessageRow,
-    assistantMessageId,
-    userName,
-    turn,
-    turnModelContent,
-    surface,
-    toolPreset,
-    unlockedSurfaces,
-    fullWorkspaceSnapshot,
-    marketplaceItems: marketplaceResult.items,
-    scopeNodes,
-    agencyRuntime,
-    canvasRuntime,
-    resolvedModelId,
-    modelPreset,
-    recentMessages: messagesWithMemory,
-  });
+  scheduleDetachedRun(() =>
+    executeDashboardConversationRun({
+      actorUserId: userId,
+      runId,
+      serverSignal: serverController.signal,
+      conversation,
+      createdConversation,
+      userMessageRow,
+      assistantMessageId,
+      userName,
+      turn,
+      turnModelContent,
+      surface,
+      toolPreset,
+      unlockedSurfaces,
+      fullWorkspaceSnapshot,
+      marketplaceItems: marketplaceResult.items,
+      scopeNodes,
+      agencyRuntime,
+      canvasRuntime,
+      resolvedModelId,
+      modelPreset,
+      recentMessages: messagesWithMemory,
+    }),
+  );
 
   yield* subscribeRun(userId, { runId, afterSeq: 0, signal: input.signal });
 }
@@ -1212,6 +1239,7 @@ async function executeDashboardConversationRun(args: {
         toolPreset,
         agencyRuntime,
         canvasRuntime,
+        memoryRuntime: createMemoryAgentRuntime(userId, runId),
         signal: serverSignal,
       },
     )) {
@@ -1262,12 +1290,11 @@ async function executeDashboardConversationRun(args: {
               ? streamedArtifacts
               : artifactsFromToolCalls(finalTools),
         );
-        const responseText =
-          event.responseText.trim().length > 0
-            ? event.responseText.trim().slice(0, 20_000)
-            : stopped
-              ? "Stopped before a reply."
-              : "I couldn't generate a response.";
+        const responseText = finalizeAssistantResponseText({
+          responseText: event.responseText,
+          stopped,
+          toolCount: finalTools.length,
+        });
 
         const nextUsageSummary = buildNextConversationUsageSummary(
           conversation.usageSummary,

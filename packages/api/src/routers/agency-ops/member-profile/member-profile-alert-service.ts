@@ -15,7 +15,11 @@ import { ORPCError } from "@orpc/server";
 import { and, eq, gte, isNull, lte, ne, or } from "drizzle-orm";
 
 import { fanOutNotification } from "../../notifications/service";
-import { getFiscalQuarterForDate, getFiscalQuarterRange, resolveProfilePeriodMonth } from "../resourcing/tenure-engine";
+import {
+  getFiscalQuarterForDate,
+  getFiscalQuarterRange,
+  resolveProfilePeriodMonth,
+} from "../resourcing/tenure-engine";
 import { resolveWorkSchedule } from "../resourcing/work-schedule";
 import { requireTeamMembership } from "../shared/membership";
 import { resolveEntryWaste } from "../shared/waste-helpers";
@@ -358,12 +362,7 @@ export async function listMemberProfileAlerts(
     todayKey,
     utcOffsetMinutes,
   );
-  const leaveByDate = await loadMemberLeaveByDate(
-    input.teamId,
-    input.userId,
-    leaveFrom,
-    leaveTo,
-  );
+  const leaveByDate = await loadMemberLeaveByDate(input.teamId, input.userId, leaveFrom, leaveTo);
 
   const detected = detectSystemAlerts({
     days,

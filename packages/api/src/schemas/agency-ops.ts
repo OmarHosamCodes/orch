@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  AGENCY_ENTITY_ICON_KEY_VALUES,
+  AGENCY_ENTITY_ICON_SOURCES,
+} from "../routers/agency-ops/shared/entity-icon-catalog";
+
 export const agencyProjectTaskStatusSchema = z.enum(["open", "in_progress", "done", "archived"]);
 
 export const agencyProjectTaskKindSchema = z.enum([
@@ -44,6 +49,10 @@ export const agencyClientSchema = z.object({
 
 export const agencyProjectColorHueIdSchema = z.number().int().min(1).max(12);
 
+export const agencyEntityIconKeySchema = z.enum(AGENCY_ENTITY_ICON_KEY_VALUES);
+
+export const agencyEntityIconSourceSchema = z.enum(AGENCY_ENTITY_ICON_SOURCES);
+
 export const agencyProjectTrashFilterSchema = z.enum(["active", "trashed", "all"]);
 
 export const agencyProjectSchema = z.object({
@@ -53,6 +62,8 @@ export const agencyProjectSchema = z.object({
   clientName: z.string().min(1),
   name: z.string().min(1),
   colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  iconKey: agencyEntityIconKeySchema.nullable(),
+  iconSource: agencyEntityIconSourceSchema,
   deletedAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -77,6 +88,8 @@ export const agencyProjectTaskSchema = z.object({
   teamId: z.string().min(1),
   projectId: z.string().min(1),
   title: z.string().min(1),
+  iconKey: agencyEntityIconKeySchema.nullable(),
+  iconSource: agencyEntityIconSourceSchema,
   status: agencyProjectTaskStatusSchema,
   taskKind: agencyProjectTaskKindSchema,
   assignedToTeam: z.boolean(),
@@ -200,8 +213,11 @@ export const agencyTimeEntrySchema = z.object({
   projectId: z.string().min(1),
   taskId: z.string().nullable(),
   taskTitle: z.string().nullable(),
+  taskIconKey: agencyEntityIconKeySchema.nullable(),
   taskIsWaste: z.boolean().nullable(),
   projectName: z.string().min(1),
+  colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  projectIconKey: agencyEntityIconKeySchema.nullable(),
   clientId: z.string().min(1),
   clientName: z.string().min(1),
   tags: z.array(agencyTagSchema),
@@ -229,7 +245,10 @@ export const agencyActiveTimerSchema = z.object({
   projectId: z.string().min(1),
   taskId: z.string().nullable(),
   taskTitle: z.string().nullable(),
+  taskIconKey: agencyEntityIconKeySchema.nullable(),
   projectName: z.string().min(1),
+  colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  projectIconKey: agencyEntityIconKeySchema.nullable(),
   tags: z.array(agencyTagSchema),
   links: z.array(
     z.object({
@@ -251,6 +270,8 @@ export const agencyTaskProjectSchema = agencyProjectSchema.pick({
   clientName: true,
   name: true,
   colorHueId: true,
+  iconKey: true,
+  iconSource: true,
 });
 
 export type AgencyProjectTaskStatus = z.infer<typeof agencyProjectTaskStatusSchema>;

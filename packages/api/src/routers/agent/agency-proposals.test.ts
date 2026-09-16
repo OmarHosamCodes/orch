@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildAgencyActionAfter, loadAgencyActionBefore } from "./agency-proposals";
+import {
+  buildAgencyActionAfter,
+  loadAgencyActionBefore,
+  proposalStateFingerprint,
+} from "./agency-proposals";
 
 describe("agency proposal before/after nullability", () => {
   test("create actions use null before (DB columns must allow null)", async () => {
@@ -35,5 +39,44 @@ describe("agency proposal before/after nullability", () => {
     for (const action of deletes) {
       expect(buildAgencyActionAfter({ id: "x" }, action)).toBeNull();
     }
+  });
+});
+
+describe("proposalStateFingerprint", () => {
+  test("ignores updatedAt so a later save does not look like a conflict", () => {
+    const before = {
+      id: "agency-time-1",
+      isWaste: false,
+      endedAt: "2026-09-15T00:14:25.827Z",
+      updatedAt: "2026-09-15T00:14:30.696Z",
+    };
+    const current = {
+      ...before,
+      updatedAt: "2026-09-16T09:00:00.000Z",
+      durationSeconds: 99,
+    };
+    expect(proposalStateFingerprint(current)).toBe(proposalStateFingerprint(before));
+  });
+
+  test("still detects a real isWaste change", () => {
+    expect(proposalStateFingerprint({ id: "agency-time-1", isWaste: false })).not.toBe(
+      proposalStateFingerprint({ id: "agency-time-1", isWaste: true }),
+    );
+  });
+
+  test("treats the same fields as equal regardless of JSON key order", () => {
+    expect(
+      proposalStateFingerprint({
+        isWaste: false,
+        id: "agency-time-1",
+        source: "manual",
+      }),
+    ).toBe(
+      proposalStateFingerprint({
+        id: "agency-time-1",
+        source: "manual",
+        isWaste: false,
+      }),
+    );
   });
 });

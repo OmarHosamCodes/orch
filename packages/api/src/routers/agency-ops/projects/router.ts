@@ -6,6 +6,7 @@ import {
   agencyProjectJourneySchema,
   agencyProjectColorHueIdSchema,
   agencyProjectTrashFilterSchema,
+  agencyEntityIconKeySchema,
 } from "../shared/schemas";
 import {
   listAgencyProjects,
@@ -42,6 +43,7 @@ export const projectsRouter = {
           clientId: z.string().min(1),
           name: z.string().trim().min(1).max(160),
           colorHueId: agencyProjectColorHueIdSchema.nullable().optional(),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           templateId: z.string().min(1).optional(),
         }),
       )
@@ -57,6 +59,7 @@ export const projectsRouter = {
           clientId: z.string().min(1),
           name: z.string().trim().min(1).max(160),
           colorHueId: agencyProjectColorHueIdSchema.nullable().optional(),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           milestones: z
             .array(
               z.object({
@@ -156,6 +159,7 @@ export const projectsRouter = {
           clientId: z.string().min(1).optional(),
           name: z.string().trim().min(1).max(160).optional(),
           colorHueId: agencyProjectColorHueIdSchema.nullable().optional(),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           billableRateAmount: z.number().int().nonnegative().nullable().optional(),
           currency: z.string().length(3).optional(),
         }),

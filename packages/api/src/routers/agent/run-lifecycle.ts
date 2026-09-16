@@ -7,7 +7,19 @@ export const AGENT_TOKEN_FLUSH_MS = 50;
 export const AGENT_TOKEN_FLUSH_CHARS = 32;
 export const STALE_RUN_MS = 120_000;
 
-export function waitForSubscribePoll(ms: number, signal?: AbortSignal) {
+export function scheduleDetachedRun(work: () => Promise<void>): void {
+  const run = () => {
+    void work();
+  };
+  // Leave the oRPC/WebSocket async context so disconnect cannot cancel OpenRouter.
+  if (typeof setImmediate === "function") {
+    setImmediate(run);
+    return;
+  }
+  setTimeout(run, 0);
+}
+
+export function waitForSubscribePoll(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve) => {
     if (signal?.aborted) {
       resolve();

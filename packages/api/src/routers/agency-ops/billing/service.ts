@@ -53,7 +53,11 @@ type AgencyMemberRateRecord = {
 };
 
 function periodAgencyBillableRate(
-  task: { billableRateAmount: number | null; sourceBillableRateAmount: number | null; currency: string | null },
+  task: {
+    billableRateAmount: number | null;
+    sourceBillableRateAmount: number | null;
+    currency: string | null;
+  },
   project: {
     billableRateAmount: number | null;
     sourceBillableRateAmount: number | null;

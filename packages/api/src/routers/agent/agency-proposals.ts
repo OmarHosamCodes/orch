@@ -26,7 +26,12 @@ import {
   dashboardConversationMessage,
   type DashboardConversationMessageToolsCalledRecord,
 } from "@orch/db/schema";
-import { createWorkspaceId, type WorkspaceNode } from "@orch/workspace";
+import {
+  createWorkspaceId,
+  knowledgeObjectHref,
+  knowledgeObjectTypeSchema,
+  type WorkspaceNode,
+} from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -59,7 +64,7 @@ import {
   createManualAgencyTimeEntry,
   deleteMyAgencyTimeEntry,
   getAgencyActiveTimer,
-  listMyAgencyTimeEntries,
+  getMyAgencyTimeEntry,
   startAgencyTimer,
   stopAgencyTimer,
   updateAgencyActiveTimerDescription,
@@ -129,8 +134,60 @@ async function appendConfirmProposalsToAssistantMessage(
     .where(eq(dashboardConversationMessage.id, message.id));
 }
 
+const STALE_PROPOSAL_MESSAGE =
+  "Underlying data changed. Reject this proposal and ask Orch to propose again.";
+const STALE_PROPOSAL_ROW_ERROR = "State changed since proposal; reject and re-propose.";
+
+function canonicalizeProposalState(value: unknown): unknown {
+  if (value == null) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(canonicalizeProposalState);
+  if (typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+    const entry = (value as Record<string, unknown>)[key];
+    if (entry === undefined) continue;
+    out[key] = canonicalizeProposalState(entry);
+  }
+  return out;
+}
+
 function stableJson(value: unknown) {
-  return JSON.stringify(value ?? null);
+  return JSON.stringify(canonicalizeProposalState(value));
+}
+
+function isStaleProposalError(error: unknown): boolean {
+  return error instanceof ORPCError && error.message === STALE_PROPOSAL_MESSAGE;
+}
+
+function isRetryableStaleProposal(row: { status: string; error: string | null }): boolean {
+  return (
+    row.status === "failed" &&
+    (row.error === STALE_PROPOSAL_MESSAGE || row.error === STALE_PROPOSAL_ROW_ERROR)
+  );
+}
+
+const VOLATILE_PROPOSAL_KEYS = new Set([
+  "updatedAt",
+  "createdAt",
+  "durationSeconds",
+  "links",
+  "heartbeatAt",
+]);
+
+function stripVolatileProposalState(value: unknown): unknown {
+  if (value == null || typeof value !== "object") return value ?? null;
+  if (Array.isArray(value)) return value.map(stripVolatileProposalState);
+  const out: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (VOLATILE_PROPOSAL_KEYS.has(key)) continue;
+    out[key] = stripVolatileProposalState(entry);
+  }
+  return out;
+}
+
+export function proposalStateFingerprint(value: unknown): string {
+  return stableJson(stripVolatileProposalState(value));
 }
 
 export async function loadAgencyActionBefore(
@@ -143,12 +200,7 @@ export async function loadAgencyActionBefore(
       return null;
     case "time_entry.update":
     case "time_entry.delete": {
-      const listed = await listMyAgencyTimeEntries(actorUserId, {
-        teamId,
-        page: 1,
-        pageSize: 100,
-      });
-      return listed.items.find((entry) => entry.id === action.entryId) ?? null;
+      return getMyAgencyTimeEntry(actorUserId, { teamId, entryId: action.entryId });
     }
     case "timer.start":
     case "timer.stop":
@@ -600,12 +652,17 @@ export async function applyKnowledgeForYou(
       : null;
   const label = input.label?.trim() || knowledgeActionLabel(action);
   void input.conversationId;
+  const parsedType = knowledgeObjectTypeSchema.safeParse(objectType);
   return {
     applied: true as const,
     objectId: objectId || null,
     objectType: typeof objectType === "string" ? objectType : null,
     label,
-    boardHref: objectId ? `/canvas` : "/canvas",
+    boardHref: objectId
+      ? parsedType.success
+        ? knowledgeObjectHref(parsedType.data, objectId)
+        : `/object/${objectId}`
+      : "/canvas",
   };
 }
 
@@ -698,7 +755,7 @@ export async function approveAgencyProposal(
 ) {
   const row = await loadProposalForActor(actorUserId, input);
 
-  if (row.status !== "pending") {
+  if (row.status !== "pending" && !isRetryableStaleProposal(row)) {
     throw new ORPCError("BAD_REQUEST", { message: `Proposal is ${row.status}.` });
   }
   if (row.expiresAt.getTime() < Date.now()) {
@@ -751,17 +808,9 @@ export async function approveAgencyProposal(
     }
     const action = agencyActionSchema.parse(row.action);
     const currentBefore = await loadAgencyActionBefore(actorUserId, teamId, action);
-    if (stableJson(currentBefore) !== stableJson(row.beforeState)) {
-      await db
-        .update(agentAgencyProposal)
-        .set({
-          status: "failed",
-          error: "State changed since proposal; reject and re-propose.",
-          updatedAt: new Date(),
-        })
-        .where(eq(agentAgencyProposal.id, row.id));
+    if (proposalStateFingerprint(currentBefore) !== proposalStateFingerprint(row.beforeState)) {
       throw new ORPCError("BAD_REQUEST", {
-        message: "Underlying data changed. Reject this proposal and ask Orch to propose again.",
+        message: STALE_PROPOSAL_MESSAGE,
       });
     }
 
@@ -777,6 +826,9 @@ export async function approveAgencyProposal(
       label: row.label,
     };
   } catch (error) {
+    if (isStaleProposalError(error)) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : "Execute failed";
     await db
       .update(agentAgencyProposal)
@@ -791,7 +843,7 @@ export async function rejectAgencyProposal(
   input: { proposalId: string; teamId?: string },
 ) {
   const row = await loadProposalForActor(actorUserId, input);
-  if (row.status !== "pending") {
+  if (row.status !== "pending" && !isRetryableStaleProposal(row)) {
     throw new ORPCError("BAD_REQUEST", { message: `Proposal is ${row.status}.` });
   }
 

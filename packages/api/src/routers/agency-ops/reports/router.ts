@@ -6,6 +6,7 @@ import {
   reportsSummarySchema,
   reportsDashboardSummarySchema,
   reportsInputSchema,
+  reportsPreviewSchema,
   savedReportActivityActionSchema,
   savedReportSnapshotInputSchema,
   savedReportRecordSchema,
@@ -21,6 +22,7 @@ import {
   deleteAnyAgencyTimeEntry,
   duplicateAnyAgencyTimeEntry,
 } from "./service";
+import { getAgencyReportPreview } from "./preview-service";
 import {
   createSavedReport,
   listSavedReports,
@@ -47,6 +49,11 @@ export const reportsRouter = {
           summary: reportsSummarySchema,
         })
         .parse(await getAgencyReportsSummary(context.session.user.id, input));
+    }),
+    preview: protectedProProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+      return reportsPreviewSchema.parse(
+        await getAgencyReportPreview(context.session.user.id, input),
+      );
     }),
     exportCsv: protectedProProcedure
       .input(reportsInputSchema)

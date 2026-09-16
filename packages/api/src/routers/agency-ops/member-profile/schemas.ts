@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  agencyEntityIconKeySchema,
+  agencyProjectColorHueIdSchema,
+} from "../../../schemas/agency-ops";
+
 export const memberLeaveTypeSchema = z.enum(["pto", "sick", "team_holiday", "other"]);
 
 export const memberLeaveSchema = z.object({
@@ -68,6 +73,9 @@ export const memberProfileTimelineItemSchema = z.discriminatedUnion("kind", [
     projectName: z.string().nullable(),
     taskId: z.string().nullable(),
     taskTitle: z.string().nullable(),
+    taskIconKey: agencyEntityIconKeySchema.nullable(),
+    colorHueId: agencyProjectColorHueIdSchema.nullable(),
+    projectIconKey: agencyEntityIconKeySchema.nullable(),
     clientId: z.string().nullable(),
     clientName: z.string().nullable(),
     description: z.string().nullable(),

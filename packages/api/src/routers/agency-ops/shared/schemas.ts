@@ -6,6 +6,8 @@ import {
   agencyProjectTaskMemberStatusSchema,
   agencyProjectTaskSchema,
   agencyProjectTaskStatusSchema,
+  agencyEntityIconKeySchema,
+  agencyEntityIconSourceSchema,
 } from "../../../schemas/agency-ops";
 
 export const agencyTimeEntrySourceSchema = z.enum(["timer", "manual"]);
@@ -56,6 +58,8 @@ export const agencyProjectSchema = z.object({
   clientName: z.string().min(1),
   name: z.string().min(1),
   colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  iconKey: agencyEntityIconKeySchema.nullable(),
+  iconSource: agencyEntityIconSourceSchema,
   billableRateAmount: z.number().int().nonnegative().nullable(),
   sourceBillableRateAmount: z.number().int().nonnegative().nullable(),
   currency: z.string().length(3),
@@ -78,6 +82,8 @@ export {
   agencyProjectTaskKindSchema,
   agencyProjectTaskMemberStatusSchema,
   agencyProjectTaskAssigneeSchema,
+  agencyEntityIconKeySchema,
+  agencyEntityIconSourceSchema,
 };
 export const agencyProjectJourneyStepSchema = z.object({
   id: z.string().min(1),
@@ -116,8 +122,11 @@ export const agencyTimeEntrySchema = z.object({
   projectId: z.string().min(1),
   taskId: z.string().nullable(),
   taskTitle: z.string().nullable(),
+  taskIconKey: agencyEntityIconKeySchema.nullable(),
   taskIsWaste: z.boolean().nullable(),
   projectName: z.string().min(1),
+  colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  projectIconKey: agencyEntityIconKeySchema.nullable(),
   clientId: z.string().min(1),
   clientName: z.string().min(1),
   tags: z.array(agencyTagSchema),
@@ -141,7 +150,10 @@ export const agencyActiveTimerSchema = z.object({
   projectId: z.string(),
   taskId: z.string().nullable(),
   taskTitle: z.string().nullable(),
+  taskIconKey: agencyEntityIconKeySchema.nullable(),
   projectName: z.string(),
+  colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  projectIconKey: agencyEntityIconKeySchema.nullable(),
   tags: z.array(agencyTagSchema),
   links: z.array(agencyTimeEntryLinkSchema),
   description: z.string(),
@@ -165,6 +177,8 @@ export const reportsSummarySchema = z.object({
     z.object({
       projectId: z.string().min(1),
       projectName: z.string().min(1),
+      colorHueId: agencyProjectColorHueIdSchema.nullable(),
+      iconKey: agencyEntityIconKeySchema.nullable(),
       clientId: z.string().min(1),
       clientName: z.string().min(1),
       hours: z.number().nonnegative(),
@@ -256,6 +270,31 @@ export const reportsInputSchema = teamScopedInputSchema.extend({
   clientIds: z.array(z.string().min(1)).optional(),
   projectIds: z.array(z.string().min(1)).optional(),
   memberUserIds: z.array(z.string().min(1)).optional(),
+});
+
+export const reportsPreviewClientSchema = z.object({
+  clientId: z.string().min(1),
+  clientName: z.string().min(1),
+  totalSeconds: z.number().int().nonnegative(),
+  totalEntries: z.number().int().nonnegative(),
+  amount: z.number().int().nonnegative().nullable(),
+  amountCurrency: z.string().min(1).nullable(),
+  entries: z.array(agencyTimeEntrySchema),
+});
+
+export const reportsPreviewSchema = z.object({
+  totals: z.object({
+    totalSeconds: z.number().int().nonnegative(),
+    totalEntries: z.number().int().nonnegative(),
+    paidSeconds: z.number().int().nonnegative(),
+    wasteSeconds: z.number().int().nonnegative(),
+    internalSeconds: z.number().int().nonnegative(),
+    internalBillableSeconds: z.number().int().nonnegative(),
+    externalSeconds: z.number().int().nonnegative(),
+  }),
+  totalClientCount: z.number().int().nonnegative(),
+  omittedClientCount: z.number().int().nonnegative(),
+  clients: z.array(reportsPreviewClientSchema),
 });
 
 export const savedReportActivityActionSchema = z.enum([

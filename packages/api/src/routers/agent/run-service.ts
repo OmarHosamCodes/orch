@@ -30,6 +30,8 @@ export {
   createTokenCoalescer,
   hasRunListener,
   recoverStaleRuns,
+  scheduleDetachedRun,
+  waitForSubscribePoll,
 } from "./run-lifecycle";
 
 async function requireOwnedRun(actorUserId: string, runId: string) {
@@ -208,9 +210,9 @@ export async function cancelRun(
 export async function findRunningChatRun(
   actorUserId: string,
   input: { conversationId: string },
-): Promise<{ runId: string } | null> {
+): Promise<{ runId: string; lastSeq: number } | null> {
   const [row] = await db
-    .select({ id: agentRun.id })
+    .select({ id: agentRun.id, lastSeq: agentRun.lastSeq })
     .from(agentRun)
     .where(
       and(
@@ -222,7 +224,7 @@ export async function findRunningChatRun(
     )
     .limit(1);
 
-  return row ? { runId: row.id } : null;
+  return row ? { runId: row.id, lastSeq: row.lastSeq } : null;
 }
 
 export async function* subscribeRun(

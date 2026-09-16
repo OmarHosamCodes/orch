@@ -40,6 +40,11 @@ import {
 import { requireTeamMembership } from "../shared/membership";
 import { getAgencyProjectTemplateForTeam } from "../project-templates/service";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
+import {
+  assignEntityIconOnWrite,
+  readStoredEntityIcon,
+  type AgencyEntityIconKey,
+} from "../shared/entity-icon-catalog";
 
 type AgencyProjectRecord = {
   id: string;
@@ -48,6 +53,8 @@ type AgencyProjectRecord = {
   clientName: string;
   name: string;
   colorHueId: number | null;
+  iconKey: AgencyEntityIconKey | null;
+  iconSource: "auto" | "manual";
   billableRateAmount: number | null;
   sourceBillableRateAmount: number | null;
   currency: string;
@@ -90,6 +97,8 @@ function mapProjectRow(row: {
   clientName: string;
   name: string;
   colorHueId: number | null;
+  iconKey: string | null;
+  iconSource: string;
   billableRateAmount: number | null;
   sourceBillableRateAmount: number | null;
   currency: string;
@@ -107,6 +116,7 @@ function mapProjectRow(row: {
     clientName: row.clientName,
     name: row.name,
     colorHueId: row.colorHueId,
+    ...readStoredEntityIcon(row),
     billableRateAmount: row.billableRateAmount,
     sourceBillableRateAmount: row.sourceBillableRateAmount,
     currency: row.currency,
@@ -162,6 +172,8 @@ export async function listAgencyProjects(
       clientName: agencyOpsClient.name,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,
@@ -196,10 +208,16 @@ export async function createAgencyProject(
     clientId: string;
     name: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     templateId?: string;
   },
 ) {
   const colorHueId = normalizeColorHueId(input.colorHueId);
+  const icon = assignEntityIconOnWrite({
+    name: input.name.trim(),
+    iconKeyProvided: input.iconKey !== undefined,
+    requestedIconKey: input.iconKey,
+  });
 
   if (input.templateId) {
     const template = await getAgencyProjectTemplateForTeam(actorUserId, {
@@ -220,6 +238,7 @@ export async function createAgencyProject(
       clientId: input.clientId,
       name: input.name,
       colorHueId,
+      iconKey: input.iconKey,
       milestones,
     });
     return created.project;
@@ -237,6 +256,8 @@ export async function createAgencyProject(
       clientId: input.clientId,
       name: input.name.trim(),
       colorHueId,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       createdByUserId: actorUserId,
       createdAt: now,
       updatedAt: now,
@@ -247,6 +268,8 @@ export async function createAgencyProject(
       clientId: agencyOpsProject.clientId,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       deletedAt: agencyOpsProject.deletedAt,
       createdAt: agencyOpsProject.createdAt,
       updatedAt: agencyOpsProject.updatedAt,
@@ -415,6 +438,7 @@ async function insertJourneyLinkedTask(
       teamId: args.teamId,
       projectId: args.projectId,
       title: args.title,
+      ...assignEntityIconOnWrite({ name: args.title }),
       status: "open",
       taskKind: args.taskKind,
       assignedToTeam: false,
@@ -442,6 +466,7 @@ export async function createAgencyProjectWithJourney(
     clientId: string;
     name: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     milestones: Array<{
       title: string;
       assigneeUserIds: string[];
@@ -459,6 +484,11 @@ export async function createAgencyProjectWithJourney(
 
   const colorHueId = normalizeColorHueId(input.colorHueId);
   const projectName = input.name.trim();
+  const icon = assignEntityIconOnWrite({
+    name: projectName,
+    iconKeyProvided: input.iconKey !== undefined,
+    requestedIconKey: input.iconKey,
+  });
   const now = new Date();
   const projectId = createWorkspaceId("agency-project");
   const journeyId = createWorkspaceId("agency-project-journey");
@@ -484,6 +514,8 @@ export async function createAgencyProjectWithJourney(
       clientId: input.clientId,
       name: projectName,
       colorHueId,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       createdByUserId: actorUserId,
       createdAt: now,
       updatedAt: now,
@@ -576,6 +608,8 @@ export async function createAgencyProjectWithJourney(
       clientId: agencyOpsProject.clientId,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,
@@ -910,6 +944,7 @@ export async function updateAgencyProject(
     clientId?: string;
     name?: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     billableRateAmount?: number | null;
     currency?: string;
   },
@@ -923,6 +958,9 @@ export async function updateAgencyProject(
 
   const [current] = await db
     .select({
+      name: agencyOpsProject.name,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       currency: agencyOpsProject.currency,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
@@ -946,6 +984,8 @@ export async function updateAgencyProject(
     clientId?: string;
     name?: string;
     colorHueId?: number | null;
+    iconKey?: string | null;
+    iconSource?: "auto" | "manual";
     billableRateAmount?: number | null;
     currency?: string;
     sourceBillableRateAmount?: number | null;
@@ -956,6 +996,16 @@ export async function updateAgencyProject(
   if (input.clientId !== undefined) patch.clientId = input.clientId;
   if (input.name !== undefined) patch.name = input.name.trim();
   if (input.colorHueId !== undefined) patch.colorHueId = normalizeColorHueId(input.colorHueId);
+  if (input.iconKey !== undefined || input.name !== undefined) {
+    const icon = assignEntityIconOnWrite({
+      name: patch.name ?? current.name,
+      iconKeyProvided: input.iconKey !== undefined,
+      requestedIconKey: input.iconKey,
+      existing: readStoredEntityIcon(current),
+    });
+    patch.iconKey = icon.iconKey;
+    patch.iconSource = icon.iconSource;
+  }
 
   if (input.billableRateAmount !== undefined || input.currency !== undefined) {
     if (input.billableRateAmount === null) {
@@ -966,12 +1016,12 @@ export async function updateAgencyProject(
     } else {
       const moneyCtx = await loadMoneyResolveContext(actorUserId, { teamId: input.teamId });
       const sourceCurrency = (
-        input.currency ?? current.currency ?? moneyCtx.agencyCurrency
+        input.currency ??
+        current.currency ??
+        moneyCtx.agencyCurrency
       ).toUpperCase();
       const sourceAmount =
-        input.billableRateAmount ??
-        current.sourceBillableRateAmount ??
-        current.billableRateAmount;
+        input.billableRateAmount ?? current.sourceBillableRateAmount ?? current.billableRateAmount;
       if (sourceAmount == null) {
         throw new ORPCError("BAD_REQUEST", { message: "Project rate amount is required." });
       }
@@ -1001,6 +1051,8 @@ export async function updateAgencyProject(
       clientId: agencyOpsProject.clientId,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,

@@ -1,9 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  agencyOpsProject,
-  agencyOpsProjectTask,
-  agencyOpsTimeEntry,
-} from "@orch/db/schema";
+import { agencyOpsProject, agencyOpsProjectTask, agencyOpsTimeEntry } from "@orch/db/schema";
 
 /** True when a label contains "waste" as a word, any casing/format. */
 export function isWasteLabel(label: string | null | undefined): boolean {

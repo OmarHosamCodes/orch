@@ -20,6 +20,7 @@ import type { z } from "zod";
 import { loadTeamWorkSchedule } from "../resourcing/load-team-work-schedule";
 import { resolveProfilePeriodMonth, toFiscalCalendar } from "../resourcing/tenure-engine";
 import { requireTeamMembership } from "../shared/membership";
+import { isAgencyEntityIconKey, type AgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import { resolveEntryWaste } from "../shared/waste-helpers";
 import {
   addDaysToDateKey,
@@ -88,6 +89,10 @@ function defaultHrProfile(): MemberHrProfile {
     offAllowanceDays: DEFAULT_OFF_ALLOWANCE_DAYS,
     leaveAllowancePeriod: "year",
   };
+}
+
+function asEntityIconKey(value: string | null | undefined): AgencyEntityIconKey | null {
+  return isAgencyEntityIconKey(value) ? value : null;
 }
 
 function mapHrProfile(
@@ -239,7 +244,10 @@ export async function getMemberProfile(
         projectName: agencyOpsProject.name,
         clientId: agencyOpsClient.id,
         clientName: agencyOpsClient.name,
+        colorHueId: agencyOpsProject.colorHueId,
+        projectIconKey: agencyOpsProject.iconKey,
         taskTitle: agencyOpsProjectTask.title,
+        taskIconKey: agencyOpsProjectTask.iconKey,
         taskIsWaste: agencyOpsProjectTask.isWaste,
       })
       .from(agencyOpsTimeEntry)
@@ -394,6 +402,9 @@ export async function getMemberProfile(
       projectName: entry.projectName,
       taskId: entry.taskId,
       taskTitle: entry.taskTitle,
+      taskIconKey: entry.taskId ? asEntityIconKey(entry.taskIconKey) : null,
+      colorHueId: entry.colorHueId,
+      projectIconKey: asEntityIconKey(entry.projectIconKey),
       clientId: entry.clientId,
       clientName: entry.clientName,
       durationSeconds: entry.durationSeconds,

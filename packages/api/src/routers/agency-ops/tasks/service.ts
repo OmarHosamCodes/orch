@@ -38,6 +38,11 @@ import { buildTaskListSearchPredicate, tokenizeTaskListSearch } from "./task-lis
 import { publishAgencyTaskUpdated } from "../live/live";
 import { canEditAgencyProjectTask } from "./task-edit-authz";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
+import {
+  assignEntityIconOnWrite,
+  readStoredEntityIcon,
+  type AgencyEntityIconKey,
+} from "../shared/entity-icon-catalog";
 
 async function createTaskBlueprintForViewer(
   teamId: string,
@@ -507,6 +512,7 @@ export async function createAgencyProjectTask(
     teamId: string;
     projectId: string;
     title: string;
+    iconKey?: AgencyEntityIconKey | null;
     status?: "open" | "in_progress" | "done" | "archived";
     assignedToTeam?: boolean;
     assigneeUserIds?: string[];
@@ -565,6 +571,11 @@ export async function createAgencyProjectTask(
           teamId: input.teamId,
           projectId: input.projectId,
           title,
+          ...assignEntityIconOnWrite({
+            name: title,
+            iconKeyProvided: input.iconKey !== undefined,
+            requestedIconKey: input.iconKey,
+          }),
           status: input.status ?? "open",
           assignedToTeam,
           estimateMinutes,
@@ -758,6 +769,7 @@ export async function updateAgencyProjectTask(
     teamId: string;
     taskId: string;
     title?: string;
+    iconKey?: AgencyEntityIconKey | null;
     status?: "open" | "in_progress" | "done" | "archived";
     assignedToTeam?: boolean;
     assigneeUserIds?: string[];
@@ -897,11 +909,21 @@ export async function updateAgencyProjectTask(
   }
 
   const now = new Date();
+  const iconPatch =
+    input.iconKey !== undefined || title
+      ? assignEntityIconOnWrite({
+          name: title ?? current.title,
+          iconKeyProvided: input.iconKey !== undefined,
+          requestedIconKey: input.iconKey,
+          existing: readStoredEntityIcon(current),
+        })
+      : null;
   const [updated] = await db.transaction(async (tx) => {
     const [task] = await tx
       .update(agencyOpsProjectTask)
       .set({
         ...(title ? { title } : {}),
+        ...(iconPatch ? { iconKey: iconPatch.iconKey, iconSource: iconPatch.iconSource } : {}),
         ...(input.status ? { status: input.status } : {}),
         ...(input.isWaste !== undefined ? { isWaste: input.isWaste } : {}),
         ...(input.assignedToTeam !== undefined || input.assigneeUserIds !== undefined
@@ -948,6 +970,7 @@ export async function updateAgencyProjectTask(
     input.assigneeUserIds !== undefined ||
     input.assignedToTeam !== undefined ||
     input.title !== undefined ||
+    input.iconKey !== undefined ||
     input.estimateMinutes !== undefined ||
     input.billableRateAmount !== undefined ||
     input.currency !== undefined

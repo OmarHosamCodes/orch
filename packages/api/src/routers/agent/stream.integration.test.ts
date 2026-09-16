@@ -54,6 +54,29 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  streamDashboardAgent.mockReset();
+  streamDashboardAgent.mockImplementation(async function* () {
+    yield { type: "token" as const, delta: "Hi" };
+    yield {
+      type: "done" as const,
+      responseText: "Hi",
+      toolCalls: [],
+      artifacts: [],
+      usage: {
+        modelId: "test-model",
+        contextLength: null,
+        inputTokens: 4,
+        cachedTokens: 0,
+        outputTokens: 2,
+        reasoningTokens: 0,
+        totalTokens: 6,
+        costUsd: 0,
+      },
+      model: "test-model",
+      workspaceNodeCount: 0,
+      workspaceSnapshot: null,
+    };
+  });
   for (const userId of fixtureUsers.splice(0)) {
     await db.delete(user).where(eq(user.id, userId));
   }
@@ -104,5 +127,69 @@ describe("dashboard agent stream persistence", () => {
       conversationId: completed?.type === "completed" ? completed.conversation.id : "",
     });
     expect(detail.messages.map((message) => message.role)).toEqual(["user", "assistant"]);
+  });
+
+  test("aborting the turnStream listener does not persist an empty failure", async () => {
+    const userId = await createFixtureUser();
+    let releaseAgent: () => void = () => undefined;
+    const blocked = new Promise<void>((resolve) => {
+      releaseAgent = resolve;
+    });
+
+    streamDashboardAgent.mockImplementation(async function* () {
+      await blocked;
+      yield { type: "token" as const, delta: "Still here" };
+      yield {
+        type: "done" as const,
+        responseText: "Still here",
+        toolCalls: [],
+        artifacts: [],
+        usage: {
+          modelId: "test-model",
+          contextLength: null,
+          inputTokens: 4,
+          cachedTokens: 0,
+          outputTokens: 2,
+          reasoningTokens: 0,
+          totalTokens: 6,
+          costUsd: 0,
+        },
+        model: "test-model",
+        workspaceNodeCount: 0,
+        workspaceSnapshot: null,
+      };
+    });
+
+    const listener = new AbortController();
+    let conversationId = "";
+    for await (const event of service.streamDashboardConversationTurn(userId, {
+      actorUserName: "Stream User",
+      signal: listener.signal,
+      turn: {
+        content: "Keep going",
+        attachments: [],
+        model: "test-model",
+        toolPreset: "ask",
+        surface: "canvas",
+        nodes: [],
+      },
+    })) {
+      if (event.type === "started") {
+        conversationId = event.conversationId;
+        listener.abort();
+      }
+    }
+
+    releaseAgent();
+
+    let detail = await service.getDashboardConversation(userId, { conversationId });
+    for (let attempt = 0; attempt < 40 && detail.activeRunId; attempt += 1) {
+      await Bun.sleep(25);
+      detail = await service.getDashboardConversation(userId, { conversationId });
+    }
+
+    expect(detail.messages.at(-1)?.role).toBe("assistant");
+    expect(detail.messages.at(-1)?.content).toBe("Still here");
+    expect(detail.activeRunId).toBeNull();
   });
 });

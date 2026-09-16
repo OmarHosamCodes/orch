@@ -4,6 +4,7 @@ import {
   teamScopedInputSchema,
   agencyProjectTaskBlueprintSchema,
   agencyProjectTaskSchema,
+  agencyEntityIconKeySchema,
 } from "../shared/schemas";
 import {
   listAgencyProjectTasks,
@@ -45,6 +46,7 @@ export const tasksRouter = {
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),
           title: z.string().trim().min(1).max(240),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           status: z.enum(["open", "in_progress", "done", "archived"]).optional(),
           assignedToTeam: z.boolean().optional(),
           assigneeUserIds: z.array(z.string().min(1)).optional(),
@@ -64,6 +66,7 @@ export const tasksRouter = {
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
           title: z.string().trim().min(1).max(240).optional(),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           status: z.enum(["open", "in_progress", "done", "archived"]).optional(),
           assignedToTeam: z.boolean().optional(),
           assigneeUserIds: z.array(z.string().min(1)).optional(),

@@ -37,7 +37,12 @@ import {
 } from "./local-week-bounds";
 import { resolveAgencyTimerStopBinding } from "./resolve-agency-timer-stop-binding";
 import { resolveAgencyActiveTimerTaskBinding } from "./resolve-agency-active-timer-task-binding";
+import { isAgencyEntityIconKey, type AgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import { publishAgencyTimerUpdated } from "../live/live";
+
+function asEntityIconKey(value: string | null | undefined): AgencyEntityIconKey | null {
+  return isAgencyEntityIconKey(value) ? value : null;
+}
 
 type AgencyTimeEntrySource = "timer" | "manual";
 
@@ -62,8 +67,11 @@ type AgencyTimeEntryRecord = {
   projectId: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
   taskIsWaste: boolean | null;
   projectName: string;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   clientId: string;
   clientName: string;
   source: AgencyTimeEntrySource;
@@ -88,8 +96,11 @@ function mapAgencyTimeEntryRow(
     projectId: string;
     taskId: string | null;
     taskTitle: string | null;
+    taskIconKey: string | null;
     taskIsWaste: boolean | null;
     projectName: string;
+    colorHueId: number | null;
+    projectIconKey: string | null;
     clientId: string;
     clientName: string;
     source: AgencyTimeEntrySource;
@@ -113,8 +124,11 @@ function mapAgencyTimeEntryRow(
     projectId: row.projectId,
     taskId: row.taskId ?? null,
     taskTitle: row.taskTitle ?? null,
+    taskIconKey: row.taskId ? asEntityIconKey(row.taskIconKey) : null,
     taskIsWaste: row.taskId ? (row.taskIsWaste ?? false) : null,
     projectName: row.projectName,
+    colorHueId: row.colorHueId,
+    projectIconKey: asEntityIconKey(row.projectIconKey),
     clientId: row.clientId,
     clientName: row.clientName,
     source: row.source,
@@ -138,7 +152,10 @@ type AgencyActiveTimerRecord = {
   projectId: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
   projectName: string;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   description: string;
   isBillable: boolean;
   tags: AgencyTagRecord[];
@@ -286,7 +303,9 @@ async function replaceTimeEntryLinks(
   timeEntryId: string,
   urls: string[],
 ) {
-  await tx.delete(agencyOpsTimeEntryLink).where(eq(agencyOpsTimeEntryLink.timeEntryId, timeEntryId));
+  await tx
+    .delete(agencyOpsTimeEntryLink)
+    .where(eq(agencyOpsTimeEntryLink.timeEntryId, timeEntryId));
   await insertTimeEntryLinks(tx, timeEntryId, urls);
 }
 
@@ -344,8 +363,11 @@ async function getActiveTimerByUser(userId: string) {
       projectId: agencyOpsActiveTimer.projectId,
       taskId: agencyOpsActiveTimer.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       description: agencyOpsActiveTimer.description,
       isBillable: agencyOpsActiveTimer.isBillable,
       startedAt: agencyOpsActiveTimer.startedAt,
@@ -372,7 +394,10 @@ async function getActiveTimerByUser(userId: string) {
     projectId: timer.projectId ?? "",
     taskId: timer.taskId,
     taskTitle: timer.taskTitle ?? null,
+    taskIconKey: timer.taskId ? asEntityIconKey(timer.taskIconKey) : null,
     projectName: timer.projectName ?? "",
+    colorHueId: timer.colorHueId,
+    projectIconKey: asEntityIconKey(timer.projectIconKey),
     description: timer.description,
     isBillable: timer.isBillable,
     tags,
@@ -554,7 +579,10 @@ export async function startAgencyTimer(
         }
 
         const previousLinks = await tx
-          .select({ url: agencyOpsActiveTimerLink.url, sortOrder: agencyOpsActiveTimerLink.sortOrder })
+          .select({
+            url: agencyOpsActiveTimerLink.url,
+            sortOrder: agencyOpsActiveTimerLink.sortOrder,
+          })
           .from(agencyOpsActiveTimerLink)
           .where(eq(agencyOpsActiveTimerLink.activeTimerId, existing.id))
           .orderBy(asc(agencyOpsActiveTimerLink.sortOrder));
@@ -673,8 +701,11 @@ async function fetchAgencyTimeEntryRecords(entryIds: string[]) {
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -699,11 +730,7 @@ async function fetchAgencyTimeEntryRecords(entryIds: string[]) {
   const recordsById = new Map(
     rows.map((row) => [
       row.id,
-      mapAgencyTimeEntryRow(
-        row,
-        tagsByEntryId.get(row.id) ?? [],
-        linksByEntryId.get(row.id) ?? [],
-      ),
+      mapAgencyTimeEntryRow(row, tagsByEntryId.get(row.id) ?? [], linksByEntryId.get(row.id) ?? []),
     ]),
   );
   const records: AgencyTimeEntryRecord[] = [];
@@ -761,8 +788,7 @@ export async function stopAgencyTimer(
   }
 
   const tagIds = await validateAgencyTagIds(active.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   let taskId = active.taskId ?? null;
   let entryProjectId = active.projectId;
@@ -1119,6 +1145,31 @@ export async function updateAgencyActiveTimerStart(
   return { timer };
 }
 
+export async function getMyAgencyTimeEntry(
+  actorUserId: string,
+  input: { teamId: string; entryId: string },
+) {
+  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const [row] = await db
+    .select({ id: agencyOpsTimeEntry.id })
+    .from(agencyOpsTimeEntry)
+    .where(
+      and(
+        eq(agencyOpsTimeEntry.id, input.entryId),
+        eq(agencyOpsTimeEntry.teamId, input.teamId),
+        eq(agencyOpsTimeEntry.userId, actorUserId),
+        isNull(agencyOpsTimeEntry.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  return fetchAgencyTimeEntryRecord(row.id);
+}
+
 export async function listMyAgencyTimeEntries(
   actorUserId: string,
   input: {
@@ -1144,8 +1195,11 @@ export async function listMyAgencyTimeEntries(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1314,8 +1368,11 @@ export async function listMyAgencyTimeEntriesInRange(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1435,8 +1492,11 @@ export async function createManualAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1486,8 +1546,7 @@ export async function updateMyAgencyTimeEntry(
 ) {
   await requireTeamMembership(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   const [current] = await db
     .select({
@@ -1588,8 +1647,11 @@ export async function updateMyAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1646,9 +1708,7 @@ export async function updateMyAgencyTimeEntriesBulk(
 
   const tagIds = await validateAgencyTagIds(input.teamId, input.patch.tagIds);
   const links =
-    input.patch.links === undefined
-      ? undefined
-      : normalizeTimeEntryLinkUrls(input.patch.links);
+    input.patch.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.patch.links);
 
   if (input.patch.projectId) {
     await getProjectByIdForTeam(input.teamId, input.patch.projectId);
@@ -1919,8 +1979,11 @@ export async function listAllAgencyTimeEntries(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1984,8 +2047,7 @@ export async function updateAnyAgencyTimeEntry(
 ) {
   await requireTeamMembership(actorUserId, input.teamId, "owner");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   const [current] = await db
     .select({
@@ -2084,8 +2146,11 @@ export async function updateAnyAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,

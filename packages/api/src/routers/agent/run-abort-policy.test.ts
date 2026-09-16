@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { bindListenerSignal, createRunAbortRegistry } from "./run-service";
+import {
+  bindListenerSignal,
+  createRunAbortRegistry,
+  scheduleDetachedRun,
+  waitForSubscribePoll,
+} from "./run-service";
 
 describe("run abort policy", () => {
   test("listener abort does not abort the OpenRouter controller", () => {
@@ -33,5 +38,22 @@ describe("run abort policy", () => {
     });
     expect(calls).toEqual(["unsub"]);
     expect(policy.shouldAbortOpenRouter).toBe(false);
+  });
+
+  test("scheduleDetachedRun still runs after the caller returns", async () => {
+    let ran = false;
+    scheduleDetachedRun(async () => {
+      ran = true;
+    });
+    expect(ran).toBe(false);
+    await Bun.sleep(20);
+    expect(ran).toBe(true);
+  });
+
+  test("waitForSubscribePoll resolves on listener abort without throwing", async () => {
+    const listener = new AbortController();
+    const pending = waitForSubscribePoll(5_000, listener.signal);
+    listener.abort();
+    await pending;
   });
 });

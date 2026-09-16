@@ -1,4 +1,8 @@
-import { DEFAULT_WORK_SCHEDULE, isWeekendDateKey, rotateWeekdayLabels } from "../resourcing/work-schedule";
+import {
+  DEFAULT_WORK_SCHEDULE,
+  isWeekendDateKey,
+  rotateWeekdayLabels,
+} from "../resourcing/work-schedule";
 import {
   addDaysToDateKey,
   getLocalWeekStartKeyFromDateKey,
