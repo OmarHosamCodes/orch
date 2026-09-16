@@ -16,8 +16,17 @@ import { MoneySettingsDialog } from "@/features/money/agency-money-settings-dial
 import { AgencyMoneyExpenseDialogs } from "@/features/money/agency-money-expense-dialogs-view";
 import { AgencyMoneyBillsDialogs } from "@/features/money/agency-money-bills-dialogs-view";
 import { Button } from "@/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/ui/tabs";
+import { useTeamStore } from "@/features/team/team-store";
+import {
+  DevRealGallery,
+  DevRealModeNotice,
+  DevRealTeamPicker,
+  useDevRealTeams,
+} from "@/pages/dev-dialogs-real";
+import { DialogInputsSection } from "@/pages/dev-dialogs-inputs";
 
-function GalleryCard({
+export function GalleryCard({
   title,
   source,
   trigger,
@@ -31,23 +40,33 @@ function GalleryCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-default bg-card p-4">
-      <h2 className="text-sm font-semibold text-highlighted">{title}</h2>
-      <p className="mt-0.5 font-mono text-[11px] break-all text-muted">{source}</p>
-      <p className="mt-2 text-xs text-muted">
-        Trigger: <span className="font-medium text-highlighted">{trigger}</span>
-      </p>
-      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={onOpen}>
-        Open dialog
+    <li className="flex flex-wrap items-center gap-3 border-b border-default py-3 last:border-b-0">
+      <div className="min-w-0 flex-1">
+        <h2 className="text-sm font-semibold text-highlighted">{title}</h2>
+        <p className="mt-0.5 text-xs text-muted">{trigger}</p>
+        <p className="mt-0.5 truncate font-mono text-[11px] text-muted">{source}</p>
+      </div>
+      <Button type="button" size="sm" variant="secondary" onClick={onOpen}>
+        Open
       </Button>
       {children}
-    </section>
+    </li>
   );
 }
 
 function ProjectCreateEntry() {
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState("Website refresh");
+  const [mode, setMode] = useState<"normal" | "journey">("normal");
+  const [clientId, setClientId] = useState("acme");
+  const [iconKey, setIconKey] = useState<string | null>("briefcase");
+  const [milestones, setMilestones] = useState([
+    { key: "m1", title: "Kickoff", assignedToTeam: true, assigneeUserIds: [] as string[] },
+  ]);
+  const clients = [
+    { id: "acme", name: "Acme Co" },
+    { id: "north", name: "Northwind" },
+  ];
   return (
     <GalleryCard
       title="New project"
@@ -58,28 +77,46 @@ function ProjectCreateEntry() {
       <AgencyProjectCreateDialogView
         open={open}
         onOpenChange={setOpen}
-        clients={[{ id: "acme", name: "Acme Co" }]}
+        clients={clients}
         viewModel={
           {
             formId: "dev-project-create",
-            mode: "normal",
-            setMode: () => {},
-            clientId: "acme",
-            setClientId: () => {},
+            mode,
+            setMode,
+            clientId,
+            setClientId,
             projectName,
             setProjectName,
-            iconKey: "briefcase",
-            setIconKey: () => {},
-            milestones: [],
+            iconKey,
+            setIconKey,
+            milestones,
             formError: null,
-            isJourneyMode: false,
+            isJourneyMode: mode === "journey",
             members: [],
             isMembersLoading: false,
-            selectedClient: { id: "acme", name: "Acme Co" },
-            clientLocked: true,
-            updateMilestone: () => {},
-            addMilestone: () => {},
-            removeMilestone: () => {},
+            selectedClient: clients.find((client) => client.id === clientId) ?? null,
+            clientLocked: false,
+            updateMilestone: (key: string, patch: Record<string, unknown>) => {
+              setMilestones((rows) =>
+                rows.map((row) => (row.key === key ? { ...row, ...patch } : row)),
+              );
+            },
+            addMilestone: () => {
+              setMilestones((rows) => [
+                ...rows,
+                {
+                  key: `m${rows.length + 1}`,
+                  title: "",
+                  assignedToTeam: true,
+                  assigneeUserIds: [],
+                },
+              ]);
+            },
+            removeMilestone: (key: string) => {
+              setMilestones((rows) =>
+                rows.length <= 1 ? rows : rows.filter((row) => row.key !== key),
+              );
+            },
             handleSubmit: (e: Event) => e.preventDefault(),
             canSubmit: true,
             isProjectMutationPending: false,
@@ -93,6 +130,7 @@ function ProjectCreateEntry() {
 function TaskCreateEntry() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("Design review");
+  const [iconKey, setIconKey] = useState<string | null>("check");
   return (
     <GalleryCard
       title="Create task"
@@ -108,8 +146,8 @@ function TaskCreateEntry() {
             formId: "dev-task-create",
             title,
             setTitle,
-            iconKey: "check",
-            setIconKey: () => {},
+            iconKey,
+            setIconKey,
             canSubmit: title.trim().length > 0,
             isPending: false,
             handleSubmit: (e: Event) => e.preventDefault(),
@@ -303,7 +341,7 @@ function SettingsShellEntry() {
   const [pane, setPane] = useState<"general" | "members">("general");
   return (
     <GalleryCard
-      title="Settings shell"
+      title="Settings"
       source="features/shared/agency-settings-dialog-shell.tsx"
       trigger="Team settings / User settings gear"
       onOpen={() => setOpen(true)}
@@ -332,6 +370,7 @@ function SettingsShellEntry() {
 function KnowledgeCreateEntry() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("Sample card");
+  const [visibility, setVisibility] = useState<"private" | "team">("private");
   return (
     <GalleryCard
       title="Knowledge create"
@@ -343,7 +382,7 @@ function KnowledgeCreateEntry() {
         open={open}
         surface="note"
         title={title}
-        visibility="private"
+        visibility={visibility}
         teamSelected
         status="open"
         recommendation=""
@@ -361,7 +400,7 @@ function KnowledgeCreateEntry() {
         canUploadSource={false}
         onOpenChange={setOpen}
         onTitleChange={setTitle}
-        onVisibilityChange={() => {}}
+        onVisibilityChange={setVisibility}
         onStatusChange={() => {}}
         onRecommendationChange={() => {}}
         onSourceUrlChange={() => {}}
@@ -492,6 +531,16 @@ function MoneySettingsEntry() {
 
 function ExpenseDialogsEntry() {
   const [open, setOpen] = useState(false);
+  const [kind, setKind] = useState<"one_time" | "subscription">("one_time");
+  const [name, setName] = useState("Notion");
+  const [amount, setAmount] = useState("12");
+  const [currency, setCurrency] = useState("USD");
+  const [note, setNote] = useState("");
+  const [occurredAt, setOccurredAt] = useState("");
+  const [occurredTime, setOccurredTime] = useState("");
+  const [amountMode, setAmountMode] = useState<"fixed" | "variable">("fixed");
+  const [period, setPeriod] = useState("monthly");
+  const [startsAt, setStartsAt] = useState("");
   return (
     <GalleryCard
       title="Expense create"
@@ -507,33 +556,47 @@ function ExpenseDialogsEntry() {
               onOpenChange: setOpen,
               formId: "dev-expense",
               title: "Add expense",
-              kind: "one_time",
+              kind,
               kindOptions: [
                 { id: "one_time", label: "One-time" },
                 { id: "subscription", label: "Subscription" },
               ],
-              name: "Notion",
-              onNameChange: () => {},
-              onKindChange: () => {},
+              name,
+              onNameChange: setName,
+              onKindChange: setKind,
               kindLocked: false,
-              amount: "12",
-              onAmountChange: () => {},
-              currency: "USD",
+              amount,
+              onAmountChange: setAmount,
+              currency,
               currencyOptions: ["USD", "EGP"],
-              onCurrencyChange: () => {},
-              amountPreview: null,
+              onCurrencyChange: setCurrency,
+              amountPreview: currency === "USD" ? "≈ EGP 580.00" : null,
               fxOverride: null,
-              note: "",
-              onNoteChange: () => {},
+              note,
+              onNoteChange: setNote,
               errors: {},
               isPending: false,
               mode: "create",
               submitLabel: "Add",
               onSubmit: (e: Event) => e.preventDefault(),
-              occurredAt: "",
-              onOccurredAtChange: () => {},
-              occurredTime: "",
-              onOccurredTimeChange: () => {},
+              occurredAt,
+              onOccurredAtChange: setOccurredAt,
+              occurredTime,
+              onOccurredTimeChange: setOccurredTime,
+              amountMode,
+              amountModeOptions: [
+                { id: "fixed", label: "Fixed" },
+                { id: "variable", label: "Variable" },
+              ],
+              onAmountModeChange: setAmountMode,
+              period,
+              periodOptions: [
+                { id: "weekly", label: "Weekly" },
+                { id: "monthly", label: "Monthly" },
+              ],
+              onPeriodChange: setPeriod,
+              startsAt,
+              onStartsAtChange: setStartsAt,
             },
             payment: {
               open: false,
@@ -574,7 +637,7 @@ function BillsConfirmEntry() {
   const closed = { open: false, onOpenChange: noop } as any;
   return (
     <GalleryCard
-      title="Bills confirm + adjust"
+      title="Bills dialogs"
       source="features/money/agency-money-bills-dialogs-view.tsx"
       trigger="Money → bill row → Collect/Pay actions"
       onOpen={() => setOpen(true)}
@@ -685,32 +748,73 @@ function BillsConfirmEntry() {
 }
 
 export function DevDialogsPage() {
+  const [mode, setMode] = useState<"sample" | "real">("sample");
+  const { user, teams } = useDevRealTeams();
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const setSelectedTeamId = useTeamStore((s) => s.setSelectedTeamId);
+  const teamId = selectedTeamId || teams[0]?.id || "";
+
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      <p className="text-[11px] font-bold tracking-[0.2em] text-muted uppercase">
-        Development only
-      </p>
-      <h1 className="mt-2 text-2xl font-bold text-highlighted">Dialogs</h1>
+    <main className="mx-auto w-full max-w-5xl px-6 py-10">
+      <h1 className="text-2xl font-semibold tracking-tight text-highlighted">Dialogs</h1>
       <p className="mt-2 max-w-prose text-sm text-muted">
-        Every dialog with its production trigger. Sample props only — mutations are no-ops and
-        close the dialog.
+        Shared smart inputs, then every production dialog. Sample mode uses mock props; real-data
+        mode reads your team. Payloads stay the same.
       </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <ProjectCreateEntry />
-        <TaskCreateEntry />
-        <ChooserProjectCreateEntry />
-        <MyTasksEditEntry />
-        <EntryLinksEntry />
-        <ReportDetailsEntry />
-        <GaugeDetailEntry />
-        <SettingsShellEntry />
-        <KnowledgeCreateEntry />
-        <NodeEditorEntry />
-        <OrchestratorSourcesEntry />
-        <MoneySettingsEntry />
-        <ExpenseDialogsEntry />
-        <BillsConfirmEntry />
+
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Tabs value={mode} onValueChange={(value) => setMode(value as "sample" | "real")}>
+          <TabsList>
+            <TabsTrigger value="sample">Sample</TabsTrigger>
+            <TabsTrigger value="real">Real data</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {mode === "real" ? (
+          <DevRealTeamPicker teamId={teamId} onTeamChange={setSelectedTeamId} />
+        ) : null}
       </div>
+
+      {mode === "real" ? <DevRealModeNotice /> : null}
+
+      <DialogInputsSection />
+
+      <section className="mt-10" aria-label="Dialogs">
+        <h2 className="text-lg font-semibold text-highlighted">Production dialogs</h2>
+        <p className="mt-1 max-w-prose text-sm text-muted">
+          Compact creates are hero plus chips. Settings, gauges, node editor, and orchestrator keep
+          their topologies; in-pane pickers use the kit.
+        </p>
+        {mode === "sample" ? <SampleGallery /> : null}
+        {mode === "real" && user && teamId ? (
+          <DevRealGallery teamId={teamId} userId={user.id} />
+        ) : null}
+        {mode === "real" && (!user || !teamId) ? (
+          <p className="mt-6 text-sm text-muted">
+            {!user ? "Sign in to load real data." : "No teams yet — create one first."}
+          </p>
+        ) : null}
+      </section>
     </main>
+  );
+}
+
+function SampleGallery() {
+  return (
+    <ul className="mt-4 list-none rounded-xl border border-default bg-card px-4 p-0">
+      <ProjectCreateEntry />
+      <TaskCreateEntry />
+      <ChooserProjectCreateEntry />
+      <MyTasksEditEntry />
+      <EntryLinksEntry />
+      <ReportDetailsEntry />
+      <GaugeDetailEntry />
+      <SettingsShellEntry />
+      <KnowledgeCreateEntry />
+      <NodeEditorEntry />
+      <OrchestratorSourcesEntry />
+      <MoneySettingsEntry />
+      <ExpenseDialogsEntry />
+      <BillsConfirmEntry />
+    </ul>
   );
 }

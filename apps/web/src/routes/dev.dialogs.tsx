@@ -8,6 +8,7 @@ export const Route = createFileRoute("/dev/dialogs")({
     if (!import.meta.env.DEV) throw notFound();
   },
   // Dialogs are client-interactive; skip SSR like Tracker/Reports.
+  // Public in dev so Sample mode works logged-out; Real data mode needs a session.
   ssr: false,
   component: DevDialogsPage,
   pendingComponent: () => <RoutePending label="Opening Dialogs" />,

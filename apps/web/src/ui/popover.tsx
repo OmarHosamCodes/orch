@@ -49,7 +49,7 @@ function PopoverContent({
         className={cn(
           // Quiet-instrument float: hairline + ladder shadow, origin-aware spring.
           // Caller width/padding utilities still win via tailwind-merge.
-          "z-50 flex w-72 max-w-[calc(100vw-1.5rem)] max-h-(--radix-popover-content-available-height) origin-(--radix-popover-content-transform-origin) flex-col overflow-y-auto overscroll-contain rounded-surface border border-border bg-popover p-4 text-sm leading-relaxed text-popover-foreground shadow-lg outline-hidden",
+          "z-[60] flex w-72 max-w-[calc(100vw-1.5rem)] max-h-(--radix-popover-content-available-height) origin-(--radix-popover-content-transform-origin) flex-col overflow-y-auto overscroll-contain rounded-surface border border-border bg-popover p-4 text-sm leading-relaxed text-popover-foreground shadow-lg outline-hidden",
           "duration-[var(--motion-duration-panel)] ease-[var(--motion-ease-emphasized)]",
           "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.98]",
           "data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1",
