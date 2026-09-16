@@ -71,11 +71,16 @@ export function AgencyProjectTasks({
   }
 
   return (
-    <section className="rounded-surface border border-default bg-default">
+    <section
+      className="rounded-surface border border-default bg-default"
+      aria-label={`Tasks for ${projectName}`}
+    >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-default px-4 py-3">
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-baseline gap-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Tasks</p>
-          <p className="mt-1 truncate text-xs text-muted">{projectName}</p>
+          {tasks.length > 0 ? (
+            <span className="font-mono text-[11px] tabular-nums text-dimmed">{tasks.length}</span>
+          ) : null}
         </div>
 
         <form

@@ -11,6 +11,21 @@ import {
 } from "@/features/shared/format-rate";
 import { useAgencyProjectJourney } from "@/features/projects/use-agency-project-journey";
 import {
+  buildProjectActivityTimeline,
+  type ProjectActivityDay,
+  type ProjectActivitySort,
+} from "@/features/projects/project-activity-timeline";
+import {
+  projectBookNeeds,
+  projectHasBudget,
+  projectIsAtRisk,
+  type ProjectBookNeedId,
+} from "@/features/projects/projects-book-corridors";
+import {
+  useAgencyClientsQuery,
+  useAgencyProjectTasksQuery,
+} from "@/features/shared/agency-queries";
+import {
   selectIsProjectMutationPending,
   useAgencyOpsStore,
 } from "@/features/shared/stores/agency-ops";
@@ -23,7 +38,7 @@ import {
 } from "@/features/workspace/workspace-agency-links";
 import { useWorkspaceStore } from "@/features/workspace/workspace-local-state";
 
-type ActivitySort = "newest" | "oldest" | "longest";
+type ActivitySort = ProjectActivitySort;
 
 export type AgencyProjectDetailViewModel = {
   teamId: string;
@@ -61,13 +76,7 @@ export type AgencyProjectDetailViewModel = {
   totalsLast30: number;
   hoursByMemberThisWeek: Array<{ userId: string; name: string; seconds: number }>;
   memberSecondsMax: number;
-  sortedRecentEntries: Array<{
-    id: string;
-    startedAt: string;
-    userName: string;
-    description: string;
-    durationSeconds: number;
-  }>;
+  activityDays: ProjectActivityDay[];
   activitySort: ActivitySort;
   setActivitySort: (sort: ActivitySort) => void;
   journeyExpandedMobile: boolean;
@@ -92,6 +101,11 @@ export type AgencyProjectDetailViewModel = {
   saveProjectRate: () => void;
   canSaveProjectRate: boolean;
   onChangeProjectIcon: (iconKey: AgencyEntityIconKey | null) => void;
+  openTaskCount: number;
+  needs: ProjectBookNeedId[];
+  clientArchivedAt: string | null;
+  budgetAtRisk: boolean;
+  budgetMissing: boolean;
 };
 
 type UseAgencyProjectDetailOptions = {
@@ -144,6 +158,9 @@ export function useAgencyProjectDetail({
     enabled: Boolean(teamId),
   });
 
+  const clientsQuery = useAgencyClientsQuery(teamId, { archiveFilter: "all" });
+  const tasksQuery = useAgencyProjectTasksQuery(teamId, { projectId, pageSize: 100 });
+
   const fxRatesQuery = useQuery({
     ...orpc.agencyOps.fxRates.list.queryOptions({
       input: { teamId },
@@ -152,6 +169,13 @@ export function useAgencyProjectDetail({
   });
 
   const project = (projectsQuery.data?.items ?? []).find((entry) => entry.id === projectId) ?? null;
+  const clientArchivedAt =
+    clientsQuery.data?.items.find((client) => client.id === project?.clientId)?.archivedAt ?? null;
+
+  const openTaskCount = useMemo(() => {
+    if (!projectId) return 0;
+    return (tasksQuery.data?.items ?? []).filter((task) => task.projectId === projectId).length;
+  }, [projectId, tasksQuery.data?.items]);
 
   useEffect(() => {
     if (!project) {
@@ -285,18 +309,58 @@ export function useAgencyProjectDetail({
     0,
   );
 
-  const recentEntries = [...entries]
-    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
-    .slice(0, 25);
+  const activityDays = useMemo(() => {
+    const recent = [...entries]
+      .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+      .slice(0, 25)
+      .map((entry) => ({
+        id: entry.id,
+        userId: entry.userId,
+        userName: entry.userName,
+        description: entry.description,
+        startedAt: entry.startedAt,
+        durationSeconds: entry.durationSeconds,
+      }));
+    return buildProjectActivityTimeline(recent, activitySort);
+  }, [activitySort, entries]);
 
-  const sortedRecentEntries = useMemo(() => {
-    const list = [...recentEntries];
-    if (activitySort === "newest") return list;
-    if (activitySort === "oldest") return list.reverse();
-    return list.sort((a, b) => b.durationSeconds - a.durationSeconds);
-  }, [recentEntries, activitySort]);
+  const budgetAtRisk = projectIsAtRisk(projectBudget);
+  const budgetMissing = !projectHasBudget(projectBudget);
 
-  const isLoading = projectsQuery.isPending || entriesQuery.isPending;
+  const lastActivityMs = useMemo(() => {
+    if (entries.length === 0) return null;
+    return Math.max(...entries.map((entry) => new Date(entry.startedAt).getTime()));
+  }, [entries]);
+
+  const daysSinceLastActivity =
+    lastActivityMs == null
+      ? null
+      : Math.floor((Date.now() - lastActivityMs) / (24 * 60 * 60 * 1000));
+
+  const journeyIncomplete = Boolean(
+    journeyState.hasJourney &&
+      !journeyState.isLegacyProject &&
+      (journeyState.journey?.completedSteps ?? 0) <
+        (journeyState.journey?.totalSteps ?? 0),
+  );
+
+  const inheritsClientRate =
+    catalogRateAmount(project?.sourceBillableRateAmount, project?.billableRateAmount) === null;
+
+  const needs = projectBookNeeds({
+    deletedAt: project?.deletedAt ?? null,
+    budget: projectBudget,
+    clientArchivedAt,
+    inheritsClientRate,
+    journeyIncomplete,
+    daysSinceLastActivity,
+  });
+
+  const isLoading =
+    projectsQuery.isPending ||
+    entriesQuery.isPending ||
+    clientsQuery.isPending ||
+    tasksQuery.isPending;
   const isError = projectsQuery.isError || entriesQuery.isError;
   const errorMessage = getErrorMessage(
     entriesQuery.error ?? projectsQuery.error,
@@ -397,7 +461,7 @@ export function useAgencyProjectDetail({
     totalsLast30,
     hoursByMemberThisWeek,
     memberSecondsMax,
-    sortedRecentEntries,
+    activityDays,
     activitySort,
     setActivitySort,
     journeyExpandedMobile,
@@ -429,5 +493,10 @@ export function useAgencyProjectDetail({
         iconKey,
       });
     },
+    openTaskCount,
+    needs,
+    clientArchivedAt,
+    budgetAtRisk,
+    budgetMissing,
   };
 }
