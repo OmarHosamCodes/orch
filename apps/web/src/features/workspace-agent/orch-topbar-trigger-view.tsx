@@ -16,7 +16,17 @@ type OrchTopbarTriggerViewProps = {
   badgeCount: number;
   hidden: boolean;
   onToggle?: () => void;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "type">;
+} & Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  | "children"
+  | "type"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+>;
 
 export const OrchTopbarTriggerView = forwardRef<HTMLButtonElement, OrchTopbarTriggerViewProps>(
   function OrchTopbarTriggerView(
