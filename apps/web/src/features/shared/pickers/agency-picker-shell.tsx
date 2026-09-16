@@ -1,31 +1,29 @@
 import { Check, ChevronDown, Search } from "lucide-react";
-import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
+import type { ButtonHTMLAttributes, ComponentProps, ReactNode, Ref } from "react";
 
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
-import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
+import {
+  agencyFocusRingClass,
+  agencyInputPlaceholderClass,
+  agencyPickerChipTriggerClass,
+  agencyPickerFieldTriggerClass,
+  agencyPickerInlineTriggerClass,
+} from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/ui/checkbox";
 import { Input } from "@/ui/input";
 
-/** Canonical picker field trigger. Command-bar filters add width caps on top. */
-export const agencyPickerFieldTriggerClass = cn(
-  "inline-flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-default bg-default px-3 text-left text-xs font-semibold transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
-  agencyFocusRingClass,
-);
-
-export const agencyPickerChipTriggerClass = cn(
-  "inline-flex h-8 w-fit max-w-full items-center gap-1.5 rounded-full border border-default bg-elevated px-2 text-xs font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
-  agencyFocusRingClass,
-);
-
-export const agencyPickerInlineTriggerClass = cn(
-  "inline-flex min-w-0 max-w-full items-center justify-start gap-1.5 overflow-hidden rounded-lg border-0 bg-transparent px-2 font-normal text-foreground shadow-none transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
-  agencyFocusRingClass,
-);
+export {
+  agencyPickerChipTriggerClass,
+  agencyPickerFieldTriggerClass,
+  agencyPickerInlineTriggerClass,
+};
 
 type AgencyPickerTriggerProps = {
   variant?: "field" | "chip" | "inline";
   glyph?: ReactNode;
+  /** Render glyph as-is (avatars); default wraps small glyphs in a bubble. */
+  bareGlyph?: boolean;
   label: ReactNode;
   open?: boolean;
   filled?: boolean;
@@ -39,6 +37,7 @@ type AgencyPickerTriggerProps = {
 export function AgencyPickerTrigger({
   variant = "field",
   glyph,
+  bareGlyph,
   label,
   open,
   filled,
@@ -69,9 +68,13 @@ export function AgencyPickerTrigger({
       )}
     >
       {glyph ? (
-        <span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
-          {glyph}
-        </span>
+        bareGlyph ? (
+          glyph
+        ) : (
+          <span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+            {glyph}
+          </span>
+        )
       ) : null}
       <span className="min-w-0 flex-1 truncate text-left">{label}</span>
       <ChevronDown
@@ -92,18 +95,25 @@ export function AgencyPickerSearch({
   placeholder,
   ariaLabel,
   autoFocus,
+  inputProps,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   ariaLabel?: string;
   autoFocus?: boolean;
+  inputProps?: Omit<
+    ComponentProps<"input">,
+    "value" | "onChange" | "placeholder" | "aria-label" | "autoFocus"
+  >;
 }) {
+  const { className: inputClassName, ...restInputProps } = inputProps ?? {};
   return (
     <div className="shrink-0 border-b border-border p-2">
       <div className="relative">
         <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
         <Input
+          {...restInputProps}
           autoFocus={autoFocus}
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -112,6 +122,7 @@ export function AgencyPickerSearch({
           className={cn(
             "h-9 rounded-lg border-default bg-default pl-8 text-base md:text-sm",
             agencyInputPlaceholderClass,
+            inputClassName,
           )}
         />
       </div>

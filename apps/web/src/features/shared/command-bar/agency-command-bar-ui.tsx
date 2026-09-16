@@ -1,4 +1,4 @@
-import { agencyPickerFieldTriggerClass } from "@/features/shared/pickers/agency-picker-shell";
+import { agencyPickerFieldTriggerClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
 export const agencyCommandBarFilterTriggerClass = cn(

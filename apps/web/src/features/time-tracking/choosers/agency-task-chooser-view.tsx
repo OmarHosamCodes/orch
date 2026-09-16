@@ -1,6 +1,8 @@
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type { ReactNode } from "react";
+
+import { AgencyPickerSearch } from "@/features/shared/pickers/agency-picker-shell";
 
 import { AgencyTimeEntryProjectLabel } from "@/features/time-tracking/entries/agency-time-entry-project-label";
 import { AgencyTaskChooserClientSection } from "@/features/time-tracking/choosers/agency-task-chooser-client-section";
@@ -24,15 +26,12 @@ import {
   taskChooserTaskOptionKey,
 } from "@/features/time-tracking/agency-task-chooser-keyboard";
 import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import {
-  agencyInputPlaceholderClass,
   agencyTaskChooserCreateActionClass,
   agencyTaskChooserCreateActionMutedClass,
   agencyTaskChooserPanelClass,
-  agencyTaskChooserSearchInputClass,
   agencyTaskChooserTriggerClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
@@ -298,26 +297,21 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             className={agencyTaskChooserPanelClass}
           >
             <MotionConfig reducedMotion="user">
-              <div className="shrink-0 border-b border-border p-3">
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    ref={searchInputRef}
-                    autoFocus
-                    role="combobox"
-                    aria-expanded={open}
-                    aria-controls="agency-task-chooser-listbox"
-                    aria-autocomplete="list"
-                    aria-activedescendant={activeOptionDomId}
-                    value={searchTerm}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    onKeyDown={onSearchKeyDown}
-                    placeholder={searchPlaceholder}
-                    aria-label={searchPlaceholder}
-                    className={cn(agencyTaskChooserSearchInputClass, agencyInputPlaceholderClass)}
-                  />
-                </div>
-              </div>
+              <AgencyPickerSearch
+                autoFocus
+                value={searchTerm}
+                onChange={onSearchChange}
+                placeholder={searchPlaceholder}
+                inputProps={{
+                  ref: searchInputRef,
+                  role: "combobox",
+                  "aria-expanded": open,
+                  "aria-controls": "agency-task-chooser-listbox",
+                  "aria-autocomplete": "list",
+                  "aria-activedescendant": activeOptionDomId,
+                  onKeyDown: onSearchKeyDown,
+                }}
+              />
 
               <div
                 id="agency-task-chooser-listbox"

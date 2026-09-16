@@ -271,11 +271,25 @@ export const agencyTimeTrackerElapsedInputClass = cn(
   "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 );
 
-export const agencyTaskChooserTriggerClass = cn(
-  "inline-flex min-w-0 max-w-full shrink items-center justify-start gap-1.5 overflow-hidden rounded-lg border-0 bg-transparent px-2 py-0 font-normal leading-none text-foreground shadow-none",
-  "transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted hover:text-foreground active:scale-[0.98]",
+export const agencyPickerFieldTriggerClass = cn(
+  "inline-flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-default bg-default px-3 text-left text-xs font-semibold transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
   agencyFocusRingClass,
-  "motion-reduce:transition-none motion-reduce:active:scale-100",
+);
+
+export const agencyPickerChipTriggerClass = cn(
+  "inline-flex h-8 w-fit max-w-full items-center gap-1.5 rounded-full border border-default bg-elevated px-2 text-xs font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+  agencyFocusRingClass,
+);
+
+export const agencyPickerInlineTriggerClass = cn(
+  "inline-flex min-w-0 max-w-full items-center justify-start gap-1.5 overflow-hidden rounded-lg border-0 bg-transparent px-2 font-normal text-foreground shadow-none transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+  agencyFocusRingClass,
+);
+
+export const agencyTaskChooserTriggerClass = cn(
+  agencyPickerInlineTriggerClass,
+  "shrink py-0 leading-none transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] active:scale-[0.98]",
+  "motion-reduce:active:scale-100",
 );
 
 export const agencyTimeTrackerTaskChooserTriggerClass = cn(

@@ -1,9 +1,10 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
-import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
+import { AgencyPickerSearch } from "@/features/shared/pickers/agency-picker-shell";
+import { agencyFocusRingClass } from "@/features/shared/agency-ui";
 import { agencyCommandBarFilterTriggerClass } from "@/features/shared/command-bar/agency-command-bar-ui";
 import {
   agencyFilterMatchingNoun,
@@ -21,7 +22,6 @@ import {
 } from "@/features/shared/filters/agency-filter-option-match";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/ui/checkbox";
-import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import {
   DropdownMenu,
@@ -393,23 +393,17 @@ export function AgencyMultiSelectFilter({
           contentClassName,
         )}
       >
-        <div className="border-b border-default p-2">
-          <div className="relative">
-            <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
-            <Input
-              autoFocus
-              type="search"
-              aria-label={`Search ${label.toLowerCase()} options`}
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={searchPlaceholder ?? `Search ${label.toLowerCase()}`}
-              className={cn(
-                "h-9 rounded-lg border-default bg-default pl-8 text-sm [&::-webkit-search-cancel-button]:hidden",
-                agencyInputPlaceholderClass,
-              )}
-            />
-          </div>
-        </div>
+        <AgencyPickerSearch
+          autoFocus
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder={searchPlaceholder ?? `Search ${label.toLowerCase()}`}
+          ariaLabel={`Search ${label.toLowerCase()} options`}
+          inputProps={{
+            type: "search",
+            className: "text-sm [&::-webkit-search-cancel-button]:hidden",
+          }}
+        />
 
         {statusFilter ? (
           <div className="flex items-center justify-between gap-2 border-b border-default px-3 py-2">
