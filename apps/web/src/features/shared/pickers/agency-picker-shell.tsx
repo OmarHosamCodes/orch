@@ -132,6 +132,7 @@ export function AgencyPickerSearch({
 
 export function AgencyPickerRow({
   glyph,
+  bareGlyph,
   label,
   query,
   description,
@@ -143,6 +144,8 @@ export function AgencyPickerRow({
   accessibleName,
 }: {
   glyph?: ReactNode;
+  /** Render glyph as-is (avatars); default wraps small glyphs in a bubble. */
+  bareGlyph?: boolean;
   label: string;
   query?: string;
   description?: string;
@@ -175,9 +178,13 @@ export function AgencyPickerRow({
         />
       ) : null}
       {glyph ? (
-        <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full">
-          {glyph}
-        </span>
+        bareGlyph ? (
+          glyph
+        ) : (
+          <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full">
+            {glyph}
+          </span>
+        )
       ) : null}
       <span className="flex min-w-0 flex-1 flex-col">
         <span

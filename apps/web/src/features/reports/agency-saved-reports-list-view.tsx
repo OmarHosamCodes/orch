@@ -8,6 +8,7 @@ import {
   AgencyPickerRow,
   AgencyPickerSearch,
 } from "@/features/shared/pickers/agency-picker-shell";
+import { cn } from "@/lib/utils";
 import type { SavedReportsListBodyViewModel } from "./hooks/use-agency-saved-reports-list";
 
 export type SavedReportsListBodyViewProps = {
