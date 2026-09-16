@@ -1,42 +1,36 @@
 import { Redo2, Undo2 } from "lucide-react";
+import type { Ref } from "react";
 
-import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
-import { AgencyPartialWasteChip, AgencyWasteTag } from "@/features/shared/agency-waste-badge";
-import { agencyMetricClass } from "@/features/shared/agency-ui";
-import {
-  AGENCY_REPORT_FIELD_LABELS,
-  isReportFieldVisible,
-  type AgencyReportFieldId,
-} from "@/features/reports/agency-report-fields";
-import {
-  joinedReportRowLinks,
-  reportSimilarTaskStripeClass,
-  reportSimilarTaskStripeIndexes,
-  type AggregatedReportRow,
-} from "@/features/reports/agency-report-grouping";
+import { AgencyReportDocumentChapterView } from "@/features/reports/agency-report-document-chapter-view";
+import type { AgencyReportFieldId } from "@/features/reports/agency-report-fields";
+import type { AggregatedReportRow } from "@/features/reports/agency-report-grouping";
 import { formatReportPeriodDayMonth } from "@/features/reports/agency-report-naming";
-import {
-  aggregatedWasteCounts,
-  aggregatedWasteKind,
-  previewOmissionCaption,
-  type PreviewDocumentClient,
-} from "@/features/reports/agency-report-preview";
+import type { PreviewDocumentClient } from "@/features/reports/agency-report-preview";
+import { agencyFocusRingClass, agencyMetricClass } from "@/features/shared/agency-ui";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/ui/table";
 
-const reportTaskDescriptionSepClass =
-  "pointer-events-none absolute top-1/2 right-0 z-[1] h-4 w-px -translate-y-1/2 bg-border/45";
+type ReportDocumentOutlineItem = {
+  clientId: string;
+  clientName: string;
+  hoursLabel: string;
+  isCurrent: boolean;
+};
+
+type ReportDocumentVirtualChapter = {
+  index: number;
+  key: string;
+  start: number;
+  client: PreviewDocumentClient;
+};
+
+type ReportDocumentStickyChapter = {
+  clientName: string;
+  hoursLabel: string;
+  amountLabel: string | null;
+};
 
 export type AgencyReportDocumentPreviewProps = {
   visibleFields: AgencyReportFieldId[];
@@ -44,8 +38,14 @@ export type AgencyReportDocumentPreviewProps = {
   rangeTo: string;
   totalSeconds: number;
   totalEntries: number;
-  omittedClientCount: number;
-  clients: PreviewDocumentClient[];
+  chapterScrollRef: Ref<HTMLDivElement | null>;
+  outline: ReportDocumentOutlineItem[];
+  stickyChapter: ReportDocumentStickyChapter | null;
+  onJumpToClient: (clientId: string) => void;
+  onChapterScroll: () => void;
+  virtualChapters: ReportDocumentVirtualChapter[];
+  virtualTotalSize: number;
+  measureChapter: (element: HTMLDivElement | null) => void;
   onEditDetails: (row: AggregatedReportRow) => void;
   onExcludeRow: (row: AggregatedReportRow) => void;
   canUndo: boolean;
@@ -60,8 +60,14 @@ export function AgencyReportDocumentPreview({
   rangeTo,
   totalSeconds,
   totalEntries,
-  omittedClientCount,
-  clients,
+  chapterScrollRef,
+  outline,
+  stickyChapter,
+  onJumpToClient,
+  onChapterScroll,
+  virtualChapters,
+  virtualTotalSize,
+  measureChapter,
   onEditDetails,
   onExcludeRow,
   canUndo,
@@ -69,25 +75,16 @@ export function AgencyReportDocumentPreview({
   onUndo,
   onRedo,
 }: AgencyReportDocumentPreviewProps) {
-  const showFrom = isReportFieldVisible(visibleFields, "from");
-  const showTo = isReportFieldVisible(visibleFields, "to");
-  const showProject = isReportFieldVisible(visibleFields, "project");
-  const showTask = isReportFieldVisible(visibleFields, "task");
-  const showDescription = isReportFieldVisible(visibleFields, "description");
-  const showLink = isReportFieldVisible(visibleFields, "link");
-  const showDuration = isReportFieldVisible(visibleFields, "duration");
-  const showAssignee = isReportFieldVisible(visibleFields, "assignee");
   const periodFromLabel = formatReportPeriodDayMonth(rangeFrom);
   const periodToLabel = formatReportPeriodDayMonth(rangeTo);
-  const omittedRowCount = clients.reduce((sum, client) => sum + client.omittedRowCount, 0);
-  const omission = previewOmissionCaption({ omittedRowCount, omittedClientCount });
   const entryLabel = totalEntries === 1 ? "1 entry" : `${totalEntries} entries`;
+  const currentClient = outline.find((item) => item.isCurrent);
 
   return (
     <article className="rounded-surface border border-default bg-card px-4 py-4 md:px-6 md:py-5">
-      <header className="mb-5 flex items-start justify-between gap-3">
+      <header className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="text-sm text-muted">Preview of export. Full file includes this range.</p>
+          <p className="text-sm text-muted">Export document for this range.</p>
           <p className="text-sm text-highlighted">
             <span className={agencyMetricClass}>{formatDuration(totalSeconds, "units")}</span>
             <span className="text-muted"> · {entryLabel}</span>
@@ -129,221 +126,107 @@ export function AgencyReportDocumentPreview({
         </TooltipProvider>
       </header>
 
-      <div className="space-y-8">
-        {clients.map((client) => {
-          const clientRowCount = client.group.projects.reduce(
-            (sum, project) => sum + project.rows.length,
-            0,
-          );
-          return (
-            <section key={client.clientId} className="space-y-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-base font-semibold text-highlighted">{client.clientName}</h2>
-                <p className="text-xs text-muted">
-                  <span className={agencyMetricClass}>
-                    {formatDuration(client.totalSeconds, "units")}
+      {outline.length > 1 ? (
+        <nav
+          aria-label="Clients in this report"
+          className="mb-4 min-w-0 border-b border-default pb-3"
+          onKeyDown={(event) => {
+            if (
+              event.key !== "ArrowRight" &&
+              event.key !== "ArrowDown" &&
+              event.key !== "ArrowLeft" &&
+              event.key !== "ArrowUp"
+            ) {
+              return;
+            }
+            const buttons = [...event.currentTarget.querySelectorAll("button")];
+            const current = event.target;
+            if (!(current instanceof HTMLButtonElement)) return;
+            const index = buttons.indexOf(current);
+            if (index < 0) return;
+            event.preventDefault();
+            const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+            const next = buttons[(index + delta + buttons.length) % buttons.length];
+            next?.focus();
+            next?.click();
+          }}
+        >
+          <ul className="flex min-w-0 gap-2 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:overflow-y-hidden max-sm:overscroll-x-contain sm:flex-wrap">
+            {outline.map((item) => (
+              <li key={item.clientId} className="min-w-0 max-sm:shrink-0">
+                <button
+                  type="button"
+                  aria-current={item.isCurrent ? "location" : undefined}
+                  className={cn(
+                    "inline-flex min-h-11 flex-col items-start justify-center gap-0.5 rounded-lg px-2.5 py-1.5 text-left transition-colors",
+                    agencyFocusRingClass,
+                    item.isCurrent
+                      ? "bg-chart-2/15 text-chart-2"
+                      : "text-highlighted hover:bg-elevated max-sm:bg-elevated",
+                  )}
+                  onClick={() => onJumpToClient(item.clientId)}
+                >
+                  <span className="whitespace-nowrap text-xs font-medium leading-none tracking-[-0.01em]">
+                    {item.clientName}
                   </span>
-                  {client.amountLabel ? <span> · {client.amountLabel}</span> : null}
-                </p>
-              </div>
+                  <span
+                    className={cn(
+                      agencyMetricClass,
+                      "whitespace-nowrap text-xs leading-none",
+                      item.isCurrent ? "text-chart-2/75" : "text-muted",
+                    )}
+                  >
+                    {item.hoursLabel}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {currentClient ? (
+            <p className="sr-only">Current client {currentClient.clientName}</p>
+          ) : null}
+        </nav>
+      ) : null}
 
-              <div className="overflow-x-auto">
-                <Table className="min-w-[36rem]">
-                  <TableCaption className="sr-only">
-                    Export preview for {client.clientName}
-                  </TableCaption>
-                  <TableHeader className="border-b border-default/50">
-                    <TableRow>
-                    {showFrom ? (
-                      <TableHead scope="col" className="w-24 whitespace-nowrap text-center">
-                        {AGENCY_REPORT_FIELD_LABELS.from}
-                      </TableHead>
-                    ) : null}
-                    {showTo ? (
-                      <TableHead scope="col" className="w-24 whitespace-nowrap text-center">
-                        {AGENCY_REPORT_FIELD_LABELS.to}
-                      </TableHead>
-                    ) : null}
-                      {showProject ? (
-                        <TableHead scope="col" className="w-44">
-                          {AGENCY_REPORT_FIELD_LABELS.project}
-                        </TableHead>
-                      ) : null}
-                      {showTask ? (
-                        <TableHead scope="col" className="min-w-[12rem]">
-                          {AGENCY_REPORT_FIELD_LABELS.task}
-                        </TableHead>
-                      ) : null}
-                      {showDescription ? (
-                        <TableHead scope="col">{AGENCY_REPORT_FIELD_LABELS.description}</TableHead>
-                      ) : null}
-                      {showLink ? (
-                        <TableHead scope="col" className="min-w-[8rem]">
-                          {AGENCY_REPORT_FIELD_LABELS.link}
-                        </TableHead>
-                      ) : null}
-                      <TableHead scope="col" className="w-24">
-                        Waste
-                      </TableHead>
-                      {showDuration ? (
-                        <TableHead scope="col" className="w-28 text-right">
-                          {AGENCY_REPORT_FIELD_LABELS.duration}
-                        </TableHead>
-                      ) : null}
-                      {showAssignee ? (
-                        <TableHead scope="col" className="w-36">
-                          {AGENCY_REPORT_FIELD_LABELS.assignee}
-                        </TableHead>
-                      ) : null}
-                      <TableHead scope="col" className="w-10 px-2">
-                        <span className="sr-only">Actions</span>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {client.group.projects.flatMap((project, projectIndex) => {
-                      const stripes = reportSimilarTaskStripeIndexes(project.rows);
-                      return project.rows.map((row, rowIndex) => {
-                        const wasteKind = aggregatedWasteKind(row);
-                        const wasteCounts = aggregatedWasteCounts(row);
-                        const links = joinedReportRowLinks(row.entries);
-                        const isFirstClientRow = projectIndex === 0 && rowIndex === 0;
-                        return (
-                          <TableRow
-                            key={row.key}
-                            className={cn(
-                              "group/row cursor-pointer",
-                              reportSimilarTaskStripeClass(stripes[rowIndex] ?? 0),
-                            )}
-                            onClick={() => onEditDetails(row)}
-                          >
-                            {showFrom && isFirstClientRow ? (
-                              <TableCell
-                                rowSpan={clientRowCount}
-                                className="border-r border-default bg-elevated/40 whitespace-nowrap text-center align-middle text-xs font-medium text-highlighted"
-                              >
-                                {periodFromLabel}
-                              </TableCell>
-                            ) : null}
-                            {showTo && isFirstClientRow ? (
-                              <TableCell
-                                rowSpan={clientRowCount}
-                                className="border-r border-default bg-elevated/40 whitespace-nowrap text-center align-middle text-xs font-medium text-highlighted"
-                              >
-                                {periodToLabel}
-                              </TableCell>
-                            ) : null}
-                            {showProject && rowIndex === 0 ? (
-                              <TableCell
-                                rowSpan={project.rows.length}
-                                className="border-r border-default bg-elevated/40 align-top text-sm"
-                              >
-                                <span className="inline-flex min-w-0 items-center gap-1.5 font-semibold text-highlighted">
-                                  <AgencyEntityMark
-                                    name={project.projectName}
-                                    projectId={project.projectId}
-                                    iconKey={project.iconKey}
-                                    colorHueId={project.colorHueId}
-                                  />
-                                  <span className="truncate">{project.projectName}</span>
-                                </span>
-                              </TableCell>
-                            ) : null}
-                            {showTask ? (
-                              <TableCell className="relative min-w-0 text-start text-sm text-highlighted">
-                                {showDescription ? (
-                                  <span aria-hidden className={reportTaskDescriptionSepClass} />
-                                ) : null}
-                                <span className="block truncate" title={row.taskTitle || undefined}>
-                                  {row.taskTitle || "—"}
-                                </span>
-                              </TableCell>
-                            ) : null}
-                            {showDescription ? (
-                              <TableCell className="min-w-0 max-w-md text-start text-sm text-highlighted">
-                                <span
-                                  className="block truncate"
-                                  title={row.description || undefined}
-                                >
-                                  {row.description || "—"}
-                                </span>
-                              </TableCell>
-                            ) : null}
-                            {showLink ? (
-                              <TableCell className="min-w-0 max-w-xs truncate text-xs text-highlighted">
-                                {links || "—"}
-                              </TableCell>
-                            ) : null}
-                            <TableCell>
-                              {wasteKind === "all" ? (
-                                <AgencyWasteTag />
-                              ) : wasteKind === "partial" ? (
-                                <AgencyPartialWasteChip
-                                  wasteCount={wasteCounts.wasteCount}
-                                  totalCount={wasteCounts.totalCount}
-                                  onActivate={() => onEditDetails(row)}
-                                />
-                              ) : null}
-                            </TableCell>
-                            {showDuration ? (
-                              <TableCell className="text-right">
-                                <button
-                                  type="button"
-                                  className="inline-flex min-h-10 w-full items-center justify-end gap-1 font-mono tabular-nums text-sm"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onEditDetails(row);
-                                  }}
-                                >
-                                  {formatDuration(row.durationSeconds, "units")}
-                                  {row.entryCount > 1 ? (
-                                    <span className="font-sans text-[10px] font-semibold text-dimmed">
-                                      x{row.entryCount}
-                                    </span>
-                                  ) : null}
-                                </button>
-                              </TableCell>
-                            ) : null}
-                            {showAssignee ? (
-                              <TableCell className="truncate text-sm text-highlighted">
-                                {row.userName}
-                              </TableCell>
-                            ) : null}
-                            <TableCell className="px-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-xs opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  onExcludeRow(row);
-                                }}
-                              >
-                                Exclude
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      });
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-              {client.omittedRowCount > 0 ? (
-                <p className="text-xs text-muted">
-                  {previewOmissionCaption({
-                    omittedRowCount: client.omittedRowCount,
-                    omittedClientCount: 0,
-                  })}
-                </p>
-              ) : null}
-            </section>
-          );
-        })}
+      <div
+        ref={chapterScrollRef}
+        className="max-h-[min(72vh,calc(100dvh-14rem))] overflow-y-auto"
+        onScroll={onChapterScroll}
+      >
+        {stickyChapter ? (
+          <div className="sticky top-0 z-10 h-0 overflow-visible">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-default bg-card py-2">
+              <p className="text-base font-semibold tracking-[-0.01em] text-highlighted">
+                {stickyChapter.clientName}
+              </p>
+              <p className="text-xs text-muted">
+                <span className={agencyMetricClass}>{stickyChapter.hoursLabel}</span>
+                {stickyChapter.amountLabel ? <span> · {stickyChapter.amountLabel}</span> : null}
+              </p>
+            </div>
+          </div>
+        ) : null}
+        <div className="relative" style={{ height: `${virtualTotalSize}px` }}>
+          {virtualChapters.map((virtualChapter) => (
+            <div
+              key={virtualChapter.key}
+              ref={measureChapter}
+              data-index={virtualChapter.index}
+              className="absolute top-0 left-0 w-full pb-8"
+              style={{ transform: `translateY(${virtualChapter.start}px)` }}
+            >
+              <AgencyReportDocumentChapterView
+                client={virtualChapter.client}
+                visibleFields={visibleFields}
+                periodFromLabel={periodFromLabel}
+                periodToLabel={periodToLabel}
+                onEditDetails={onEditDetails}
+                onExcludeRow={onExcludeRow}
+              />
+            </div>
+          ))}
+        </div>
       </div>
-
-      {omission ? <p className="mt-5 text-xs text-muted">{omission}</p> : null}
     </article>
   );
 }

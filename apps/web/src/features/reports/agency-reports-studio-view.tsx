@@ -1,14 +1,14 @@
 import { AlertTriangle, BarChart2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { AgencyReportDocumentPreview } from "@/features/reports/agency-report-document-preview";
+import {
+  AgencyReportDocumentPreview,
+  type AgencyReportDocumentPreviewProps,
+} from "@/features/reports/agency-report-document-preview";
 import {
   AgencyReportStudioOptionsView,
   type AgencyReportStudioOptionsViewProps,
 } from "@/features/reports/agency-report-studio-options-view";
-import type { PreviewDocumentClient } from "@/features/reports/agency-report-preview";
-import type { AggregatedReportRow } from "@/features/reports/agency-report-grouping";
-import type { AgencyReportFieldId } from "@/features/reports/agency-report-fields";
 import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import { Button } from "@/ui/button";
 import { SurfaceShimmer } from "@/ui/skeleton";
@@ -23,20 +23,7 @@ export type AgencyReportsStudioViewProps = {
     onRetry: () => void;
     isEmpty: boolean;
     onGoToTracker: () => void;
-    visibleFields: AgencyReportFieldId[];
-    rangeFrom: string;
-    rangeTo: string;
-    totalSeconds: number;
-    totalEntries: number;
-    omittedClientCount: number;
-    clients: PreviewDocumentClient[];
-    onEditDetails: (row: AggregatedReportRow) => void;
-    onExcludeRow: (row: AggregatedReportRow) => void;
-    canUndo: boolean;
-    canRedo: boolean;
-    onUndo: () => void;
-    onRedo: () => void;
-  };
+  } & AgencyReportDocumentPreviewProps;
 };
 
 export function AgencyReportsStudioView({
@@ -51,7 +38,7 @@ export function AgencyReportsStudioView({
       </aside>
       <div className="min-w-0">
         {document.isPending ? (
-          <SurfaceShimmer className="min-h-80" label="Loading report preview" />
+          <SurfaceShimmer className="min-h-80" label="Loading report" />
         ) : document.isError ? (
           <div className={agencyErrorPanelClass} role="alert">
             <AlertTriangle className="mx-auto size-5 text-error" />
@@ -77,8 +64,14 @@ export function AgencyReportsStudioView({
             rangeTo={document.rangeTo}
             totalSeconds={document.totalSeconds}
             totalEntries={document.totalEntries}
-            omittedClientCount={document.omittedClientCount}
-            clients={document.clients}
+            chapterScrollRef={document.chapterScrollRef}
+            outline={document.outline}
+            stickyChapter={document.stickyChapter}
+            onJumpToClient={document.onJumpToClient}
+            onChapterScroll={document.onChapterScroll}
+            virtualChapters={document.virtualChapters}
+            virtualTotalSize={document.virtualTotalSize}
+            measureChapter={document.measureChapter}
             onEditDetails={document.onEditDetails}
             onExcludeRow={document.onExcludeRow}
             canUndo={document.canUndo}
