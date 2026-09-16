@@ -997,6 +997,7 @@ export async function* streamDashboardConversationTurn(
 
   yield agentChatTurnStreamEventSchema.parse({
     type: "started",
+    runId: createWorkspaceId("agent-run"),
     conversationId: conversation.id,
     createdConversation,
     userMessageId,

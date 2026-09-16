@@ -13,6 +13,30 @@ const schemaArtifact = {
 };
 
 describe("agentChatTurnStreamEventSchema", () => {
+  test("started events require runId", () => {
+    expect(() =>
+      agentChatTurnStreamEventSchema.parse({
+        type: "started",
+        conversationId: "conv-1",
+        createdConversation: true,
+        userMessageId: "message-1",
+        assistantMessageId: "message-2",
+        model: "openrouter/auto-beta",
+      }),
+    ).toThrow();
+
+    const started = agentChatTurnStreamEventSchema.parse({
+      type: "started",
+      runId: "agent-run-00000000-0000-0000-0000-000000000001",
+      conversationId: "conv-1",
+      createdConversation: true,
+      userMessageId: "message-1",
+      assistantMessageId: "message-2",
+      model: "openrouter/auto-beta",
+    });
+    expect(started.type === "started" && started.runId.startsWith("agent-run-")).toBe(true);
+  });
+
   test("accepts token and completed events", () => {
     expect(
       agentChatTurnStreamEventSchema.parse({

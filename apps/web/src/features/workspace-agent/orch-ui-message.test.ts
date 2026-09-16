@@ -49,6 +49,7 @@ describe("orch-ui-message", () => {
     const chunks = [
       ...mapEvent({
         type: "started",
+        runId: "agent-run-1",
         conversationId: "c1",
         createdConversation: true,
         userMessageId: "u1",
@@ -177,6 +178,7 @@ describe("orch-ui-message", () => {
     const mapEvent = createOrchEventToChunkMapper();
     const chunks = mapEvent({
       type: "started",
+      runId: "agent-run-2",
       conversationId: "c-existing",
       createdConversation: false,
       userMessageId: "u2",

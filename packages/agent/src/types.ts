@@ -309,6 +309,7 @@ export const agentChatTurnResponseSchema = z.object({
 
 export const agentChatTurnStreamStartedEventSchema = z.object({
   type: z.literal("started"),
+  runId: z.string().trim().min(1),
   conversationId: z.string().trim().min(1),
   createdConversation: z.boolean(),
   userMessageId: z.string().trim().min(1),
