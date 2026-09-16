@@ -85,6 +85,7 @@ import {
   buildDashboardMessagePreview,
   normalizeDashboardConversationTitle,
 } from "./conversation-contracts";
+import { getMemoryForPrompt, insertInboxNote, memoryPromptText } from "./memory-service";
 import {
   AGENT_TOKEN_FLUSH_CHARS,
   AGENT_TOKEN_FLUSH_MS,
@@ -93,6 +94,7 @@ import {
   completeAgentRun,
   createTokenCoalescer,
   findRunningChatRun,
+  hasRunListener,
   insertAgentRun,
   persistRunStreamEvent,
   subscribeRun,
@@ -980,6 +982,10 @@ export async function* streamDashboardConversationTurn(
         ? modelUserContent(message.content, attachmentsFromRow(message.attachments))
         : message.content,
   }));
+  const memoryText = memoryPromptText(await getMemoryForPrompt(userId, {}));
+  const messagesWithMemory: AgentModelInputMessage[] = memoryText
+    ? [{ role: "system", content: memoryText }, ...recentMessages]
+    : recentMessages;
   const scopeNodes = turn.scopeNodes ?? turn.nodes;
   const agencyRuntime =
     unlockedSurfaces.includes("agency") && turn.teamId
@@ -1054,7 +1060,7 @@ export async function* streamDashboardConversationTurn(
     canvasRuntime,
     resolvedModelId,
     modelPreset,
-    recentMessages,
+    recentMessages: messagesWithMemory,
   });
 
   yield* subscribeRun(userId, { runId, afterSeq: 0, signal: input.signal });
@@ -1290,6 +1296,14 @@ async function executeDashboardConversationRun(args: {
           runId,
           status: stopped ? "cancelled" : "succeeded",
         });
+        if (!hasRunListener(runId)) {
+          await insertInboxNote(userId, {
+            runId,
+            kind: "finish",
+            title: stopped ? "I stopped before finishing" : "I finished a reply",
+            body: responseText.slice(0, 400),
+          });
+        }
       }
     }
   } catch (error) {
@@ -1309,5 +1323,13 @@ async function executeDashboardConversationRun(args: {
       status: serverSignal.aborted ? "cancelled" : "failed",
       error: message,
     });
+    if (!hasRunListener(runId)) {
+      await insertInboxNote(userId, {
+        runId,
+        kind: "finish",
+        title: "I hit a problem",
+        body: message,
+      });
+    }
   }
 }

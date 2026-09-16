@@ -1399,5 +1399,6 @@ export * from "./attachment-content";
 export * from "./models";
 export * from "./model-routing";
 export * from "./stream-turn";
+export * from "./memory-prompt";
 export * from "./types";
 export { listAgentToolCatalog, resolveUnlockedSurfaces } from "./tool-catalog";

@@ -12,6 +12,7 @@ import { and, asc, eq, gt } from "drizzle-orm";
 
 import {
   AGENT_SUBSCRIBE_POLL_MS,
+  addRunListener,
   agentRunAbortRegistry,
   bindListenerSignal,
   waitForSubscribePoll,
@@ -22,10 +23,12 @@ export {
   AGENT_TOKEN_FLUSH_CHARS,
   AGENT_TOKEN_FLUSH_MS,
   STALE_RUN_MS,
+  addRunListener,
   agentRunAbortRegistry,
   bindListenerSignal,
   createRunAbortRegistry,
   createTokenCoalescer,
+  hasRunListener,
   recoverStaleRuns,
 } from "./run-lifecycle";
 
@@ -227,6 +230,7 @@ export async function* subscribeRun(
   input: { runId: string; afterSeq: number; signal?: AbortSignal },
 ): AsyncGenerator<AgentChatTurnStreamEvent, void, void> {
   await requireOwnedRun(actorUserId, input.runId);
+  const releaseListener = addRunListener(input.runId);
   let cursor = input.afterSeq;
   let unsubscribed = Boolean(input.signal?.aborted);
   bindListenerSignal({
@@ -237,28 +241,32 @@ export async function* subscribeRun(
     onCancelRun: () => undefined,
   });
 
-  while (!unsubscribed) {
-    const rows = await listRunEventsAfter(actorUserId, {
-      runId: input.runId,
-      afterSeq: cursor,
-    });
-    for (const row of rows) {
-      cursor = row.seq;
-      yield agentChatTurnStreamEventSchema.parse(row.payload);
-    }
-
-    const run = await getAgentRun(actorUserId, { runId: input.runId });
-    if (run.status !== "running" && run.status !== "queued") {
-      const tail = await listRunEventsAfter(actorUserId, {
+  try {
+    while (!unsubscribed) {
+      const rows = await listRunEventsAfter(actorUserId, {
         runId: input.runId,
         afterSeq: cursor,
       });
-      for (const row of tail) {
+      for (const row of rows) {
+        cursor = row.seq;
         yield agentChatTurnStreamEventSchema.parse(row.payload);
       }
-      return;
-    }
 
-    await waitForSubscribePoll(AGENT_SUBSCRIBE_POLL_MS, input.signal);
+      const run = await getAgentRun(actorUserId, { runId: input.runId });
+      if (run.status !== "running" && run.status !== "queued") {
+        const tail = await listRunEventsAfter(actorUserId, {
+          runId: input.runId,
+          afterSeq: cursor,
+        });
+        for (const row of tail) {
+          yield agentChatTurnStreamEventSchema.parse(row.payload);
+        }
+        return;
+      }
+
+      await waitForSubscribePoll(AGENT_SUBSCRIBE_POLL_MS, input.signal);
+    }
+  } finally {
+    releaseListener();
   }
 }

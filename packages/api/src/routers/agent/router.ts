@@ -47,6 +47,7 @@ import {
   streamDashboardConversationTurn,
 } from "./service";
 import { cancelRun, getAgentRun, subscribeRun } from "./run-service";
+import { listInbox, markInboxRead } from "./memory-service";
 
 export const agentRouter = {
   freeModels: protectedProcedure.handler(async () => {
@@ -83,6 +84,42 @@ export const agentRouter = {
             surface: input.surface,
             mode: input.mode,
           });
+        }
+      }),
+  },
+  inbox: {
+    list: protectedProcedure
+      .input(z.object({ unreadOnly: z.boolean().optional() }))
+      .handler(async ({ input, context }) => {
+        try {
+          return z
+            .object({
+              notes: z.array(
+                z.object({
+                  id: z.string(),
+                  runId: z.string().nullable(),
+                  kind: z.string(),
+                  title: z.string(),
+                  body: z.string(),
+                  readAt: z.string().nullable(),
+                  createdAt: z.string(),
+                }),
+              ),
+            })
+            .parse(await listInbox(context.session.user.id, input));
+        } catch (error) {
+          throw toInternalServerError("agent.inbox.list", error);
+        }
+      }),
+    markRead: protectedProcedure
+      .input(z.object({ noteId: z.string().min(1) }))
+      .handler(async ({ input, context }) => {
+        try {
+          return z
+            .object({ noteId: z.string(), readAt: z.string() })
+            .parse(await markInboxRead(context.session.user.id, input));
+        } catch (error) {
+          throw toInternalServerError("agent.inbox.markRead", error, { noteId: input.noteId });
         }
       }),
   },

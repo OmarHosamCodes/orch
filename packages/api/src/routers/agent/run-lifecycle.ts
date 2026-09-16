@@ -49,6 +49,24 @@ export function createRunAbortRegistry(): {
 
 export const agentRunAbortRegistry = createRunAbortRegistry();
 
+const runListenerCounts = new Map<string, number>();
+
+export function addRunListener(runId: string): () => void {
+  runListenerCounts.set(runId, (runListenerCounts.get(runId) ?? 0) + 1);
+  return () => {
+    const next = (runListenerCounts.get(runId) ?? 1) - 1;
+    if (next <= 0) {
+      runListenerCounts.delete(runId);
+      return;
+    }
+    runListenerCounts.set(runId, next);
+  };
+}
+
+export function hasRunListener(runId: string): boolean {
+  return (runListenerCounts.get(runId) ?? 0) > 0;
+}
+
 export function createTokenCoalescer(options: {
   flushMs: number;
   flushChars: number;

@@ -46,3 +46,55 @@ export const agentRunEvent = pgTable(
     index("agent_run_event_run_seq_idx").on(table.runId, table.seq),
   ],
 );
+
+export const profileNote = pgTable(
+  "profile_note",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    runId: text("run_id").references(() => agentRun.id, { onDelete: "set null" }),
+    kind: text("kind").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("profile_note_user_created_idx").on(table.userId, table.createdAt),
+    index("profile_note_user_read_idx").on(table.userId, table.readAt),
+  ],
+);
+
+export const agentFact = pgTable(
+  "agent_fact",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    sourceRunId: text("source_run_id").references(() => agentRun.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("agent_fact_user_key_unique").on(table.userId, table.key)],
+);
+
+export const agentObservation = pgTable(
+  "agent_observation",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    observedOn: text("observed_on").notNull(),
+    kind: text("kind").notNull(),
+    summary: text("summary").notNull(),
+    evidence: jsonb("evidence").$type<unknown>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("agent_observation_user_observed_idx").on(table.userId, table.observedOn)],
+);
