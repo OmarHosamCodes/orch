@@ -363,7 +363,7 @@ function ReportsFiltersRoot({
     teamId,
     includeClientFilter: true,
     includeFieldsFilter: true,
-    fetchEntries: true,
+    fetchEntries: false,
     initialCustomRange,
     initialFieldIds,
     initialShowWaste,

@@ -99,6 +99,8 @@ type UseAgencyTimeRangeFiltersOptions = {
     showWaste: AgencyReportShowWaste;
     mergeSameTaskNames: boolean;
   }) => void;
+  /** Reports studio: choosers write applied scope immediately so the preview restyles. */
+  liveApply?: boolean;
 };
 
 function sameIdList(left: string[], right: string[]): boolean {
@@ -202,6 +204,7 @@ export function useAgencyTimeRangeFilters({
   initialMergeSameTaskNames,
   onFiltersApplied,
   onViewOptionsChange,
+  liveApply = false,
 }: UseAgencyTimeRangeFiltersOptions) {
   const defaultFieldIds = allAgencyReportFieldIds();
   const startingFieldIds = initialFieldIds ?? defaultFieldIds;
@@ -460,6 +463,7 @@ export function useAgencyTimeRangeFilters({
 
   function handleClientIdsChange(clientIds: string[]) {
     setDraftClientIds(clientIds);
+    if (liveApply) setAppliedClientIds(clientIds);
     if (clientIds.length === 0 || draftProjectIds.length === 0) return;
     const clientSet = new Set(clientIds);
     const nextProjectIds = draftProjectIds.filter((projectId) => {
@@ -468,6 +472,7 @@ export function useAgencyTimeRangeFilters({
     });
     if (!sameIdList(nextProjectIds, draftProjectIds)) {
       setDraftProjectIds(nextProjectIds);
+      if (liveApply) setAppliedProjectIds(nextProjectIds);
     }
   }
 
@@ -663,11 +668,20 @@ export function useAgencyTimeRangeFilters({
     captureAppliedSnapshot,
     restoreSnapshot,
     rangePreset: effectiveDraftRangePreset,
-    onRangePresetChange: setDraftRangePreset,
+    onRangePresetChange: (preset: RangePreset) => {
+      setDraftRangePreset(preset);
+      if (liveApply) setAppliedRangePreset(preset);
+    },
     customFromDate: draftCustomFromDate,
-    onCustomFromChange: setDraftCustomFromDate,
+    onCustomFromChange: (value: string) => {
+      setDraftCustomFromDate(value);
+      if (liveApply) setAppliedCustomFromDate(value);
+    },
     customToDate: draftCustomToDate,
-    onCustomToChange: setDraftCustomToDate,
+    onCustomToChange: (value: string) => {
+      setDraftCustomToDate(value);
+      if (liveApply) setAppliedCustomToDate(value);
+    },
     onApply: handleApply,
     hasPendingChanges: hasPendingFilterChanges,
     onReset: handleReset,
@@ -677,16 +691,25 @@ export function useAgencyTimeRangeFilters({
     tenureQuarterLabel,
     tenureQuarterMonths,
     tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
-    onTenureMonthIndexesChange: setDraftTenureMonthIndexes,
+    onTenureMonthIndexesChange: (indexes: number[]) => {
+      setDraftTenureMonthIndexes(indexes);
+      if (liveApply) setAppliedTenureMonthIndexes(indexes);
+    },
     showClientFilter: includeClientFilter,
     clientOptions,
     clientsLoading: clientsQuery.isPending,
     clientIds: draftClientIds,
     onClientIdsChange: handleClientIdsChange,
     projectIds: draftProjectIds,
-    onProjectIdsChange: setDraftProjectIds,
+    onProjectIdsChange: (projectIds: string[]) => {
+      setDraftProjectIds(projectIds);
+      if (liveApply) setAppliedProjectIds(projectIds);
+    },
     memberUserIds: draftMemberUserIds,
-    onMemberUserIdsChange: setDraftMemberUserIds,
+    onMemberUserIdsChange: (memberUserIds: string[]) => {
+      setDraftMemberUserIds(memberUserIds);
+      if (liveApply) setAppliedMemberUserIds(memberUserIds);
+    },
     memberOptions,
     projectFilterGroups,
     projectsLoading: projectsQuery.isPending,

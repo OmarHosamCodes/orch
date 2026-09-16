@@ -24,6 +24,10 @@ import {
 } from "@/features/shared/stores/agency-favorites";
 import { restoreQuerySnapshots, snapshotQueries } from "@/features/shared/query-snapshots";
 import { useAgencyOptimisticStore } from "@/features/shared/stores/agency-optimistic";
+import {
+  assignEntityIconOnWrite,
+  type AgencyEntityIconKey,
+} from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import type { AgencyProjectJourney, AgencyProjectTask } from "@orch/api/schemas/agency-ops";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
@@ -62,6 +66,8 @@ type AgencyProject = {
   clientName: string;
   name: string;
   colorHueId: number | null;
+  iconKey: AgencyEntityIconKey | null;
+  iconSource: "auto" | "manual";
   billableRateAmount: number | null;
   sourceBillableRateAmount: number | null;
   currency: string;
@@ -172,6 +178,7 @@ type CreateProjectPayload = {
   clientName: string;
   name: string;
   colorHueId?: number | null;
+  iconKey?: AgencyEntityIconKey | null;
   templateId?: string;
 };
 
@@ -185,6 +192,7 @@ type CreateProjectWithJourneyPayload = {
   clientId: string;
   clientName: string;
   name: string;
+  iconKey?: AgencyEntityIconKey | null;
   milestones: CreateProjectWithJourneyMilestonePayload[];
 };
 
@@ -192,6 +200,7 @@ type CreateProjectTaskPayload = {
   teamId: string;
   projectId: string;
   title: string;
+  iconKey?: AgencyEntityIconKey | null;
   status?: "open" | "in_progress" | "done" | "archived";
   assignedToTeam?: boolean;
   assigneeUserIds?: string[];
@@ -224,6 +233,7 @@ type UpdateProjectTaskPayload = {
   teamId: string;
   taskId: string;
   title?: string;
+  iconKey?: AgencyEntityIconKey | null;
   status?: AgencyProjectTask["status"];
   assignedToTeam?: boolean;
   assigneeUserIds?: string[];
@@ -254,6 +264,7 @@ type RestoreProjectPayload = {
 type UpdateProjectPayload = {
   teamId: string;
   projectId: string;
+  iconKey?: AgencyEntityIconKey | null;
   billableRateAmount?: number | null;
   currency?: string;
 };
@@ -539,6 +550,24 @@ function createAgencyOpsActions(
     });
   }
 
+  function patchUpdatedProject(teamId: string, projectId: string, patch: Partial<AgencyProject>) {
+    projectsQueryRegistry.forEach(({ payload: reg }) => {
+      if (reg.teamId !== teamId) return;
+      getQueryClient().setQueryData<AgencyProjectsListQueryData | undefined>(
+        reg.queryKey,
+        (current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            items: current.items.map((project) =>
+              project.id === projectId ? { ...project, ...patch } : project,
+            ),
+          };
+        },
+      );
+    });
+  }
+
   function patchRemovedProject(teamId: string, projectId: string) {
     optimistic().deleteProject(teamId, projectId);
     projectsQueryRegistry.forEach(({ payload: reg }) => {
@@ -802,6 +831,11 @@ function createAgencyOpsActions(
     const snapshots = snapshotQueries(registryPayloads(projectsQueryRegistry));
     const optimisticSnapshot = optimistic().snapshotProjects(payload.teamId);
     const nowIso = new Date().toISOString();
+    const icon = assignEntityIconOnWrite({
+      name: payload.name.trim(),
+      iconKeyProvided: payload.iconKey !== undefined,
+      requestedIconKey: payload.iconKey,
+    });
     const optimisticProject: AgencyProject = {
       id: optimisticId("project"),
       teamId: payload.teamId,
@@ -809,6 +843,8 @@ function createAgencyOpsActions(
       clientName: payload.clientName,
       name: payload.name.trim(),
       colorHueId: payload.colorHueId ?? null,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       billableRateAmount: null,
       sourceBillableRateAmount: null,
       currency: "USD",
@@ -830,6 +866,7 @@ function createAgencyOpsActions(
         clientId: payload.clientId,
         name: payload.name.trim(),
         colorHueId: payload.colorHueId,
+        iconKey: payload.iconKey,
         templateId: payload.templateId,
       })) as AgencyProject;
 
@@ -864,11 +901,14 @@ function createAgencyOpsActions(
     nowIso: string,
   ): AgencyProjectTask {
     const assigneeIds = [...new Set(assigneeUserIds)];
+    const icon = assignEntityIconOnWrite({ name: title });
     return {
       id: optimisticId("agency-project-task"),
       teamId,
       projectId,
       title,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       status: "open",
       taskKind,
       assignedToTeam: false,
@@ -927,6 +967,11 @@ function createAgencyOpsActions(
     const optimisticTaskSnapshot = optimistic().snapshotTasks(payload.teamId);
     const nowIso = new Date().toISOString();
     const createdByUserId = (await authClient.getSession()).data?.user?.id ?? "";
+    const projectIcon = assignEntityIconOnWrite({
+      name,
+      iconKeyProvided: payload.iconKey !== undefined,
+      requestedIconKey: payload.iconKey,
+    });
     const optimisticProject: AgencyProject = {
       id: optimisticId("project"),
       teamId: payload.teamId,
@@ -934,6 +979,8 @@ function createAgencyOpsActions(
       clientName: payload.clientName,
       name,
       colorHueId: null,
+      iconKey: projectIcon.iconKey,
+      iconSource: projectIcon.iconSource,
       billableRateAmount: null,
       sourceBillableRateAmount: null,
       currency: "USD",
@@ -987,6 +1034,7 @@ function createAgencyOpsActions(
         teamId: payload.teamId,
         clientId: payload.clientId,
         name,
+        iconKey: payload.iconKey,
         milestones,
       });
 
@@ -1033,11 +1081,18 @@ function createAgencyOpsActions(
     const assigneeUserIds = assignedToTeam ? [] : [...new Set(payload.assigneeUserIds ?? [])];
     const trimmedDescription = payload.description?.trim() ?? "";
     const optimisticBlueprintId = trimmedDescription ? optimisticId("agency-task-blueprint") : null;
+    const icon = assignEntityIconOnWrite({
+      name: title,
+      iconKeyProvided: payload.iconKey !== undefined,
+      requestedIconKey: payload.iconKey,
+    });
     const optimisticTask: AgencyProjectTask = {
       id: optimisticId("agency-project-task"),
       teamId: payload.teamId,
       projectId: payload.projectId,
       title,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       status: payload.status ?? "open",
       taskKind: "standard",
       assignedToTeam,
@@ -1125,6 +1180,7 @@ function createAgencyOpsActions(
         teamId: payload.teamId,
         projectId: payload.projectId,
         title,
+        iconKey: payload.iconKey,
         status: payload.status,
         assignedToTeam: payload.assignedToTeam,
         assigneeUserIds: payload.assigneeUserIds,
@@ -1414,17 +1470,38 @@ function createAgencyOpsActions(
 
   async function updateProject(payload: UpdateProjectPayload) {
     if (!payload.teamId || !payload.projectId) return;
-    if (payload.billableRateAmount === undefined && payload.currency === undefined) return;
+    if (
+      payload.billableRateAmount === undefined &&
+      payload.currency === undefined &&
+      payload.iconKey === undefined
+    ) {
+      return;
+    }
+
+    const iconOnly =
+      payload.iconKey !== undefined &&
+      payload.billableRateAmount === undefined &&
+      payload.currency === undefined;
 
     set((state) => ({ ...state, projectMutationCount: state.projectMutationCount + 1 }));
 
+    if (iconOnly) {
+      patchUpdatedProject(payload.teamId, payload.projectId, {
+        iconKey: payload.iconKey ?? null,
+        iconSource: "manual",
+      });
+    }
+
     try {
-      await orpcClient.agencyOps.projects.update({
+      const updated = (await orpcClient.agencyOps.projects.update({
         teamId: payload.teamId,
         projectId: payload.projectId,
+        iconKey: payload.iconKey,
         billableRateAmount: payload.billableRateAmount,
         currency: payload.currency,
-      });
+      })) as AgencyProject;
+
+      patchUpdatedProject(payload.teamId, payload.projectId, updated);
 
       await Promise.all([
         getQueryClient().invalidateQueries({
@@ -1438,9 +1515,9 @@ function createAgencyOpsActions(
         }),
       ]);
 
-      toast.success("Project rate updated");
+      toast.success(iconOnly ? "Project icon updated" : "Project rate updated");
     } catch (error) {
-      toast.error("Couldn't update project rate", {
+      toast.error(iconOnly ? "Couldn't update project icon" : "Couldn't update project rate", {
         description: getErrorMessage(error, "Try again."),
       });
     } finally {
@@ -1592,6 +1669,7 @@ function createAgencyOpsActions(
           teamId: payload.teamId,
           taskId: payload.taskId,
           title: payload.title,
+          iconKey: payload.iconKey,
           status: payload.status,
           assignedToTeam: payload.assignedToTeam,
           assigneeUserIds: payload.assigneeUserIds,
@@ -1616,9 +1694,21 @@ function createAgencyOpsActions(
     }
 
     const nextStatus = payload.status ?? current.status;
+    const nextTitle = payload.title ?? current.title;
+    const icon =
+      payload.iconKey !== undefined || payload.title !== undefined
+        ? assignEntityIconOnWrite({
+            name: nextTitle,
+            iconKeyProvided: payload.iconKey !== undefined,
+            requestedIconKey: payload.iconKey,
+            existing: { iconKey: current.iconKey, iconSource: current.iconSource },
+          })
+        : { iconKey: current.iconKey, iconSource: current.iconSource };
     const optimisticTask: AgencyProjectTask = {
       ...current,
-      title: payload.title ?? current.title,
+      title: nextTitle,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       status: nextStatus,
       viewerStatus:
         nextStatus === "open" || nextStatus === "in_progress" || nextStatus === "done"
@@ -1665,6 +1755,7 @@ function createAgencyOpsActions(
         teamId: payload.teamId,
         taskId: payload.taskId,
         title: payload.title,
+        iconKey: payload.iconKey,
         status: payload.status,
         assignedToTeam: payload.assignedToTeam,
         assigneeUserIds: payload.assigneeUserIds,
