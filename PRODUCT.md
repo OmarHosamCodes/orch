@@ -26,7 +26,7 @@ Orch unifies spatial knowledge work and agency operations under one product with
 
 - **Canvas** (`/canvas`): MagicBento-style spatial board; workspaces are user-scoped with team-sharable nodes as the Agency bridge; node pages (`/node/:id`) are the polished block editors; board cards stay summaries.
 - **Agency**: Tracker (time entries, My Tasks rail), Reports (live and created), Management (Resourcing, People, Money), member profiles, and related ops — absolute path URLs with filter/protocol search params retained.
-- **Workspace agent:** Eclipse pet (~48px, corner) plus one overlay panel (Chat | Inbox | History). No Ask/Plan/Agent tags. No model picker. Durable server-owned runs. Canvas/knowledge apply immediately; Agency confirms in-thread or via inbox.
+- **Workspace agent:** Top-bar Eclipse companion. Click opens a compact glance (composer, unread/running threads, Open Orch); Open Orch expands over the current Agency/Canvas page. Settle archives threads. No Ask/Plan/Agent tags. No tools dump in `+`. `/` commands and `@` mentions. Durable server-owned runs. Canvas/knowledge apply immediately; Agency confirms in-thread.
 - **Authenticated shell**: Shared left sidebar rail plus connected top bar for Canvas and Agency.
 - **Production**: Hosted on Railway (Postgres; Redis for server-side persistence/cache).
 
