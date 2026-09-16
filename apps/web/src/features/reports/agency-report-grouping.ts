@@ -18,6 +18,8 @@ type AgencyReportWasteSources = {
 type ProjectGroup = {
   projectId: string;
   projectName: string;
+  colorHueId: number | null;
+  iconKey: string | null;
   rows: AgencyReportEntry[];
   totalSeconds: number;
 };
@@ -48,6 +50,8 @@ export type AggregatedReportRow = {
 type AggregatedProjectGroup = {
   projectId: string;
   projectName: string;
+  colorHueId: number | null;
+  iconKey: string | null;
   rows: AggregatedReportRow[];
   totalSeconds: number;
 };
@@ -95,6 +99,8 @@ function groupEntriesByClient(entries: AgencyReportEntry[]): ClientGroup[] {
       project = {
         projectId: entry.projectId,
         projectName: entry.projectName,
+        colorHueId: entry.colorHueId ?? null,
+        iconKey: entry.projectIconKey ?? null,
         rows: [],
         totalSeconds: 0,
       };
@@ -282,6 +288,8 @@ export function groupEntriesForDisplay(
       return {
         projectId: project.projectId,
         projectName: project.projectName,
+        colorHueId: project.colorHueId,
+        iconKey: project.iconKey,
         rows,
         totalSeconds: rows.reduce((sum, row) => sum + row.durationSeconds, 0),
       };

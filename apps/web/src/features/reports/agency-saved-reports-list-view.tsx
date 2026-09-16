@@ -34,7 +34,7 @@ export function SavedReportsListBodyView({
   if (items.length === 0) {
     return (
       <p className="px-2 py-4 text-center text-xs text-muted">
-        No saved reports yet. Create one from the filters above.
+        No saved reports yet. Save this recipe to reopen it later.
       </p>
     );
   }

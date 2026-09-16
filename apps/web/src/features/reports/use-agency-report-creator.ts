@@ -1,5 +1,5 @@
 import type { AgencyTimeEntry } from "@orch/api/schemas/agency-ops";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AgencyReportEntry } from "@/features/reports/agency-report-grouping";
 import { filterEntriesByShowWaste } from "@/features/reports/agency-report-grouping";
@@ -11,24 +11,103 @@ import {
 type UseAgencyReportCreatorOptions = {
   initialExcludedEntryIds?: string[];
   showWaste?: AgencyReportShowWaste;
+  resetKey?: string;
+};
+
+export type ReportExcludeHistoryStep = {
+  entryIds: string[];
 };
 
 export function applyStartEditing(entryId: string) {
   return { selectedEntryId: entryId, editingEntryId: entryId };
 }
 
+export function applyExcludeEntries(args: {
+  excludedEntryIds: Set<string>;
+  excludeUndoStack: ReportExcludeHistoryStep[];
+  excludeRedoStack?: ReportExcludeHistoryStep[];
+  selectedEntryId: string | null;
+  editingEntryId: string | null;
+  entryIds: readonly string[];
+}) {
+  const entryIds = [...new Set(args.entryIds)].filter(
+    (entryId) => !args.excludedEntryIds.has(entryId),
+  );
+  if (entryIds.length === 0) {
+    return {
+      excludedEntryIds: args.excludedEntryIds,
+      excludeUndoStack: args.excludeUndoStack,
+      excludeRedoStack: args.excludeRedoStack ?? [],
+      selectedEntryId: args.selectedEntryId,
+      editingEntryId: args.editingEntryId,
+    };
+  }
+
+  const excludedEntryIds = new Set([...args.excludedEntryIds, ...entryIds]);
+  const selectedCleared = args.selectedEntryId != null && entryIds.includes(args.selectedEntryId);
+  const editingCleared = args.editingEntryId != null && entryIds.includes(args.editingEntryId);
+  return {
+    excludedEntryIds,
+    excludeUndoStack: [...args.excludeUndoStack, { entryIds }],
+    excludeRedoStack: [] as ReportExcludeHistoryStep[],
+    selectedEntryId: selectedCleared ? null : args.selectedEntryId,
+    editingEntryId: editingCleared ? null : args.editingEntryId,
+  };
+}
+
 export function applyExcludeEntry(args: {
   excludedEntryIds: Set<string>;
-  excludeUndoStack: string[];
+  excludeUndoStack: ReportExcludeHistoryStep[];
   selectedEntryId: string | null;
   editingEntryId: string | null;
   entryId: string;
 }) {
+  return applyExcludeEntries({ ...args, entryIds: [args.entryId] });
+}
+
+export function applyUndoExclude(args: {
+  excludedEntryIds: Set<string>;
+  excludeUndoStack: ReportExcludeHistoryStep[];
+  excludeRedoStack: ReportExcludeHistoryStep[];
+}) {
+  const step = args.excludeUndoStack[args.excludeUndoStack.length - 1];
+  if (!step) {
+    return {
+      excludedEntryIds: args.excludedEntryIds,
+      excludeUndoStack: args.excludeUndoStack,
+      excludeRedoStack: args.excludeRedoStack,
+      restored: null as ReportExcludeHistoryStep | null,
+    };
+  }
+  const excludedEntryIds = new Set(args.excludedEntryIds);
+  for (const entryId of step.entryIds) excludedEntryIds.delete(entryId);
   return {
-    excludedEntryIds: new Set([...args.excludedEntryIds, args.entryId]),
-    excludeUndoStack: [...args.excludeUndoStack, args.entryId],
-    selectedEntryId: args.selectedEntryId === args.entryId ? null : args.selectedEntryId,
-    editingEntryId: args.editingEntryId === args.entryId ? null : args.editingEntryId,
+    excludedEntryIds,
+    excludeUndoStack: args.excludeUndoStack.slice(0, -1),
+    excludeRedoStack: [...args.excludeRedoStack, step],
+    restored: step,
+  };
+}
+
+export function applyRedoExclude(args: {
+  excludedEntryIds: Set<string>;
+  excludeUndoStack: ReportExcludeHistoryStep[];
+  excludeRedoStack: ReportExcludeHistoryStep[];
+}) {
+  const step = args.excludeRedoStack[args.excludeRedoStack.length - 1];
+  if (!step) {
+    return {
+      excludedEntryIds: args.excludedEntryIds,
+      excludeUndoStack: args.excludeUndoStack,
+      excludeRedoStack: args.excludeRedoStack,
+      redone: null as ReportExcludeHistoryStep | null,
+    };
+  }
+  return {
+    excludedEntryIds: new Set([...args.excludedEntryIds, ...step.entryIds]),
+    excludeUndoStack: [...args.excludeUndoStack, step],
+    excludeRedoStack: args.excludeRedoStack.slice(0, -1),
+    redone: step,
   };
 }
 
@@ -40,22 +119,31 @@ export function useAgencyReportCreator(
   const [excludedEntryIds, setExcludedEntryIds] = useState<Set<string>>(
     () => new Set(options.initialExcludedEntryIds ?? []),
   );
-  const [excludeUndoStack, setExcludeUndoStack] = useState<string[]>([]);
+  const [excludeUndoStack, setExcludeUndoStack] = useState<ReportExcludeHistoryStep[]>([]);
+  const [excludeRedoStack, setExcludeRedoStack] = useState<ReportExcludeHistoryStep[]>([]);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [entryOverrides, setEntryOverrides] = useState<Map<string, Partial<AgencyTimeEntry>>>(
     () => new Map(),
   );
 
+  useEffect(() => {
+    setExcludedEntryIds(new Set(options.initialExcludedEntryIds ?? []));
+    setExcludeUndoStack([]);
+    setExcludeRedoStack([]);
+  }, [options.resetKey]);
+
   const targetingRef = useRef({
     excludedEntryIds,
     excludeUndoStack,
+    excludeRedoStack,
     selectedEntryId,
     editingEntryId,
   });
   targetingRef.current = {
     excludedEntryIds,
     excludeUndoStack,
+    excludeRedoStack,
     selectedEntryId,
     editingEntryId,
   };
@@ -87,14 +175,24 @@ export function useAgencyReportCreator(
     setEditingEntryId(null);
   }, []);
 
-  const excludeEntry = useCallback((entryId: string) => {
-    const next = applyExcludeEntry({ ...targetingRef.current, entryId });
+  const excludeEntries = useCallback((entryIds: readonly string[]) => {
+    const next = applyExcludeEntries({ ...targetingRef.current, entryIds });
+    if (next.excludeUndoStack === targetingRef.current.excludeUndoStack) return [];
     setExcludedEntryIds(next.excludedEntryIds);
     setExcludeUndoStack(next.excludeUndoStack);
+    setExcludeRedoStack(next.excludeRedoStack);
     setSelectedEntryId(next.selectedEntryId);
     setEditingEntryId(next.editingEntryId);
-    return entryId;
+    return next.excludeUndoStack[next.excludeUndoStack.length - 1]?.entryIds ?? [];
   }, []);
+
+  const excludeEntry = useCallback(
+    (entryId: string) => {
+      const excluded = excludeEntries([entryId]);
+      return excluded[0];
+    },
+    [excludeEntries],
+  );
 
   const excludeSelectedEntry = useCallback(() => {
     if (!selectedEntryId) return;
@@ -102,19 +200,21 @@ export function useAgencyReportCreator(
   }, [excludeEntry, selectedEntryId]);
 
   const undoLastExclude = useCallback(() => {
-    let restoredId: string | undefined;
-    setExcludeUndoStack((stack) => {
-      const entryId = stack[stack.length - 1];
-      if (!entryId) return stack;
-      restoredId = entryId;
-      setExcludedEntryIds((current) => {
-        const next = new Set(current);
-        next.delete(entryId);
-        return next;
-      });
-      return stack.slice(0, -1);
-    });
-    return restoredId;
+    const next = applyUndoExclude(targetingRef.current);
+    if (!next.restored) return undefined;
+    setExcludedEntryIds(next.excludedEntryIds);
+    setExcludeUndoStack(next.excludeUndoStack);
+    setExcludeRedoStack(next.excludeRedoStack);
+    return next.restored;
+  }, []);
+
+  const redoLastExclude = useCallback(() => {
+    const next = applyRedoExclude(targetingRef.current);
+    if (!next.redone) return undefined;
+    setExcludedEntryIds(next.excludedEntryIds);
+    setExcludeUndoStack(next.excludeUndoStack);
+    setExcludeRedoStack(next.excludeRedoStack);
+    return next.redone;
   }, []);
 
   const startEditing = useCallback((entryId: string) => {
@@ -153,7 +253,9 @@ export function useAgencyReportCreator(
   return {
     excludedEntryIds,
     excludeUndoStack,
+    excludeRedoStack,
     canUndo: excludeUndoStack.length > 0,
+    canRedo: excludeRedoStack.length > 0,
     selectedEntryId,
     editingEntryId,
     entryOverrides,
@@ -162,8 +264,10 @@ export function useAgencyReportCreator(
     selectEntry,
     clearSelection,
     excludeEntry,
+    excludeEntries,
     excludeSelectedEntry,
     undoLastExclude,
+    redoLastExclude,
     startEditing,
     startEditingSelected,
     cancelEditing,
