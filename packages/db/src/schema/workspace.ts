@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import type { WorkspaceMarketplacePayload, WorkspaceNode } from "@orch/workspace";
 
 import { user } from "./auth";
@@ -139,10 +140,14 @@ export const dashboardConversation = pgTable(
       .notNull(),
     lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
     archivedAt: timestamp("archived_at"),
+    taskId: text("task_id"),
   },
   (table) => [
     index("dashboard_conversation_user_updated_idx").on(table.userId, table.updatedAt),
     index("dashboard_conversation_user_last_message_idx").on(table.userId, table.lastMessageAt),
+    uniqueIndex("dashboard_conversation_user_task_unique")
+      .on(table.userId, table.taskId)
+      .where(sql`${table.taskId} is not null`),
   ],
 );
 

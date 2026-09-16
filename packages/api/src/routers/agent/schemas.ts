@@ -12,6 +12,7 @@ export {
   agentToolCatalogResponseSchema,
   dashboardConversationDeleteInputSchema,
   dashboardConversationDetailSchema,
+  dashboardConversationForTaskInputSchema,
   dashboardConversationGetInputSchema,
   dashboardConversationListResponseSchema,
   dashboardConversationRenameInputSchema,

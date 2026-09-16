@@ -40,11 +40,7 @@ import {
   type DashboardAgentWorkspaceContext,
   type DashboardConversationUsageLatest,
 } from "./types";
-import {
-  artifactFromToolCall,
-  cappedArtifacts,
-  type AiUiArtifact,
-} from "./ui-artifact";
+import { artifactFromToolCall, cappedArtifacts, type AiUiArtifact } from "./ui-artifact";
 
 type OpenRouterUsage = {
   inputTokens: number;
@@ -913,9 +909,7 @@ export async function* streamDashboardAgent(
     ) {
       finalResponse = "Drafted a plan — review the card and Confirm when ready.";
     } else if (
-      toolCalls.some(
-        (tool) => tool.name === "propose_agency_action" && tool.status === "completed",
-      )
+      toolCalls.some((tool) => tool.name === "propose_agency_action" && tool.status === "completed")
     ) {
       finalResponse = "Proposed an Agency change — review before/after, then Approve or Reject.";
     } else if (
@@ -938,63 +932,6 @@ export async function* streamDashboardAgent(
     model,
     workspaceNodeCount: workspaceRuntime.getNodes().length,
     workspaceSnapshot: workspaceRuntime.hasChanges() ? workspaceRuntime.toSnapshot() : null,
-  };
-}
-
-export async function runTaskAgent(
-  messages: Array<{ role: "user" | "assistant"; content: string }>,
-  context: {
-    taskTitle: string;
-    taskStatus: string;
-    projectName: string;
-    clientName: string;
-    assigneeName: string | null;
-    recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-  },
-  config: {
-    model?: string;
-    maxOutputTokens?: number;
-  } = {},
-) {
-  const client = createOpenRouterClient();
-  const selectedModel = await resolveOpenRouterModel(config.model);
-  const model = selectedModel?.id ?? config.model?.trim() ?? DEFAULT_AGENT_MODEL;
-
-  const instructions = [
-    "You are Orch's agency task assistant.",
-    "Answer questions about the task using only the task context and recent messages provided.",
-    "You are read-only in this version: do not edit task status, assignee, or due date.",
-    "Be concise and concrete.",
-    "",
-    "Task context:",
-    `- Title: ${context.taskTitle}`,
-    `- Status: ${context.taskStatus}`,
-    `- Project: ${context.projectName}`,
-    `- Client: ${context.clientName}`,
-    context.assigneeName ? `- Assignee: ${context.assigneeName}` : "- Assignee: unassigned",
-    "",
-    "Recent messages in this thread:",
-    ...context.recentMessages.map((m) => `${m.role}: ${m.content}`),
-  ].join("\n");
-
-  const normalizedMessages = messages.map((m) => ({
-    role: m.role,
-    content: m.content.trim(),
-  }));
-
-  const result = client.callModel({
-    model,
-    instructions,
-    input: normalizedMessages,
-    ...(config.maxOutputTokens === undefined ? {} : { maxOutputTokens: config.maxOutputTokens }),
-  });
-
-  const [text, response] = await Promise.all([result.getText(), result.getResponse()]);
-
-  return {
-    response: text.trim() || "I couldn't generate a response.",
-    model,
-    usage: normalizeUsage(response.usage, model, selectedModel?.contextLength ?? null),
   };
 }
 

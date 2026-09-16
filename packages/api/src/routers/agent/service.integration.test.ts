@@ -93,4 +93,26 @@ describe("dashboard agent service persistence", () => {
       (await service.getDashboardConversation(ownerUserId, { conversationId: created.id })).title,
     ).toBe("Owner-only conversation");
   });
+
+  test("getOrCreateTaskConversation is unique per user and task", async () => {
+    const userId = await createFixtureUser();
+    const otherUserId = await createFixtureUser();
+    const first = await service.getOrCreateTaskConversation(userId, {
+      taskId: "task-1",
+      title: "Cover slide",
+    });
+    const second = await service.getOrCreateTaskConversation(userId, {
+      taskId: "task-1",
+      title: "Other title",
+    });
+    expect(second.id).toBe(first.id);
+    expect(first.taskId).toBe("task-1");
+
+    const other = await service.getOrCreateTaskConversation(otherUserId, {
+      taskId: "task-1",
+      title: "Cover slide",
+    });
+    expect(other.id).not.toBe(first.id);
+    expect(other.taskId).toBe("task-1");
+  });
 });

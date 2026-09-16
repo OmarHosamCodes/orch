@@ -1,4 +1,4 @@
-import { formatMemoryForPrompt, type MemoryPromptParts } from "@orch/agent";
+import { type MemoryPromptParts } from "@orch/agent";
 import { db } from "@orch/db";
 import { agentFact, agentObservation, profileNote } from "@orch/db/schema";
 import { createWorkspaceId } from "@orch/workspace";
@@ -165,8 +165,4 @@ export async function getMemoryForPrompt(
       .join("\n"),
     unreadInbox: inbox.map((note) => `- ${note.title}: ${note.body}`).join("\n"),
   };
-}
-
-export function memoryPromptText(parts: MemoryPromptParts): string {
-  return formatMemoryForPrompt(parts);
 }

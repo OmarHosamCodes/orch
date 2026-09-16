@@ -194,6 +194,7 @@ export const dashboardConversationSummarySchema = z.object({
   updatedAt: z.string().datetime(),
   lastMessageAt: z.string().datetime(),
   lastMessagePreview: z.string().max(280).nullable(),
+  taskId: z.string().trim().min(1).nullable().default(null),
 });
 
 export const dashboardConversationMessageSchema = z.object({
@@ -221,6 +222,11 @@ export const dashboardConversationListResponseSchema = z.object({
 
 export const dashboardConversationGetInputSchema = z.object({
   conversationId: z.string().trim().min(1),
+});
+
+export const dashboardConversationForTaskInputSchema = z.object({
+  taskId: z.string().trim().min(1),
+  title: z.string().trim().min(1).max(DASHBOARD_CONVERSATION_TITLE_LIMIT).optional(),
 });
 
 export const dashboardConversationRenameInputSchema = z.object({

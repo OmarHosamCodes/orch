@@ -42,10 +42,12 @@ export function useAgencyTaskThreadShell() {
 
   const setOrchPresence = useWorkspaceAgentStore((s) => s.setOrchPresence);
   const setExpanded = useWorkspaceAgentStore((s) => s.setExpanded);
+  const setBoundTask = useWorkspaceAgentStore((s) => s.setBoundTask);
 
   function clearThread() {
     dispatch({ type: "back" });
     setOpenTaskMeta(null);
+    setBoundTask(null);
   }
 
   function requestClose() {
@@ -83,6 +85,7 @@ export function useAgencyTaskThreadShell() {
     // Collapse so the morph source is the pill, not the expanded card.
     setExpanded(false);
     setOrchPresence("dock");
+    setBoundTask({ id: task.id, title: task.title });
     setOpenTaskMeta({
       title: task.title,
       projectId: task.projectId,

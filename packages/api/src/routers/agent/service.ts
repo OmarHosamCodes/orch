@@ -8,6 +8,7 @@ import {
   artifactFromToolCall,
   buildAgentModelUserContent,
   cappedArtifacts,
+  formatMemoryForPrompt,
   modelContentLength,
   dashboardConversationDetailSchema,
   dashboardConversationListResponseSchema,
@@ -85,7 +86,7 @@ import {
   buildDashboardMessagePreview,
   normalizeDashboardConversationTitle,
 } from "./conversation-contracts";
-import { getMemoryForPrompt, insertInboxNote, memoryPromptText } from "./memory-service";
+import { getMemoryForPrompt, insertInboxNote } from "./memory-service";
 import {
   AGENT_TOKEN_FLUSH_CHARS,
   AGENT_TOKEN_FLUSH_MS,
@@ -511,6 +512,7 @@ function mapConversationSummary(args: {
     updatedAt: args.row.updatedAt.toISOString(),
     lastMessageAt: args.row.lastMessageAt.toISOString(),
     lastMessagePreview: args.lastMessagePreview,
+    taskId: args.row.taskId ?? null,
   });
 }
 
@@ -638,6 +640,7 @@ export async function createDashboardConversation(
     attachments?: AgentTextAttachment[];
     model?: string | null;
     toolPreset: AgentChatTurnInput["toolPreset"];
+    taskId?: string | null;
   },
 ) {
   const now = new Date();
@@ -656,9 +659,49 @@ export async function createDashboardConversation(
     updatedAt: now,
     lastMessageAt: now,
     archivedAt: null,
+    taskId: input.taskId ?? null,
   });
 
   return getConversationRecord(actorUserId, conversationId);
+}
+
+export async function getOrCreateTaskConversation(
+  actorUserId: string,
+  input: { taskId: string; title?: string },
+) {
+  const [existing] = await db
+    .select()
+    .from(dashboardConversation)
+    .where(
+      and(
+        eq(dashboardConversation.userId, actorUserId),
+        eq(dashboardConversation.taskId, input.taskId),
+        isNull(dashboardConversation.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    return getDashboardConversation(actorUserId, { conversationId: existing.id });
+  }
+
+  const now = new Date();
+  const conversationId = createWorkspaceId("conversation");
+  await db.insert(dashboardConversation).values({
+    id: conversationId,
+    userId: actorUserId,
+    title: buildDashboardConversationTitle(input.title?.trim() || "Task"),
+    model: null,
+    toolPreset: "agent",
+    usageSummary: normalizeConversationUsageSummary(null),
+    createdAt: now,
+    updatedAt: now,
+    lastMessageAt: now,
+    archivedAt: null,
+    taskId: input.taskId,
+  });
+
+  return getDashboardConversation(actorUserId, { conversationId });
 }
 
 export async function renameDashboardConversation(
@@ -982,7 +1025,7 @@ export async function* streamDashboardConversationTurn(
         ? modelUserContent(message.content, attachmentsFromRow(message.attachments))
         : message.content,
   }));
-  const memoryText = memoryPromptText(await getMemoryForPrompt(userId, {}));
+  const memoryText = formatMemoryForPrompt(await getMemoryForPrompt(userId, {}));
   const messagesWithMemory: AgentModelInputMessage[] = memoryText
     ? [{ role: "system", content: memoryText }, ...recentMessages]
     : recentMessages;
@@ -1196,7 +1239,12 @@ async function executeDashboardConversationRun(args: {
         await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
-      if (event.type === "plan" || event.type === "proposal" || event.type === "question" || event.type === "created_object") {
+      if (
+        event.type === "plan" ||
+        event.type === "proposal" ||
+        event.type === "question" ||
+        event.type === "created_object"
+      ) {
         await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }

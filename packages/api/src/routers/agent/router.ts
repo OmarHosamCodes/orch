@@ -16,6 +16,7 @@ import {
   agentToolCatalogResponseSchema,
   dashboardConversationDeleteInputSchema,
   dashboardConversationDetailSchema,
+  dashboardConversationForTaskInputSchema,
   dashboardConversationGetInputSchema,
   dashboardConversationListResponseSchema,
   dashboardConversationRenameInputSchema,
@@ -42,6 +43,7 @@ import {
   deleteDashboardConversation,
   getAgentToolsCatalog,
   getDashboardConversation,
+  getOrCreateTaskConversation,
   listDashboardConversations,
   renameDashboardConversation,
   streamDashboardConversationTurn,
@@ -142,20 +144,22 @@ export const agentRouter = {
           throw toInternalServerError("agent.runs.cancel", error, { runId: input.runId });
         }
       }),
-    subscribe: protectedProcedure
-      .input(agentRunSubscribeInputSchema)
-      .handler(async function* ({ input, context, signal }) {
-        try {
-          for await (const event of subscribeRun(context.session.user.id, {
-            ...input,
-            signal,
-          })) {
-            yield agentChatTurnStreamEventSchema.parse(event);
-          }
-        } catch (error) {
-          throw toInternalServerError("agent.runs.subscribe", error, { runId: input.runId });
+    subscribe: protectedProcedure.input(agentRunSubscribeInputSchema).handler(async function* ({
+      input,
+      context,
+      signal,
+    }) {
+      try {
+        for await (const event of subscribeRun(context.session.user.id, {
+          ...input,
+          signal,
+        })) {
+          yield agentChatTurnStreamEventSchema.parse(event);
         }
-      }),
+      } catch (error) {
+        throw toInternalServerError("agent.runs.subscribe", error, { runId: input.runId });
+      }
+    }),
   },
   proposals: {
     confirmPlan: protectedProcedure
@@ -324,6 +328,19 @@ export const agentRouter = {
         } catch (error) {
           throw toInternalServerError("agent.conversations.get", error, {
             conversationId: input.conversationId,
+          });
+        }
+      }),
+    forTask: protectedProcedure
+      .input(dashboardConversationForTaskInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await getOrCreateTaskConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.forTask", error, {
+            taskId: input.taskId,
           });
         }
       }),
