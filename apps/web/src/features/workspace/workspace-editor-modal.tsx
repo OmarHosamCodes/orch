@@ -8,6 +8,8 @@ import {
 import { Check, Plus, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
+import { AgencyModeSegment } from "@/features/shared/dialog-kit/agency-mode-segment";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import {
@@ -18,15 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog";
-import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
-import {
-  shellFocusRingClass,
-  shellLabelClass,
-  shellSegmentTabActiveClass,
-  shellSegmentTabClass,
-} from "@/features/app-shell/app-shell-ui";
+import { shellFocusRingClass, shellLabelClass } from "@/features/app-shell/app-shell-ui";
 import { getWorkspaceBlockRegistryEntry } from "@/features/workspace/utils/workspace-block-registry";
 import {
   getWorkspaceNodeTintOption,
@@ -153,17 +149,15 @@ export function WorkspaceEditorModal({
           <div className="space-y-6">
             <section className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="node-title">Title</Label>
-                <Input
+                <AgencyIdentityField
                   id="node-title"
                   value={title}
                   autoFocus
                   placeholder="Strategy lane"
-                  onChange={(event) => onTitleChange(event.target.value)}
+                  onChange={onTitleChange}
+                  error={titleFieldError}
+                  aria-label="Title"
                 />
-                {titleFieldError ? (
-                  <p className="text-sm text-destructive">{titleFieldError}</p>
-                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="node-content">Summary</Label>
@@ -183,28 +177,12 @@ export function WorkspaceEditorModal({
                   Standard for focused work, or orchestrator to coordinate linked nodes.
                 </p>
               </div>
-              <div
-                className="inline-flex max-w-full flex-wrap gap-1 rounded-full border border-muted/60 bg-elevated/40 p-0.5"
-                role="radiogroup"
+              <AgencyModeSegment
                 aria-label="Node type"
-              >
-                {nodeTypeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={nodeType === option.value}
-                    className={cn(
-                      shellSegmentTabClass,
-                      shellFocusRingClass,
-                      nodeType === option.value && shellSegmentTabActiveClass,
-                    )}
-                    onClick={() => onNodeTypeChange(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+                value={nodeType}
+                options={nodeTypeOptions}
+                onChange={onNodeTypeChange}
+              />
               <p className="text-sm text-muted">{nodeTypeDescription}</p>
             </section>
             <section className="space-y-3">

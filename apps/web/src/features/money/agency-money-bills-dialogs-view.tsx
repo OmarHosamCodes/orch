@@ -1,10 +1,20 @@
 import { MemberProfileLeaveRangePicker } from "@/features/shared/date/member-profile-leave-range-picker";
-import { AgencyMultiSelectFilter } from "@/features/shared/filters/agency-multi-select-filter";
+import { AgencySearchSelect } from "@/features/shared/agency-search-select";
+import { agencyMetricClass } from "@/features/shared/agency-ui";
 import {
-  agencyFormFieldClass,
-  agencyFormLabelClass,
-  agencyMetricClass,
-} from "@/features/shared/agency-ui";
+  agencyDialogChipTriggerClass,
+  AgencyCompactDialog,
+  AgencyCompactDialogBody,
+  AgencyCompactDialogFooter,
+  AgencyCompactDialogForm,
+  AgencyCompactDialogHeader,
+  AgencyCompactDialogMeta,
+} from "@/features/shared/dialog-kit/agency-compact-dialog-shell";
+import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
+import { AgencyKitReveal } from "@/features/shared/dialog-kit/agency-kit-reveal";
+import { AgencyModeSegment } from "@/features/shared/dialog-kit/agency-mode-segment";
+import { AgencyMoneyPair } from "@/features/shared/dialog-kit/agency-money-pair";
+import { AgencyNoteField } from "@/features/shared/dialog-kit/agency-note-field";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/checkbox";
@@ -16,12 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog";
-import { Input } from "@/ui/input";
-import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import { Separator } from "@/ui/separator";
-import { Textarea } from "@/ui/textarea";
 import { cn } from "@/lib/utils";
 
 import { type AgencyMoneySurfaceViewModel } from "./hooks/use-agency-money-surface";
@@ -41,64 +45,57 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
 
   return (
     <>
-      <Dialog open={markPaidConfirm.open} onOpenChange={markPaidConfirm.onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Mark as fully paid?</DialogTitle>
-            <DialogDescription>
-              Record {markPaidConfirm.amountLabel} for {markPaidConfirm.partyName} as paid. This
-              updates the bill status immediately.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={markPaidConfirm.isPending}
-              onClick={() => markPaidConfirm.onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={markPaidConfirm.isPending}
-              onClick={markPaidConfirm.onConfirm}
-            >
-              {markPaidConfirm.isPending ? "Recording…" : "Mark paid"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AgencyCompactDialog open={markPaidConfirm.open} onOpenChange={markPaidConfirm.onOpenChange}>
+        <AgencyCompactDialogHeader
+          title="Mark as fully paid?"
+          description={`Record ${markPaidConfirm.amountLabel} for ${markPaidConfirm.partyName} as paid. This updates the bill status immediately.`}
+        />
+        <AgencyCompactDialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={markPaidConfirm.isPending}
+            onClick={() => markPaidConfirm.onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={markPaidConfirm.isPending}
+            onClick={markPaidConfirm.onConfirm}
+          >
+            {markPaidConfirm.isPending ? "Recording…" : "Mark paid"}
+          </Button>
+        </AgencyCompactDialogFooter>
+      </AgencyCompactDialog>
 
-      <Dialog open={dismissConfirm.open} onOpenChange={dismissConfirm.onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Remove this adjustment?</DialogTitle>
-            <DialogDescription>
-              Delete {dismissConfirm.partyName}
-              {dismissConfirm.amountLabel ? ` (${dismissConfirm.amountLabel})` : ""} from this
-              period, including any paid amount recorded on it.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={dismissConfirm.isPending}
-              onClick={() => dismissConfirm.onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={dismissConfirm.isPending}
-              onClick={dismissConfirm.onConfirm}
-            >
-              {dismissConfirm.isPending ? "Removing…" : "Remove"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AgencyCompactDialog open={dismissConfirm.open} onOpenChange={dismissConfirm.onOpenChange}>
+        <AgencyCompactDialogHeader
+          title="Remove this adjustment?"
+          description={`Delete ${dismissConfirm.partyName}${dismissConfirm.amountLabel ? ` (${dismissConfirm.amountLabel})` : ""} from this period, including any paid amount recorded on it.`}
+        />
+        <AgencyCompactDialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={dismissConfirm.isPending}
+            onClick={() => dismissConfirm.onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={dismissConfirm.isPending}
+            onClick={dismissConfirm.onConfirm}
+          >
+            {dismissConfirm.isPending ? "Removing…" : "Remove"}
+          </Button>
+        </AgencyCompactDialogFooter>
+      </AgencyCompactDialog>
 
       <Dialog open={preview.open} onOpenChange={preview.onOpenChange}>
         <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-4xl">
@@ -169,22 +166,17 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
                 <p className="mt-1 text-xs text-muted">
                   How selected periods become persisted documents.
                 </p>
-                <Tabs
-                  value={preview.exportMode}
-                  onValueChange={(value) =>
-                    preview.onExportModeChange(value as "combine" | "split")
-                  }
+                <AgencyModeSegment
+                  aria-label="Export shape"
+                  stretch
                   className="mt-3"
-                >
-                  <TabsList className="h-9 w-full">
-                    <TabsTrigger value="combine" className="flex-1">
-                      One document
-                    </TabsTrigger>
-                    <TabsTrigger value="split" className="flex-1">
-                      Split by period
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                  value={preview.exportMode}
+                  options={[
+                    { value: "combine", label: "One document" },
+                    { value: "split", label: "Split by period" },
+                  ]}
+                  onChange={preview.onExportModeChange}
+                />
               </div>
             </div>
 
@@ -259,449 +251,347 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={adjust.open} onOpenChange={adjust.onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-          <DialogHeader className="space-y-2 border-b border-default px-5 py-4 pr-14 text-left">
-            <div className="flex flex-wrap items-center gap-2">
-              <DialogTitle className="text-base font-bold text-highlighted">
-                Adjust {adjust.partyTitle}
-              </DialogTitle>
+      <AgencyCompactDialog
+        open={adjust.open}
+        onOpenChange={adjust.onOpenChange}
+        size="md"
+        showCloseButton={!adjust.isPending}
+      >
+        <AgencyCompactDialogHeader
+          title={`Adjust ${adjust.partyTitle}`}
+          description={
+            adjust.lineSubtitle ||
+            (adjust.partyType === "client"
+              ? "Settle what this client still owes"
+              : "Settle what the team is owed")
+          }
+          badge={
+            <>
               <Badge variant="secondary">{adjust.partyType === "client" ? "Collect" : "Pay"}</Badge>
               {adjust.statusLabel ? <Badge variant="outline">{adjust.statusLabel}</Badge> : null}
-            </div>
-            <DialogDescription className="text-xs text-muted text-pretty">
-              {adjust.lineSubtitle ||
-                (adjust.partyType === "client"
-                  ? "Settle what this client still owes"
-                  : "Settle what the team is owed")}
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+        />
+        <AgencyCompactDialogForm
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            adjust.onSubmit();
+          }}
+        >
+          <AgencyCompactDialogBody>
+            {adjust.isReady ? (
+              <div className="rounded-xl border border-default bg-muted/30 px-3 py-2.5 text-xs text-muted text-pretty">
+                Ready lines export the original-period document first, then{" "}
+                {adjust.partyType === "client" ? "record the collection" : "record the payment"}.
+                Refund is available only after the document exists.
+              </div>
+            ) : null}
 
-          <form
-            className="flex min-h-0 flex-1 flex-col"
-            noValidate
-            onSubmit={(event) => {
-              event.preventDefault();
-              adjust.onSubmit();
-            }}
-          >
-            <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 py-4">
-              {adjust.isReady ? (
-                <div className="rounded-xl border border-default bg-muted/30 px-3 py-2.5 text-xs text-muted text-pretty">
-                  Ready lines export the original-period document first, then{" "}
-                  {adjust.partyType === "client" ? "record the collection" : "record the payment"}.
-                  Refund is available only after the document exists.
-                </div>
-              ) : null}
+            {adjust.obligationOptions.length > 1 ? (
+              <AgencyCompactDialogMeta>
+                <AgencySearchSelect
+                  id="money-adjust-obligation"
+                  value={adjust.obligationId}
+                  onValueChange={adjust.onObligationIdChange}
+                  options={adjust.obligationOptions.map((option) => ({
+                    value: option.id,
+                    label: option.label,
+                  }))}
+                  placeholder="Bill line"
+                  searchPlaceholder="Search lines…"
+                  aria-label="Bill line"
+                  variant="chip"
+                />
+              </AgencyCompactDialogMeta>
+            ) : null}
 
-              {adjust.obligationOptions.length > 1 ? (
-                <div className={agencyFormFieldClass}>
-                  <Label htmlFor="money-adjust-obligation" className={agencyFormLabelClass}>
-                    Bill line
-                  </Label>
-                  <Select value={adjust.obligationId} onValueChange={adjust.onObligationIdChange}>
-                    <SelectTrigger
-                      id="money-adjust-obligation"
-                      className="h-9 w-full rounded-xl border-default bg-default"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {adjust.obligationOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : null}
+            <AgencyModeSegment
+              aria-label="Adjust action"
+              stretch
+              value={adjust.tab}
+              options={[
+                { value: "pay" as const, label: adjust.partyType === "client" ? "Collect" : "Pay" },
+                { value: "partial" as const, label: "Partial" },
+                ...(adjust.canRefund
+                  ? [
+                      {
+                        value: "refund" as const,
+                        label: adjust.partyType === "client" ? "Uncollect" : "Refund",
+                      },
+                    ]
+                  : []),
+                { value: "adjustments" as const, label: "Adjust" },
+              ]}
+              onChange={adjust.onTabChange}
+              disabled={adjust.isPending}
+            />
 
-              <Tabs
-                value={adjust.tab}
-                onValueChange={(value) => adjust.onTabChange(value as typeof adjust.tab)}
-              >
-                <TabsList className="h-9 w-full">
-                  <TabsTrigger value="pay" className="flex-1">
-                    {adjust.partyType === "client" ? "Collect" : "Pay"}
-                  </TabsTrigger>
-                  <TabsTrigger value="partial" className="flex-1">
-                    Partial
-                  </TabsTrigger>
-                  {adjust.canRefund ? (
-                    <TabsTrigger value="refund" className="flex-1">
-                      {adjust.partyType === "client" ? "Uncollect" : "Refund"}
-                    </TabsTrigger>
-                  ) : null}
-                  <TabsTrigger value="adjustments" className="flex-1">
-                    Adjust
-                  </TabsTrigger>
-                </TabsList>
+            <AgencyKitReveal open={adjust.tab === "pay"}>
+              <div className="py-2 text-center">
+                <p className="text-xs text-muted">
+                  {adjust.partyType === "client" ? "Amount to collect" : "Amount to pay"}
+                </p>
+                <p
+                  className={cn(
+                    agencyMetricClass,
+                    "mt-1 font-mono text-3xl font-semibold tracking-tight tabular-nums text-highlighted",
+                  )}
+                >
+                  {adjust.remainingLabel}
+                </p>
+                <p className="mt-2 text-[11px] text-muted">
+                  Settles the full open balance in one step.
+                </p>
+              </div>
+            </AgencyKitReveal>
 
-                <TabsContent value="pay" className="mt-4">
-                  <div className="rounded-surface border border-default bg-card px-surface py-surface text-center">
-                    <p className="text-xs text-muted">
-                      {adjust.partyType === "client" ? "Amount to collect" : "Amount to pay"}
-                    </p>
-                    <p
-                      className={cn(
-                        agencyMetricClass,
-                        "mt-1 font-mono text-2xl font-semibold tabular-nums text-highlighted",
-                      )}
-                    >
-                      {adjust.remainingLabel}
-                    </p>
-                    <p className="mt-2 text-[11px] text-muted">
-                      Settles the full open balance in one step.
-                    </p>
-                  </div>
-                </TabsContent>
+            <AgencyKitReveal open={adjust.tab === "partial"}>
+              <div className="flex flex-col gap-2">
+                <AgencyMoneyPair
+                  id="money-adjust-amount"
+                  emphasis="hero"
+                  amount={adjust.amount}
+                  onAmountChange={adjust.onAmountChange}
+                  currency={adjust.currency}
+                  currencyOptions={[adjust.currency]}
+                  error={adjust.amountError}
+                  autoFocus={adjust.tab === "partial"}
+                  required
+                  preview={
+                    adjust.partyType === "client"
+                      ? `Still to collect ${adjust.remainingLabel}`
+                      : `Still to pay ${adjust.remainingLabel}`
+                  }
+                />
+              </div>
+            </AgencyKitReveal>
 
-                <TabsContent value="partial" className="mt-4 flex flex-col gap-3">
-                  <div className="flex items-baseline justify-between gap-2 text-xs text-muted">
-                    <span>
-                      {adjust.partyType === "client" ? "Still to collect" : "Still to pay"}
-                    </span>
-                    <span className="font-mono tabular-nums text-highlighted">
-                      {adjust.remainingLabel}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className={agencyFormFieldClass}>
-                    <Label htmlFor="money-adjust-amount" className={agencyFormLabelClass}>
-                      Amount ({adjust.currency})
-                    </Label>
-                    <Input
-                      id="money-adjust-amount"
-                      inputMode="decimal"
-                      value={adjust.amount}
-                      onChange={(event) => adjust.onAmountChange(event.target.value)}
-                      className="h-9 rounded-xl border-default bg-default text-sm tabular-nums"
-                      required
-                      aria-invalid={Boolean(adjust.amountError)}
-                      aria-describedby={
-                        adjust.amountError ? "money-adjust-amount-error" : undefined
-                      }
-                      autoFocus
-                    />
-                    {adjust.amountError ? (
-                      <p
-                        id="money-adjust-amount-error"
-                        className="text-xs text-destructive"
-                        role="alert"
-                      >
-                        {adjust.amountError}
-                      </p>
-                    ) : null}
-                  </div>
-                </TabsContent>
+            <AgencyKitReveal open={adjust.tab === "refund"}>
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-pretty">
+                <p className="font-medium text-highlighted">
+                  {adjust.partyType === "client"
+                    ? "Uncollect this invoice"
+                    : "Refund this obligation"}
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  {adjust.partyType === "client"
+                    ? "Moves received amount back to remaining so the bill is outstanding again."
+                    : "Clears paid amount and returns the line to outstanding."}
+                </p>
+              </div>
+            </AgencyKitReveal>
 
-                <TabsContent value="refund" className="mt-4">
-                  <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-pretty">
-                    <p className="font-medium text-highlighted">
-                      {adjust.partyType === "client"
-                        ? "Uncollect this invoice"
-                        : "Refund this obligation"}
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      {adjust.partyType === "client"
-                        ? "Moves received amount back to remaining so the bill is outstanding again."
-                        : "Clears paid amount and returns the line to outstanding."}
-                    </p>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="adjustments" className="mt-4 flex flex-col gap-3">
-                  <div className={agencyFormFieldClass}>
-                    <Label htmlFor="money-adjust-kind" className={agencyFormLabelClass}>
-                      Kind
-                    </Label>
-                    <Select
-                      value={adjust.kind}
-                      onValueChange={(value) => adjust.onKindChange(value as typeof adjust.kind)}
-                    >
-                      <SelectTrigger
-                        id="money-adjust-kind"
-                        className="h-9 w-full rounded-xl border-default bg-default"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="discount">Discount</SelectItem>
-                        <SelectItem value="surcharge">Surcharge</SelectItem>
-                        <SelectItem value="debt">Debt</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className={agencyFormFieldClass}>
-                    <Label htmlFor="money-adjust-adj-amount" className={agencyFormLabelClass}>
-                      Amount ({adjust.currency})
-                    </Label>
-                    <Input
-                      id="money-adjust-adj-amount"
-                      inputMode="decimal"
-                      value={adjust.amount}
-                      onChange={(event) => adjust.onAmountChange(event.target.value)}
-                      placeholder="0.00"
-                      className="h-9 rounded-xl border-default bg-default text-sm tabular-nums"
-                      required
-                      aria-invalid={Boolean(adjust.amountError)}
-                      aria-describedby={
-                        adjust.amountError ? "money-adjust-adj-amount-error" : undefined
-                      }
-                    />
-                    {adjust.amountError ? (
-                      <p
-                        id="money-adjust-adj-amount-error"
-                        className="text-xs text-destructive"
-                        role="alert"
-                      >
-                        {adjust.amountError}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className={agencyFormFieldClass}>
-                    <Label htmlFor="money-adjust-note" className={agencyFormLabelClass}>
-                      Note <span className="font-normal text-muted">(optional)</span>
-                    </Label>
-                    <Textarea
-                      id="money-adjust-note"
-                      value={adjust.note}
-                      onChange={(event) => adjust.onNoteChange(event.target.value)}
-                      placeholder="Shown on the next export"
-                      className="min-h-20 rounded-xl border-default bg-default text-sm"
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <DialogFooter className="border-t border-default px-5 py-4 sm:justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => adjust.onOpenChange(false)}
-                disabled={adjust.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                variant={adjust.tab === "refund" ? "destructive" : "default"}
-                disabled={adjust.isPending}
-              >
-                {adjust.isPending
-                  ? "Working…"
-                  : adjust.tab === "adjustments"
-                    ? "Save adjustment"
-                    : adjust.tab === "refund"
+            <AgencyKitReveal open={adjust.tab === "adjustments"}>
+              <div className="flex flex-col gap-2.5">
+                <AgencyCompactDialogMeta>
+                  <AgencySearchSelect
+                    id="money-adjust-kind"
+                    value={adjust.kind}
+                    onValueChange={(value) => adjust.onKindChange(value as typeof adjust.kind)}
+                    options={[
+                      { value: "discount", label: "Discount" },
+                      { value: "surcharge", label: "Surcharge" },
+                      { value: "debt", label: "Debt" },
+                    ]}
+                    aria-label="Adjustment kind"
+                    variant="chip"
+                  />
+                </AgencyCompactDialogMeta>
+                <AgencyMoneyPair
+                  id="money-adjust-adj-amount"
+                  amount={adjust.amount}
+                  onAmountChange={adjust.onAmountChange}
+                  currency={adjust.currency}
+                  currencyOptions={[adjust.currency]}
+                  error={adjust.amountError}
+                  required
+                />
+                <AgencyNoteField
+                  id="money-adjust-note"
+                  value={adjust.note}
+                  onChange={adjust.onNoteChange}
+                  placeholder="Shown on the next export"
+                />
+              </div>
+            </AgencyKitReveal>
+          </AgencyCompactDialogBody>
+          <AgencyCompactDialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => adjust.onOpenChange(false)}
+              disabled={adjust.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              variant={adjust.tab === "refund" ? "destructive" : "default"}
+              disabled={adjust.isPending}
+            >
+              {adjust.isPending
+                ? "Working…"
+                : adjust.tab === "adjustments"
+                  ? "Save adjustment"
+                  : adjust.tab === "refund"
+                    ? adjust.partyType === "client"
+                      ? "Uncollect"
+                      : "Confirm refund"
+                    : adjust.tab === "pay"
                       ? adjust.partyType === "client"
-                        ? "Uncollect"
-                        : "Confirm refund"
-                      : adjust.tab === "pay"
-                        ? adjust.partyType === "client"
-                          ? "Collect"
-                          : "Pay"
-                        : adjust.partyType === "client"
-                          ? "Collect partial"
-                          : "Record partial"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                        ? "Collect"
+                        : "Pay"
+                      : adjust.partyType === "client"
+                        ? "Collect partial"
+                        : "Record partial"}
+            </Button>
+          </AgencyCompactDialogFooter>
+        </AgencyCompactDialogForm>
+      </AgencyCompactDialog>
 
-      <Dialog open={create.open} onOpenChange={create.onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create invoice</DialogTitle>
-            <DialogDescription>
-              Draft a client invoice from tracked time in the selected period.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            id={create.formId}
-            className="flex min-h-0 flex-col gap-4 overflow-y-auto"
-            noValidate
-            onSubmit={create.onSubmit}
-          >
-            <div className="flex flex-col gap-1.5">
-              <Label className={agencyFormLabelClass}>Client</Label>
-              <AgencyMultiSelectFilter
-                label="Select client"
-                selectionMode="single"
-                values={create.clientId ? [create.clientId] : []}
+      <AgencyCompactDialog
+        open={create.open}
+        onOpenChange={create.onOpenChange}
+        showCloseButton={!create.isPending}
+      >
+        <AgencyCompactDialogHeader
+          title="Create invoice"
+          description="Draft a client invoice from tracked time in the selected period."
+        />
+        <AgencyCompactDialogForm id={create.formId} noValidate onSubmit={create.onSubmit}>
+          <AgencyCompactDialogBody>
+            <AgencyCompactDialogMeta>
+              <AgencySearchSelect
+                value={create.clientId}
+                onValueChange={create.onClientIdChange}
                 options={create.clients.map((client) => ({
                   value: client.id,
                   label: client.name,
                 }))}
-                onValuesChange={(ids) => create.onClientIdChange(ids[0] ?? "")}
+                placeholder="Client"
                 searchPlaceholder="Search clients"
-                triggerClassName="h-10 max-w-none w-full rounded-xl text-sm"
-                contentClassName="w-[var(--radix-popover-trigger-width)]"
+                aria-label="Client"
+                variant="chip"
               />
-              {create.errors.client ? (
-                <p className="text-xs text-destructive" role="alert">
-                  {create.errors.client}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="money-bill-period" className={agencyFormLabelClass}>
-                Period
-              </Label>
               <MemberProfileLeaveRangePicker
                 triggerId="money-bill-period"
                 startDate={create.periodStart}
                 endDate={create.periodEnd}
-                emptyLabel="Select invoice period"
+                emptyLabel="Invoice period"
                 ariaLabel="Invoice period"
+                triggerClassName={agencyDialogChipTriggerClass}
                 onRangeChange={(next) => {
                   create.onPeriodStartChange(next.startDate);
                   create.onPeriodEndChange(next.endDate);
                 }}
               />
-              {create.errors.period ? (
-                <p className="text-xs text-destructive" role="alert">
-                  {create.errors.period}
-                </p>
-              ) : null}
-            </div>
-          </form>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => create.onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" form={create.formId} disabled={create.isPending}>
-              {create.isPending ? "Creating…" : "Create draft"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={adjustmentCreate.open} onOpenChange={adjustmentCreate.onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add adjustment or cost</DialogTitle>
-            <DialogDescription>
-              {adjustmentCreate.isSalaryPool
-                ? "Set the manual Team salaries total for this period."
-                : adjustmentCreate.sectionKey === "extra"
-                  ? "Add extra period income. It raises Total income and ROI for this period."
-                  : "Create a Debt / Discount, Extra, Charity, or formula-driven PBC line for this period."}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            id={adjustmentCreate.formId}
-            className="flex min-h-0 flex-col gap-4 overflow-y-auto"
-            noValidate
-            onSubmit={adjustmentCreate.onSubmit}
-          >
-            <div className={agencyFormFieldClass}>
-              <Label
-                htmlFor={`${adjustmentCreate.formId}-section`}
-                className={agencyFormLabelClass}
-              >
-                Section
-              </Label>
-              <Select
-                value={adjustmentCreate.sectionKey}
-                onValueChange={(value) =>
-                  adjustmentCreate.onSectionKeyChange(
-                    value as (typeof adjustmentCreate.sectionOptions)[number]["id"],
-                  )
-                }
-              >
-                <SelectTrigger
-                  id={`${adjustmentCreate.formId}-section`}
-                  className="h-9 w-full rounded-xl border-default bg-default"
-                >
-                  <SelectValue placeholder="Select section" />
-                </SelectTrigger>
-                <SelectContent>
-                  {adjustmentCreate.sectionOptions.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {!adjustmentCreate.isSalaryPool ? (
-              <div className={agencyFormFieldClass}>
-                <Label
-                  htmlFor={`${adjustmentCreate.formId}-label`}
-                  className={agencyFormLabelClass}
-                >
-                  Label
-                </Label>
-                <Input
-                  id={`${adjustmentCreate.formId}-label`}
-                  value={adjustmentCreate.label}
-                  onChange={(event) => adjustmentCreate.onLabelChange(event.target.value)}
-                  placeholder="e.g. Client discount, donation"
-                  className="h-9 rounded-xl border-default bg-default text-sm"
-                  required
-                  aria-invalid={Boolean(adjustmentCreate.errors.label)}
-                  aria-describedby={
-                    adjustmentCreate.errors.label
-                      ? `${adjustmentCreate.formId}-label-error`
-                      : undefined
-                  }
-                />
-                {adjustmentCreate.errors.label ? (
-                  <p
-                    id={`${adjustmentCreate.formId}-label-error`}
-                    className="text-xs text-destructive"
-                    role="alert"
-                  >
-                    {adjustmentCreate.errors.label}
-                  </p>
-                ) : null}
-              </div>
+            </AgencyCompactDialogMeta>
+            {create.errors.client ? (
+              <p className="text-xs text-destructive" role="alert">
+                {create.errors.client}
+              </p>
             ) : null}
-            <div className={agencyFormFieldClass}>
-              <Label htmlFor={`${adjustmentCreate.formId}-amount`} className={agencyFormLabelClass}>
-                Amount
-              </Label>
-              <Input
-                id={`${adjustmentCreate.formId}-amount`}
-                inputMode="decimal"
-                value={adjustmentCreate.amount}
-                onChange={(event) => adjustmentCreate.onAmountChange(event.target.value)}
-                placeholder="0.00"
-                className="h-9 rounded-xl border-default bg-default text-sm tabular-nums"
-                required
-                aria-invalid={Boolean(adjustmentCreate.errors.amount)}
-                aria-describedby={
-                  adjustmentCreate.errors.amount
-                    ? `${adjustmentCreate.formId}-amount-error`
-                    : undefined
-                }
-              />
-              {adjustmentCreate.errors.amount ? (
-                <p
-                  id={`${adjustmentCreate.formId}-amount-error`}
-                  className="text-xs text-destructive"
-                  role="alert"
-                >
-                  {adjustmentCreate.errors.amount}
-                </p>
-              ) : null}
-            </div>
-          </form>
-          <DialogFooter>
+            {create.errors.period ? (
+              <p className="text-xs text-destructive" role="alert">
+                {create.errors.period}
+              </p>
+            ) : null}
+          </AgencyCompactDialogBody>
+          <AgencyCompactDialogFooter>
             <Button
               type="button"
               variant="ghost"
+              size="sm"
+              onClick={() => create.onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" form={create.formId} disabled={create.isPending}>
+              {create.isPending ? "Creating…" : "Create draft"}
+            </Button>
+          </AgencyCompactDialogFooter>
+        </AgencyCompactDialogForm>
+      </AgencyCompactDialog>
+
+      <AgencyCompactDialog
+        open={adjustmentCreate.open}
+        onOpenChange={adjustmentCreate.onOpenChange}
+        showCloseButton={!adjustmentCreate.isPending}
+      >
+        <AgencyCompactDialogHeader
+          title="Add adjustment or cost"
+          description={
+            adjustmentCreate.isSalaryPool
+              ? "Set the manual Team salaries total for this period."
+              : adjustmentCreate.sectionKey === "extra"
+                ? "Add extra period income. It raises Total income and ROI for this period."
+                : "Create a Debt / Discount, Extra, Charity, or formula-driven PBC line for this period."
+          }
+        />
+        <AgencyCompactDialogForm
+          id={adjustmentCreate.formId}
+          noValidate
+          onSubmit={adjustmentCreate.onSubmit}
+        >
+          <AgencyCompactDialogBody>
+            {!adjustmentCreate.isSalaryPool ? (
+              <AgencyCompactDialogMeta>
+                <AgencySearchSelect
+                  id={`${adjustmentCreate.formId}-section`}
+                  value={adjustmentCreate.sectionKey}
+                  onValueChange={(value) =>
+                    adjustmentCreate.onSectionKeyChange(
+                      value as (typeof adjustmentCreate.sectionOptions)[number]["id"],
+                    )
+                  }
+                  options={adjustmentCreate.sectionOptions.map((option) => ({
+                    value: option.id,
+                    label: option.label,
+                  }))}
+                  placeholder="Section"
+                  searchPlaceholder="Search sections…"
+                  aria-label="Section"
+                  variant="chip"
+                />
+              </AgencyCompactDialogMeta>
+            ) : null}
+            {!adjustmentCreate.isSalaryPool ? (
+              <AgencyIdentityField
+                id={`${adjustmentCreate.formId}-label`}
+                value={adjustmentCreate.label}
+                onChange={adjustmentCreate.onLabelChange}
+                placeholder="e.g. Client discount, donation"
+                error={adjustmentCreate.errors.label ?? null}
+                aria-label="Label"
+              />
+            ) : null}
+            <AgencyMoneyPair
+              id={`${adjustmentCreate.formId}-amount`}
+              amount={adjustmentCreate.amount}
+              onAmountChange={adjustmentCreate.onAmountChange}
+              currency=""
+              currencyOptions={[]}
+              showCurrency={false}
+              error={adjustmentCreate.errors.amount ?? null}
+              required
+              emphasis={adjustmentCreate.isSalaryPool ? "hero" : "field"}
+            />
+          </AgencyCompactDialogBody>
+          <AgencyCompactDialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => adjustmentCreate.onOpenChange(false)}
             >
               Cancel
             </Button>
             <Button
               type="submit"
+              size="sm"
               form={adjustmentCreate.formId}
               disabled={adjustmentCreate.isPending}
             >
@@ -711,59 +601,54 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
                   ? "Save total"
                   : "Add"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AgencyCompactDialogFooter>
+        </AgencyCompactDialogForm>
+      </AgencyCompactDialog>
 
-      <Dialog open={payment.open} onOpenChange={payment.onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Record payment</DialogTitle>
-            <DialogDescription>
-              {payment.partyName} · {payment.referenceLabel}. Remaining {payment.remainingLabel}.
-            </DialogDescription>
-          </DialogHeader>
-          <form id={payment.formId} className="flex flex-col gap-4" onSubmit={payment.onSubmit}>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="money-bill-payment-amount" className={agencyFormLabelClass}>
-                Amount ({payment.currency})
-              </Label>
-              <Input
-                id="money-bill-payment-amount"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="0.01"
-                value={payment.amount}
-                onChange={(event) => payment.onAmountChange(event.target.value)}
-                className={agencyFormFieldClass}
-                required
-                aria-invalid={Boolean(payment.validationMessage)}
-                aria-describedby={
-                  payment.validationMessage ? "money-bill-payment-amount-error" : undefined
-                }
-              />
-              {payment.validationMessage ? (
-                <p
-                  id="money-bill-payment-amount-error"
-                  className="text-xs text-destructive"
-                  role="alert"
-                >
-                  {payment.validationMessage}
-                </p>
-              ) : null}
-            </div>
-          </form>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => payment.onOpenChange(false)}>
+      <AgencyCompactDialog
+        open={payment.open}
+        onOpenChange={payment.onOpenChange}
+        showCloseButton={!bills.isMutationPending}
+      >
+        <AgencyCompactDialogHeader
+          title="Record payment"
+          description={`${payment.partyName} · ${payment.referenceLabel}. Remaining ${payment.remainingLabel}.`}
+        />
+        <AgencyCompactDialogForm id={payment.formId} onSubmit={payment.onSubmit}>
+          <AgencyCompactDialogBody>
+            <AgencyMoneyPair
+              id="money-bill-payment-amount"
+              emphasis="hero"
+              amount={payment.amount}
+              onAmountChange={payment.onAmountChange}
+              currency={payment.currency}
+              currencyOptions={[payment.currency]}
+              error={payment.validationMessage}
+              required
+              autoFocus
+              preview={`Remaining ${payment.remainingLabel}`}
+            />
+          </AgencyCompactDialogBody>
+          <AgencyCompactDialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => payment.onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" form={payment.formId} disabled={bills.isMutationPending}>
+            <Button
+              type="submit"
+              size="sm"
+              form={payment.formId}
+              disabled={bills.isMutationPending}
+            >
               {bills.isMutationPending ? "Recording…" : "Record"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AgencyCompactDialogFooter>
+        </AgencyCompactDialogForm>
+      </AgencyCompactDialog>
     </>
   );
 }

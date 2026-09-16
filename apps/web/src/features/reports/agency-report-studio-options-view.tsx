@@ -94,7 +94,6 @@ function ShapeOptionGroup({
   defaultOpen,
   selectAllLabel,
   selectAllChecked,
-  selectAllIndeterminate,
   onSelectAll,
   children,
 }: {

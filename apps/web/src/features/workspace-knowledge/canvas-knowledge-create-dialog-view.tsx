@@ -13,22 +13,23 @@ import {
   type KnowledgeDialogKind,
   type KnowledgePinKind,
 } from "@/features/workspace-knowledge/knowledge-create";
+import { AgencySearchSelect } from "@/features/shared/agency-search-select";
+import {
+  AgencyCompactDialog,
+  AgencyCompactDialogBody,
+  AgencyCompactDialogFooter,
+  AgencyCompactDialogForm,
+  AgencyCompactDialogHeader,
+  AgencyCompactDialogMeta,
+} from "@/features/shared/dialog-kit/agency-compact-dialog-shell";
+import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
+import { AgencyKitReveal } from "@/features/shared/dialog-kit/agency-kit-reveal";
+import { AgencyModeSegment } from "@/features/shared/dialog-kit/agency-mode-segment";
+import { AgencyNoteField } from "@/features/shared/dialog-kit/agency-note-field";
+import { AgencyPasteChipField } from "@/features/shared/dialog-kit/agency-paste-chip-field";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/dialog";
 import { Input } from "@/ui/input";
-import { Label } from "@/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Separator } from "@/ui/separator";
-import { Textarea } from "@/ui/textarea";
 import { cn } from "@/lib/utils";
 
 type KnowledgeCreateTargetOption = {
@@ -148,262 +149,236 @@ export function CanvasKnowledgeCreateDialogView({
     : knowledgeCreateDescription(kind);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[min(90vh,40rem)] gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="space-y-1 border-b border-border px-5 py-4 text-left">
-          <div className="flex items-center gap-2">
+    <AgencyCompactDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      showCloseButton={!pending}
+    >
+      <AgencyCompactDialogHeader
+        title={heading}
+        description={description}
+        badge={
+          <span className="flex flex-wrap items-center gap-2">
             <span
               className={cn(
-                "flex size-8 items-center justify-center rounded-xl",
+                "flex size-7 items-center justify-center rounded-lg",
                 knowledgeCreateAccentClass(surface),
               )}
             >
-              <Icon className="size-4" aria-hidden />
+              <Icon className="size-3.5" aria-hidden />
             </span>
-            <DialogTitle className="text-base font-semibold text-foreground">{heading}</DialogTitle>
-          </div>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-
-        <form
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit();
-          }}
-        >
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-            {isUnplaced ? (
-              unplaced.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Every card is already on the board.</p>
-              ) : (
-                <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                  {unplaced.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-2 px-3 py-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm">{item.title}</p>
-                        <Badge variant="secondary" className="mt-1">
-                          {item.chip}
-                        </Badge>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <Button
-                          type="button"
-                          size="xs"
-                          variant="secondary"
-                          onClick={() => onPlaceUnplaced(item.id)}
-                        >
-                          Place here
-                        </Button>
-                        <Button
-                          type="button"
-                          size="xs"
-                          variant="ghost"
-                          onClick={() => onRemoveUnplaced(item.id)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )
+            {!isUnplaced && teamSelected ? (
+              <AgencyModeSegment
+                aria-label="Visibility"
+                value={visibility}
+                options={[
+                  { value: "private", label: "Private" },
+                  { value: "team", label: "Team" },
+                ]}
+                onChange={(value) => onVisibilityChange(value)}
+                disabled={pending}
+              />
             ) : null}
+          </span>
+        }
+      />
+      <AgencyCompactDialogForm
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <AgencyCompactDialogBody>
+          {isUnplaced ? (
+            unplaced.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Every card is already on the board.</p>
+            ) : (
+              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                {unplaced.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm">{item.title}</p>
+                      <Badge variant="secondary" className="mt-1">
+                        {item.chip}
+                      </Badge>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="secondary"
+                        onClick={() => onPlaceUnplaced(item.id)}
+                      >
+                        Place here
+                      </Button>
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="ghost"
+                        onClick={() => onRemoveUnplaced(item.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : null}
 
-            {isPin ? (
-              <div className="grid gap-2">
-                <Label htmlFor="knowledge-pin-kind">Agency record</Label>
-                <Select
+          {isPin ? (
+            <div className="grid gap-2.5">
+              <AgencyCompactDialogMeta>
+                <AgencySearchSelect
+                  id="knowledge-pin-kind"
                   value={pinKind}
                   onValueChange={(value) => onPinKindChange(value as KnowledgePinKind)}
+                  options={knowledgePinKinds.map((item) => ({
+                    value: item,
+                    label: pinChipLabel(item),
+                  }))}
                   disabled={pending || !teamSelected}
-                >
-                  <SelectTrigger id="knowledge-pin-kind" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {knowledgePinKinds.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {pinChipLabel(item)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  value={pinQuery}
-                  onChange={(event) => onPinQueryChange(event.target.value)}
-                  placeholder="Search by name"
-                  aria-label="Search Agency"
-                  disabled={pending || !teamSelected}
+                  aria-label="Agency record"
+                  variant="chip"
                 />
-                {!teamSelected ? (
-                  <p className="text-sm text-muted-foreground">
-                    Select a team to pin live records.
-                  </p>
-                ) : (
-                  <ul className="max-h-40 overflow-auto rounded-xl border border-border">
-                    {pinOptions.length === 0 ? (
-                      <li className="px-3 py-2 text-sm text-muted-foreground">No matches.</li>
-                    ) : (
-                      pinOptions.map((option) => {
-                        const selected = option.id === selectedPinId;
-                        return (
-                          <li key={option.id}>
-                            <button
-                              type="button"
-                              className={cn(
-                                "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
-                                selected ? "bg-primary/10 text-foreground" : "hover:bg-muted",
-                              )}
-                              onClick={() => onSelectPin(option)}
-                            >
-                              <Pin className="size-3.5 text-primary" aria-hidden />
-                              {option.label}
-                            </button>
-                          </li>
-                        );
-                      })
-                    )}
-                  </ul>
-                )}
-              </div>
-            ) : null}
+              </AgencyCompactDialogMeta>
+              <Input
+                value={pinQuery}
+                onChange={(event) => onPinQueryChange(event.target.value)}
+                placeholder="Search by name"
+                aria-label="Search Agency"
+                disabled={pending || !teamSelected}
+              />
+              {!teamSelected ? (
+                <p className="text-sm text-muted-foreground">Select a team to pin live records.</p>
+              ) : (
+                <ul className="max-h-40 overflow-auto rounded-xl border border-border">
+                  {pinOptions.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-muted-foreground">No matches.</li>
+                  ) : (
+                    pinOptions.map((option) => {
+                      const selected = option.id === selectedPinId;
+                      return (
+                        <li key={option.id}>
+                          <button
+                            type="button"
+                            className={cn(
+                              "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
+                              selected ? "bg-primary/10 text-foreground" : "hover:bg-muted",
+                            )}
+                            onClick={() => onSelectPin(option)}
+                          >
+                            <Pin className="size-3.5 text-primary" aria-hidden />
+                            {option.label}
+                          </button>
+                        </li>
+                      );
+                    })
+                  )}
+                </ul>
+              )}
+            </div>
+          ) : null}
 
-            {!isUnplaced && !isPin ? (
-              <div className="grid gap-2">
-                <Label htmlFor="knowledge-title">Title</Label>
-                <Input
-                  id="knowledge-title"
-                  value={title}
-                  onChange={(event) => onTitleChange(event.target.value)}
-                  placeholder="Name this card"
-                  disabled={pending}
-                  autoFocus
-                />
-              </div>
-            ) : null}
+          {!isUnplaced && !isPin ? (
+            <AgencyIdentityField
+              id="knowledge-title"
+              value={title}
+              onChange={onTitleChange}
+              placeholder="Name this card"
+              disabled={pending}
+              autoFocus
+              aria-label="Title"
+            />
+          ) : null}
 
-            {surface === "decision" ? (
-              <div className="grid gap-2">
-                <Label htmlFor="knowledge-decision-status">Status</Label>
-                <Select
+          <AgencyKitReveal open={surface === "decision"}>
+            <div className="grid gap-2.5 pt-1">
+              <AgencyCompactDialogMeta>
+                <AgencySearchSelect
+                  id="knowledge-decision-status"
                   value={status}
                   onValueChange={(value) => onStatusChange(value as KnowledgeDecisionStatus)}
+                  options={knowledgeDecisionStatuses.map((item) => ({
+                    value: item,
+                    label: item,
+                  }))}
                   disabled={pending}
-                >
-                  <SelectTrigger id="knowledge-decision-status" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {knowledgeDecisionStatuses.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Label htmlFor="knowledge-recommendation">Recommendation</Label>
-                <Textarea
-                  id="knowledge-recommendation"
-                  value={recommendation}
-                  onChange={(event) => onRecommendationChange(event.target.value)}
-                  placeholder="Optional"
-                  disabled={pending}
-                  rows={3}
+                  aria-label="Status"
+                  variant="chip"
                 />
-              </div>
-            ) : null}
+              </AgencyCompactDialogMeta>
+              <AgencyNoteField
+                id="knowledge-recommendation"
+                value={recommendation}
+                onChange={onRecommendationChange}
+                placeholder="Optional recommendation"
+                disabled={pending}
+                label="Recommendation"
+              />
+            </div>
+          </AgencyKitReveal>
 
-            {surface === "source" ? (
-              <div className="grid gap-2">
-                <Label htmlFor="knowledge-source-url">URL</Label>
-                <Input
-                  id="knowledge-source-url"
-                  value={sourceUrl}
-                  onChange={(event) => onSourceUrlChange(event.target.value)}
-                  placeholder="https://"
-                  disabled={pending}
-                />
-                {canUploadSource ? (
-                  <Input
-                    type="file"
-                    aria-label="Source file"
-                    disabled={pending}
-                    onChange={(event) => onSourceFileChange(event.target.files?.[0] ?? null)}
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground">Select a team to upload a file.</p>
-                )}
-              </div>
-            ) : null}
+          <AgencyKitReveal open={surface === "source"}>
+            <div className="pt-1">
+              <AgencyPasteChipField
+                values={sourceUrl.trim() ? [sourceUrl.trim()] : []}
+                onChange={(urls) => onSourceUrlChange(urls[0] ?? "")}
+                max={1}
+                disabled={pending}
+                placeholder="Paste a URL"
+                acceptFile={canUploadSource}
+                onFile={canUploadSource ? onSourceFileChange : undefined}
+              />
+              {!canUploadSource ? (
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Select a team to upload a file.
+                </p>
+              ) : null}
+            </div>
+          </AgencyKitReveal>
 
-            {surface === "note" || surface === "decision" ? (
-              <div className="grid gap-2">
-                <Label htmlFor="knowledge-about">About</Label>
-                <Select
+          <AgencyKitReveal open={surface === "note" || surface === "decision"}>
+            <div className="pt-1">
+              <AgencyCompactDialogMeta>
+                <AgencySearchSelect
+                  id="knowledge-about"
                   value={aboutId ?? "none"}
                   onValueChange={(value) => onAboutIdChange(value === "none" ? null : value)}
+                  options={[
+                    { value: "none", label: "About: none" },
+                    ...aboutOptions.map((option) => ({ value: option.id, label: option.label })),
+                  ]}
                   disabled={pending}
-                >
-                  <SelectTrigger id="knowledge-about" className="w-full">
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {aboutOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
+                  aria-label="About"
+                  variant="chip"
+                />
+              </AgencyCompactDialogMeta>
+            </div>
+          </AgencyKitReveal>
 
-            {!isUnplaced && teamSelected ? (
-              <fieldset className="grid gap-2">
-                <legend className="text-sm font-medium">Visibility</legend>
-                <RadioGroup
-                  className="grid grid-cols-2 gap-2"
-                  value={visibility}
-                  onValueChange={(value) => onVisibilityChange(value as "private" | "team")}
-                  disabled={pending}
-                >
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm has-[[data-checked]]:border-primary/40 has-[[data-checked]]:bg-primary/5">
-                    <RadioGroupItem value="private" />
-                    Private
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm has-[[data-checked]]:border-primary/40 has-[[data-checked]]:bg-primary/5">
-                    <RadioGroupItem value="team" />
-                    Team
-                  </label>
-                </RadioGroup>
-                {visibility === "team" ? (
-                  <p className="text-xs text-muted-foreground">
-                    Team cards wait for Approve in Orch. They will not appear until then.
-                  </p>
-                ) : null}
-              </fieldset>
-            ) : null}
+          {!isUnplaced && visibility === "team" ? (
+            <p className="text-xs text-muted-foreground">
+              Team cards wait for Approve in Orch. They will not appear until then.
+            </p>
+          ) : null}
 
-            {pendingLabel ? <p className="text-sm text-muted-foreground">{pendingLabel}</p> : null}
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          </div>
-
-          <Separator />
-          <DialogFooter className="px-5 py-3">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              {isUnplaced ? "Done" : "Cancel"}
+          {pendingLabel ? <p className="text-sm text-muted-foreground">{pendingLabel}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        </AgencyCompactDialogBody>
+        <AgencyCompactDialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            {isUnplaced ? "Done" : "Cancel"}
+          </Button>
+          {isUnplaced ? null : (
+            <Button type="submit" disabled={pending || !canSubmit}>
+              <Icon className="size-3.5" aria-hidden />
+              {pending ? "Saving" : knowledgeCreateSubmitLabel(kind)}
             </Button>
-            {isUnplaced ? null : (
-              <Button type="submit" disabled={pending || !canSubmit}>
-                <Icon className="size-3.5" aria-hidden />
-                {pending ? "Saving" : knowledgeCreateSubmitLabel(kind)}
-              </Button>
-            )}
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+        </AgencyCompactDialogFooter>
+      </AgencyCompactDialogForm>
+    </AgencyCompactDialog>
   );
 }

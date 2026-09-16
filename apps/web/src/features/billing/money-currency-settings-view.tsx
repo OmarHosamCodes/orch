@@ -1,10 +1,10 @@
-import { agencyFormFieldClass, agencyFormLabelClass } from "@/features/shared/agency-ui";
+import { agencyFormLabelClass } from "@/features/shared/agency-ui";
+import { AgencyCurrencyGlyph } from "@/features/shared/dialog-kit/agency-currency-glyph";
+import { AgencySearchSelect } from "@/features/shared/agency-search-select";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 export type MoneyCurrencySettingsViewModel = {
   canEdit: boolean;
@@ -46,23 +46,20 @@ export function MoneyCurrencySettingsView({
         <Label htmlFor="agency-currency" className={agencyFormLabelClass}>
           Agency currency
         </Label>
-        <div className="flex flex-wrap items-end gap-2">
-          <Select
+        <div className="flex flex-wrap items-center gap-2">
+          <AgencySearchSelect
+            id="agency-currency"
             value={settings.currency.draft}
             onValueChange={settings.currency.onDraftChange}
+            options={settings.currency.options.map((code) => ({
+              value: code,
+              label: code,
+              glyph: <AgencyCurrencyGlyph code={code} />,
+            }))}
             disabled={settings.isSaving || !settings.canEdit || settings.currency.lockedAt != null}
-          >
-            <SelectTrigger id="agency-currency" className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {settings.currency.options.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            aria-label="Agency currency"
+            variant="chip"
+          />
           <Button
             type="button"
             size="sm"
@@ -97,24 +94,20 @@ export function MoneyCurrencySettingsView({
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex flex-col gap-1.5">
             <Label className={agencyFormLabelClass}>From</Label>
-            <Select
+            <AgencySearchSelect
               value={settings.fxRates.fromCurrency}
               onValueChange={settings.fxRates.onFromCurrencyChange}
+              options={settings.currency.options
+                .filter((code) => code !== settings.currency.code)
+                .map((code) => ({
+                  value: code,
+                  label: code,
+                  glyph: <AgencyCurrencyGlyph code={code} />,
+                }))}
               disabled={settings.isSaving || !settings.canEdit}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {settings.currency.options
-                  .filter((code) => code !== settings.currency.code)
-                  .map((code) => (
-                    <SelectItem key={code} value={code}>
-                      {code}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              aria-label="From currency"
+              variant="chip"
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="fx-rate" className={agencyFormLabelClass}>
@@ -122,7 +115,7 @@ export function MoneyCurrencySettingsView({
             </Label>
             <Input
               id="fx-rate"
-              className={cn(agencyFormFieldClass, "w-32")}
+              className="h-8 w-32 rounded-full"
               value={settings.fxRates.rateDraft}
               onChange={(event) => settings.fxRates.onRateDraftChange(event.target.value)}
               placeholder="50.2"
