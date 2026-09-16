@@ -1,5 +1,9 @@
 import { tool } from "@openrouter/sdk/lib/tool";
-import { knowledgeObjectViewSchema, knowledgeObjectTypeSchema, knowledgeTargetSchema } from "@orch/workspace";
+import {
+  knowledgeObjectViewSchema,
+  knowledgeObjectTypeSchema,
+  knowledgeTargetSchema,
+} from "@orch/workspace";
 import { z } from "zod";
 
 import { knowledgeActionLabel, knowledgeActionSchema } from "./knowledge-actions";
@@ -72,7 +76,10 @@ function buildKnowledgeApplyTool(runtime: CanvasAgentRuntime) {
   });
 }
 
-export function buildKnowledgeTools(runtime: CanvasAgentRuntime, _preset: DashboardAgentToolPreset) {
+export function buildKnowledgeTools(
+  runtime: CanvasAgentRuntime,
+  _preset: DashboardAgentToolPreset,
+) {
   void _preset;
   return [
     buildKnowledgeQueryTool(runtime),

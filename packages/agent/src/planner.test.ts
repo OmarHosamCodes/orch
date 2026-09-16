@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatPlannerPlanForTools, PLANNER_SYSTEM_PROMPT } from "./planner";
+import { formatPlannerPlanForTools, parsePlannerTodos, PLANNER_SYSTEM_PROMPT } from "./planner";
 
 describe("planner-then-tools", () => {
   test("planner prompt is internal and has no UI modes", () => {
@@ -14,5 +14,13 @@ describe("planner-then-tools", () => {
       "Internal plan",
     );
     expect(formatPlannerPlanForTools("   ")).toContain("inspect with tools");
+  });
+
+  test("parses numbered planner lines into user-visible todos", () => {
+    expect(parsePlannerTodos("1. List today's entries\n2. Propose waste mark")).toEqual([
+      { id: "todo-1", title: "List today's entries", status: "pending" },
+      { id: "todo-2", title: "Propose waste mark", status: "pending" },
+    ]);
+    expect(parsePlannerTodos("Internal plan: inspect with tools")).toEqual([]);
   });
 });

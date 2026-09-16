@@ -16,6 +16,22 @@ export function formatPlannerPlanForTools(planText: string): string {
   return `Internal plan (do not show this verbatim to the user):\n${trimmed}`;
 }
 
+export function parsePlannerTodos(planText: string) {
+  const items: Array<{ id: string; title: string; status: "pending" }> = [];
+  for (const line of planText.split("\n")) {
+    const match = /^\s*(?:\d+[.)]|[-*])\s+(.+)$/.exec(line);
+    const title = match?.[1]?.trim();
+    if (!title) continue;
+    items.push({
+      id: `todo-${items.length + 1}`,
+      title: title.slice(0, 160),
+      status: "pending",
+    });
+    if (items.length >= 12) break;
+  }
+  return items;
+}
+
 export async function runPlannerPass(input: {
   model: string;
   messages: AgentModelInputMessage[];

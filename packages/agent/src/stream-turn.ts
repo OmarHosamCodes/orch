@@ -18,6 +18,10 @@ export type DashboardAgentStreamEvent =
       object: { kind: "node" | "block" | "knowledge"; id: string; title: string; href: string };
     }
   | { type: "plan"; plan: AgentStreamDraftPlan }
+  | {
+      type: "todo";
+      items: Array<{ id: string; title: string; status: "pending" | "in-progress" | "completed" }>;
+    }
   | { type: "question"; question: AgencyAgentQuestion }
   | {
       type: "proposal";

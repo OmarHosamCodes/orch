@@ -34,7 +34,9 @@ export {
 export const DEFAULT_AGENT_MODEL = "openrouter/auto-beta";
 export const DASHBOARD_CONVERSATION_TITLE_LIMIT = 80;
 export const DASHBOARD_CONVERSATION_HISTORY_LIMIT = 50;
+export const DASHBOARD_CONVERSATION_COMPACT_LIMIT = 20;
 export const DASHBOARD_CONVERSATION_MESSAGE_WINDOW = 20;
+export const dashboardConversationListFilterSchema = z.enum(["open", "settled"]);
 
 export const dashboardConversationUsageLatestSchema = z.object({
   modelId: z.string().trim().min(1),
@@ -193,8 +195,12 @@ export const dashboardConversationSummarySchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   lastMessageAt: z.string().datetime(),
+  lastReadAt: z.string().datetime().nullable().default(null),
+  archivedAt: z.string().datetime().nullable().default(null),
   lastMessagePreview: z.string().max(280).nullable(),
   taskId: z.string().trim().min(1).nullable().default(null),
+  activeRunId: z.string().nullable().default(null),
+  unread: z.boolean().default(false),
 });
 
 export const dashboardConversationMessageSchema = z.object({
@@ -221,6 +227,23 @@ export const dashboardConversationListResponseSchema = z.object({
     .max(DASHBOARD_CONVERSATION_HISTORY_LIMIT)
     .default([]),
 });
+
+export const dashboardConversationListInputSchema = z.object({
+  filter: dashboardConversationListFilterSchema.optional(),
+});
+
+export const dashboardConversationCompactResponseSchema = z.object({
+  conversations: z
+    .array(dashboardConversationSummarySchema)
+    .max(DASHBOARD_CONVERSATION_COMPACT_LIMIT)
+    .default([]),
+});
+
+export const dashboardConversationSettleInputSchema = z.object({
+  conversationId: z.string().trim().min(1),
+});
+
+export const dashboardConversationMarkReadInputSchema = dashboardConversationSettleInputSchema;
 
 export const dashboardConversationGetInputSchema = z.object({
   conversationId: z.string().trim().min(1),
@@ -250,6 +273,7 @@ export const agentScopeRefKindSchema = z.enum([
   "task",
   "taskMessage",
   "member",
+  "client",
   "surface",
 ]);
 
@@ -358,6 +382,20 @@ export const agentChatTurnStreamPlanEventSchema = z.object({
   }),
 });
 
+export const agentChatTurnStreamTodoEventSchema = z.object({
+  type: z.literal("todo"),
+  items: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1).max(80),
+        title: z.string().trim().min(1).max(160),
+        status: z.enum(["pending", "in-progress", "completed"]),
+      }),
+    )
+    .min(1)
+    .max(12),
+});
+
 export const agentChatTurnStreamCreatedObjectEventSchema = z.object({
   type: z.literal("created_object"),
   object: z.object({
@@ -423,6 +461,7 @@ export const agentChatTurnStreamEventSchema = z.discriminatedUnion("type", [
   agentChatTurnStreamToolEventSchema,
   agentChatTurnStreamArtifactEventSchema,
   agentChatTurnStreamPlanEventSchema,
+  agentChatTurnStreamTodoEventSchema,
   agentChatTurnStreamCreatedObjectEventSchema,
   agentChatTurnStreamProposalEventSchema,
   agentChatTurnStreamQuestionEventSchema,

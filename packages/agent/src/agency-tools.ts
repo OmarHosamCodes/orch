@@ -471,9 +471,5 @@ export function buildAgencyAgentTools(
   _preset: DashboardAgentToolPreset = "agent",
 ) {
   void _preset;
-  return [
-    ...buildAgencyReadTools(runtime),
-    buildAgencyPlanTool(),
-    buildAgencyProposeTool(runtime),
-  ];
+  return [...buildAgencyReadTools(runtime), buildAgencyPlanTool(), buildAgencyProposeTool(runtime)];
 }

@@ -23,7 +23,7 @@ import { agencyToolRetryNote } from "./agency-reports-canvas";
 import { createOpenRouterClient, openRouterFetchOptions } from "./client";
 import { resolveOpenRouterReasoning } from "./reasoning-effort";
 import { resolveOpenRouterModel } from "./models";
-import { formatPlannerPlanForTools, runPlannerPass } from "./planner";
+import { formatPlannerPlanForTools, parsePlannerTodos, runPlannerPass } from "./planner";
 import {
   mergeToolCallFromStreamMessage,
   orderedToolCalls,
@@ -816,13 +816,16 @@ export async function* streamDashboardAgent(
     try {
       let plannerNote = formatPlannerPlanForTools("");
       try {
-        plannerNote = formatPlannerPlanForTools(
-          await runPlannerPass({
-            model,
-            messages: normalizedMessages,
-            signal: config.signal,
-          }),
-        );
+        const planText = await runPlannerPass({
+          model,
+          messages: normalizedMessages,
+          signal: config.signal,
+        });
+        plannerNote = formatPlannerPlanForTools(planText);
+        const todos = parsePlannerTodos(planText);
+        if (todos.length > 0) {
+          yield { type: "todo" as const, items: todos };
+        }
       } catch {
         plannerNote = formatPlannerPlanForTools("");
       }
