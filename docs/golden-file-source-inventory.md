@@ -19,16 +19,16 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 997 |
+| golden-feature | 1001 |
 | server-operation | 13 |
-| shared-infrastructure | 403 |
+| shared-infrastructure | 406 |
 | static-presentation | 17 |
 
 ## Counts by domain
 
 | Domain | Artifacts |
 | --- | ---: |
-| agency-shared | 153 |
+| agency-shared | 154 |
 | agent | 154 |
 | api-platform | 13 |
 | architecture | 4 |
@@ -46,15 +46,15 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | member-profile | 55 |
 | notifications | 41 |
 | performance | 9 |
-| projects | 25 |
-| reports | 54 |
+| projects | 28 |
+| reports | 55 |
 | repository | 13 |
 | resourcing | 46 |
 | server-platform | 25 |
 | task-management | 121 |
 | team | 19 |
 | time-tracking | 128 |
-| web-platform | 159 |
+| web-platform | 161 |
 | workspace | 137 |
 
 ## Artifacts
@@ -370,7 +370,6 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/projects/agency-project-detail.tsx` | projects | presentational-view | golden-feature | projects-domain | Feature-owned projects artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/projects/agency-projects-table-view.tsx` | projects | presentational-view | golden-feature | projects-domain | Feature-owned projects artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/projects/agency-projects-table.tsx` | projects | presentational-view | golden-feature | projects-domain | Feature-owned projects artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/projects/agency-projects-virtual-table.tsx` | projects | presentational-view | golden-feature | projects-domain | Feature-owned projects artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/projects/agency-task-journey.test.ts` | projects | test | golden-feature | projects-domain | Feature-owned projects artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/projects/agency-task-journey.ts` | projects | domain-logic | golden-feature | projects-domain | Feature-owned projects artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/projects/containers/agency-project-create-dialog-container.tsx` | projects | container | golden-feature | projects-domain | Feature-owned projects artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
@@ -381,7 +380,12 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/projects/hooks/use-agency-projects-table.ts` | projects | feature-hook | golden-feature | projects-domain | Feature-owned projects artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
 | `apps/web/src/features/projects/journey-step-layout.ts` | projects | domain-logic | golden-feature | projects-domain | Feature-owned projects artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/projects/journey/agency-project-journey-stepper.tsx` | projects | presentational-view | golden-feature | projects-domain | Feature-owned projects artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/projects/project-activity-timeline.test.ts` | projects | test | golden-feature | projects-domain | Feature-owned projects artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/projects/project-activity-timeline.ts` | projects | domain-logic | golden-feature | projects-domain | Feature-owned projects artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/projects/projects-book-corridors.test.ts` | projects | test | golden-feature | projects-domain | Feature-owned projects artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/projects/projects-book-corridors.ts` | projects | domain-logic | golden-feature | projects-domain | Feature-owned projects artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/projects/use-agency-project-journey.ts` | projects | feature-hook | golden-feature | projects-domain | Feature-owned projects artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
+| `apps/web/src/features/reports/agency-report-document-chapter-view.tsx` | reports | presentational-view | golden-feature | reports-domain | Feature-owned reports artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/reports/agency-report-document-preview.tsx` | reports | presentational-view | golden-feature | reports-domain | Feature-owned reports artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/reports/agency-report-entry-details-dialog-view.tsx` | reports | presentational-view | golden-feature | reports-domain | Feature-owned reports artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/reports/agency-report-entry-details-dialog.tsx` | reports | presentational-view | golden-feature | reports-domain | Feature-owned reports artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -456,6 +460,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/resourcing/tenure/people-directory-gallery.test.ts` | resourcing | test | golden-feature | resourcing-domain | Feature-owned resourcing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/resourcing/tenure/people-directory-gallery.ts` | resourcing | domain-logic | golden-feature | resourcing-domain | Feature-owned resourcing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-client-archive-filter.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/shared/agency-detail-instrument-plate.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/agency-entity-icon-glyphs.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-entity-icon-picker-view.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/agency-entity-mark.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -993,6 +998,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/pages/agency-tracker-page.tsx` | agency-shared | feature-entry | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/billing-success-page.tsx` | billing | feature-entry | golden-feature | billing-domain | Feature-owned billing artifact in the canonical feature-entry layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/canvas-page.tsx` | workspace | feature-entry | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-entry layer. | content: TanStack Query orchestration, feature query orchestration, React component or hook code; structure: source role and exported behavior |
+| `apps/web/src/pages/dev-dialogs-page.tsx` | web-platform | feature-entry | shared-infrastructure | web-platform | Cross-cutting web-platform feature-entry support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/landing-page.tsx` | marketing | feature-entry | golden-feature | web-experience | Feature-owned marketing artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/node-page.tsx` | workspace | feature-entry | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/pages/privacy-page.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
@@ -1023,6 +1029,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/routes/_authenticated/node.$id.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/object.$id.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/dashboard.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/routes/dev.dialogs.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations, environment contract; structure: view or component role |
 | `apps/web/src/routes/index.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/login.tsx` | auth | presentational-view | golden-feature | identity-domain | Feature-owned auth artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/privacy.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
