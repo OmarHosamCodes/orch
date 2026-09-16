@@ -12,6 +12,7 @@ import {
   type MoneyStatsCardWithSource,
 } from "@/features/billing/money-stats-live";
 import type { InstrumentPlateTone } from "@/features/member-profile/member-profile-instrument-plate";
+import { isMoneyPnlLiveMetric } from "@/features/money/money-pnl-narrative";
 import { moneyStatsMetricDestination } from "@/features/money/money-stats-plate-meta";
 import {
   moneyStatsLiveMetricTone,
@@ -118,7 +119,7 @@ export function useAgencyMoneyScoreboard({
     enabled: Boolean(teamId) && isOwner,
   });
 
-  const scoreboardStatus =
+  const scoreboardStatus: "loading" | "error" | "ready" =
     isRolePending || periodScoreboardQuery.isPending
       ? "loading"
       : periodScoreboardQuery.isError
@@ -158,7 +159,22 @@ export function useAgencyMoneyScoreboard({
       currency: board.currency,
       metrics: liveMetrics,
       sources,
-    }).map((card) => buildCardViewModel(card));
+    }).flatMap((card) => {
+      const metrics = card.metrics.filter((metric) =>
+        isMoneyPnlLiveMetric(metric.id, metric.amount),
+      );
+      if (metrics.length === 0) return [];
+      if (
+        (card.id === "deductions" || card.id === "allocations") &&
+        !metrics.some((metric) => metric.amount !== 0)
+      ) {
+        return [];
+      }
+      const primaryMetricId = metrics.some((metric) => metric.id === card.primaryMetricId)
+        ? card.primaryMetricId
+        : metrics[0]!.id;
+      return [buildCardViewModel({ ...card, metrics, primaryMetricId })];
+    });
   }, [periodScoreboardQuery.data, scoreboardStatus]);
 
   const lastStatsMetricHint = useMemo(() => {
@@ -254,6 +270,8 @@ export function useAgencyMoneyScoreboard({
     billsRemainingLabel,
     currency: periodScoreboardQuery.data?.currency ?? "USD",
     currencyOptional: periodScoreboardQuery.data?.currency,
+    clientRemainingAmount: periodScoreboardQuery.data?.remainingAmount ?? 0,
+    profitShareRemainingAmount: periodScoreboardQuery.data?.profitLossShareAmount ?? 0,
     onRetryScoreboard: () => void periodScoreboardQuery.refetch(),
     onSelectMetric,
   };

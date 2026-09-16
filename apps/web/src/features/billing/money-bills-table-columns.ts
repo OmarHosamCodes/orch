@@ -47,6 +47,40 @@ export function moneyBillGroupStatusLabel(
   return group.lines.every((line) => line.statusLabel === firstStatus) ? firstStatus : "Mixed";
 }
 
+export type MoneyLedgerStatusTone = "default" | "warning" | "success" | "muted";
+
+export function moneyLedgerStatusTone(label: string): MoneyLedgerStatusTone {
+  switch (label) {
+    case "Paid":
+      return "success";
+    case "Outstanding":
+    case "Due":
+      return "warning";
+    case "Ready":
+    case "Part paid":
+    case "Partial":
+      return "default";
+    default:
+      return "muted";
+  }
+}
+
+/** Parent status when lines are visible — never Mixed. */
+export function moneyLedgerParentStatusLabel(
+  group: Pick<MoneyBillPersonGroup, "lines" | "remainingAmount">,
+): string {
+  if (group.lines.length === 0) return "Ready";
+  const firstStatus = group.lines[0]?.statusLabel ?? "Ready";
+  if (group.lines.every((line) => line.statusLabel === firstStatus)) return firstStatus;
+  if (group.remainingAmount <= 0) return "Paid";
+  const unpaid = group.lines.filter((line) => line.statusLabel !== "Paid");
+  const unpaidFirst = unpaid[0]?.statusLabel;
+  if (unpaidFirst && unpaid.every((line) => line.statusLabel === unpaidFirst)) {
+    return unpaidFirst;
+  }
+  return "Open";
+}
+
 export function moneyBillStatusBadgeVariant(
   label: string,
 ): "success" | "warning" | "default" | "outline" {
@@ -87,6 +121,21 @@ export function moneyBillAdjustmentSettleLabel(row: {
   if (row.canRecordPayment) return "Record payment";
   if (row.canMarkPaid) return "Mark paid";
   return null;
+}
+
+export function moneyLedgerSettleButtonLabel(label: string | null): string | null {
+  if (label === "Record payment") return "Record";
+  return label;
+}
+
+export function moneyLedgerReceivedHeading(input: {
+  hasClients: boolean;
+  hasTeam: boolean;
+  hasAdjustments: boolean;
+}): "Received" | "Paid" | "In" {
+  if (input.hasClients && !input.hasTeam && !input.hasAdjustments) return "Received";
+  if (!input.hasClients && (input.hasTeam || input.hasAdjustments)) return "Paid";
+  return "In";
 }
 
 export type MoneyBillsSheetCaptionInput = {

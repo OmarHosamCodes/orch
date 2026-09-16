@@ -52,7 +52,6 @@ import { dateInputToIso, toDateInputValue } from "@/features/shared/use-agency-t
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
 
-import { useMoneyDetailSheetSide } from "./use-money-detail-sheet-side";
 
 const EXPENSE_CREATE_FORM_ID = "agency-money-expense-create";
 
@@ -82,7 +81,6 @@ export function useAgencyMoneyExpensesPanel({
 }: UseAgencyMoneyExpensesPanelArgs) {
   const agencyOps = useAgencyOpsStore();
   const isInvoiceMutationPending = useAgencyOpsStore(selectIsInvoiceMutationPending);
-  const sheetSide = useMoneyDetailSheetSide();
 
   const [expenseCreateOpen, setExpenseCreateOpen] = useState(false);
   const [expenseEditorId, setExpenseEditorId] = useState<string | null>(null);
@@ -508,7 +506,6 @@ export function useAgencyMoneyExpensesPanel({
     selectedRowId,
     onOpenExpenseRow: setSelectedRowId,
     onCloseExpenseDetail: () => setSelectedRowId(null),
-    sheetSide,
     strip: {
       filter: expenseStripFilter,
       filterOptions: EXPENSE_STRIP_FILTERS,
@@ -603,10 +600,21 @@ export function useAgencyMoneyExpensesPanel({
     },
   };
 
+  const dueQueueExpenses = useMemo(
+    () =>
+      expensesStatus === "ready"
+        ? buildExpenseStripItems("due", expenseStripSources).filter(
+            (item) => item.remainingAmount > 0,
+          )
+        : [],
+    [expenseStripSources, expensesStatus],
+  );
+
   return {
     expensesPanel,
     expensesStatus,
     expensesErrorMessage,
+    dueQueueExpenses,
     refetchExpenses,
     onOpenExpenseCreate: () => onExpenseCreateOpenChange(true),
   };

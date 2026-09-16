@@ -15,7 +15,8 @@ import {
 describe("Money bill URL filters", () => {
   test("accepts known values and falls back safely", () => {
     expect(moneyBillsPartyFilterFromSearch("expenses")).toBe("expenses");
-    expect(moneyBillsPartyFilterFromSearch("unknown")).toBe("all");
+    expect(moneyBillsPartyFilterFromSearch("unknown")).toBe("client");
+    expect(moneyBillsPartyFilterFromSearch(null)).toBe("client");
     expect(moneyBillsStatusFilterFromSearch("paid")).toBe("paid");
     expect(moneyBillsStatusFilterFromSearch("unknown")).toBeNull();
   });

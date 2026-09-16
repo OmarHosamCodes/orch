@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/t
 import { cn } from "@/lib/utils";
 
 import { BillsSection } from "./agency-money-bills-section-view";
+import { MoneyNeedsActionQueue } from "./agency-money-needs-action-view";
 import { MoneySettingsDialog } from "./agency-money-settings-dialog-view";
 import { MoneyStatsSection } from "./agency-money-stats-section-view";
 import { type AgencyMoneySurfaceViewModel } from "./hooks/use-agency-money-surface";
@@ -27,8 +28,9 @@ export function AgencyMoneySurfaceView({ viewModel }: AgencyMoneySurfaceViewProp
     title,
     subtitle,
     period,
-    statsCards,
+    pnlStages,
     lastStatsMetricHint,
+    needsAction,
     onSelectMetric,
     moneySettings,
     bills,
@@ -49,7 +51,7 @@ export function AgencyMoneySurfaceView({ viewModel }: AgencyMoneySurfaceViewProp
   }
 
   return (
-    <div className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-6">
+    <div className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-6 xl:overflow-hidden">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className={cn(agencySectionTitleClass, "text-balance")}>{title}</h1>
@@ -131,16 +133,19 @@ export function AgencyMoneySurfaceView({ viewModel }: AgencyMoneySurfaceViewProp
         </section>
       ) : (
         <>
-          <MoneyStatsSection
-            status={scoreboardStatus}
-            errorMessage={scoreboardErrorMessage}
-            statsCards={statsCards}
-            onSelectMetric={onSelectMetric}
-            onRetry={onRetryScoreboard}
-            metricHint={lastStatsMetricHint}
-            periodFx={periodFx}
-          />
-          <BillsSection bills={bills} periodFx={periodFx} />
+          <div className="grid shrink-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]">
+            <MoneyStatsSection
+              status={scoreboardStatus}
+              errorMessage={scoreboardErrorMessage}
+              pnlStages={pnlStages}
+              onSelectMetric={onSelectMetric}
+              onRetry={onRetryScoreboard}
+              metricHint={lastStatsMetricHint}
+              periodFx={periodFx}
+            />
+            <MoneyNeedsActionQueue needsAction={needsAction} />
+          </div>
+          <BillsSection bills={bills} />
           <MoneySettingsDialog settings={moneySettings} />
         </>
       )}

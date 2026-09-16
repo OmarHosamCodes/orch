@@ -1,35 +1,43 @@
-import { type MouseEvent } from "react";
-import { PanelRight } from "lucide-react";
+import { type MouseEvent, type ReactNode } from "react";
+import { MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/ui/dropdown-menu";
 import { TableCell } from "@/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 function stopRowClick(event: MouseEvent<HTMLElement>) {
   event.stopPropagation();
 }
 
+const hoverRevealClass =
+  "max-md:opacity-100 md:opacity-0 md:group-hover/row:opacity-100 md:group-focus-within/row:opacity-100 md:group-has-[[data-state=open]]/row:opacity-100";
+
 export function MoneyTableActionsCell({
   settleLabel,
   settleDisabled,
   onSettle,
-  detailsLabel,
-  onOpenDetails,
+  overflow,
+  className,
 }: {
   settleLabel: string | null;
   settleDisabled: boolean;
   onSettle?: () => void;
-  detailsLabel: string;
-  onOpenDetails: () => void;
+  overflow?: ReactNode;
+  className?: string;
 }) {
+  const hasSettle = Boolean(settleLabel && onSettle);
+  const hasOverflow = Boolean(overflow);
+
   return (
-    <TableCell className="text-right">
+    <TableCell className={cn("text-right", className)}>
       <div className="flex items-center justify-end gap-1">
-        {settleLabel && onSettle ? (
+        {hasSettle && onSettle ? (
           <Button
             type="button"
             size="sm"
             variant="outline"
+            className={hoverRevealClass}
             disabled={settleDisabled}
             aria-haspopup="dialog"
             onClick={(event) => {
@@ -40,26 +48,26 @@ export function MoneyTableActionsCell({
             {settleLabel}
           </Button>
         ) : null}
-        <TooltipProvider delayDuration={120}>
-          <Tooltip>
-            <TooltipTrigger asChild>
+        {hasOverflow ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 size="icon-sm"
                 variant="ghost"
-                aria-label={detailsLabel}
-                aria-haspopup="dialog"
-                onClick={(event) => {
-                  stopRowClick(event);
-                  onOpenDetails();
-                }}
+                className="size-8 text-muted hover:text-highlighted"
+                disabled={settleDisabled}
+                aria-label="More actions"
+                onClick={stopRowClick}
               >
-                <PanelRight className="size-3.5" aria-hidden />
+                <MoreHorizontal className="size-4" aria-hidden />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">Details</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40" onClick={stopRowClick}>
+              {overflow}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
     </TableCell>
   );

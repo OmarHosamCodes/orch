@@ -101,85 +101,148 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
       </Dialog>
 
       <Dialog open={preview.open} onOpenChange={preview.onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-4xl">
           <DialogHeader>
-            <p className="text-[0.6875rem] font-medium tracking-wide text-muted uppercase">
-              Preview only · not saved
-              {preview.periodLabel ? ` · ${preview.periodLabel}` : null}
-            </p>
             <DialogTitle>{preview.title}</DialogTitle>
             <DialogDescription>
-              Choose lines for {preview.partyTitle}, then export to create the document.
+              Choose lines for {preview.partyTitle}. The document on the right is a preview only and
+              is not saved until you export.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <div className="rounded-xl border border-default bg-elevated/30 px-3 py-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-highlighted">Include lines</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-xs"
-                  onClick={preview.onSelectAllObligations}
-                >
-                  {preview.allSelected ? "Clear all" : "Select all"}
-                </Button>
+          <div className="grid min-h-0 gap-4 overflow-y-auto lg:grid-cols-2">
+            <div className="flex flex-col gap-4">
+              <div className="rounded-xl border border-default bg-elevated/30 px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-highlighted">Include lines</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-xs"
+                    onClick={preview.onSelectAllObligations}
+                  >
+                    {preview.allSelected ? "Clear all" : "Select all"}
+                  </Button>
+                </div>
+                <ul className="mt-2 divide-y divide-border">
+                  {preview.lines.map((line) => (
+                    <li key={line.id} className="flex items-start gap-3 py-2">
+                      <Checkbox
+                        checked={line.checked}
+                        onCheckedChange={() => preview.onToggleObligationSelect(line.id)}
+                        aria-label={`Include ${line.periodLabel}`}
+                        className="mt-0.5"
+                      />
+                      <div className={cn("min-w-0 flex-1", line.isCarry && "pl-3")}>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <p className="truncate text-sm text-highlighted">{line.periodLabel}</p>
+                          {line.isCarry ? (
+                            <span className="rounded-md border border-default px-1.5 py-px text-[0.625rem] font-medium tracking-wide text-muted uppercase">
+                              Prior
+                            </span>
+                          ) : null}
+                          {line.wasteLabel ? (
+                            <span className="rounded-md border border-default px-1.5 py-px text-[0.625rem] font-medium tracking-wide text-muted uppercase">
+                              Waste
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-0.5 font-mono text-xs tabular-nums text-muted">
+                          {line.hoursLabel ? `${line.hoursLabel} · ` : null}
+                          {line.statusLabel}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "shrink-0 font-mono text-xs tabular-nums",
+                          line.remainingAmount > 0 ? "text-warning" : "text-highlighted",
+                        )}
+                      >
+                        {line.amountLabel}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="mt-2 divide-y divide-border">
-                {preview.lines.map((line) => (
-                  <li key={line.id} className="flex items-center gap-3 py-2">
-                    <Checkbox
-                      checked={line.checked}
-                      onCheckedChange={() => preview.onToggleObligationSelect(line.id)}
-                      aria-label={`Include ${line.subtitle}`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-highlighted">{line.subtitle}</p>
-                      <p className="text-xs text-muted">
-                        {line.isCarry ? "Prior · " : null}
-                        {line.statusLabel}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-mono text-xs tabular-nums text-highlighted">
-                      {line.amountLabel}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="rounded-xl border border-default px-3 py-3">
+                <p className="text-sm font-medium text-highlighted">Export shape</p>
+                <p className="mt-1 text-xs text-muted">
+                  How selected periods become persisted documents.
+                </p>
+                <Tabs
+                  value={preview.exportMode}
+                  onValueChange={(value) =>
+                    preview.onExportModeChange(value as "combine" | "split")
+                  }
+                  className="mt-3"
+                >
+                  <TabsList className="h-9 w-full">
+                    <TabsTrigger value="combine" className="flex-1">
+                      One document
+                    </TabsTrigger>
+                    <TabsTrigger value="split" className="flex-1">
+                      Split by period
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
-            <div className="rounded-xl border border-default px-3 py-3">
-              <p className="text-sm font-medium text-highlighted">Export shape</p>
-              <p className="mt-1 text-xs text-muted">
-                How selected periods become persisted documents.
+
+            <article className="rounded-xl border border-default bg-card px-5 py-5">
+              <p className="text-[0.6875rem] font-medium tracking-wide text-muted uppercase">
+                Preview only · not saved
+                {preview.periodLabel ? ` · ${preview.periodLabel}` : null}
               </p>
-              <Tabs
-                value={preview.exportMode}
-                onValueChange={(value) => preview.onExportModeChange(value as "combine" | "split")}
-                className="mt-3"
-              >
-                <TabsList className="h-9 w-full">
-                  <TabsTrigger value="combine" className="flex-1">
-                    One document
-                  </TabsTrigger>
-                  <TabsTrigger value="split" className="flex-1">
-                    Split by period
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="rounded-xl border border-default bg-elevated/20 px-3 py-3 text-sm">
-              <div className="flex justify-between gap-2">
-                <span className="text-muted">Selected</span>
-                <span className="font-mono tabular-nums text-highlighted">
-                  {preview.selectedTotalLabel}
+              <h3 className="mt-3 text-lg font-semibold text-highlighted">
+                {preview.documentKind === "payslip" ? "Payslip" : "Invoice"}
+              </h3>
+              <p className="mt-1 text-sm text-muted">
+                {preview.documentKind === "payslip" ? "Prepared for" : "Billed to"}{" "}
+                <span className="font-medium text-highlighted">{preview.partyTitle}</span>
+              </p>
+              {preview.documentLines.length === 0 ? (
+                <p className="mt-6 text-sm text-muted">Select at least one line to preview.</p>
+              ) : (
+                <table className="mt-5 w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-default text-left text-xs text-muted">
+                      <th className="py-2 font-medium">Period</th>
+                      <th className="py-2 text-right font-medium">Hours</th>
+                      <th className="py-2 text-right font-medium">Due</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preview.documentLines.map((line) => (
+                      <tr key={line.id} className="border-b border-default/70">
+                        <td className="py-2">
+                          <span className="text-highlighted">{line.periodLabel}</span>
+                          {line.isCarry ? (
+                            <span className="ml-1.5 text-[0.625rem] tracking-wide text-muted uppercase">
+                              Prior
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="py-2 text-right font-mono tabular-nums text-muted">
+                          {line.hoursLabel}
+                        </td>
+                        <td className="py-2 text-right font-mono tabular-nums text-highlighted">
+                          {line.remainingLabel}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <div className="mt-5 flex items-baseline justify-between gap-3 border-t border-default pt-3">
+                <span className="text-sm text-muted">
+                  Due
+                  {preview.hoursLabel ? ` · ${preview.hoursLabel}` : null}
+                </span>
+                <span className="font-mono text-lg font-semibold tabular-nums text-highlighted">
+                  {preview.dueLabel}
                 </span>
               </div>
-              <div className="mt-2 flex justify-between gap-2 border-t border-default pt-2 font-medium">
-                <span className="text-highlighted">Due</span>
-                <span className="font-mono tabular-nums text-highlighted">{preview.dueLabel}</span>
-              </div>
-            </div>
+            </article>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={preview.onClose}>
