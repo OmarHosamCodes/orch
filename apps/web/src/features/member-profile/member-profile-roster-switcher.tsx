@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { AgencyMemberProfileViewModel } from "@/features/member-profile/hooks/use-agency-member-profile";
@@ -7,10 +7,14 @@ import {
   type MemberProfileRosterMember,
 } from "@/features/member-profile/member-profile-roster-nav";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
-import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
+import {
+  AgencyPickerEmpty,
+  AgencyPickerRow,
+  AgencyPickerSearch,
+} from "@/features/shared/pickers/agency-picker-shell";
+import { agencyFocusRingClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Skeleton } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
@@ -157,71 +161,36 @@ export function MemberProfileRosterSwitcher({ memberNav }: { memberNav: MemberNa
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" size="chooser" className="overflow-hidden">
-          <div className="border-b border-border p-2">
-            <div className="relative">
-              <Search
-                className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <Input
-                autoFocus
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Find a member…"
-                className={cn(
-                  "h-9 rounded-lg border-border bg-background pl-8 text-sm",
-                  agencyInputPlaceholderClass,
-                )}
-                aria-label="Find a member"
-              />
-            </div>
-            {memberNav.indexLabel ? (
-              <p className="mt-1.5 px-0.5 text-[11px] text-muted-foreground">
-                {memberNav.indexLabel}
-              </p>
-            ) : null}
-          </div>
+          <AgencyPickerSearch
+            autoFocus
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Find a member…"
+          />
+          {memberNav.indexLabel ? (
+            <p className="border-b border-border px-3 pb-2 text-[11px] text-muted-foreground">
+              {memberNav.indexLabel}
+            </p>
+          ) : null}
           <div className="max-h-[18rem] overflow-y-auto p-1" aria-label="Team members">
             {filtered.length === 0 ? (
-              <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-                No members match.
-              </p>
+              <AgencyPickerEmpty>No members match.</AgencyPickerEmpty>
             ) : (
-              filtered.map((member) => {
-                const selected = member.userId === memberNav.current?.userId;
-                return (
-                  <button
-                    key={member.userId}
-                    type="button"
-                    aria-current={selected ? "true" : undefined}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors",
-                      "hover:bg-muted/80",
-                      selected && "bg-primary/10 hover:bg-primary/10",
-                      agencyFocusRingClass,
-                      "motion-reduce:transition-none",
-                    )}
-                    onClick={() => {
-                      setOpen(false);
-                      setSearchTerm("");
-                      memberNav.onSelectMember(member.userId);
-                    }}
-                  >
-                    <RosterAvatar member={member} />
-                    <span
-                      className={cn(
-                        "min-w-0 flex-1 truncate text-xs font-semibold",
-                        selected ? "text-primary" : "text-foreground",
-                      )}
-                    >
-                      {member.userName}
-                    </span>
-                    {selected ? (
-                      <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
-                    ) : null}
-                  </button>
-                );
-              })
+              filtered.map((member) => (
+                <AgencyPickerRow
+                  key={member.userId}
+                  bareGlyph
+                  glyph={<RosterAvatar member={member} />}
+                  label={member.userName}
+                  query={searchTerm}
+                  selected={member.userId === memberNav.current?.userId}
+                  onSelect={() => {
+                    setOpen(false);
+                    setSearchTerm("");
+                    memberNav.onSelectMember(member.userId);
+                  }}
+                />
+              ))
             )}
           </div>
         </PopoverContent>
