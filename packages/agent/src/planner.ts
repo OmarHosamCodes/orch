@@ -1,4 +1,4 @@
-import { createOpenRouterClient } from "./client";
+import { createOpenRouterClient, openRouterFetchOptions } from "./client";
 import type { AgentModelInputMessage } from "./types";
 
 export const PLANNER_SYSTEM_PROMPT = [
@@ -21,12 +21,15 @@ export async function runPlannerPass(input: {
   messages: AgentModelInputMessage[];
   signal?: AbortSignal;
 }): Promise<string> {
-  const result = createOpenRouterClient().callModel({
-    model: input.model,
-    instructions: PLANNER_SYSTEM_PROMPT,
-    input: input.messages,
-    maxOutputTokens: 400,
-  });
+  const result = createOpenRouterClient().callModel(
+    {
+      model: input.model,
+      instructions: PLANNER_SYSTEM_PROMPT,
+      input: input.messages,
+      maxOutputTokens: 400,
+    },
+    openRouterFetchOptions(input.signal),
+  );
   const cancel = () => {
     void result.cancel();
   };

@@ -211,6 +211,8 @@ export const dashboardConversationMessageSchema = z.object({
 
 export const dashboardConversationDetailSchema = dashboardConversationSummarySchema.extend({
   messages: z.array(dashboardConversationMessageSchema).default([]),
+  activeRunId: z.string().nullable().default(null),
+  activeRunLastSeq: z.number().int().nonnegative().default(0),
 });
 
 export const dashboardConversationListResponseSchema = z.object({
@@ -531,6 +533,11 @@ export type DashboardAgentConfig = {
   toolPreset?: DashboardAgentToolPreset;
   agencyRuntime?: AgencyAgentRuntime | null;
   canvasRuntime?: CanvasAgentRuntime | null;
+  memoryRuntime?: MemoryAgentRuntime | null;
+};
+
+export type MemoryAgentRuntime = {
+  rememberFact: (input: { key: string; value: string }) => Promise<{ key: string }>;
 };
 
 export type AgencyAgentRuntime = {

@@ -17,5 +17,5 @@ export function formatMemoryForPrompt(parts: MemoryPromptParts): string {
     return "";
   }
 
-  return `You are a personal assistant for this one person. Use this private memory; do not invent facts.\n\n${sections.join("\n\n")}`;
+  return `You are a personal assistant for this one person. Use this private memory; do not invent facts. Update it with remember_fact.\n\n${sections.join("\n\n")}`;
 }

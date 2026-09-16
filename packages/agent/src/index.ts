@@ -11,9 +11,16 @@ import { knowledgeDraftPlanSchema } from "./knowledge-actions";
 import { buildCanvasScopedPatchNote } from "./canvas-scope-instructions";
 import { buildCanvasWriteTools } from "./canvas-tools";
 import { buildKnowledgeTools } from "./knowledge-tools";
+import { buildMemoryTools } from "./memory-tools";
+import {
+  createLeakedToolMarkupFilter,
+  finalizeAssistantResponseText,
+  isIncompleteToolPreamble,
+  stripLeakedToolCallMarkup,
+} from "./tool-call-markup";
 import { resolveUnlockedSurfaces } from "./tool-catalog";
 import { agencyToolRetryNote } from "./agency-reports-canvas";
-import { createOpenRouterClient } from "./client";
+import { createOpenRouterClient, openRouterFetchOptions } from "./client";
 import { resolveOpenRouterReasoning } from "./reasoning-effort";
 import { resolveOpenRouterModel } from "./models";
 import { formatPlannerPlanForTools, runPlannerPass } from "./planner";
@@ -219,9 +226,11 @@ function buildPersonalAssistantInstructions(workspace: DashboardAgentWorkspaceCo
     "There is no Ask, Plan, or Agent mode. First think with an internal plan, then call tools.",
     "Agency data writes must go through propose_agency_action and wait for Approve. Never claim an Agency write applied until the user Approves.",
     "Canvas and knowledge writes apply immediately with apply_canvas_action and apply_knowledge_action. After creating something, name it and how to Open it.",
+    "When the user tells you a preference (report format, waste priority, timezone), call remember_fact immediately. Do not store personal preferences as knowledge objects.",
     "Scope chips focus attention; you already have both Agency and Canvas tools.",
     "Ground answers in real tool results. Never invent hours, members, or billable/waste splits.",
     "Never narrate tool calls in prose. Use actual function calls.",
+    "After tools return, write the full answer in the same turn. Do not stop at I'll gather / let me check — tool cards already show the work.",
     "Be concise, concrete, and factual. Ask clarifying questions in prose when needed.",
     `Today's date (UTC) is ${todayUtc}. Use YYYY-MM-DD for from/to. For "this month", use month start through today.`,
     "Prefer get_agency_reports_summary for project/client breakdowns; get_agency_time_summary for per-member totals.",
@@ -280,10 +289,34 @@ function resolveAgentExecutionConfig(
   };
 }
 
+function formatToolFindingsForSynthesis(tools: AgentToolCall[]): string {
+  const lines: string[] = [];
+  let used = 0;
+  for (const tool of tools) {
+    if (tool.status !== "completed" && tool.status !== "error") continue;
+    const payload = tool.status === "error" ? { error: tool.error } : (tool.output ?? null);
+    let body = "";
+    try {
+      body = JSON.stringify(payload);
+    } catch {
+      body = String(payload);
+    }
+    if (body.length > 800) body = `${body.slice(0, 800)}…`;
+    const line = `${tool.name}: ${body}`;
+    if (used + line.length > 4_000) break;
+    lines.push(line);
+    used += line.length;
+  }
+  return lines.join("\n");
+}
+
 function normalizeMessages(messages: AgentModelInputMessage[]) {
   return messages.map((message) => ({
     role: message.role,
-    content: typeof message.content === "string" ? message.content.trim() : message.content,
+    content:
+      typeof message.content === "string"
+        ? stripLeakedToolCallMarkup(message.content) || message.content.trim()
+        : message.content,
   }));
 }
 
@@ -295,6 +328,7 @@ type ToolPassArgs = {
   toolPreset: DashboardAgentToolPreset;
   agencyRuntime?: DashboardAgentConfig["agencyRuntime"];
   canvasRuntime?: DashboardAgentConfig["canvasRuntime"];
+  memoryRuntime?: DashboardAgentConfig["memoryRuntime"];
   normalizedMessages: ReturnType<typeof normalizeMessages>;
   instructions: string;
   maxSteps: number;
@@ -368,7 +402,8 @@ type MergedAgentTool =
   | ReturnType<typeof buildDashboardAgentTools>[number]
   | ReturnType<typeof buildCanvasWriteTools>[number]
   | ReturnType<typeof buildKnowledgeTools>[number]
-  | ReturnType<typeof buildAgencyAgentTools>[number];
+  | ReturnType<typeof buildAgencyAgentTools>[number]
+  | ReturnType<typeof buildMemoryTools>[number];
 
 function mergeOpenRouterTools(groups: MergedAgentTool[][]) {
   const seen = new Set<string>();
@@ -411,7 +446,15 @@ async function* streamToolEnabledPass(
     surfaces.includes("agency") && args.agencyRuntime
       ? buildAgencyAgentTools(args.agencyRuntime, args.toolPreset)
       : [];
-  const availableTools = mergeOpenRouterTools([canvasReads, canvasWrites, agencyTools]);
+  const memoryTools: MergedAgentTool[] = args.memoryRuntime
+    ? buildMemoryTools(args.memoryRuntime)
+    : [];
+  const availableTools = mergeOpenRouterTools([
+    canvasReads,
+    canvasWrites,
+    agencyTools,
+    memoryTools,
+  ]);
   const tools = args.allowedToolNames
     ? availableTools.filter(
         (entry) =>
@@ -421,16 +464,19 @@ async function* streamToolEnabledPass(
   const calls = new Map<string, AgentToolCall>();
   const callOrder: string[] = [];
   const reasoning = resolveOpenRouterReasoning(args.modelPreset);
-  const result = createOpenRouterClient().callModel({
-    model: args.model,
-    instructions: args.instructions,
-    input: args.normalizedMessages,
-    tools,
-    stopWhen: [stepCountIs(args.maxSteps)],
-    ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
-    ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
-    ...(reasoning ? { reasoning } : {}),
-  });
+  const result = createOpenRouterClient().callModel(
+    {
+      model: args.model,
+      instructions: args.instructions,
+      input: args.normalizedMessages,
+      tools,
+      stopWhen: [stepCountIs(args.maxSteps)],
+      ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
+      ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
+      ...(reasoning ? { reasoning } : {}),
+    },
+    openRouterFetchOptions(args.signal),
+  );
 
   const queue: ToolPassLiveEvent[] = [];
   let wake: (() => void) | null = null;
@@ -455,6 +501,7 @@ async function* streamToolEnabledPass(
   args.signal?.addEventListener("abort", cancelOnAbort, { once: true });
 
   const textPump = (async () => {
+    const markupFilter = createLeakedToolMarkupFilter();
     try {
       for await (const delta of result.getTextStream()) {
         if (args.signal?.aborted) {
@@ -463,8 +510,11 @@ async function* streamToolEnabledPass(
         }
         if (!delta) continue;
         accumulated += delta;
-        enqueue({ type: "token", delta });
+        const visible = markupFilter.push(delta);
+        if (visible) enqueue({ type: "token", delta: visible });
       }
+      const rest = markupFilter.flush();
+      if (rest) enqueue({ type: "token", delta: rest });
     } catch {
       // cancel / stream end surfaced via getResponse below
     }
@@ -534,7 +584,8 @@ async function* streamToolEnabledPass(
                       kind: "knowledge",
                       id: objectId,
                       title: label,
-                      href,
+                      href:
+                        !href || href === "/canvas" || href === "/" ? `/object/${objectId}` : href,
                     },
                   });
                 }
@@ -589,10 +640,11 @@ async function* streamToolEnabledPass(
   let providerError: string | null = null;
   try {
     const [responseText, response] = await Promise.all([result.getText(), result.getResponse()]);
-    accumulated = responseText || accumulated;
+    accumulated = stripLeakedToolCallMarkup(responseText || accumulated);
     usage = normalizeUsage(response.usage, args.model, args.contextLength);
   } catch (error) {
     providerError = error instanceof Error ? error.message : String(error);
+    accumulated = stripLeakedToolCallMarkup(accumulated);
     // cancelled mid-stream: keep accumulated tokens
   } finally {
     args.signal?.removeEventListener("abort", cancelOnAbort);
@@ -619,14 +671,17 @@ async function* streamTextOnlyPass(args: {
   signal?: AbortSignal;
 }): AsyncGenerator<ToolPassLiveEvent, ToolPassResult> {
   const reasoning = resolveOpenRouterReasoning(args.modelPreset);
-  const result = createOpenRouterClient().callModel({
-    model: args.model,
-    instructions: args.instructions,
-    input: args.normalizedMessages,
-    ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
-    ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
-    ...(reasoning ? { reasoning } : {}),
-  });
+  const result = createOpenRouterClient().callModel(
+    {
+      model: args.model,
+      instructions: args.instructions,
+      input: args.normalizedMessages,
+      ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
+      ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
+      ...(reasoning ? { reasoning } : {}),
+    },
+    openRouterFetchOptions(args.signal),
+  );
 
   let accumulated = "";
   let stopped = Boolean(args.signal?.aborted);
@@ -636,6 +691,7 @@ async function* streamTextOnlyPass(args: {
   };
   args.signal?.addEventListener("abort", cancelOnAbort, { once: true });
 
+  const markupFilter = createLeakedToolMarkupFilter();
   try {
     for await (const delta of result.getTextStream()) {
       if (args.signal?.aborted) {
@@ -644,8 +700,11 @@ async function* streamTextOnlyPass(args: {
       }
       if (!delta) continue;
       accumulated += delta;
-      yield { type: "token", delta };
+      const visible = markupFilter.push(delta);
+      if (visible) yield { type: "token", delta: visible };
     }
+    const rest = markupFilter.flush();
+    if (rest) yield { type: "token", delta: rest };
   } catch {
     // cancelled
   }
@@ -654,7 +713,7 @@ async function* streamTextOnlyPass(args: {
   let providerError: string | null = null;
   try {
     const [responseText, response] = await Promise.all([result.getText(), result.getResponse()]);
-    accumulated = responseText || accumulated;
+    accumulated = stripLeakedToolCallMarkup(responseText || accumulated);
     usage = normalizeUsage(response.usage, args.model, args.contextLength);
   } catch (error) {
     providerError = error instanceof Error ? error.message : String(error);
@@ -776,6 +835,7 @@ export async function* streamDashboardAgent(
         toolPreset,
         agencyRuntime: config.agencyRuntime,
         canvasRuntime: config.canvasRuntime,
+        memoryRuntime: config.memoryRuntime,
         normalizedMessages,
         instructions,
         maxSteps: executionConfig.maxSteps,
@@ -818,6 +878,7 @@ export async function* streamDashboardAgent(
             toolPreset,
             agencyRuntime: config.agencyRuntime,
             canvasRuntime: config.canvasRuntime,
+            memoryRuntime: config.memoryRuntime,
             normalizedMessages,
             instructions: `${executionConfig.instructions}\n${retryNote}`,
             maxSteps: executionConfig.maxSteps,
@@ -855,20 +916,32 @@ export async function* streamDashboardAgent(
 
   let finalResponse = responseText.trim();
 
-  const willSoftFallback = !finalResponse && !stopped && !providerError && artifacts.length === 0;
+  const toolsWereCalled = toolCalls.length > 0;
+  const willSoftFallback =
+    !stopped &&
+    !providerError &&
+    artifacts.length === 0 &&
+    (toolsWereCalled ? isIncompleteToolPreamble(finalResponse) : !finalResponse);
   if (willSoftFallback) {
-    const toolsWereCalled = toolCalls.length > 0;
     const runtimeHasChanges = workspaceRuntime.hasChanges();
     const fallbackMaxOutputTokens = executionConfig.maxOutputTokens ?? config.maxOutputTokens;
+    const findings = formatToolFindingsForSynthesis(toolCalls);
 
     const fallbackInstructions = toolsWereCalled
       ? [
           buildAgentInstructions(workspace),
           runtimeHasChanges
-            ? "You already called tools and applied mutations to the workspace. Reply with one short plain-language line. Do not dump JSON. Do not say that tools are unavailable."
-            : "You called tools but could not paint a canvas. Reply with one short plain-language line about what you found. Do not dump JSON or markdown tables. Do not say that tools are unavailable.",
-        ].join("\n")
+            ? "You already called tools and applied mutations to the workspace. Write the actual answer now. Do not dump JSON. Do not say that tools are unavailable."
+            : "You already called tools. Write the actual answer to the user from these findings. Include figures, dates, risks, and next steps when they asked for them. Do not dump JSON or markdown tables. Do not say you will gather or look something up. This is the final reply.",
+          findings ? `Findings:\n${findings}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
       : executionConfig.fallbackInstructions;
+
+    if (finalResponse) {
+      yield { type: "token", delta: "\n\n" };
+    }
 
     const fallbackIterator = streamTextOnlyPass({
       model,
@@ -885,10 +958,11 @@ export async function* streamDashboardAgent(
       yield fallbackNext.value;
       fallbackNext = await fallbackIterator.next();
     }
-    finalResponse = fallbackNext.value.responseText;
+    const synthesized = fallbackNext.value.responseText.trim();
+    finalResponse = synthesized || finalResponse;
     usage = fallbackNext.value.usage;
     stopped = stopped || fallbackNext.value.stopped;
-    if (!finalResponse.trim() && fallbackNext.value.providerError) {
+    if (!synthesized && fallbackNext.value.providerError) {
       providerError = fallbackNext.value.providerError;
     }
   }
@@ -925,7 +999,11 @@ export async function* streamDashboardAgent(
 
   yield {
     type: "done",
-    responseText: finalResponse || (stopped ? "" : "I couldn't generate a response."),
+    responseText: finalizeAssistantResponseText({
+      responseText: finalResponse,
+      stopped,
+      toolCount: toolCalls.length,
+    }),
     toolCalls,
     artifacts: cappedArtifacts(artifacts),
     usage,
@@ -946,5 +1024,7 @@ export * from "./budget-model";
 export * from "./write-class";
 export * from "./planner";
 export * from "./memory-prompt";
+export * from "./memory-tools";
+export * from "./tool-call-markup";
 export * from "./types";
 export { listAgentToolCatalog, resolveUnlockedSurfaces } from "./tool-catalog";

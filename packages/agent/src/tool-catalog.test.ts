@@ -11,6 +11,7 @@ describe("listAgentToolCatalog", () => {
     expect(names).toContain("query_knowledge");
     expect(names).toContain("get_knowledge_object");
     expect(names).toContain("get_current_time");
+    expect(names).toContain("remember_fact");
     expect(names).toContain("list_agency_time_entries");
     expect(names).toContain("propose_agency_action");
     expect(names).toContain("apply_canvas_action");

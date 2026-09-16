@@ -73,6 +73,12 @@ const TOOL_CATALOG: ToolCatalogDefinition[] = [
     modes: ALL_MODES,
   },
   {
+    name: "remember_fact",
+    usage: "Saves a durable personal preference or fact about this user.",
+    surface: ["canvas", "agency"],
+    modes: ALL_MODES,
+  },
+  {
     name: "list_agency_time_entries",
     usage: "Lists your recent Agency time entries for the active team.",
     surface: ["agency"],
