@@ -2,8 +2,8 @@ import { type ReactNode } from "react";
 import { Search } from "lucide-react";
 
 import {
+  agencyCommandBarSearchInputClass,
   agencyFocusRingClass,
-  agencyInputPlaceholderClass,
   agencyMetricClass,
   agencyWorkTitleClass,
 } from "@/features/shared/agency-ui";
@@ -65,8 +65,7 @@ export function MoneyPanelSearchField({
         placeholder={placeholder}
         aria-label={ariaLabel}
         className={cn(
-          "h-9 rounded-xl border-default bg-default pl-9 text-sm",
-          agencyInputPlaceholderClass,
+          agencyCommandBarSearchInputClass,
           value.trim() ? "text-highlighted" : undefined,
         )}
       />

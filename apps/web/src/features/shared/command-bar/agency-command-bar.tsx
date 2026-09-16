@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
+import { agencyCommandBarSearchInputClass, agencyFocusRingClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -86,8 +86,7 @@ function AgencyCommandBarSearch({
         onChange={(event) => onValueChange(event.target.value)}
         placeholder={placeholder}
         className={cn(
-          "h-9 rounded-xl border-default bg-default pl-9 text-sm",
-          agencyInputPlaceholderClass,
+          agencyCommandBarSearchInputClass,
           value.trim() ? "text-highlighted" : undefined,
         )}
       />

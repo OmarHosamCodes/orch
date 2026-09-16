@@ -10,7 +10,7 @@ import {
   parseBillableRateAmount,
   previewConvertedRate,
 } from "@/features/shared/format-rate";
-import { agencyFocusRingClass } from "@/features/shared/agency-ui";
+import { agencyPickerChipTriggerClass } from "@/features/shared/agency-ui";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
 import { orpc } from "@/lib/orpc";
@@ -180,7 +180,8 @@ export function AgencyTaskRatePopover({
               : `Effective ${formatRate(effectiveRate.amount, effectiveRate.currency, { perHour: true })}`
           }
           className={cn(
-            "h-8 shrink-0 gap-1 rounded-md border border-transparent px-2 text-xs font-medium",
+            agencyPickerChipTriggerClass,
+            "w-auto shrink-0 gap-1 border-transparent bg-transparent py-0 font-medium",
             "transition-[opacity,colors] motion-reduce:transition-none",
             softHide &&
               "opacity-0 group-hover/task-rate-row:opacity-100 group-focus-within/task-rate-row:opacity-100",
@@ -188,7 +189,6 @@ export function AgencyTaskRatePopover({
             triggerLabel
               ? "bg-muted/80 font-mono tabular-nums text-highlighted hover:bg-muted"
               : "text-muted hover:bg-muted hover:text-foreground",
-            agencyFocusRingClass,
           )}
           onClick={(event) => event.stopPropagation()}
         >

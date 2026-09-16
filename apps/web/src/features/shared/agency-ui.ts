@@ -87,6 +87,12 @@ export const agencyAvatarStackRingClass = "ring-1 ring-background";
 /** Readable placeholder text on default/elevated agency surfaces (≥4.5:1). */
 export const agencyInputPlaceholderClass = "placeholder:text-muted-foreground";
 
+/** Standalone filter-bar search (command bar + money panel chrome). */
+export const agencyCommandBarSearchInputClass = cn(
+  "h-9 rounded-xl border-default bg-default pl-9 text-sm",
+  agencyInputPlaceholderClass,
+);
+
 export const agencyPanelClass = "rounded-surface border border-default bg-default";
 
 export const agencyFormFieldClass = "flex w-full min-w-0 flex-col gap-1.5";
