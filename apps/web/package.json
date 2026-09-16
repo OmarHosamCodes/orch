@@ -14,9 +14,6 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.40",
-    "@assistant-ui/react": "^0.15.14",
-    "@assistant-ui/react-ai-sdk": "^1.4.5",
-    "@assistant-ui/react-markdown": "^0.14.10",
     "@hookform/resolvers": "^5.4.0",
     "@number-flow/react": "^0.6.2",
     "@orch/agent": "workspace:*",

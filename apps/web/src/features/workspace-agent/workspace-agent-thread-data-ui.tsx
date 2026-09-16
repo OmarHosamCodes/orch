@@ -1,14 +1,17 @@
-import { useAssistantDataUI } from "@assistant-ui/react";
-import { useContext } from "react";
+import { useContext, type ReactNode } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { AgencyPlanCardView } from "@/features/workspace-agent/agency-plan-card-view";
 import { AgencyProposalCardView } from "@/features/workspace-agent/agency-proposal-card-view";
 import { AgencyQuestionCardView } from "@/features/workspace-agent/agency-question-card-view";
 import { AgentMessageArtifactCardView } from "@/features/workspace-agent/agent-message-artifact-card-view";
 import { AgentStickyArchiveReceiptView } from "@/features/workspace-agent/agent-sticky-dock-view";
+import { OrchCreatedObjectCardView } from "@/features/workspace-agent/orch-created-object-card-view";
 import type {
   OrchAgencyQuestionAnswer,
   OrchUIDataParts,
+  OrchUIMessage,
 } from "@/features/workspace-agent/orch-ui-message";
 import { isPartStickyDocked } from "@/features/workspace-agent/sticky-dock";
 import { WorkspaceAgentThreadMessageContext } from "@/features/workspace-agent/workspace-agent-thread-slots";
@@ -29,7 +32,11 @@ function asArtifact(data: unknown): OrchUIDataParts["orchArtifact"] {
   return data as OrchUIDataParts["orchArtifact"];
 }
 
-function OrchPlanDataPart({ data }: { name: string; data: unknown }) {
+function asCreatedObject(data: unknown): OrchUIDataParts["orchCreatedObject"] {
+  return data as OrchUIDataParts["orchCreatedObject"];
+}
+
+function OrchPlanDataPart({ data }: { data: unknown }) {
   const ctx = useContext(WorkspaceAgentThreadMessageContext);
   if (!ctx) return null;
   const plan = asPlan(data);
@@ -46,7 +53,7 @@ function OrchPlanDataPart({ data }: { name: string; data: unknown }) {
   );
 }
 
-function OrchProposalDataPart({ data }: { name: string; data: unknown }) {
+function OrchProposalDataPart({ data }: { data: unknown }) {
   const ctx = useContext(WorkspaceAgentThreadMessageContext);
   if (!ctx) return null;
   const proposal = asProposal(data);
@@ -91,7 +98,7 @@ function questionCanSubmit(
   return selectedOptionIds.length > 0 || (question.allowFreeText && freeText.trim().length > 0);
 }
 
-function OrchQuestionDataPart({ data }: { name: string; data: unknown }) {
+function OrchQuestionDataPart({ data }: { data: unknown }) {
   const ctx = useContext(WorkspaceAgentThreadMessageContext);
   if (!ctx) return null;
   const question = asQuestion(data);
@@ -131,7 +138,7 @@ function OrchQuestionDataPart({ data }: { name: string; data: unknown }) {
   );
 }
 
-function OrchArtifactDataPart({ data }: { name: string; data: unknown }) {
+function OrchArtifactDataPart({ data }: { data: unknown }) {
   const ctx = useContext(WorkspaceAgentThreadMessageContext);
   if (!ctx) return null;
   const artifact = asArtifact(data);
@@ -144,11 +151,47 @@ function OrchArtifactDataPart({ data }: { name: string; data: unknown }) {
   );
 }
 
-/** Registers Orch HITL data parts on the assistant-ui Thread (not a golden view). */
-export function WorkspaceAgentThreadDataUI() {
-  useAssistantDataUI({ name: "orchPlan", render: OrchPlanDataPart });
-  useAssistantDataUI({ name: "orchProposal", render: OrchProposalDataPart });
-  useAssistantDataUI({ name: "orchQuestion", render: OrchQuestionDataPart });
-  useAssistantDataUI({ name: "orchArtifact", render: OrchArtifactDataPart });
+function OrchCreatedObjectDataPart({ data }: { data: unknown }) {
+  const ctx = useContext(WorkspaceAgentThreadMessageContext);
+  if (!ctx) return null;
+  const object = asCreatedObject(data);
+  return (
+    <OrchCreatedObjectCardView
+      object={object}
+      onOpen={(href) => {
+        if (ctx.onOpenBoard) ctx.onOpenBoard(href);
+      }}
+    />
+  );
+}
+
+function renderPart(part: OrchUIMessage["parts"][number], index: number): ReactNode {
+  if (part.type === "text") {
+    if (!part.text.trim()) return null;
+    return (
+      <div key={index} className="prose prose-sm dark:prose-invert max-w-none">
+        <Markdown remarkPlugins={[remarkGfm]}>{part.text}</Markdown>
+      </div>
+    );
+  }
+  if (part.type === "data-orchPlan") {
+    return <OrchPlanDataPart key={index} data={part.data} />;
+  }
+  if (part.type === "data-orchProposal") {
+    return <OrchProposalDataPart key={index} data={part.data} />;
+  }
+  if (part.type === "data-orchQuestion") {
+    return <OrchQuestionDataPart key={index} data={part.data} />;
+  }
+  if (part.type === "data-orchArtifact") {
+    return <OrchArtifactDataPart key={index} data={part.data} />;
+  }
+  if (part.type === "data-orchCreatedObject") {
+    return <OrchCreatedObjectDataPart key={index} data={part.data} />;
+  }
   return null;
+}
+
+export function OrchMessageParts({ message }: { message: OrchUIMessage }) {
+  return <>{message.parts.map((part, index) => renderPart(part, index))}</>;
 }

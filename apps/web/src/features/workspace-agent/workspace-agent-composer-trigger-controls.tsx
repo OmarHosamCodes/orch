@@ -1,32 +1,6 @@
-import { unstable_useComposerInput } from "@assistant-ui/react";
 import { useEffect, useRef } from "react";
 
 import type { WorkspaceAgentComposerTriggerSuggestion } from "@/features/workspace-agent/hooks/use-workspace-agent";
-
-export function ComposerDraftBridge({
-  draft,
-  onDraftChange,
-}: {
-  draft: string;
-  onDraftChange: (value: string) => void;
-}) {
-  const { value, setText } = unstable_useComposerInput();
-  const lastEmittedRef = useRef(draft);
-
-  useEffect(() => {
-    if (value === lastEmittedRef.current) return;
-    lastEmittedRef.current = value;
-    onDraftChange(value);
-  }, [onDraftChange, value]);
-
-  useEffect(() => {
-    if (draft === lastEmittedRef.current) return;
-    lastEmittedRef.current = draft;
-    setText(draft);
-  }, [draft, setText]);
-
-  return null;
-}
 
 export function ComposerTriggerKeyboard({
   composerTriggerOpen,

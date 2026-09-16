@@ -1576,10 +1576,49 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   animation: orch-presence-land var(--motion-duration-flash) var(--motion-ease-emphasized) both;
 }
 
+@keyframes eclipse-pet-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--chart-2) 42%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@keyframes eclipse-pet-done {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.eclipse-pet--working {
+  animation: eclipse-pet-working 1.4s ease-in-out infinite;
+}
+
+.eclipse-pet--needs-you {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--chart-2) 55%, transparent);
+}
+
+.eclipse-pet--done {
+  animation: eclipse-pet-done 0.6s var(--motion-ease-out, ease-out) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .project-share-panel-in,
   .project-share-legend-in,
-  .orch-presence-land {
+  .orch-presence-land,
+  .eclipse-pet--working,
+  .eclipse-pet--done {
     animation: none;
   }
 }

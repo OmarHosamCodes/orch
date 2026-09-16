@@ -9,8 +9,6 @@ import type {
 } from "@orch/agent/types";
 import type { WorkspaceNode } from "@orch/workspace";
 import { useChat } from "@ai-sdk/react";
-import { WebSpeechDictationAdapter } from "@assistant-ui/react";
-import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "@/lib/navigation";
@@ -41,6 +39,11 @@ import {
   type WorkspaceAgentSlashCandidate,
 } from "@/features/workspace-agent/workspace-agent-mentions";
 import { shouldOfferComposerDraftRestore } from "@/features/workspace-agent/composer-draft-display";
+import {
+  resolveEclipseMood,
+  ECLIPSE_DONE_WINDOW_MS,
+} from "@/features/workspace-agent/eclipse-mood";
+import type { OrchAssistantPanelTab } from "@/features/workspace-agent/orch-assistant-panel-view";
 import { CONTINUE_TURN_TEXT } from "@/features/workspace-agent/workspace-agent-continue";
 import { useWorkspaceAgentData } from "@/features/workspace-agent/hooks/use-workspace-agent-data";
 import { useWorkspaceAgentModelPreferences } from "@/features/workspace-agent/hooks/use-workspace-agent-model-preferences";
@@ -82,40 +85,6 @@ import {
 } from "@/features/workspace-agent/workspace-agent-message-queue";
 import { orpc, orpcClient } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
-
-function createComposerDictationAdapter() {
-  if (typeof window === "undefined" || !WebSpeechDictationAdapter.isSupported()) {
-    return undefined;
-  }
-  const inner = new WebSpeechDictationAdapter({
-    continuous: true,
-    interimResults: true,
-  });
-  return {
-    listen() {
-      try {
-        const session = inner.listen();
-        let status = session.status;
-        Object.defineProperty(session, "status", {
-          configurable: true,
-          get: () => status,
-          set: (next: typeof status) => {
-            status = next;
-            if (next.type === "ended" && next.reason === "error") {
-              toast.error(
-                "Couldn't use the microphone. Allow mic access, or try Chrome, Edge, or Safari.",
-              );
-            }
-          },
-        });
-        return session;
-      } catch {
-        toast.error("Couldn't start dictation. Try Chrome, Edge, or Safari.");
-        throw new Error("Dictation is not available.");
-      }
-    },
-  };
-}
 
 function resolveAgentSurface(pathname: string): AgentSurface {
   if (pathname.startsWith("/agency")) return "agency";
@@ -226,6 +195,8 @@ export function useWorkspaceAgent() {
   const setDraft = useWorkspaceAgentStore((s) => s.setDraft);
   const pendingComposerSeed = useWorkspaceAgentStore((s) => s.pendingComposerSeed);
   const clearComposerSeed = useWorkspaceAgentStore((s) => s.clearComposerSeed);
+  const boundTaskId = useWorkspaceAgentStore((s) => s.boundTaskId);
+  const boundTaskTitle = useWorkspaceAgentStore((s) => s.boundTaskTitle);
   const scopeChips = useWorkspaceAgentStore((s) => s.scopeChips);
   const addScopeChip = useWorkspaceAgentStore((s) => s.addScopeChip);
   const removeScopeChip = useWorkspaceAgentStore((s) => s.removeScopeChip);
@@ -243,7 +214,6 @@ export function useWorkspaceAgent() {
   const [renameDraft, setRenameDraft] = useState("");
   const [historyQuery, setHistoryQuery] = useState("");
   const [threadSearchOpen, setThreadSearchOpen] = useState(false);
-  const [historyRailOpen, setHistoryRailOpen] = useState(false);
   const [threadSearchQuery, setThreadSearchQuery] = useState("");
   const [threadSearchIndex, setThreadSearchIndex] = useState(0);
   /** How many artifacts the operator has already dismissed from the dock. */
@@ -263,11 +233,16 @@ export function useWorkspaceAgent() {
     Record<string, { selectedOptionIds: string[]; freeText: string }>
   >({});
   const [queuedMessages, setQueuedMessages] = useState<QueuedAgentMessage[]>([]);
+  const [panelTab, setPanelTab] = useState<OrchAssistantPanelTab>("chat");
+  const [pendingAttachments, setPendingAttachments] = useState<AgentTextAttachment[]>([]);
+  const [lastRunSucceededAt, setLastRunSucceededAt] = useState<number | null>(null);
+  const [moodNow, setMoodNow] = useState(() => Date.now());
   const [readAloudPlaying, setReadAloudPlaying] = useState(false);
   const [composerSendInFlight, setComposerSendInFlight] = useState(false);
   const [composerTriggerDismissed, setComposerTriggerDismissed] = useState(false);
   const drainLockRef = useRef(false);
   const draftUpsertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const boundTaskConversationRef = useRef<string | null>(null);
 
   const addScopeChipAndMaybeSeed = useCallback(
     (chip: AgentScopeRef, draftForSeed: string = draft) => {
@@ -308,6 +283,8 @@ export function useWorkspaceAgent() {
     composerDraftQuery,
     upsertComposerDraftMutation,
     discardComposerDraftMutation,
+    inboxQuery,
+    markInboxReadMutation,
   } = data;
 
   const conversationList = conversationsQuery.data?.conversations ?? [];
@@ -353,6 +330,7 @@ export function useWorkspaceAgent() {
       if (dataPart.type === "data-orchCompleted") {
         setStreamStopped(dataPart.data.stopped);
         setActiveConversationId(dataPart.data.conversationId);
+        setLastRunSucceededAt(Date.now());
         if (dataPart.data.workspaceSnapshot) {
           applyBoundWorkspaceSnapshot(
             dataPart.data.workspaceSnapshot.nodes as WorkspaceNode[],
@@ -380,11 +358,6 @@ export function useWorkspaceAgent() {
     error: chatError,
     regenerate,
   } = chat;
-  const dictationAdapter = useMemo(() => createComposerDictationAdapter(), []);
-  const runtime = useAISDKRuntime(chat, {
-    adapters: dictationAdapter ? { dictation: dictationAdapter } : undefined,
-  });
-
   const isStreaming = status === "streaming" || status === "submitted";
   const canSend = !isStreaming;
 
@@ -412,14 +385,6 @@ export function useWorkspaceAgent() {
 
   const onToggleThreadSearch = useCallback(() => {
     setThreadSearchOpen((open) => !open);
-  }, []);
-
-  const onToggleHistoryRail = useCallback(() => {
-    setHistoryRailOpen((open) => !open);
-  }, []);
-
-  const onCloseHistoryRail = useCallback(() => {
-    setHistoryRailOpen(false);
   }, []);
 
   const invalidateComposerDraftQuery = useCallback(() => {
@@ -662,10 +627,6 @@ export function useWorkspaceAgent() {
           setThreadSearchOpen(false);
           return;
         }
-        if (historyRailOpen) {
-          setHistoryRailOpen(false);
-          return;
-        }
         if (canvasOpen) {
           setCanvasOpen(false);
           return;
@@ -706,7 +667,6 @@ export function useWorkspaceAgent() {
     scopeModeActive,
     setExpanded,
     setScopeModeActive,
-    historyRailOpen,
     threadSearchOpen,
     toggleExpanded,
   ]);
@@ -729,7 +689,6 @@ export function useWorkspaceAgent() {
       setThreadSearchQuery("");
       setThreadSearchIndex(0);
       setThreadSearchOpen(false);
-      setHistoryRailOpen(false);
       if (!conversationId) {
         setMessages([]);
       }
@@ -740,6 +699,47 @@ export function useWorkspaceAgent() {
   const startNewConversation = useCallback(() => {
     switchConversation(null);
   }, [switchConversation]);
+
+  useEffect(() => {
+    if (!boundTaskId) {
+      boundTaskConversationRef.current = null;
+      return;
+    }
+    if (!expanded) return;
+    if (boundTaskConversationRef.current === boundTaskId) return;
+    let cancelled = false;
+    void orpcClient.agent.conversations
+      .forTask({
+        taskId: boundTaskId,
+        ...(boundTaskTitle ? { title: boundTaskTitle } : {}),
+      })
+      .then((detail) => {
+        if (cancelled) return;
+        boundTaskConversationRef.current = boundTaskId;
+        switchConversation(detail.id);
+        addScopeChip({
+          kind: "task",
+          id: boundTaskId,
+          label: (boundTaskTitle ?? "Task").slice(0, 160),
+        });
+        void queryClient.invalidateQueries({ queryKey: conversationsListQueryOptions.queryKey });
+      })
+      .catch((taskError) => {
+        if (cancelled) return;
+        setError(getErrorMessage(taskError, "Couldn't open the task conversation."));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    addScopeChip,
+    boundTaskId,
+    boundTaskTitle,
+    conversationsListQueryOptions.queryKey,
+    expanded,
+    queryClient,
+    switchConversation,
+  ]);
 
   const addMentionedNode = useCallback(
     (node: WorkspaceNode) => {
@@ -793,7 +793,7 @@ export function useWorkspaceAgent() {
       } = { text: draft },
     ) => {
       const content = input.text.trim();
-      const attachments = input.attachments ?? [];
+      const attachments = input.attachments ?? pendingAttachments;
       const model = modelPresetState.outboundModelId?.trim();
       const action = nextSendAction({
         isStreaming,
@@ -805,6 +805,7 @@ export function useWorkspaceAgent() {
       if (action === "queue") {
         setQueuedMessages((current) => enqueueAgentMessage(current, { text: content }));
         setDraft("");
+        setPendingAttachments([]);
         return true;
       }
       if (surface === "agency" && !teamId) {
@@ -834,6 +835,7 @@ export function useWorkspaceAgent() {
 
       setComposerSendInFlight(true);
       setDraft("");
+      setPendingAttachments([]);
       setError(null);
       setStreamStopped(false);
 
@@ -879,6 +881,7 @@ export function useWorkspaceAgent() {
       surface,
       teamId,
       workspaceNodes,
+      pendingAttachments,
     ],
   );
 
@@ -1245,6 +1248,54 @@ export function useWorkspaceAgent() {
     [navigate],
   );
 
+  useEffect(() => {
+    setMoodNow(Date.now());
+    if (lastRunSucceededAt === null) return;
+    const remaining = ECLIPSE_DONE_WINDOW_MS - (Date.now() - lastRunSucceededAt);
+    if (remaining <= 0) return;
+    const timer = window.setTimeout(() => setMoodNow(Date.now()), remaining + 16);
+    return () => window.clearTimeout(timer);
+  }, [lastRunSucceededAt]);
+
+  const inboxNotes = inboxQuery.data?.notes ?? [];
+  const inboxUnreadCount = inboxNotes.filter((note) => note.readAt === null).length;
+  const inboxOneLiner = inboxNotes.find((note) => note.readAt === null)?.title ?? null;
+  const pendingProposalCount = messages.reduce((count, message) => {
+    return (
+      count +
+      message.parts.filter(
+        (part) =>
+          part.type === "data-orchProposal" && !resolvedProposalIds.has(part.data.proposalId),
+      ).length
+    );
+  }, 0);
+  const eclipseMood = resolveEclipseMood({
+    isStreaming,
+    error: displayError,
+    unreadCount: inboxUnreadCount,
+    pendingProposalCount,
+    lastRunSucceededAt,
+    now: moodNow,
+  });
+
+  const onMarkInboxRead = useCallback(
+    (noteId: string) => {
+      void markInboxReadMutation.mutateAsync({ noteId }).then(() => {
+        void queryClient.invalidateQueries({
+          queryKey: orpc.agent.inbox.list.queryKey({ input: {} }),
+        });
+      });
+    },
+    [markInboxReadMutation, queryClient],
+  );
+
+  const onEclipseOpen = useCallback(() => {
+    if (inboxUnreadCount > 0 && !expanded) {
+      setPanelTab("inbox");
+    }
+    setExpanded(!expanded);
+  }, [expanded, inboxUnreadCount, setExpanded]);
+
   const emptyHint =
     surface === "agency"
       ? "See hours, waste, or who is tracking. Pick a starter or type below."
@@ -1292,7 +1343,6 @@ export function useWorkspaceAgent() {
     onPickComposerTrigger,
     onDismissComposerTrigger,
     error: displayError,
-    runtime,
     messages,
     canSend,
     isPending: isStreaming,
@@ -1364,9 +1414,6 @@ export function useWorkspaceAgent() {
     })),
     historyQuery,
     setHistoryQuery,
-    historyRailOpen,
-    onToggleHistoryRail,
-    onCloseHistoryRail,
     threadSearchOpen,
     onToggleThreadSearch,
     threadSearchQuery,
@@ -1436,6 +1483,16 @@ export function useWorkspaceAgent() {
     readAloudPlaying,
     readAloudSupported,
     onToggleReadAloud: toggleReadAloud,
+    panelTab,
+    setPanelTab,
+    pendingAttachments,
+    setPendingAttachments,
+    inboxNotes,
+    inboxUnreadCount,
+    inboxOneLiner,
+    onMarkInboxRead,
+    eclipseMood,
+    onEclipseOpen,
   };
 }
 

@@ -1,40 +1,29 @@
-import type {
-  AgentModelPreset,
-  AgentModelTier,
-  AgentScopeRef,
-  AgentToolCatalogEntry,
-  DashboardAgentToolPreset,
-} from "@orch/agent/types";
-import {
-  Clock,
-  Crosshair,
-  FileText,
-  LayoutGrid,
-  ListTodo,
-  MessageCircleQuestion,
-  Plus,
-  Wrench,
-  X,
-} from "lucide-react";
+import type { AgentScopeRef, AgentTextAttachment, AgentToolCatalogEntry } from "@orch/agent/types";
+import { ArrowUp, Clock, Crosshair, LayoutGrid, Plus, Square, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { ComposerPrimitive } from "@assistant-ui/react";
+import type { FormEvent, KeyboardEvent } from "react";
 
 import { MessageQueue } from "@/components/elements/message-queue";
 import { DraftRestore } from "@/components/elements/draft-restore";
-import { ThreadComposer } from "@/components/assistant-ui/thread";
 import {
   ComposerAttachButton,
   ComposerMenu,
   ComposerMenuItem,
 } from "@/components/elements/composer";
+import {
+  PromptInput,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input";
 import type { KnowledgeCreateKind } from "@/features/workspace-knowledge/knowledge-create";
 import { WorkspaceAgentScopeChipView } from "@/features/workspace-agent/scope-chip-view";
-import { WorkspaceAgentThreadModelSelector } from "@/features/workspace-agent/workspace-agent-thread-model-selector";
+import { WorkspaceAgentComposerAttachItem } from "@/features/workspace-agent/workspace-agent-composer-attach";
 import { WorkspaceAgentToolMenuView } from "@/features/workspace-agent/tool-menu-view";
 import { formatComposerDraftSavedAt } from "@/features/workspace-agent/composer-draft-display";
 import type { WorkspaceAgentComposerTriggerSuggestion } from "@/features/workspace-agent/hooks/use-workspace-agent";
 import {
-  ComposerDraftBridge,
   ComposerTriggerKeyboard,
   suggestionRowLabel,
 } from "@/features/workspace-agent/workspace-agent-composer-trigger-controls";
@@ -42,46 +31,6 @@ import type { QueuedAgentMessage } from "@/features/workspace-agent/workspace-ag
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Separator } from "@/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
-
-const MODE_OPTIONS: Array<{
-  preset: DashboardAgentToolPreset;
-  label: string;
-  helper: string;
-}> = [
-  { preset: "ask", label: "Ask", helper: "Answers only. No writes" },
-  { preset: "plan", label: "Plan", helper: "Draft a plan to confirm" },
-  { preset: "agent", label: "Agent", helper: "Propose changes to approve" },
-];
-
-function modeIcon(preset: DashboardAgentToolPreset) {
-  switch (preset) {
-    case "ask":
-      return MessageCircleQuestion;
-    case "plan":
-      return ListTodo;
-    case "agent":
-      return Wrench;
-    default: {
-      const _exhaustive: never = preset;
-      return _exhaustive;
-    }
-  }
-}
-
-function modeLabel(preset: DashboardAgentToolPreset) {
-  switch (preset) {
-    case "ask":
-      return "Ask";
-    case "plan":
-      return "Plan";
-    case "agent":
-      return "Agent";
-    default: {
-      const _exhaustive: never = preset;
-      return _exhaustive;
-    }
-  }
-}
 
 function ComposerPillTag({
   icon: Icon,
@@ -92,7 +41,7 @@ function ComposerPillTag({
   onActivate,
   onDismiss,
 }: {
-  icon: typeof Wrench;
+  icon: typeof Crosshair;
   label: string;
   activateLabel: string;
   dismissLabel: string;
@@ -145,27 +94,10 @@ export type WorkspaceAgentThreadComposerViewProps = {
   placeholder: string;
   scopeChips: AgentScopeRef[];
   onRemoveChip: (id: string) => void;
-  selectedToolPreset: DashboardAgentToolPreset;
-  onSelectToolPreset: (preset: DashboardAgentToolPreset) => void;
-  planModeEnabled: boolean;
   crossSurfaceUnlockLabel: "Agency" | "Canvas" | null;
   onUnlockCrossSurface: () => void;
   knowledgeCreateItems: Array<{ kind: KnowledgeCreateKind; label: string }>;
   onCreateKnowledgeKind: (kind: KnowledgeCreateKind) => void;
-  selectedModelLabel: string;
-  selectedModelButtonLabel: string;
-  resolvedModelLabel: string | null;
-  modelTier: AgentModelTier;
-  modelAuto: boolean;
-  modelFree: boolean;
-  modelEffort: AgentModelPreset["effort"];
-  onModelTierChange: (tier: AgentModelTier) => void;
-  onModelAutoChange: (auto: boolean) => void;
-  onModelFreeChange: (free: boolean) => void;
-  onModelEffortChange: (effort: AgentModelPreset["effort"]) => void;
-  modelMenuOpen: boolean;
-  onModelMenuOpenChange: (open: boolean) => void;
-  onOpenModelLibrary: () => void;
   scopeModeActive: boolean;
   onToggleScopeMode: () => void;
   scopeHintSeen: boolean;
@@ -177,9 +109,15 @@ export type WorkspaceAgentThreadComposerViewProps = {
   queuedMessages: readonly QueuedAgentMessage[];
   runningQueueLabel: string;
   onCancelQueuedMessage: (id: string) => void;
-  onSend: (input: { text: string }) => boolean | Promise<boolean>;
+  onSend: (input: {
+    text: string;
+    attachments?: AgentTextAttachment[];
+  }) => boolean | Promise<boolean>;
+  onStop: () => void;
   draft: string;
   onDraftChange: (value: string) => void;
+  pendingAttachments: AgentTextAttachment[];
+  onPendingAttachmentsChange: (attachments: AgentTextAttachment[]) => void;
   composerTriggerOpen: boolean;
   composerTriggerSuggestions: readonly WorkspaceAgentComposerTriggerSuggestion[];
   onPickComposerTrigger: (suggestion: WorkspaceAgentComposerTriggerSuggestion) => void;
@@ -193,27 +131,10 @@ export function WorkspaceAgentThreadComposerView({
   placeholder,
   scopeChips,
   onRemoveChip,
-  selectedToolPreset,
-  onSelectToolPreset,
-  planModeEnabled,
   crossSurfaceUnlockLabel,
   onUnlockCrossSurface,
   knowledgeCreateItems,
   onCreateKnowledgeKind,
-  selectedModelLabel,
-  selectedModelButtonLabel,
-  resolvedModelLabel,
-  modelTier,
-  modelAuto,
-  modelFree,
-  modelEffort,
-  onModelTierChange,
-  onModelAutoChange,
-  onModelFreeChange,
-  onModelEffortChange,
-  modelMenuOpen,
-  onModelMenuOpenChange,
-  onOpenModelLibrary,
   scopeModeActive,
   onToggleScopeMode,
   scopeHintSeen,
@@ -226,8 +147,11 @@ export function WorkspaceAgentThreadComposerView({
   runningQueueLabel,
   onCancelQueuedMessage,
   onSend,
+  onStop,
   draft,
   onDraftChange,
+  pendingAttachments,
+  onPendingAttachmentsChange,
   composerTriggerOpen,
   composerTriggerSuggestions,
   onPickComposerTrigger,
@@ -238,19 +162,32 @@ export function WorkspaceAgentThreadComposerView({
 }: WorkspaceAgentThreadComposerViewProps) {
   const entityChips = scopeChips.filter((chip) => chip.kind !== "surface");
   const surfaceUnlockChip = scopeChips.find((chip) => chip.kind === "surface") ?? null;
-  const selectedModeLabel = modeLabel(selectedToolPreset);
-  const visibleModeOptions = MODE_OPTIONS.filter(
-    (mode) => mode.preset !== "plan" || planModeEnabled,
-  );
   const UnlockSurfaceIcon = crossSurfaceUnlockLabel === "Agency" ? Clock : LayoutGrid;
+  const canSend = draft.trim().length > 0 || pendingAttachments.length > 0;
 
-  const handleSendWhileRunning = (text: string) => {
+  function submitDraft() {
     if (composerTriggerOpen && composerTriggerSuggestions[0]) {
       onPickComposerTrigger(composerTriggerSuggestions[0]);
-      return false;
+      return;
     }
-    return onSend({ text });
-  };
+    void onSend({ text: draft, attachments: pendingAttachments });
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isStreaming) {
+      onStop();
+      return;
+    }
+    submitDraft();
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) return;
+    event.preventDefault();
+    if (isStreaming) return;
+    submitDraft();
+  }
 
   return (
     <TooltipProvider>
@@ -296,27 +233,54 @@ export function WorkspaceAgentThreadComposerView({
         >
           <PopoverAnchor asChild>
             <div className="relative w-full">
-              <ThreadComposer
-                placeholder={placeholder}
-                onSendWhileRunning={handleSendWhileRunning}
-                header={<WorkspaceAgentScopeChipView chips={entityChips} onRemove={onRemoveChip} />}
-                leading={
-                  <>
-                    <ComposerDraftBridge draft={draft} onDraftChange={onDraftChange} />
-                    <ComposerTriggerKeyboard
-                      composerTriggerOpen={composerTriggerOpen}
-                      composerTriggerSuggestions={composerTriggerSuggestions}
-                      onPickComposerTrigger={onPickComposerTrigger}
-                      onDismissComposerTrigger={onDismissComposerTrigger}
-                    />
+              <PromptInput onSubmit={onSubmit}>
+                {pendingAttachments.length > 0 ? (
+                  <ul className="flex flex-wrap gap-1.5 px-2.5">
+                    {pendingAttachments.map((file) => (
+                      <li
+                        key={`${file.filename}-${file.mediaType}`}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-xs"
+                      >
+                        {file.filename}
+                        <button
+                          type="button"
+                          aria-label={`Remove ${file.filename}`}
+                          onClick={() =>
+                            onPendingAttachmentsChange(
+                              pendingAttachments.filter((item) => item.filename !== file.filename),
+                            )
+                          }
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <WorkspaceAgentScopeChipView chips={entityChips} onRemove={onRemoveChip} />
+                <ComposerTriggerKeyboard
+                  composerTriggerOpen={composerTriggerOpen}
+                  composerTriggerSuggestions={composerTriggerSuggestions}
+                  onPickComposerTrigger={onPickComposerTrigger}
+                  onDismissComposerTrigger={onDismissComposerTrigger}
+                />
+                <PromptInputTextarea
+                  placeholder={placeholder}
+                  value={draft}
+                  onChange={(event) => onDraftChange(event.target.value)}
+                  onKeyDown={onKeyDown}
+                  aria-label="Message input"
+                />
+                <PromptInputToolbar>
+                  <PromptInputTools>
                     <Popover open={toolsMenuOpen} onOpenChange={onToolsMenuOpenChange}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <PopoverTrigger asChild>
-                            <ComposerAttachButton aria-label="Attach, mode, and tools" />
+                            <ComposerAttachButton aria-label="Attach and tools" />
                           </PopoverTrigger>
                         </TooltipTrigger>
-                        <TooltipContent side="top">Attach, mode, and tools</TooltipContent>
+                        <TooltipContent side="top">Attach and tools</TooltipContent>
                       </Tooltip>
                       <PopoverContent
                         align="start"
@@ -329,15 +293,12 @@ export function WorkspaceAgentThreadComposerView({
                           <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
                             Attach
                           </p>
-                          <ComposerPrimitive.AddAttachment asChild>
-                            <ComposerMenuItem onClick={() => onToolsMenuOpenChange(false)}>
-                              <FileText
-                                className="size-3.5 shrink-0 text-muted-foreground"
-                                aria-hidden
-                              />
-                              Attach file
-                            </ComposerMenuItem>
-                          </ComposerPrimitive.AddAttachment>
+                          <WorkspaceAgentComposerAttachItem
+                            onAttachments={(files) =>
+                              onPendingAttachmentsChange([...pendingAttachments, ...files])
+                            }
+                            onClose={() => onToolsMenuOpenChange(false)}
+                          />
                           {crossSurfaceUnlockLabel ? (
                             <ComposerMenuItem
                               onClick={() => {
@@ -392,39 +353,6 @@ export function WorkspaceAgentThreadComposerView({
                           ) : null}
 
                           <Separator className="my-1" />
-
-                          <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
-                            Mode
-                          </p>
-                          {visibleModeOptions.map((mode) => {
-                            const selected = selectedToolPreset === mode.preset;
-                            const ModeIcon = modeIcon(mode.preset);
-                            return (
-                              <ComposerMenuItem
-                                key={mode.preset}
-                                active={selected}
-                                aria-pressed={selected}
-                                onClick={() => {
-                                  onSelectToolPreset(mode.preset);
-                                  onToolsMenuOpenChange(false);
-                                }}
-                              >
-                                <ModeIcon
-                                  className="size-3.5 shrink-0 text-muted-foreground"
-                                  aria-hidden
-                                />
-                                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                                  <span>{mode.label}</span>
-                                  <span className="text-xs font-normal text-muted-foreground">
-                                    {mode.helper}
-                                  </span>
-                                </span>
-                              </ComposerMenuItem>
-                            );
-                          })}
-
-                          <Separator className="my-1" />
-
                           <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
                             Tools
                           </p>
@@ -434,24 +362,13 @@ export function WorkspaceAgentThreadComposerView({
                     </Popover>
 
                     <AnimatePresence initial={false}>
-                      {selectedToolPreset !== "agent" ? (
-                        <ComposerPillTag
-                          icon={modeIcon(selectedToolPreset)}
-                          label={selectedModeLabel}
-                          activateLabel={`Mode: ${selectedModeLabel}. Change mode`}
-                          dismissLabel={`Remove ${selectedModeLabel} mode and return to Agent`}
-                          tooltip={`${selectedModeLabel} mode. Click to change`}
-                          onActivate={() => onToolsMenuOpenChange(true)}
-                          onDismiss={() => onSelectToolPreset("agent")}
-                        />
-                      ) : null}
                       {scopeModeActive ? (
                         <ComposerPillTag
                           icon={Crosshair}
                           label="Scope"
                           activateLabel="Scope mode active. Open tools menu"
                           dismissLabel="Exit scope mode"
-                          tooltip="Click page items to add them to scope"
+                          tooltip="Click page items to add it to scope"
                           onActivate={() => onToolsMenuOpenChange(true)}
                           onDismiss={onToggleScopeMode}
                         />
@@ -468,26 +385,23 @@ export function WorkspaceAgentThreadComposerView({
                         />
                       ) : null}
                     </AnimatePresence>
-
-                    <WorkspaceAgentThreadModelSelector
-                      modelTier={modelTier}
-                      modelAuto={modelAuto}
-                      modelFree={modelFree}
-                      modelEffort={modelEffort}
-                      selectedModelLabel={selectedModelLabel}
-                      selectedModelButtonLabel={selectedModelButtonLabel}
-                      resolvedModelLabel={resolvedModelLabel}
-                      modelMenuOpen={modelMenuOpen}
-                      onModelTierChange={onModelTierChange}
-                      onModelAutoChange={onModelAutoChange}
-                      onModelFreeChange={onModelFreeChange}
-                      onModelEffortChange={onModelEffortChange}
-                      onModelMenuOpenChange={onModelMenuOpenChange}
-                      onOpenModelLibrary={onOpenModelLibrary}
-                    />
-                  </>
-                }
-              />
+                  </PromptInputTools>
+                  {isStreaming ? (
+                    <button
+                      type="button"
+                      aria-label="Stop"
+                      className="inline-flex size-8 items-center justify-center rounded-full bg-foreground text-background"
+                      onClick={onStop}
+                    >
+                      <Square className="size-3.5 fill-current" />
+                    </button>
+                  ) : (
+                    <PromptInputSubmit disabled={!canSend} aria-label="Send message">
+                      <ArrowUp className="size-4" />
+                    </PromptInputSubmit>
+                  )}
+                </PromptInputToolbar>
+              </PromptInput>
 
               {composerTriggerOpen && composerTriggerSuggestions.length > 0 ? (
                 <PopoverContent

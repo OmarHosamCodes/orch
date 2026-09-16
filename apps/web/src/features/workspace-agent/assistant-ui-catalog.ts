@@ -1,4 +1,4 @@
-/** Website-capable @assistant-ui registry items installed for the Orch composer. */
+/** Live Orch composer kit: copied AI Elements plus product cards. assistant-ui Thread is gone. */
 
 export const ASSISTANT_UI_EXCLUDED_ITEMS = [
   "elements-computer-use",
@@ -27,17 +27,11 @@ export const ASSISTANT_UI_WEBSITE_ITEMS = [
   "elements-thread-search",
   "elements-draft-restore",
   "elements-stopped-run",
-  "thread",
-  "markdown-text",
-  "reasoning",
-  "tooltip-icon-button",
-  "attachment",
-  "tool-fallback",
-  "tool-group",
-  "image",
-  "file",
-  "model-selector",
+  "ai-elements-conversation",
+  "ai-elements-message",
+  "ai-elements-prompt-input",
 ] as const;
+
 export function isAssistantUiExcluded(item: string): boolean {
   return (ASSISTANT_UI_EXCLUDED_ITEMS as readonly string[]).includes(item);
 }

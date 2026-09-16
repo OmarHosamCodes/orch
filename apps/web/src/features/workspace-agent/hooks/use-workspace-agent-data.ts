@@ -50,6 +50,11 @@ export function useWorkspaceAgentData(args: {
     ...composerDraftQueryOptions,
     enabled: authEnabled,
   });
+  const inboxQuery = useQuery({
+    ...orpc.agent.inbox.list.queryOptions({ input: {} }),
+    enabled: authEnabled,
+    refetchInterval: 30_000,
+  });
 
   return {
     queryClient,
@@ -61,8 +66,10 @@ export function useWorkspaceAgentData(args: {
     toolsCatalogQuery,
     composerDraftQueryOptions,
     composerDraftQuery,
+    inboxQuery,
     renameConversationMutation: useMutation(orpc.agent.conversations.rename.mutationOptions()),
     deleteConversationMutation: useMutation(orpc.agent.conversations.delete.mutationOptions()),
+    markInboxReadMutation: useMutation(orpc.agent.inbox.markRead.mutationOptions()),
     upsertComposerDraftMutation: useMutation(
       orpc.agent.conversations.draft.upsert.mutationOptions(),
     ),
