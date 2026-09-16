@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAgencyChromeRouteImport } from './routes/_authenticated/_agency-chrome'
 import { Route as AuthenticatedCanvasRouteImport } from './routes/_authenticated/canvas'
+import { Route as DevDialogsRouteImport } from './routes/dev.dialogs'
 import { Route as AuthenticatedAgencyMeRouteImport } from './routes/_authenticated/agency.me'
 import { Route as AuthenticatedBillingSuccessRouteImport } from './routes/_authenticated/billing.success'
 import { Route as AuthenticatedNodeIdRouteImport } from './routes/_authenticated/node.$id'
@@ -73,6 +74,11 @@ const AuthenticatedCanvasRoute = AuthenticatedCanvasRouteImport.update({
   id: '/canvas',
   path: '/canvas',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const DevDialogsRoute = DevDialogsRouteImport.update({
+  id: '/dev/dialogs',
+  path: '/dev/dialogs',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAgencyMeRoute = AuthenticatedAgencyMeRouteImport.update({
   id: '/agency/me',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
+  '/dev/dialogs': typeof DevDialogsRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
+  '/dev/dialogs': typeof DevDialogsRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/_agency-chrome': typeof AuthenticatedAgencyChromeRouteWithChildren
   '/_authenticated/canvas': typeof AuthenticatedCanvasRoute
+  '/dev/dialogs': typeof DevDialogsRoute
   '/_authenticated/agency/me': typeof AuthenticatedAgencyMeRoute
   '/_authenticated/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/_authenticated/node/$id': typeof AuthenticatedNodeIdRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/canvas'
+    | '/dev/dialogs'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/canvas'
+    | '/dev/dialogs'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_authenticated/_agency-chrome'
     | '/_authenticated/canvas'
+    | '/dev/dialogs'
     | '/_authenticated/agency/me'
     | '/_authenticated/billing/success'
     | '/_authenticated/node/$id'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  DevDialogsRoute: typeof DevDialogsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/canvas'
       preLoaderRoute: typeof AuthenticatedCanvasRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/dev/dialogs': {
+      id: '/dev/dialogs'
+      path: '/dev/dialogs'
+      fullPath: '/dev/dialogs'
+      preLoaderRoute: typeof DevDialogsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agency/me': {
       id: '/_authenticated/agency/me'
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  DevDialogsRoute: DevDialogsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
