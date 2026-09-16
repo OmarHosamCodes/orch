@@ -2,7 +2,6 @@ import { ChevronLeft, Menu } from "lucide-react";
 import { Link, useLocation } from "@/lib/navigation";
 
 import { AppShellLocationTitle } from "@/features/app-shell/app-shell-location-title";
-import { AppShellNotifications } from "@/features/app-shell/app-shell-notifications";
 import { useAppShellStore } from "@/features/app-shell/app-shell-store";
 import {
   shellContextBarClass,
@@ -33,7 +32,7 @@ export function AppShellContextBar() {
         THESIS: One current place, not a nested trail — the leaf title is the wayfinder; destinations live in its menu.
         OWN-WORLD: Continuous surface grain on the connected 44px bar, traveling blob on the title, shadcn popover, no liquid glass.
         STORY: Operators read where they are, open grouped Products / Agency / Management destinations, or take one quiet back step on nested pages.
-        FIRST VIEWPORT: Mobile hamburger, optional ChevronLeft parent back, leaf title + chevron; bell and CloudOff stay right.
+        FIRST VIEWPORT: Mobile hamburger, optional ChevronLeft parent back, leaf title + chevron; Eclipse companion on the right.
         FORM: Shape 01 Current Title, user-locked after Open Design discovery. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
       */}
       <div className={cn(shellHeaderContextRegionClass, shellHeaderContextInnerClass)}>
@@ -82,7 +81,7 @@ export function AppShellContextBar() {
 
       <div className={shellUtilityClusterClass}>
         {onAgency && agencyTeamId ? <AgencySubtitleBreadcrumb teamId={agencyTeamId} /> : null}
-        <AppShellNotifications />
+        <div id="orch-topbar-slot" className="contents" />
       </div>
     </header>
   );

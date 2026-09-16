@@ -3,7 +3,7 @@ import { FeaturedRailNotification } from "@/features/notifications/featured-rail
 import { useTeamStore } from "@/features/team/team-store";
 
 type AppShellNotificationsProps = {
-  /** Top-bar inbox bell, or featured Needs-action card in the rail footer. */
+  /** Featured Needs-action card in the rail footer. Icon variant is unused (no top-bar bell). */
   variant?: "icon" | "featured";
 };
 
