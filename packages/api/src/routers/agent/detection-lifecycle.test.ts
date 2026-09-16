@@ -10,11 +10,6 @@ describe("shouldStartDetection", () => {
   test("waits six hours between detection runs", () => {
     const last = new Date("2026-09-16T06:00:00.000Z");
     expect(shouldStartDetection(last, new Date("2026-09-16T11:59:00.000Z"))).toBe(false);
-    expect(
-      shouldStartDetection(
-        last,
-        new Date(last.getTime() + DETECTION_INTERVAL_MS),
-      ),
-    ).toBe(true);
+    expect(shouldStartDetection(last, new Date(last.getTime() + DETECTION_INTERVAL_MS))).toBe(true);
   });
 });

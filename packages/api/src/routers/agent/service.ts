@@ -53,7 +53,7 @@ import {
 } from "@orch/db/schema";
 import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
 import { getBillingStateForUser } from "../../billing-guard";
 import { listAgencyClients } from "../agency-ops/clients/service";
@@ -97,6 +97,7 @@ import {
   completeAgentRun,
   createTokenCoalescer,
   findRunningChatRun,
+  findRunningChatRuns,
   hasRunListener,
   insertAgentRun,
   persistRunStreamEvent,
@@ -510,9 +511,15 @@ function buildNextConversationUsageSummary(
   });
 }
 
+function conversationIsUnread(row: { lastMessageAt: Date; lastReadAt: Date | null }): boolean {
+  if (!row.lastReadAt) return true;
+  return row.lastMessageAt.getTime() > row.lastReadAt.getTime();
+}
+
 function mapConversationSummary(args: {
   row: typeof dashboardConversation.$inferSelect;
   lastMessagePreview: string | null;
+  activeRunId?: string | null;
 }): DashboardConversationSummary {
   return dashboardConversationSummarySchema.parse({
     id: args.row.id,
@@ -525,8 +532,12 @@ function mapConversationSummary(args: {
     createdAt: args.row.createdAt.toISOString(),
     updatedAt: args.row.updatedAt.toISOString(),
     lastMessageAt: args.row.lastMessageAt.toISOString(),
+    lastReadAt: args.row.lastReadAt?.toISOString() ?? null,
+    archivedAt: args.row.archivedAt?.toISOString() ?? null,
     lastMessagePreview: args.lastMessagePreview,
     taskId: args.row.taskId ?? null,
+    activeRunId: args.activeRunId ?? null,
+    unread: conversationIsUnread(args.row),
   });
 }
 
@@ -550,11 +561,7 @@ async function getConversationRecord(userId: string, conversationId: string) {
     .select()
     .from(dashboardConversation)
     .where(
-      and(
-        eq(dashboardConversation.id, conversationId),
-        eq(dashboardConversation.userId, userId),
-        isNull(dashboardConversation.archivedAt),
-      ),
+      and(eq(dashboardConversation.id, conversationId), eq(dashboardConversation.userId, userId)),
     )
     .limit(1);
 
@@ -597,24 +604,34 @@ async function getConversationPreviewMap(conversationIds: string[]) {
 
 export async function listDashboardConversations(
   actorUserId: string,
-  _input: Record<string, never>,
+  input: { filter?: "open" | "settled" },
 ) {
+  const filter = input.filter ?? "open";
   const conversations = await db
     .select()
     .from(dashboardConversation)
     .where(
-      and(eq(dashboardConversation.userId, actorUserId), isNull(dashboardConversation.archivedAt)),
+      and(
+        eq(dashboardConversation.userId, actorUserId),
+        filter === "settled"
+          ? isNotNull(dashboardConversation.archivedAt)
+          : isNull(dashboardConversation.archivedAt),
+      ),
     )
     .orderBy(desc(dashboardConversation.updatedAt), desc(dashboardConversation.id))
     .limit(DASHBOARD_CONVERSATION_HISTORY_LIMIT);
 
   const previewMap = await getConversationPreviewMap(conversations.map((item) => item.id));
+  const runningMap = await findRunningChatRuns(actorUserId, {
+    conversationIds: conversations.map((item) => item.id),
+  });
 
   return dashboardConversationListResponseSchema.parse({
     conversations: conversations.map((conversation) =>
       mapConversationSummary({
         row: conversation,
         lastMessagePreview: previewMap.get(conversation.id) ?? null,
+        activeRunId: runningMap.get(conversation.id)?.runId ?? null,
       }),
     ),
   });
@@ -643,6 +660,7 @@ export async function getDashboardConversation(
     ...mapConversationSummary({
       row: conversation,
       lastMessagePreview: buildDashboardMessagePreview(messages.at(-1)?.content ?? ""),
+      activeRunId: running?.runId ?? null,
     }),
     messages: messages.map(mapConversationMessage),
     activeRunId: running?.runId ?? null,
@@ -677,6 +695,7 @@ export async function createDashboardConversation(
     createdAt: now,
     updatedAt: now,
     lastMessageAt: now,
+    lastReadAt: now,
     archivedAt: null,
     taskId: input.taskId ?? null,
   });
@@ -695,12 +714,22 @@ export async function getOrCreateTaskConversation(
       and(
         eq(dashboardConversation.userId, actorUserId),
         eq(dashboardConversation.taskId, input.taskId),
-        isNull(dashboardConversation.archivedAt),
       ),
     )
     .limit(1);
 
   if (existing) {
+    if (existing.archivedAt) {
+      await db
+        .update(dashboardConversation)
+        .set({ archivedAt: null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(dashboardConversation.id, existing.id),
+            eq(dashboardConversation.userId, actorUserId),
+          ),
+        );
+    }
     return getDashboardConversation(actorUserId, { conversationId: existing.id });
   }
 
@@ -716,6 +745,7 @@ export async function getOrCreateTaskConversation(
     createdAt: now,
     updatedAt: now,
     lastMessageAt: now,
+    lastReadAt: now,
     archivedAt: null,
     taskId: input.taskId,
   });
@@ -1269,6 +1299,7 @@ async function executeDashboardConversationRun(args: {
       }
       if (
         event.type === "plan" ||
+        event.type === "todo" ||
         event.type === "proposal" ||
         event.type === "question" ||
         event.type === "created_object"

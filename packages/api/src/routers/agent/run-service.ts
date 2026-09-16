@@ -8,7 +8,7 @@ import { db } from "@orch/db";
 import { agentRun, agentRunEvent, dashboardConversation } from "@orch/db/schema";
 import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
-import { and, asc, eq, gt } from "drizzle-orm";
+import { and, asc, eq, gt, inArray } from "drizzle-orm";
 
 import {
   AGENT_SUBSCRIBE_POLL_MS,
@@ -211,20 +211,43 @@ export async function findRunningChatRun(
   actorUserId: string,
   input: { conversationId: string },
 ): Promise<{ runId: string; lastSeq: number } | null> {
-  const [row] = await db
-    .select({ id: agentRun.id, lastSeq: agentRun.lastSeq })
-    .from(agentRun)
-    .where(
-      and(
-        eq(agentRun.userId, actorUserId),
-        eq(agentRun.conversationId, input.conversationId),
-        eq(agentRun.kind, "chat"),
-        eq(agentRun.status, "running"),
-      ),
-    )
-    .limit(1);
+  const runs = await findRunningChatRuns(actorUserId, {
+    conversationIds: [input.conversationId],
+  });
+  return runs.get(input.conversationId) ?? null;
+}
 
-  return row ? { runId: row.id, lastSeq: row.lastSeq } : null;
+export async function findRunningChatRuns(
+  actorUserId: string,
+  input: { conversationIds?: string[] },
+): Promise<Map<string, { runId: string; lastSeq: number }>> {
+  const runs = new Map<string, { runId: string; lastSeq: number }>();
+  const conversationIds = input.conversationIds;
+  if (conversationIds && conversationIds.length === 0) return runs;
+
+  const filters = [
+    eq(agentRun.userId, actorUserId),
+    eq(agentRun.kind, "chat"),
+    eq(agentRun.status, "running"),
+  ];
+  if (conversationIds) {
+    filters.push(inArray(agentRun.conversationId, conversationIds));
+  }
+  const rows = await db
+    .select({
+      id: agentRun.id,
+      conversationId: agentRun.conversationId,
+      lastSeq: agentRun.lastSeq,
+    })
+    .from(agentRun)
+    .where(and(...filters));
+
+  for (const row of rows) {
+    if (!runs.has(row.conversationId)) {
+      runs.set(row.conversationId, { runId: row.id, lastSeq: row.lastSeq });
+    }
+  }
+  return runs;
 }
 
 export async function* subscribeRun(

@@ -14,12 +14,16 @@ import {
   agentRunSubscribeInputSchema,
   agentToolCatalogInputSchema,
   agentToolCatalogResponseSchema,
+  dashboardConversationCompactResponseSchema,
   dashboardConversationDeleteInputSchema,
   dashboardConversationDetailSchema,
   dashboardConversationForTaskInputSchema,
   dashboardConversationGetInputSchema,
+  dashboardConversationListInputSchema,
   dashboardConversationListResponseSchema,
+  dashboardConversationMarkReadInputSchema,
   dashboardConversationRenameInputSchema,
+  dashboardConversationSettleInputSchema,
   openRouterAccountStatusSchema,
   openRouterModelCatalogResponseSchema,
   openRouterFreeModelsResponseSchema,
@@ -48,6 +52,12 @@ import {
   renameDashboardConversation,
   streamDashboardConversationTurn,
 } from "./service";
+import {
+  listCompactDashboardConversations,
+  markDashboardConversationRead,
+  settleDashboardConversation,
+  unsettleDashboardConversation,
+} from "./conversation-hygiene";
 import { cancelRun, getAgentRun, subscribeRun } from "./run-service";
 import { listInbox, markInboxRead } from "./memory-service";
 
@@ -309,15 +319,65 @@ export const agentRouter = {
     }),
   },
   conversations: {
-    list: protectedProcedure.handler(async ({ context }) => {
+    list: protectedProcedure
+      .input(dashboardConversationListInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationListResponseSchema.parse(
+            await listDashboardConversations(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.list", error);
+        }
+      }),
+    compact: protectedProcedure.handler(async ({ context }) => {
       try {
-        return dashboardConversationListResponseSchema.parse(
-          await listDashboardConversations(context.session.user.id, {}),
+        return dashboardConversationCompactResponseSchema.parse(
+          await listCompactDashboardConversations(context.session.user.id, {}),
         );
       } catch (error) {
-        throw toInternalServerError("agent.conversations.list", error);
+        throw toInternalServerError("agent.conversations.compact", error);
       }
     }),
+    settle: protectedProcedure
+      .input(dashboardConversationSettleInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await settleDashboardConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.settle", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
+    unsettle: protectedProcedure
+      .input(dashboardConversationSettleInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await unsettleDashboardConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.unsettle", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
+    markRead: protectedProcedure
+      .input(dashboardConversationMarkReadInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await markDashboardConversationRead(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.markRead", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
     get: protectedProcedure
       .input(dashboardConversationGetInputSchema)
       .handler(async ({ input, context }) => {
