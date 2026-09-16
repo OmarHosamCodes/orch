@@ -2,9 +2,28 @@ import { db } from "@orch/db";
 import { agentRun } from "@orch/db/schema";
 import { and, eq, lt } from "drizzle-orm";
 
+export const AGENT_SUBSCRIBE_POLL_MS = 100;
 export const AGENT_TOKEN_FLUSH_MS = 50;
 export const AGENT_TOKEN_FLUSH_CHARS = 32;
 export const STALE_RUN_MS = 120_000;
+
+export function waitForSubscribePoll(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
 
 export function createRunAbortRegistry(): {
   attach(runId: string, controller: AbortController): void;

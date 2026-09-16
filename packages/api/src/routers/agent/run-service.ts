@@ -1,12 +1,24 @@
+import {
+  agentChatTurnStreamEventSchema,
+  agentRunRecordSchema,
+  type AgentChatTurnStreamEvent,
+  type AgentRunRecord,
+} from "@orch/agent";
 import { db } from "@orch/db";
 import { agentRun, agentRunEvent, dashboardConversation } from "@orch/db/schema";
 import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq, gt } from "drizzle-orm";
 
-import { agentRunAbortRegistry } from "./run-lifecycle";
+import {
+  AGENT_SUBSCRIBE_POLL_MS,
+  agentRunAbortRegistry,
+  bindListenerSignal,
+  waitForSubscribePoll,
+} from "./run-lifecycle";
 
 export {
+  AGENT_SUBSCRIBE_POLL_MS,
   AGENT_TOKEN_FLUSH_CHARS,
   AGENT_TOKEN_FLUSH_MS,
   STALE_RUN_MS,
@@ -107,11 +119,26 @@ export async function appendRunEvent(
   });
 }
 
+export async function persistRunStreamEvent(
+  actorUserId: string,
+  input: { runId: string; event: AgentChatTurnStreamEvent },
+): Promise<{ seq: number }> {
+  return appendRunEvent(actorUserId, {
+    runId: input.runId,
+    type: input.event.type,
+    payload: { ...input.event },
+  });
+}
+
 export async function completeAgentRun(
   actorUserId: string,
   input: { runId: string; status: "succeeded" | "failed" | "cancelled"; error?: string },
 ): Promise<void> {
-  await requireOwnedRun(actorUserId, input.runId);
+  const current = await requireOwnedRun(actorUserId, input.runId);
+  if (current.status !== "running" && current.status !== "queued") {
+    agentRunAbortRegistry.abort(input.runId);
+    return;
+  }
   const now = new Date();
   await db
     .update(agentRun)
@@ -150,19 +177,20 @@ export async function listRunEventsAfter(
 export async function getAgentRun(
   actorUserId: string,
   input: { runId: string },
-): Promise<{
-  id: string;
-  conversationId: string;
-  kind: string;
-  status: string;
-  model: string;
-  lastSeq: number;
-  error: string | null;
-  startedAt: Date;
-  heartbeatAt: Date;
-  finishedAt: Date | null;
-}> {
-  return await requireOwnedRun(actorUserId, input.runId);
+): Promise<AgentRunRecord> {
+  const row = await requireOwnedRun(actorUserId, input.runId);
+  return agentRunRecordSchema.parse({
+    id: row.id,
+    conversationId: row.conversationId,
+    kind: row.kind,
+    status: row.status,
+    model: row.model,
+    lastSeq: row.lastSeq,
+    error: row.error,
+    startedAt: row.startedAt.toISOString(),
+    heartbeatAt: row.heartbeatAt.toISOString(),
+    finishedAt: row.finishedAt?.toISOString() ?? null,
+  });
 }
 
 export async function cancelRun(
@@ -192,4 +220,45 @@ export async function findRunningChatRun(
     .limit(1);
 
   return row ? { runId: row.id } : null;
+}
+
+export async function* subscribeRun(
+  actorUserId: string,
+  input: { runId: string; afterSeq: number; signal?: AbortSignal },
+): AsyncGenerator<AgentChatTurnStreamEvent, void, void> {
+  await requireOwnedRun(actorUserId, input.runId);
+  let cursor = input.afterSeq;
+  let unsubscribed = Boolean(input.signal?.aborted);
+  bindListenerSignal({
+    listener: input.signal,
+    onUnsubscribe: () => {
+      unsubscribed = true;
+    },
+    onCancelRun: () => undefined,
+  });
+
+  while (!unsubscribed) {
+    const rows = await listRunEventsAfter(actorUserId, {
+      runId: input.runId,
+      afterSeq: cursor,
+    });
+    for (const row of rows) {
+      cursor = row.seq;
+      yield agentChatTurnStreamEventSchema.parse(row.payload);
+    }
+
+    const run = await getAgentRun(actorUserId, { runId: input.runId });
+    if (run.status !== "running" && run.status !== "queued") {
+      const tail = await listRunEventsAfter(actorUserId, {
+        runId: input.runId,
+        afterSeq: cursor,
+      });
+      for (const row of tail) {
+        yield agentChatTurnStreamEventSchema.parse(row.payload);
+      }
+      return;
+    }
+
+    await waitForSubscribePoll(AGENT_SUBSCRIBE_POLL_MS, input.signal);
+  }
 }

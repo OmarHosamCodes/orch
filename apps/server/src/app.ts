@@ -12,6 +12,7 @@
  */
 
 import { createContext } from "@orch/api/context";
+import { recoverStaleRuns } from "@orch/api/routers/agent/run-service";
 import { bootstrapAgencyLiveRedisSubscriber } from "@orch/api/routers/agency-ops/live/live";
 import { registerNotificationPushHandler } from "@orch/api/routers/notifications/delivery";
 import { auth } from "@orch/auth";
@@ -168,6 +169,7 @@ const port = env.PORT ?? 7000;
 await bootstrapAgencyLiveRedisSubscriber();
 registerNotificationPushHandler(sendWebPushForNotification);
 startNotificationDigestScheduler();
+void recoverStaleRuns();
 
 // Log startup information in development
 if (env.NODE_ENV === "development") {

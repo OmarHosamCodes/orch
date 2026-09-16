@@ -24,10 +24,12 @@ import {
   type AgencyAgentRuntime,
   type AgentChatTurnInput,
   type AgentChatTurnStreamEvent,
+  type AgentModelInputMessage,
   type AgentSurface,
   type AgentTextAttachment,
   type AgentToolCall,
   type AgentToolCallEntry,
+  type DashboardAgentWorkspaceContext,
   type AgentToolCatalogInput,
   type AiUiArtifact,
   type CanvasAgentRuntime,
@@ -83,6 +85,18 @@ import {
   buildDashboardMessagePreview,
   normalizeDashboardConversationTitle,
 } from "./conversation-contracts";
+import {
+  AGENT_TOKEN_FLUSH_CHARS,
+  AGENT_TOKEN_FLUSH_MS,
+  agentRunAbortRegistry,
+  cancelRun,
+  completeAgentRun,
+  createTokenCoalescer,
+  findRunningChatRun,
+  insertAgentRun,
+  persistRunStreamEvent,
+  subscribeRun,
+} from "./run-service";
 
 function entryIdsFromMemberAlertContext(context: AgencyOpsMemberProfileAlertContext): string[] {
   const raw = context as AgencyOpsMemberProfileAlertContext & { entryIds?: string[] };
@@ -995,21 +1009,132 @@ export async function* streamDashboardConversationTurn(
 
   await db.insert(dashboardConversationMessage).values(userMessageRow);
 
-  yield agentChatTurnStreamEventSchema.parse({
+  const previousRun = await findRunningChatRun(userId, { conversationId: conversation.id });
+  if (previousRun) {
+    await cancelRun(userId, { runId: previousRun.runId });
+  }
+
+  const { runId } = await insertAgentRun(userId, {
+    conversationId: conversation.id,
+    kind: "chat",
+    model: resolvedModelId,
+  });
+  const serverController = new AbortController();
+  agentRunAbortRegistry.attach(runId, serverController);
+
+  const startedEvent = agentChatTurnStreamEventSchema.parse({
     type: "started",
-    runId: createWorkspaceId("agent-run"),
+    runId,
     conversationId: conversation.id,
     createdConversation,
     userMessageId,
     assistantMessageId,
     model: resolvedModelId,
   });
+  await persistRunStreamEvent(userId, { runId, event: startedEvent });
 
-  let accumulated = "";
+  void executeDashboardConversationRun({
+    actorUserId: userId,
+    runId,
+    serverSignal: serverController.signal,
+    conversation,
+    createdConversation,
+    userMessageRow,
+    assistantMessageId,
+    userName,
+    turn,
+    turnModelContent,
+    surface,
+    toolPreset,
+    unlockedSurfaces,
+    fullWorkspaceSnapshot,
+    marketplaceItems: marketplaceResult.items,
+    scopeNodes,
+    agencyRuntime,
+    canvasRuntime,
+    resolvedModelId,
+    modelPreset,
+    recentMessages,
+  });
+
+  yield* subscribeRun(userId, { runId, afterSeq: 0, signal: input.signal });
+}
+
+async function executeDashboardConversationRun(args: {
+  actorUserId: string;
+  runId: string;
+  serverSignal: AbortSignal;
+  conversation: Awaited<ReturnType<typeof getConversationRecord>>;
+  createdConversation: boolean;
+  userMessageRow: {
+    id: string;
+    conversationId: string;
+    userId: string;
+    role: "user";
+    content: string;
+    attachments: AgentTextAttachment[];
+    contextNodeTitles: string[];
+    model: string;
+    toolsCalled: AgentToolCall[];
+    artifacts: AiUiArtifact[];
+    createdAt: Date;
+  };
+  assistantMessageId: string;
+  userName: string;
+  turn: AgentChatTurnInput;
+  turnModelContent: ReturnType<typeof modelUserContent>;
+  surface: AgentSurface;
+  toolPreset: AgentChatTurnInput["toolPreset"];
+  unlockedSurfaces: AgentSurface[];
+  fullWorkspaceSnapshot: {
+    nodes: DashboardAgentWorkspaceContext["nodes"];
+    updatedAt: string | null;
+  };
+  marketplaceItems: NonNullable<DashboardAgentWorkspaceContext["marketplaceItems"]>;
+  scopeNodes: AgentChatTurnInput["scopeNodes"] | AgentChatTurnInput["nodes"];
+  agencyRuntime: ReturnType<typeof createAgencyAgentRuntime> | null;
+  canvasRuntime: ReturnType<typeof createCanvasAgentRuntime> | null;
+  resolvedModelId: string;
+  modelPreset: NonNullable<AgentChatTurnInput["modelPreset"]> | typeof DEFAULT_AGENT_MODEL_PRESET;
+  recentMessages: AgentModelInputMessage[];
+}) {
+  const {
+    actorUserId: userId,
+    runId,
+    serverSignal,
+    conversation,
+    createdConversation,
+    userMessageRow,
+    assistantMessageId,
+    userName,
+    turn,
+    turnModelContent,
+    surface,
+    toolPreset,
+    unlockedSurfaces,
+    fullWorkspaceSnapshot,
+    marketplaceItems,
+    scopeNodes,
+    agencyRuntime,
+    canvasRuntime,
+    resolvedModelId,
+    modelPreset,
+    recentMessages,
+  } = args;
+
+  const persist = (event: AgentChatTurnStreamEvent) =>
+    persistRunStreamEvent(userId, { runId, event });
+
   const toolsById = new Map<string, AgentToolCall>();
   const toolOrder: string[] = [];
   const streamedArtifacts: AiUiArtifact[] = [];
-  let stopped = Boolean(input.signal?.aborted);
+  const coalescer = createTokenCoalescer({
+    flushMs: AGENT_TOKEN_FLUSH_MS,
+    flushChars: AGENT_TOKEN_FLUSH_CHARS,
+    onFlush: async (delta) => {
+      await persist(agentChatTurnStreamEventSchema.parse({ type: "token", delta }));
+    },
+  });
 
   try {
     for await (const event of streamDashboardAgent(
@@ -1023,7 +1148,7 @@ export async function* streamDashboardConversationTurn(
       {
         nodes: fullWorkspaceSnapshot.nodes,
         scopeNodes,
-        marketplaceItems: marketplaceResult.items,
+        marketplaceItems,
         updatedAt: fullWorkspaceSnapshot.updatedAt,
         userName,
         activeTabId: turn.activeTabId,
@@ -1038,37 +1163,39 @@ export async function* streamDashboardConversationTurn(
         toolPreset,
         agencyRuntime,
         canvasRuntime,
-        signal: input.signal,
+        signal: serverSignal,
       },
     )) {
       if (event.type === "token") {
-        accumulated += event.delta;
-        yield agentChatTurnStreamEventSchema.parse(event);
+        coalescer.push(event.delta);
         continue;
       }
+      await coalescer.flush();
       if (event.type === "tool") {
         const toolId = event.tool.id ?? `tool_${toolOrder.length}`;
         if (!toolsById.has(toolId)) {
           toolOrder.push(toolId);
         }
         toolsById.set(toolId, { ...event.tool, id: toolId });
-        yield agentChatTurnStreamEventSchema.parse({
-          type: "tool",
-          tool: { ...event.tool, id: toolId },
-        });
+        await persist(
+          agentChatTurnStreamEventSchema.parse({
+            type: "tool",
+            tool: { ...event.tool, id: toolId },
+          }),
+        );
         continue;
       }
       if (event.type === "artifact") {
         streamedArtifacts.push(event.artifact);
-        yield agentChatTurnStreamEventSchema.parse(event);
+        await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
       if (event.type === "plan" || event.type === "proposal" || event.type === "question") {
-        yield agentChatTurnStreamEventSchema.parse(event);
+        await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
       if (event.type === "done") {
-        stopped = stopped || Boolean(input.signal?.aborted);
+        const stopped = serverSignal.aborted;
         const toolsCalled = toolOrder
           .map((id) => toolsById.get(id))
           .filter((tool): tool is AgentToolCall => Boolean(tool));
@@ -1148,25 +1275,39 @@ export async function* streamDashboardConversationTurn(
           lastMessagePreview: buildDashboardMessagePreview(responseText),
         });
 
-        yield agentChatTurnStreamEventSchema.parse({
-          type: "completed",
-          conversation: conversationSummary,
-          userMessage: mapConversationMessage(userMessageRow),
-          assistantMessage: mapConversationMessage(assistantMessageRow),
-          createdConversation,
-          workspaceSnapshot,
-          stopped,
+        await persist(
+          agentChatTurnStreamEventSchema.parse({
+            type: "completed",
+            conversation: conversationSummary,
+            userMessage: mapConversationMessage(userMessageRow),
+            assistantMessage: mapConversationMessage(assistantMessageRow),
+            createdConversation,
+            workspaceSnapshot,
+            stopped,
+          }),
+        );
+        await completeAgentRun(userId, {
+          runId,
+          status: stopped ? "cancelled" : "succeeded",
         });
       }
     }
   } catch (error) {
+    await coalescer.flush();
     const message =
       error instanceof Error && error.message.trim()
         ? error.message.trim().slice(0, 2_000)
         : "Failed to stream the agent reply.";
-    yield agentChatTurnStreamEventSchema.parse({
-      type: "error",
-      message,
+    await persist(
+      agentChatTurnStreamEventSchema.parse({
+        type: "error",
+        message,
+      }),
+    );
+    await completeAgentRun(userId, {
+      runId,
+      status: serverSignal.aborted ? "cancelled" : "failed",
+      error: message,
     });
   }
 }

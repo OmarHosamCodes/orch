@@ -411,6 +411,48 @@ export const agentChatTurnStreamEventSchema = z.discriminatedUnion("type", [
   agentChatTurnStreamCompletedEventSchema,
 ]);
 
+export const AGENT_BUDGET_MODELS = ["openrouter/auto-beta", "openrouter/free"] as const;
+export type AgentBudgetModel = (typeof AGENT_BUDGET_MODELS)[number];
+
+export const agentRunKindSchema = z.enum(["chat", "detection"]);
+export const agentRunStatusSchema = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+
+export const agentRunRecordSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  kind: agentRunKindSchema,
+  status: agentRunStatusSchema,
+  model: z.string(),
+  lastSeq: z.number().int().nonnegative(),
+  error: z.string().nullable(),
+  startedAt: z.string().datetime(),
+  heartbeatAt: z.string().datetime(),
+  finishedAt: z.string().datetime().nullable(),
+});
+
+export const agentRunGetInputSchema = z.object({
+  runId: z.string().trim().min(1),
+});
+export const agentRunCancelInputSchema = agentRunGetInputSchema;
+export const agentRunSubscribeInputSchema = z.object({
+  runId: z.string().trim().min(1),
+  afterSeq: z.number().int().nonnegative(),
+});
+export const agentRunCancelResponseSchema = z.object({
+  status: z.literal("cancelled"),
+});
+
+export type AgentRunKind = z.infer<typeof agentRunKindSchema>;
+export type AgentRunStatus = z.infer<typeof agentRunStatusSchema>;
+export type AgentRunRecord = z.infer<typeof agentRunRecordSchema>;
+export type AgentWriteClass = "immediate" | "confirm";
+
 export type AgentMessage = z.infer<typeof agentMessageSchema>;
 export type AgentTextAttachment = z.infer<typeof agentTextAttachmentSchema>;
 export type AgentTextAttachmentMediaType = z.infer<typeof agentTextAttachmentMediaTypeSchema>;

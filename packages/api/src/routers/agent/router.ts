@@ -7,6 +7,11 @@ import {
   agentChatTurnInputSchema,
   agentChatTurnResponseSchema,
   agentChatTurnStreamEventSchema,
+  agentRunCancelInputSchema,
+  agentRunCancelResponseSchema,
+  agentRunGetInputSchema,
+  agentRunRecordSchema,
+  agentRunSubscribeInputSchema,
   agentToolCatalogInputSchema,
   agentToolCatalogResponseSchema,
   dashboardConversationDeleteInputSchema,
@@ -41,6 +46,7 @@ import {
   renameDashboardConversation,
   streamDashboardConversationTurn,
 } from "./service";
+import { cancelRun, getAgentRun, subscribeRun } from "./run-service";
 
 export const agentRouter = {
   freeModels: protectedProcedure.handler(async () => {
@@ -77,6 +83,40 @@ export const agentRouter = {
             surface: input.surface,
             mode: input.mode,
           });
+        }
+      }),
+  },
+  runs: {
+    get: protectedProcedure.input(agentRunGetInputSchema).handler(async ({ input, context }) => {
+      try {
+        return agentRunRecordSchema.parse(await getAgentRun(context.session.user.id, input));
+      } catch (error) {
+        throw toInternalServerError("agent.runs.get", error, { runId: input.runId });
+      }
+    }),
+    cancel: protectedProcedure
+      .input(agentRunCancelInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return agentRunCancelResponseSchema.parse(
+            await cancelRun(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.runs.cancel", error, { runId: input.runId });
+        }
+      }),
+    subscribe: protectedProcedure
+      .input(agentRunSubscribeInputSchema)
+      .handler(async function* ({ input, context, signal }) {
+        try {
+          for await (const event of subscribeRun(context.session.user.id, {
+            ...input,
+            signal,
+          })) {
+            yield agentChatTurnStreamEventSchema.parse(event);
+          }
+        } catch (error) {
+          throw toInternalServerError("agent.runs.subscribe", error, { runId: input.runId });
         }
       }),
   },
