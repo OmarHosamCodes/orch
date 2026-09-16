@@ -139,6 +139,7 @@ export const dashboardConversation = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
     lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+    lastReadAt: timestamp("last_read_at"),
     archivedAt: timestamp("archived_at"),
     taskId: text("task_id"),
   },
