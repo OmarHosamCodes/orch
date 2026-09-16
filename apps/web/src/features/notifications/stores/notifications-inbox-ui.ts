@@ -6,7 +6,7 @@ type NotificationsInboxUiState = {
   consumeOpen: () => void;
 };
 
-/** Bridge so rail “N more” / collapsed badge can open the top-bar inbox popover. */
+/** Bridge so rail overflow can still request the notifications popover if the icon variant is remounted. */
 export const useNotificationsInboxUiStore = create<NotificationsInboxUiState>((set) => ({
   openRequested: false,
   requestOpen: () => set({ openRequested: true }),

@@ -106,7 +106,7 @@ export function FeaturedRailNotificationView({ view }: FeaturedRailNotificationV
               "hover:text-sidebar-foreground",
               shellFocusRingClass,
             )}
-            onClick={view.onOpenInbox}
+            onClick={view.onAdvanceFeatured}
           >
             {view.moreLabel}
           </button>

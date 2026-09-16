@@ -34,7 +34,12 @@ export function FeaturedRailAlertsView({ view }: FeaturedRailAlertsViewProps) {
       )}
     >
       <div className="flex items-start gap-2">
-        <div className={cn("inline-flex h-7 w-10 shrink-0 items-center justify-center", instrumentPlateInkClass("warning"))}>
+        <div
+          className={cn(
+            "inline-flex h-7 w-10 shrink-0 items-center justify-center",
+            instrumentPlateInkClass("warning"),
+          )}
+        >
           <AlertPlateGlyph
             kind={view.featured.kind}
             ratio={view.plate.chartRatio}
@@ -52,7 +57,9 @@ export function FeaturedRailAlertsView({ view }: FeaturedRailAlertsViewProps) {
       <h2 className="mt-2.5 text-balance text-sm font-semibold leading-snug tracking-tight text-sidebar-foreground">
         {view.title}
       </h2>
-      <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{view.body}</p>
+      <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+        {view.body}
+      </p>
 
       <div className="mt-4 flex flex-col gap-2">
         <Button
