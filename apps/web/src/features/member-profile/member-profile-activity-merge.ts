@@ -1,3 +1,4 @@
+import { isAgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import type { AgencyReportEntry } from "@/features/reports/agency-report-grouping";
 import { formatDuration } from "@/lib/utils/format-duration";
 
@@ -16,6 +17,9 @@ export type MemberProfileTimelineActivity = {
   projectName: string | null;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: string | null;
+  colorHueId: number | null;
+  projectIconKey: string | null;
   clientId: string | null;
   clientName: string | null;
   description: string | null;
@@ -57,6 +61,9 @@ export type MergedTimelineActivity = {
   projectId: string | null;
   projectName: string | null;
   taskTitle: string | null;
+  taskIconKey: string | null;
+  colorHueId: number | null;
+  projectIconKey: string | null;
   clientName: string | null;
   isWaste: boolean;
   entries: AgencyReportEntry[];
@@ -98,6 +105,7 @@ function activityToReportEntry(item: MemberProfileTimelineActivity): AgencyRepor
     projectId: item.projectId,
     taskId: item.taskId,
     taskTitle: item.taskTitle,
+    taskIconKey: isAgencyEntityIconKey(item.taskIconKey) ? item.taskIconKey : null,
     taskIsWaste: item.taskIsWaste,
     projectName: item.projectName,
     clientId: item.clientId,
@@ -113,6 +121,8 @@ function activityToReportEntry(item: MemberProfileTimelineActivity): AgencyRepor
     durationSeconds: item.durationSeconds,
     createdAt: item.startedAt,
     updatedAt: item.endedAt,
+    colorHueId: item.colorHueId,
+    projectIconKey: isAgencyEntityIconKey(item.projectIconKey) ? item.projectIconKey : null,
   };
 }
 
@@ -144,6 +154,9 @@ export function mergeTimelineItems(items: MemberProfileTimelineItem[]): MergedTi
         projectId: item.projectId,
         projectName: item.projectName,
         taskTitle: item.taskTitle,
+        taskIconKey: item.taskIconKey,
+        colorHueId: item.colorHueId,
+        projectIconKey: item.projectIconKey,
         clientName: item.clientName,
         isWaste: item.isWaste,
         entries: entry ? [entry] : [],
@@ -187,6 +200,9 @@ export function mergeTimelineItems(items: MemberProfileTimelineItem[]): MergedTi
       projectId: item.projectId,
       projectName: item.projectName,
       taskTitle: item.taskTitle,
+      taskIconKey: item.taskIconKey,
+      colorHueId: item.colorHueId,
+      projectIconKey: item.projectIconKey,
       clientName: item.clientName,
       isWaste: item.isWaste,
       entries: entry ? [entry] : [],

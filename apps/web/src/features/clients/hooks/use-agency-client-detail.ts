@@ -25,6 +25,8 @@ import { getErrorMessage } from "@/lib/utils/get-error-message";
 type AgencyClientDetailProject = {
   id: string;
   name: string;
+  colorHueId: number | null;
+  iconKey: string | null;
   deletedAt: string | null;
 };
 
@@ -193,6 +195,8 @@ export function useAgencyClientDetail({
       (projectsQuery.data?.items ?? []).map((project) => ({
         id: project.id,
         name: project.name,
+        colorHueId: project.colorHueId ?? null,
+        iconKey: project.iconKey ?? null,
         deletedAt: project.deletedAt ?? null,
       })),
     [projectsQuery.data?.items],

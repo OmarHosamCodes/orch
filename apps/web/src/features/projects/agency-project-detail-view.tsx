@@ -33,6 +33,7 @@ import {
   catalogRateAmount,
   formatRate,
 } from "@/features/shared/format-rate";
+import { AgencyEntityIconMarkPickerView } from "@/features/shared/agency-entity-icon-picker-view";
 import { projectHueStyle } from "@/features/shared/project-palette";
 import { cn } from "@/lib/utils";
 import { Input } from "@/ui/input";
@@ -105,6 +106,7 @@ export function AgencyProjectDetailView({
     ratePreviewAmount,
     saveProjectRate,
     canSaveProjectRate,
+    onChangeProjectIcon,
   } = viewModel;
 
   return (
@@ -180,10 +182,15 @@ export function AgencyProjectDetailView({
                   </p>
                 )}
                 <h2 className="mt-1 flex min-w-0 items-center gap-2.5">
-                  <span
-                    className="inline-block size-2.5 shrink-0 rounded-full"
-                    aria-hidden="true"
-                    style={projectHueStyle(project.id)}
+                  <AgencyEntityIconMarkPickerView
+                    name={project.name}
+                    projectId={project.id}
+                    iconKey={project.iconKey}
+                    colorHueId={project.colorHueId}
+                    size="header"
+                    disabled={!isOwner || isTrashed}
+                    ariaLabel="Change project icon"
+                    onChange={onChangeProjectIcon}
                   />
                   <span className="truncate text-lg font-bold text-highlighted">
                     {project.name}

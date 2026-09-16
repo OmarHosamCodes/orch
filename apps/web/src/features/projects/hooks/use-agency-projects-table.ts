@@ -25,6 +25,8 @@ export type AgencyProjectsTableProject = {
   name: string;
   clientId: string;
   clientName: string;
+  colorHueId: number | null;
+  iconKey: string | null;
   deletedAt: string | null;
 };
 
@@ -110,6 +112,8 @@ export function useAgencyProjectsTable({
     name: project.name,
     clientId: project.clientId,
     clientName: project.clientName,
+    colorHueId: project.colorHueId ?? null,
+    iconKey: project.iconKey ?? null,
     deletedAt: project.deletedAt ?? null,
   }));
   const clients = clientsQuery.data?.items ?? [];

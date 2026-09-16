@@ -28,7 +28,7 @@ import {
   formatRate,
   parseBillableRateAmount,
 } from "@/features/shared/format-rate";
-import { projectHueStyle } from "@/features/shared/project-palette";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { Button } from "@/ui/button";
@@ -60,6 +60,36 @@ function formatMoney(cents: number, currency: string): string {
     }).format(cents / 100);
   } catch {
     return `${(cents / 100).toFixed(0)} ${currency}`;
+  }
+}
+
+function invoiceStatusClass(status: string): string {
+  switch (status.toLowerCase()) {
+    case "paid":
+      return "text-success";
+    case "partial":
+    case "outstanding":
+    case "ready":
+      return "text-warning";
+    default:
+      return "text-muted";
+  }
+}
+
+function contactCompletenessClass(
+  completeness: AgencyClientDetailViewModel["contactCompleteness"],
+) {
+  switch (completeness) {
+    case "complete":
+      return "text-success";
+    case "partial":
+      return "text-warning";
+    case "missing":
+      return "text-info";
+    default: {
+      const _exhaustive: never = completeness;
+      return _exhaustive;
+    }
   }
 }
 
@@ -242,7 +272,7 @@ export function AgencyClientDetailView({
   const contactIncomplete = contactCompleteness !== "complete";
 
   return (
-    <div className="agency-client-detail flex flex-col gap-5 pb-6">
+    <div className="agency-client-detail flex flex-col gap-5 pb-8">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft />
@@ -264,7 +294,7 @@ export function AgencyClientDetailView({
       ) : !client ? (
         <NotFoundState
           title="Client not found."
-          description="This client may have been removed or moved to another team. Return to the canvas to continue working."
+          description="This client may have been removed or moved to another team. Return to Clients to continue working."
         />
       ) : (
         <>
@@ -293,7 +323,7 @@ export function AgencyClientDetailView({
                     "inline-flex rounded-full px-2 py-1 text-[11px] font-bold capitalize",
                     client.category === "internal"
                       ? "border border-default bg-default text-muted"
-                      : "bg-elevated text-highlighted",
+                      : "border border-info/20 bg-info/10 text-info",
                   )}
                 >
                   {client.category === "internal" ? "Internal" : "External"}
@@ -302,8 +332,8 @@ export function AgencyClientDetailView({
                   className={cn(
                     "inline-flex rounded-full px-2 py-1 text-[11px] font-bold",
                     isArchived
-                      ? "border border-default bg-default text-muted"
-                      : "bg-elevated text-highlighted",
+                      ? "border border-default bg-default text-dimmed"
+                      : "border border-success/20 bg-success/10 text-success",
                   )}
                 >
                   {isArchived ? "Archived" : "Active"}
@@ -311,12 +341,17 @@ export function AgencyClientDetailView({
               </div>
               <h2 className="mt-2 truncate text-lg font-bold text-highlighted">{client.name}</h2>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                <span>Contact: {clientContactCompletenessLabel(contactCompleteness)}</span>
+                <span>
+                  Contact:{" "}
+                  <span className={cn("font-bold", contactCompletenessClass(contactCompleteness))}>
+                    {clientContactCompletenessLabel(contactCompleteness)}
+                  </span>
+                </span>
                 {contactIncomplete && isOwner && !isArchived ? (
                   <button
                     type="button"
                     className={cn(
-                      "font-bold text-highlighted underline-offset-2 hover:underline",
+                      "font-bold text-info underline-offset-2 hover:underline",
                       agencyFocusRingClass,
                       "rounded-sm",
                     )}
@@ -332,7 +367,7 @@ export function AgencyClientDetailView({
                       <button
                         type="button"
                         className={cn(
-                          "font-bold text-highlighted underline-offset-2 hover:underline",
+                          "font-bold text-info underline-offset-2 hover:underline",
                           agencyFocusRingClass,
                           "rounded-sm",
                         )}
@@ -341,7 +376,7 @@ export function AgencyClientDetailView({
                         Set catalog rate
                       </button>
                     ) : (
-                      <span>Catalog rate not set</span>
+                      <span className="text-warning">Catalog rate not set</span>
                     )}
                   </>
                 ) : null}
@@ -349,12 +384,6 @@ export function AgencyClientDetailView({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {isOwner && !isArchived ? (
-                <Button variant="secondary" size="sm" onClick={() => setCreateProjectOpen(true)}>
-                  <Plus className="size-3.5" />
-                  New project
-                </Button>
-              ) : null}
               {isOwner && !isArchived ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -425,7 +454,7 @@ export function AgencyClientDetailView({
                 <div className="flex flex-wrap items-center gap-2">
                   <p className={agencyLabelClass}>Projects</p>
                   {projects.length > 0 ? (
-                    <span className="inline-flex rounded-full border border-default px-2.5 py-0.5 text-[11px] font-bold text-muted">
+                    <span className="inline-flex rounded-full border border-info/20 bg-info/10 px-2.5 py-0.5 text-[11px] font-bold text-info">
                       {activeProjectCount} active
                     </span>
                   ) : null}
@@ -463,15 +492,16 @@ export function AgencyClientDetailView({
                       <li key={project.id}>
                         <article
                           className={cn(
-                            "flex items-center justify-between gap-3 rounded-lg border border-default px-2.5 py-2.5",
+                            "flex items-center justify-between gap-3 rounded-lg border border-default px-2.5 py-2.5 transition-colors hover:bg-muted/40 motion-reduce:transition-none",
                             isTrashed && "opacity-80",
                           )}
                         >
                           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                            <span
-                              className="inline-block size-2 shrink-0 rounded-full"
-                              aria-hidden
-                              style={projectHueStyle(project.id)}
+                            <AgencyEntityMark
+                              name={project.name}
+                              projectId={project.id}
+                              iconKey={project.iconKey}
+                              colorHueId={project.colorHueId}
                             />
                             <span
                               className={cn(
@@ -503,13 +533,23 @@ export function AgencyClientDetailView({
               )}
             </section>
 
-            <aside className="flex min-w-0 flex-col gap-6">
-              <section id={`client-commercial-${clientId}`} className="scroll-mt-4">
+            <aside className="flex min-w-0 flex-col gap-4">
+              <section
+                id={`client-commercial-${clientId}`}
+                className={cn(
+                  agencyPanelClass,
+                  "scroll-mt-4 p-3.5 sm:p-4",
+                  rateMissing && !isArchived && "border-warning/25",
+                )}
+              >
                 <header className="mb-3">
                   <p className={agencyLabelClass}>Commercial</p>
                   <p className="mt-1 text-xs text-muted">
                     Catalog rate for planning. Invoice lines still use member billable rates.
                   </p>
+                  {rateMissing && !isArchived ? (
+                    <p className="mt-2 text-[11px] font-bold text-warning">Catalog rate not set</p>
+                  ) : null}
                 </header>
                 {isOwner ? (
                   <form
@@ -624,12 +664,29 @@ export function AgencyClientDetailView({
                 )}
               </section>
 
-              <section id={`client-contact-${clientId}`} className="scroll-mt-4">
+              <section
+                id={`client-contact-${clientId}`}
+                className={cn(
+                  agencyPanelClass,
+                  "scroll-mt-4 p-3.5 sm:p-4",
+                  contactIncomplete && !isArchived && "border-info/25",
+                )}
+              >
                 <header className="mb-3">
                   <p className={agencyLabelClass}>Contact</p>
                   <p className="mt-1 text-xs text-muted">
                     One primary contact for status calls and billing follow-up.
                   </p>
+                  {contactIncomplete && !isArchived ? (
+                    <p
+                      className={cn(
+                        "mt-2 text-[11px] font-bold",
+                        contactCompletenessClass(contactCompleteness),
+                      )}
+                    >
+                      {clientContactCompletenessLabel(contactCompleteness)}
+                    </p>
+                  ) : null}
                 </header>
                 {isOwner ? (
                   <form
@@ -715,15 +772,27 @@ export function AgencyClientDetailView({
           </div>
 
           {canViewBilling ? (
-            <section className="border-t border-default pt-4">
+            <section
+              className={cn(
+                agencyPanelClass,
+                "p-3.5 sm:p-4",
+                readyToInvoice && "border-warning/30",
+              )}
+            >
               <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className={agencyLabelClass}>Money</p>
+                  <p className={cn(agencyLabelClass, readyToInvoice && "text-warning")}>Money</p>
                   <p className="mt-1 text-xs text-muted">
                     {openInvoiceCount > 0
                       ? `${openInvoiceCount} open · ${formatMoney(outstandingAmount, billingCurrency)} outstanding`
                       : "No open invoices"}
                   </p>
+                  {readyToInvoice ? (
+                    <p className="mt-1 text-[11px] font-bold text-warning">
+                      {formatDuration(monthUninvoicedDurationSeconds, "short")} ready to invoice
+                      this month
+                    </p>
+                  ) : null}
                 </div>
                 <Button
                   variant={readyToInvoice ? "default" : "secondary"}
@@ -737,12 +806,6 @@ export function AgencyClientDetailView({
               {recentInvoices.length === 0 ? (
                 <div className="py-6 text-center">
                   <p className="text-xs text-muted">No invoices for this client yet.</p>
-                  {readyToInvoice ? (
-                    <p className="mt-1 text-xs font-bold text-highlighted">
-                      {formatDuration(monthUninvoicedDurationSeconds, "short")} ready to invoice
-                      this month.
-                    </p>
-                  ) : null}
                 </div>
               ) : (
                 <ul className="divide-y divide-default">
@@ -752,7 +815,11 @@ export function AgencyClientDetailView({
                       className="grid grid-cols-[minmax(0,1fr)_5rem_6rem] items-baseline gap-3 py-2.5 text-xs"
                     >
                       <span className="truncate font-bold text-highlighted">{invoice.number}</span>
-                      <span className="capitalize text-muted">{invoice.status}</span>
+                      <span
+                        className={cn("capitalize font-bold", invoiceStatusClass(invoice.status))}
+                      >
+                        {invoice.status}
+                      </span>
                       <span className="text-right font-mono font-bold tabular-nums text-highlighted">
                         {formatMoney(invoice.amount, invoice.currency)}
                       </span>

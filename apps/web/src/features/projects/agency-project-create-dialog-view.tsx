@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 
+import { AgencyEntityIconPickerView } from "@/features/shared/agency-entity-icon-picker-view";
 import { AgencyMemberChooser } from "@/features/shared/choosers/agency-member-chooser";
 import { Button } from "@/ui/button";
 import {
@@ -50,6 +51,8 @@ export function AgencyProjectCreateDialogView({
     setClientId,
     projectName,
     setProjectName,
+    iconKey,
+    setIconKey,
     milestones,
     formError,
     isJourneyMode,
@@ -151,6 +154,19 @@ export function AgencyProjectCreateDialogView({
                   )}
                 />
               </div>
+            </div>
+
+            <div className={agencyFormFieldClass}>
+              <span id={`${formId}-icon-label`} className={agencyFormLabelClass}>
+                Icon
+              </span>
+              <AgencyEntityIconPickerView
+                name={projectName}
+                value={iconKey}
+                onChange={setIconKey}
+                disabled={isProjectMutationPending}
+                labelledBy={`${formId}-icon-label`}
+              />
             </div>
 
             {isJourneyMode ? (

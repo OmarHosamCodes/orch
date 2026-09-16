@@ -10,7 +10,7 @@ import {
   useAgencyPageScrollMargin,
 } from "@/features/shared/agency-ui";
 import { formatDuration } from "@/lib/utils/format-duration";
-import { projectHueStyle } from "@/features/shared/project-palette";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { Button } from "@/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import type { AgencyProjectsTableProject } from "./hooks/use-agency-projects-table";
@@ -108,10 +108,11 @@ export function AgencyProjectsVirtualTable({
               >
                 <div className="px-4 py-3" role="cell">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span
-                      className="agency-projects__dot inline-block size-2 shrink-0 rounded-full"
-                      aria-hidden="true"
-                      style={projectHueStyle(project.id)}
+                    <AgencyEntityMark
+                      name={project.name}
+                      projectId={project.id}
+                      iconKey={project.iconKey}
+                      colorHueId={project.colorHueId}
                     />
                     <span
                       className={cn(

@@ -23,7 +23,7 @@ import {
   formatRate,
   parseBillableRateAmount,
 } from "@/features/shared/format-rate";
-import { projectHueStyle } from "@/features/shared/project-palette";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { agencyListSearchMatches } from "@/features/shared/agency-list-search";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/lib/utils/format-duration";
@@ -40,7 +40,13 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { SurfaceShimmer } from "@/ui/skeleton";
 
-import { clientBookNeedLabel, type ClientBookNeedId } from "./clients-book-corridors";
+import {
+  clientBookCorridorAccentClass,
+  clientBookNeedChipClass,
+  clientBookNeedLabel,
+  clientBookWeekHeatBarClass,
+  type ClientBookNeedId,
+} from "./clients-book-corridors";
 import type {
   AgencyClientsBookRow,
   AgencyClientsTableViewModel,
@@ -58,7 +64,9 @@ function CategoryMark({ category }: { category: "internal" | "external" }) {
     <span
       className={cn(
         "inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold capitalize",
-        isInternal ? "border border-default bg-default text-muted" : "bg-elevated text-highlighted",
+        isInternal
+          ? "border border-default bg-default text-muted"
+          : "border border-info/20 bg-info/10 text-info",
       )}
     >
       {isInternal ? "Internal" : "External"}
@@ -71,9 +79,7 @@ function NeedChip({ id }: { id: ClientBookNeedId }) {
     <span
       className={cn(
         "inline-flex rounded-sm px-1.5 py-0.5 text-[10px] font-bold tracking-[0.04em]",
-        id === "invoice" || id === "outstanding"
-          ? "bg-warning/15 text-warning"
-          : "bg-elevated text-muted",
+        clientBookNeedChipClass(id),
       )}
     >
       {clientBookNeedLabel(id)}
@@ -81,7 +87,15 @@ function NeedChip({ id }: { id: ClientBookNeedId }) {
   );
 }
 
-function WeekHeat({ share, durationSeconds }: { share: number; durationSeconds: number }) {
+function WeekHeat({
+  share,
+  durationSeconds,
+  hasInvoiceNeed,
+}: {
+  share: number;
+  durationSeconds: number;
+  hasInvoiceNeed: boolean;
+}) {
   const width = `${Math.round(Math.min(1, Math.max(0, share)) * 100)}%`;
   return (
     <div className="flex min-w-0 flex-col items-end gap-1">
@@ -96,10 +110,18 @@ function WeekHeat({ share, durationSeconds }: { share: number; durationSeconds: 
       </span>
       <div className="h-1 w-24 overflow-hidden rounded-full bg-muted" aria-hidden>
         <div
-          className="h-full rounded-full bg-foreground motion-reduce:transition-none"
+          className={cn(
+            "h-full rounded-full motion-reduce:transition-none",
+            clientBookWeekHeatBarClass({ durationSeconds, hasInvoiceNeed }),
+          )}
           style={{ width }}
         />
       </div>
+      <span className="sr-only">
+        {hasInvoiceNeed
+          ? `This week ${formatDuration(durationSeconds, "short")}, ready to invoice`
+          : `This week ${formatDuration(durationSeconds, "short")}`}
+      </span>
     </div>
   );
 }
@@ -198,10 +220,11 @@ function ClientBookRow({
                 key={project.id}
                 className="inline-flex max-w-36 items-center gap-1.5 text-[11px] font-bold text-muted"
               >
-                <span
-                  className="inline-block size-1.5 shrink-0 rounded-full"
-                  aria-hidden="true"
-                  style={projectHueStyle(project.id)}
+                <AgencyEntityMark
+                  name={project.name}
+                  projectId={project.id}
+                  iconKey={project.iconKey}
+                  colorHueId={project.colorHueId}
                 />
                 <span className="truncate">
                   <AgencySearchHighlight text={project.name} query={searchQuery} />
@@ -219,7 +242,11 @@ function ClientBookRow({
         )}
       </div>
 
-      <WeekHeat share={client.weekShare} durationSeconds={client.weekDurationSeconds} />
+      <WeekHeat
+        share={client.weekShare}
+        durationSeconds={client.weekDurationSeconds}
+        hasInvoiceNeed={client.needs.includes("invoice")}
+      />
 
       <span
         className={cn(
@@ -243,7 +270,7 @@ function ClientBookRow({
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      className="opacity-80 group-hover:opacity-100 group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                      className="opacity-80 group-hover:opacity-100 group-focus-within:opacity-100"
                       aria-label={`Actions for ${client.name}`}
                     >
                       <MoreHorizontal />
@@ -451,7 +478,21 @@ export function AgencyClientsTableView({
   }
 
   return (
-    <div className="agency-clients flex flex-col gap-6 pb-6">
+    <div className="agency-clients flex flex-col gap-6 pb-8">
+      <div
+        className={cn(
+          "hidden px-4 py-2 md:grid md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_8.5rem_7rem_2.5rem]",
+          agencyLabelClass,
+          "text-dimmed",
+        )}
+        aria-hidden
+      >
+        <span>Client</span>
+        <span>Projects</span>
+        <span className="text-right">This week</span>
+        <span className="text-right">Rate</span>
+        <span className="text-right">Actions</span>
+      </div>
       {corridors.length === 0 ? (
         <div className="rounded-surface border border-default bg-default p-surface text-center">
           <p className="text-sm font-bold text-highlighted">No clients match.</p>
@@ -463,11 +504,19 @@ export function AgencyClientsTableView({
             <header className="mb-2 flex items-baseline justify-between gap-3 px-1">
               <h2
                 id={`client-corridor-${corridor.id}`}
-                className={cn(agencyLabelClass, "text-muted")}
+                className={cn(agencyLabelClass, clientBookCorridorAccentClass(corridor.id))}
               >
                 {corridor.label}
               </h2>
-              <span className="font-mono text-[11px] tabular-nums text-dimmed">
+              <span
+                className={cn(
+                  "font-mono text-[11px] tabular-nums",
+                  clientBookCorridorAccentClass(corridor.id),
+                  corridor.id === "archived" || corridor.id === "quiet"
+                    ? "opacity-70"
+                    : "opacity-90",
+                )}
+              >
                 {corridor.items.length}
               </span>
             </header>

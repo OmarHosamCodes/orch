@@ -114,6 +114,9 @@ function FeedActivityRow({
               projectName={item.projectName}
               clientName={item.clientName ?? undefined}
               taskTitle={item.taskTitle ?? item.title}
+              colorHueId={item.colorHueId}
+              taskIconKey={item.taskIconKey}
+              projectIconKey={item.projectIconKey}
               format="task-client"
               className="min-w-0"
             />

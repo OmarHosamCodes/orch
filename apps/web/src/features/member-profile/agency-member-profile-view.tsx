@@ -313,10 +313,7 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
             ) : null}
           </AgencyCommandBar.Start>
           <AgencyCommandBar.End>
-            <AgencyCommandBar.Apply
-              disabled={!period.hasPendingChanges}
-              onClick={period.onApply}
-            />
+            <AgencyCommandBar.Apply disabled={!period.hasPendingChanges} onClick={period.onApply} />
             {period.canReset ? <AgencyCommandBar.Reset onClick={period.onReset} /> : null}
             <MemberProfileRosterSwitcher memberNav={viewModel.memberNav} />
           </AgencyCommandBar.End>

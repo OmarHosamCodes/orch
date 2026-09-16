@@ -282,7 +282,6 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
               </TooltipProvider>
             </div>
           </section>
-
         </div>
       )}
 

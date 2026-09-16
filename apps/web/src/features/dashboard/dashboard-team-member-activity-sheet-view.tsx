@@ -15,14 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { cn } from "@/lib/utils";
 
@@ -128,9 +121,7 @@ export function DashboardTeamMemberActivitySheetView({
                       {activity.description || "(no description)"}
                     </p>
                     <p className="text-xs text-muted">{meta}</p>
-                    {startedLabel ? (
-                      <p className="text-[11px] text-muted">{startedLabel}</p>
-                    ) : null}
+                    {startedLabel ? <p className="text-[11px] text-muted">{startedLabel}</p> : null}
                   </div>
                 ) : (
                   <p className="text-sm text-muted">No activity in this range.</p>

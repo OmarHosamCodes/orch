@@ -2,7 +2,7 @@ import { type CSSProperties, useMemo } from "react";
 
 import { DashboardHoursPlates } from "@/features/dashboard/dashboard-hours-plate-view";
 import { buildDashboardHoursPlates } from "@/features/dashboard/dashboard-hours-plate-signal";
-import { AgencyProjectHueDot } from "@/features/shared/agency-project-hue-dot";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import {
   buildHourBreakdownSegments,
   type AgencyHourBreakdownMetrics,
@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 type RankedProject = {
   projectId: string;
   projectName: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   clientId: string;
   clientName: string;
   hours: number;
@@ -27,16 +29,18 @@ type RankedProject = {
 
 function ProjectHueFill({
   projectId,
+  colorHueId,
   className,
   style,
   isDark,
 }: {
   projectId: string;
+  colorHueId?: number | null;
   className?: string;
   style?: CSSProperties;
   isDark: boolean;
 }) {
-  const hue = projectHueFor(projectId);
+  const hue = projectHueFor(projectId, colorHueId);
   return (
     <span
       className={className}
@@ -73,7 +77,12 @@ function RankedProjectsList({
             className="grid gap-2 text-xs md:grid-cols-[minmax(12rem,1fr)_6rem_minmax(12rem,1.5fr)_3.5rem] md:items-center"
           >
             <div className="flex min-w-0 items-center gap-2">
-              <AgencyProjectHueDot projectId={project.projectId} className="size-2" />
+              <AgencyEntityMark
+                name={project.projectName}
+                projectId={project.projectId}
+                iconKey={project.iconKey}
+                colorHueId={project.colorHueId}
+              />
               <div className="min-w-0">
                 <button
                   type="button"
@@ -105,6 +114,7 @@ function RankedProjectsList({
             <div className="h-3 overflow-hidden rounded-sm bg-elevated">
               <ProjectHueFill
                 projectId={project.projectId}
+                colorHueId={project.colorHueId}
                 className="block h-full"
                 style={{ width: `${Math.max(2, share)}%` }}
                 isDark={isDark}

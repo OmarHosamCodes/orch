@@ -69,6 +69,52 @@ export function clientBookNeedLabel(id: ClientBookNeedId): string {
   }
 }
 
+/** Semantic chip colors for corridor need tags (glyph/chip ink only). */
+export function clientBookNeedChipClass(id: ClientBookNeedId): string {
+  switch (id) {
+    case "invoice":
+    case "outstanding":
+      return "bg-warning/15 text-warning";
+    case "rate":
+    case "contact":
+      return "bg-info/15 text-info";
+    default: {
+      const _exhaustive: never = id;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Corridor label accent for list section headers. */
+export function clientBookCorridorAccentClass(id: ClientBookCorridorId): string {
+  switch (id) {
+    case "ready":
+      return "text-warning";
+    case "working":
+      return "text-success";
+    case "quiet":
+      return "text-muted";
+    case "internal":
+      return "text-muted-foreground";
+    case "archived":
+      return "text-dimmed";
+    default: {
+      const _exhaustive: never = id;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Week heat bar fill keyed to activity and billing urgency. */
+export function clientBookWeekHeatBarClass(input: {
+  durationSeconds: number;
+  hasInvoiceNeed: boolean;
+}): string {
+  if (input.hasInvoiceNeed) return "bg-warning";
+  if (input.durationSeconds > 0) return "bg-success";
+  return "bg-muted-foreground/35";
+}
+
 export function clientBookNeeds(input: ClientBookNeedInput): ClientBookNeedId[] {
   const needs: ClientBookNeedId[] = [];
   if (

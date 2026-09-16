@@ -179,6 +179,9 @@ export type AgencyMemberProfileViewModel = {
             projectName: string | null;
             taskId: string | null;
             taskTitle: string | null;
+            taskIconKey: string | null;
+            colorHueId: number | null;
+            projectIconKey: string | null;
             clientId: string | null;
             clientName: string | null;
             description: string | null;

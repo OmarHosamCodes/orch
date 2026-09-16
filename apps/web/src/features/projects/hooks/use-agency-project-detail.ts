@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import {
@@ -36,6 +37,8 @@ export type AgencyProjectDetailViewModel = {
     clientId: string;
     clientName: string;
     deletedAt: string | null;
+    colorHueId: number | null;
+    iconKey: string | null;
     billableRateAmount: number | null;
     sourceBillableRateAmount: number | null;
     currency: string;
@@ -88,6 +91,7 @@ export type AgencyProjectDetailViewModel = {
   ratePreviewAmount: number | null;
   saveProjectRate: () => void;
   canSaveProjectRate: boolean;
+  onChangeProjectIcon: (iconKey: AgencyEntityIconKey | null) => void;
 };
 
 type UseAgencyProjectDetailOptions = {
@@ -374,6 +378,8 @@ export function useAgencyProjectDetail({
           clientId: project.clientId,
           clientName: project.clientName,
           deletedAt: project.deletedAt ?? null,
+          colorHueId: project.colorHueId,
+          iconKey: project.iconKey,
           billableRateAmount: project.billableRateAmount,
           sourceBillableRateAmount: project.sourceBillableRateAmount,
           currency: project.currency,
@@ -415,5 +421,13 @@ export function useAgencyProjectDetail({
     ratePreviewAmount,
     saveProjectRate,
     canSaveProjectRate,
+    onChangeProjectIcon: (iconKey) => {
+      if (!teamId || !projectId) return;
+      void agencyOps.updateProject({
+        teamId,
+        projectId,
+        iconKey,
+      });
+    },
   };
 }

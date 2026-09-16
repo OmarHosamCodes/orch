@@ -120,8 +120,7 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   const [appliedCustomToDate, setAppliedCustomToDate] = useState(defaultCustomToDate);
   const [appliedTenureMonthIndexes, setAppliedTenureMonthIndexes] = useState<number[] | null>(null);
   const effectiveAppliedRangePreset = appliedRangePreset ?? defaultRangePreset;
-  const effectiveAppliedTenureMonthIndexes =
-    appliedTenureMonthIndexes ?? defaultTenureMonthIndexes;
+  const effectiveAppliedTenureMonthIndexes = appliedTenureMonthIndexes ?? defaultTenureMonthIndexes;
 
   const [draftRangePreset, setDraftRangePreset] = useState<RangePreset | null>(null);
   const [draftCustomFromDate, setDraftCustomFromDate] = useState(defaultCustomFromDate);
@@ -138,8 +137,8 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   );
   const tenurePeriodLabel = useMemo(
     () =>
-      getCurrentTenurePeriodRange(tenurePolicy, now, effectiveDraftTenureMonthIndexes)?.simpleLabel ??
-      null,
+      getCurrentTenurePeriodRange(tenurePolicy, now, effectiveDraftTenureMonthIndexes)
+        ?.simpleLabel ?? null,
     [effectiveDraftTenureMonthIndexes, now, tenurePolicy],
   );
   const tenureQuarterLabel = useMemo(
