@@ -46,7 +46,7 @@ export type WorkspaceAgentThinkingStep = {
   done: boolean;
 };
 
-function toolLabel(name: string): string {
+export function toolActivityLabel(name: string): string {
   const known = TOOL_LABELS[name];
   if (known) return known;
   return name
@@ -54,6 +54,10 @@ function toolLabel(name: string): string {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function toolLabel(name: string): string {
+  return toolActivityLabel(name);
 }
 
 const STEP_DONE_TONE = "bg-secondary text-secondary-foreground";

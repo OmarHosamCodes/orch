@@ -67,6 +67,9 @@ export type OrchUIDataParts = {
     title: string;
     href: string;
   };
+  orchTodo: {
+    items: Array<{ id: string; title: string; status: "pending" | "in-progress" | "completed" }>;
+  };
 };
 
 export type OrchAgencyQuestionAnswer = {
@@ -498,6 +501,14 @@ export function createOrchEventToChunkMapper() {
             type: "data-orchQuestion",
             id: event.question.questionId,
             data: event.question,
+          },
+        ];
+      case "todo":
+        return [
+          {
+            type: "data-orchTodo",
+            id: "orch-todo",
+            data: { items: event.items },
           },
         ];
       case "error":

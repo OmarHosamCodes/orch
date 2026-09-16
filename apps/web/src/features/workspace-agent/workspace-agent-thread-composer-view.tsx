@@ -1,6 +1,5 @@
-import type { AgentScopeRef, AgentTextAttachment, AgentToolCatalogEntry } from "@orch/agent/types";
-import { ArrowUp, Clock, Crosshair, LayoutGrid, Plus, Square, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import type { AgentScopeRef, AgentTextAttachment } from "@orch/agent/types";
+import { ArrowUp, Plus, Square, X } from "lucide-react";
 import type { FormEvent, KeyboardEvent } from "react";
 
 import { MessageQueue } from "@/components/elements/message-queue";
@@ -20,7 +19,6 @@ import {
 import type { KnowledgeCreateKind } from "@/features/workspace-knowledge/knowledge-create";
 import { WorkspaceAgentScopeChipView } from "@/features/workspace-agent/scope-chip-view";
 import { WorkspaceAgentComposerAttachItem } from "@/features/workspace-agent/workspace-agent-composer-attach";
-import { WorkspaceAgentToolMenuView } from "@/features/workspace-agent/tool-menu-view";
 import { formatComposerDraftSavedAt } from "@/features/workspace-agent/composer-draft-display";
 import type { WorkspaceAgentComposerTriggerSuggestion } from "@/features/workspace-agent/hooks/use-workspace-agent";
 import {
@@ -32,79 +30,14 @@ import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/pop
 import { Separator } from "@/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
-function ComposerPillTag({
-  icon: Icon,
-  label,
-  activateLabel,
-  dismissLabel,
-  tooltip,
-  onActivate,
-  onDismiss,
-}: {
-  icon: typeof Crosshair;
-  label: string;
-  activateLabel: string;
-  dismissLabel: string;
-  tooltip: string;
-  onActivate: () => void;
-  onDismiss: () => void;
-}) {
-  return (
-    <motion.div
-      key={`pill-${label}`}
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
-      transition={{ duration: 0.16, ease: [0.25, 1, 0.5, 1] }}
-      className="inline-flex h-7 items-center gap-0.5 rounded-full border border-border bg-secondary pr-1 pl-2 text-xs font-medium text-secondary-foreground"
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 motion-safe:transition-colors motion-safe:duration-150 hover:text-foreground"
-            aria-label={activateLabel}
-            onClick={onActivate}
-          >
-            <Icon className="size-3.5 text-muted-foreground" aria-hidden />
-            {label}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{tooltip}</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className="rounded-full p-0.5 text-muted-foreground motion-safe:transition-colors motion-safe:duration-150 hover:bg-accent hover:text-accent-foreground"
-            aria-label={dismissLabel}
-            onClick={onDismiss}
-          >
-            <X className="size-3" aria-hidden />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{dismissLabel}</TooltipContent>
-      </Tooltip>
-    </motion.div>
-  );
-}
-
 export type WorkspaceAgentThreadComposerViewProps = {
   placeholder: string;
   scopeChips: AgentScopeRef[];
   onRemoveChip: (id: string) => void;
-  crossSurfaceUnlockLabel: "Agency" | "Canvas" | null;
-  onUnlockCrossSurface: () => void;
   knowledgeCreateItems: Array<{ kind: KnowledgeCreateKind; label: string }>;
   onCreateKnowledgeKind: (kind: KnowledgeCreateKind) => void;
-  scopeModeActive: boolean;
-  onToggleScopeMode: () => void;
-  scopeHintSeen: boolean;
   toolsMenuOpen: boolean;
   onToolsMenuOpenChange: (open: boolean) => void;
-  tools: AgentToolCatalogEntry[];
-  toolsLoading: boolean;
   isStreaming: boolean;
   queuedMessages: readonly QueuedAgentMessage[];
   runningQueueLabel: string;
@@ -131,17 +64,10 @@ export function WorkspaceAgentThreadComposerView({
   placeholder,
   scopeChips,
   onRemoveChip,
-  crossSurfaceUnlockLabel,
-  onUnlockCrossSurface,
   knowledgeCreateItems,
   onCreateKnowledgeKind,
-  scopeModeActive,
-  onToggleScopeMode,
-  scopeHintSeen,
   toolsMenuOpen,
   onToolsMenuOpenChange,
-  tools,
-  toolsLoading,
   isStreaming,
   queuedMessages,
   runningQueueLabel,
@@ -161,8 +87,6 @@ export function WorkspaceAgentThreadComposerView({
   onDiscardServerDraft,
 }: WorkspaceAgentThreadComposerViewProps) {
   const entityChips = scopeChips.filter((chip) => chip.kind !== "surface");
-  const surfaceUnlockChip = scopeChips.find((chip) => chip.kind === "surface") ?? null;
-  const UnlockSurfaceIcon = crossSurfaceUnlockLabel === "Agency" ? Clock : LayoutGrid;
   const canSend = draft.trim().length > 0 || pendingAttachments.length > 0;
 
   function submitDraft() {
@@ -192,20 +116,6 @@ export function WorkspaceAgentThreadComposerView({
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-2">
-        <AnimatePresence initial={false}>
-          {!scopeHintSeen && scopeModeActive ? (
-            <motion.p
-              key="scope-hint"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-              className="px-1 text-xs text-foreground/70"
-            >
-              Click a page item to add it to scope.
-            </motion.p>
-          ) : null}
-        </AnimatePresence>
-
         {serverDraftOffer ? (
           <DraftRestore
             className="mb-2 max-w-none"
@@ -277,10 +187,10 @@ export function WorkspaceAgentThreadComposerView({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <PopoverTrigger asChild>
-                            <ComposerAttachButton aria-label="Attach and tools" />
+                            <ComposerAttachButton aria-label="Attach" />
                           </PopoverTrigger>
                         </TooltipTrigger>
-                        <TooltipContent side="top">Attach and tools</TooltipContent>
+                        <TooltipContent side="top">Attach</TooltipContent>
                       </Tooltip>
                       <PopoverContent
                         align="start"
@@ -299,35 +209,6 @@ export function WorkspaceAgentThreadComposerView({
                             }
                             onClose={() => onToolsMenuOpenChange(false)}
                           />
-                          {crossSurfaceUnlockLabel ? (
-                            <ComposerMenuItem
-                              onClick={() => {
-                                onUnlockCrossSurface();
-                                onToolsMenuOpenChange(false);
-                              }}
-                            >
-                              <UnlockSurfaceIcon
-                                className="size-3.5 shrink-0 text-muted-foreground"
-                                aria-hidden
-                              />
-                              Include {crossSurfaceUnlockLabel} tools
-                            </ComposerMenuItem>
-                          ) : null}
-                          <ComposerMenuItem
-                            active={scopeModeActive}
-                            aria-pressed={scopeModeActive}
-                            onClick={() => {
-                              onToggleScopeMode();
-                              onToolsMenuOpenChange(false);
-                            }}
-                          >
-                            <Crosshair
-                              className="size-3.5 shrink-0 text-muted-foreground"
-                              aria-hidden
-                            />
-                            {scopeModeActive ? "Stop adding to scope" : "Add to scope"}
-                          </ComposerMenuItem>
-
                           {knowledgeCreateItems.length > 0 ? (
                             <>
                               <Separator className="my-1" />
@@ -351,40 +232,9 @@ export function WorkspaceAgentThreadComposerView({
                               ))}
                             </>
                           ) : null}
-
-                          <Separator className="my-1" />
-                          <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
-                            Tools
-                          </p>
-                          <WorkspaceAgentToolMenuView tools={tools} loading={toolsLoading} />
                         </ComposerMenu>
                       </PopoverContent>
                     </Popover>
-
-                    <AnimatePresence initial={false}>
-                      {scopeModeActive ? (
-                        <ComposerPillTag
-                          icon={Crosshair}
-                          label="Scope"
-                          activateLabel="Scope mode active. Open tools menu"
-                          dismissLabel="Exit scope mode"
-                          tooltip="Click page items to add it to scope"
-                          onActivate={() => onToolsMenuOpenChange(true)}
-                          onDismiss={onToggleScopeMode}
-                        />
-                      ) : null}
-                      {surfaceUnlockChip ? (
-                        <ComposerPillTag
-                          icon={surfaceUnlockChip.id === "agency" ? Clock : LayoutGrid}
-                          label={surfaceUnlockChip.label}
-                          activateLabel={`${surfaceUnlockChip.label} tools included. Open tools menu`}
-                          dismissLabel={`Stop including ${surfaceUnlockChip.label} tools`}
-                          tooltip={`${surfaceUnlockChip.label} tools are included in this chat`}
-                          onActivate={() => onToolsMenuOpenChange(true)}
-                          onDismiss={() => onRemoveChip(surfaceUnlockChip.id)}
-                        />
-                      ) : null}
-                    </AnimatePresence>
                   </PromptInputTools>
                   {isStreaming ? (
                     <button

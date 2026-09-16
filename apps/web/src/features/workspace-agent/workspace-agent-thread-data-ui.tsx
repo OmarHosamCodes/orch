@@ -7,8 +7,14 @@ import { AgencyProposalCardView } from "@/features/workspace-agent/agency-propos
 import { AgencyQuestionCardView } from "@/features/workspace-agent/agency-question-card-view";
 import { AgentMessageArtifactCardView } from "@/features/workspace-agent/agent-message-artifact-card-view";
 import { AgentStickyArchiveReceiptView } from "@/features/workspace-agent/agent-sticky-dock-view";
+import { OrchChainOfThoughtView } from "@/features/workspace-agent/orch-chain-of-thought-view";
+import {
+  OrchCitationsView,
+  citationsFromToolOutput,
+} from "@/features/workspace-agent/orch-citations-view";
 import { OrchCreatedObjectCardView } from "@/features/workspace-agent/orch-created-object-card-view";
-import { OrchToolTraceView } from "@/features/workspace-agent/orch-tool-trace-view";
+import { OrchTodoListView } from "@/features/workspace-agent/orch-todo-list-view";
+import { OrchToolActivityView } from "@/features/workspace-agent/orch-tool-activity-view";
 import {
   resolveCreatedObjectHref,
   type OrchAgencyQuestionAnswer,
@@ -173,32 +179,8 @@ function OrchCreatedObjectDataPart({ data }: { data: unknown }) {
   );
 }
 
-function renderDynamicToolPart(part: OrchUIMessage["parts"][number], index: number): ReactNode {
-  if (part.type !== "dynamic-tool") return null;
-  const status =
-    part.state === "output-error"
-      ? "error"
-      : part.state === "output-available"
-        ? "completed"
-        : "in_progress";
-  const view = getWorkspaceAgentToolTraceViewModel({
-    id: part.toolCallId,
-    name: part.toolName,
-    input: part.input,
-    output: "output" in part ? part.output : undefined,
-    status,
-    error: "errorText" in part && typeof part.errorText === "string" ? part.errorText : null,
-  });
-  return (
-    <OrchToolTraceView
-      key={index}
-      name={view.name}
-      status={view.status}
-      inputText={view.inputText}
-      outputText={view.outputText}
-      error={view.error}
-    />
-  );
+function renderDynamicToolPart(): ReactNode {
+  return null;
 }
 
 function renderPart(part: OrchUIMessage["parts"][number], index: number): ReactNode {
@@ -211,7 +193,7 @@ function renderPart(part: OrchUIMessage["parts"][number], index: number): ReactN
     );
   }
   if (part.type === "dynamic-tool") {
-    return renderDynamicToolPart(part, index);
+    return renderDynamicToolPart();
   }
   if (part.type === "data-orchPlan") {
     return <OrchPlanDataPart key={index} data={part.data} />;
@@ -228,9 +210,53 @@ function renderPart(part: OrchUIMessage["parts"][number], index: number): ReactN
   if (part.type === "data-orchCreatedObject") {
     return <OrchCreatedObjectDataPart key={index} data={part.data} />;
   }
+  if (part.type === "data-orchTodo") {
+    return <OrchTodoListView key={index} items={part.data.items} />;
+  }
   return null;
 }
 
 export function OrchMessageParts({ message }: { message: OrchUIMessage }) {
-  return <>{message.parts.map((part, index) => renderPart(part, index))}</>;
+  const toolParts = message.parts.filter((part) => part.type === "dynamic-tool");
+  const steps = toolParts.map((part) => ({
+    id: part.toolCallId,
+    name: part.toolName,
+    done: part.state === "output-available" || part.state === "output-error",
+  }));
+  const live = toolParts.some(
+    (part) => part.state !== "output-available" && part.state !== "output-error",
+  );
+  const activity = toolParts.map((part) => {
+    const view = getWorkspaceAgentToolTraceViewModel({
+      id: part.toolCallId,
+      name: part.toolName,
+      input: part.input,
+      output: "output" in part ? part.output : undefined,
+      status:
+        part.state === "output-error"
+          ? "error"
+          : part.state === "output-available"
+            ? "completed"
+            : "in_progress",
+      error: "errorText" in part && typeof part.errorText === "string" ? part.errorText : null,
+    });
+    return {
+      id: part.toolCallId,
+      name: part.toolName,
+      status: view.status,
+      detail: view.outputText || view.inputText || view.error,
+    };
+  });
+  const citations = toolParts.flatMap((part) =>
+    citationsFromToolOutput(part.toolName, "output" in part ? part.output : undefined),
+  );
+
+  return (
+    <>
+      <OrchChainOfThoughtView steps={steps} live={live} />
+      <OrchToolActivityView items={activity} />
+      {message.parts.map((part, index) => renderPart(part, index))}
+      <OrchCitationsView citations={citations} />
+    </>
+  );
 }

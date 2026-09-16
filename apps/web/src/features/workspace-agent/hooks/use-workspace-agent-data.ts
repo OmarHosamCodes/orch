@@ -14,8 +14,23 @@ export function useWorkspaceAgentData(args: {
   const session = authClient.useSession();
   const queryClient = useQueryClient();
   const authEnabled = Boolean(session.data?.user);
-  const conversationsListQueryOptions = orpc.agent.conversations.list.queryOptions();
+  const conversationsListQueryOptions = orpc.agent.conversations.list.queryOptions({
+    input: { filter: "open" },
+  });
+  const conversationsSettledQueryOptions = orpc.agent.conversations.list.queryOptions({
+    input: { filter: "settled" },
+  });
+  const conversationsCompactQueryOptions = orpc.agent.conversations.compact.queryOptions();
   const conversationsQuery = useQuery({ ...conversationsListQueryOptions, enabled: authEnabled });
+  const settledConversationsQuery = useQuery({
+    ...conversationsSettledQueryOptions,
+    enabled: authEnabled,
+  });
+  const compactConversationsQuery = useQuery({
+    ...conversationsCompactQueryOptions,
+    enabled: authEnabled,
+    refetchInterval: 8_000,
+  });
   const modelCatalogQuery = useQuery({
     ...orpc.agent.modelCatalog.queryOptions(),
     enabled: authEnabled,
@@ -40,7 +55,7 @@ export function useWorkspaceAgentData(args: {
         unlockedSurfaces: args.unlockedSurfaces,
       },
     }),
-    enabled: Boolean(authEnabled && args.toolsMenuOpen),
+    enabled: false,
     staleTime: 5 * 60 * 1000,
   });
   const composerDraftQueryOptions = orpc.agent.conversations.draft.get.queryOptions({
@@ -59,7 +74,11 @@ export function useWorkspaceAgentData(args: {
   return {
     queryClient,
     conversationsListQueryOptions,
+    conversationsSettledQueryOptions,
+    conversationsCompactQueryOptions,
     conversationsQuery,
+    settledConversationsQuery,
+    compactConversationsQuery,
     modelCatalogQuery,
     accountStatusQuery,
     activeConversationQuery,
@@ -69,6 +88,9 @@ export function useWorkspaceAgentData(args: {
     inboxQuery,
     renameConversationMutation: useMutation(orpc.agent.conversations.rename.mutationOptions()),
     deleteConversationMutation: useMutation(orpc.agent.conversations.delete.mutationOptions()),
+    settleConversationMutation: useMutation(orpc.agent.conversations.settle.mutationOptions()),
+    unsettleConversationMutation: useMutation(orpc.agent.conversations.unsettle.mutationOptions()),
+    markConversationReadMutation: useMutation(orpc.agent.conversations.markRead.mutationOptions()),
     markInboxReadMutation: useMutation(orpc.agent.inbox.markRead.mutationOptions()),
     upsertComposerDraftMutation: useMutation(
       orpc.agent.conversations.draft.upsert.mutationOptions(),

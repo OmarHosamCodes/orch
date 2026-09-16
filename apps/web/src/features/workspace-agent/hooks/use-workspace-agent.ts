@@ -16,11 +16,15 @@ import { toast } from "sonner";
 
 import {
   useAgencyActiveTimerQuery,
+  useAgencyClientsQuery,
   useAgencyProjectsQuery,
   useAgencyProjectTasksQuery,
+  useAgencyPresenceMembers,
+  useAgencyTimeEntriesQuery,
 } from "@/features/shared/agency-queries";
 import { useAgentCanvasOverlay } from "@/features/workspace-agent/hooks/use-agent-canvas-overlay";
-import { useAgentScopeModeListener } from "@/features/workspace-agent/hooks/use-agent-scope-mode-listener";
+import { filePartsToAgentAttachments } from "@/features/workspace-agent/agent-attachments";
+import { fireOrchConfetti } from "@/features/workspace-agent/orch-confetti";
 import { useCurrentAgencyTeamStore } from "@/features/time-tracking/stores/agency-timer";
 import { useWorkspaceStore } from "@/features/workspace/workspace-local-state";
 import { useWorkspaceKnowledgeStore } from "@/features/workspace-knowledge/stores/workspace-knowledge";
@@ -33,17 +37,13 @@ import {
   getActiveWorkspaceAgentMention,
   getActiveWorkspaceAgentTrigger,
   getWorkspaceAgentMentionSuggestions,
-  getWorkspaceAgentSlashSuggestions,
-  stripActiveWorkspaceAgentMention,
   stripActiveWorkspaceAgentTrigger,
-  type WorkspaceAgentSlashCandidate,
 } from "@/features/workspace-agent/workspace-agent-mentions";
 import { shouldOfferComposerDraftRestore } from "@/features/workspace-agent/composer-draft-display";
 import {
   resolveEclipseMood,
   ECLIPSE_DONE_WINDOW_MS,
 } from "@/features/workspace-agent/eclipse-mood";
-import type { OrchAssistantPanelTab } from "@/features/workspace-agent/orch-assistant-panel-view";
 import { CONTINUE_TURN_TEXT } from "@/features/workspace-agent/workspace-agent-continue";
 import { useWorkspaceAgentData } from "@/features/workspace-agent/hooks/use-workspace-agent-data";
 import { useWorkspaceAgentModelPreferences } from "@/features/workspace-agent/hooks/use-workspace-agent-model-preferences";
@@ -74,7 +74,12 @@ import {
   joinOrchMessageText,
   stepSearchIndex,
 } from "@/features/workspace-agent/workspace-agent-message-search";
-import { nodeChipPlanSeed } from "@/features/workspace-agent/workspace-agent-scope-plan";
+import {
+  getOrchSlashCommandSuggestions,
+  isEntitySlashVerb,
+  parseSubmittedSlashCommand,
+  type OrchSlashVerb,
+} from "@/features/workspace-agent/workspace-agent-commands";
 import { applyBoundWorkspaceSnapshot } from "@/features/workspace/workspace-snapshot-handler";
 import {
   cancelQueuedAgentMessage,
@@ -112,6 +117,7 @@ function composerUnlockedSurfaces(
         chip.kind === "project" ||
         chip.kind === "task" ||
         chip.kind === "member" ||
+        chip.kind === "client" ||
         (chip.kind === "surface" && chip.id === "agency"),
     );
   return [
@@ -123,9 +129,10 @@ function composerUnlockedSurfaces(
 const COMPOSER_DRAFT_DEBOUNCE_MS = 500;
 
 export type WorkspaceAgentComposerTriggerSuggestion = {
-  kind: "at" | "project" | "task";
+  kind: "at" | "project" | "task" | "command" | "client" | "member" | "entry";
   id: string;
   label: string;
+  hint?: string;
 };
 
 function buildOrchTurnSendContext(input: {
@@ -172,6 +179,8 @@ export function useWorkspaceAgent() {
 
   const expanded = useWorkspaceAgentStore((s) => s.expanded);
   const setExpanded = useWorkspaceAgentStore((s) => s.setExpanded);
+  const compactOpen = useWorkspaceAgentStore((s) => s.compactOpen);
+  const setCompactOpen = useWorkspaceAgentStore((s) => s.setCompactOpen);
   const toggleExpanded = useWorkspaceAgentStore((s) => s.toggleExpanded);
   const orchPresence = useWorkspaceAgentStore((s) => s.orchPresence);
   const prevPresenceRef = useRef(orchPresence);
@@ -212,7 +221,9 @@ export function useWorkspaceAgent() {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
-  const [historyQuery, setHistoryQuery] = useState("");
+  const [topbarSlot, setTopbarSlot] = useState<HTMLElement | null>(null);
+  const [settleSearch, setSettleSearch] = useState("");
+  const [settledOpen, setSettledOpen] = useState(false);
   const [threadSearchOpen, setThreadSearchOpen] = useState(false);
   const [threadSearchQuery, setThreadSearchQuery] = useState("");
   const [threadSearchIndex, setThreadSearchIndex] = useState(0);
@@ -237,7 +248,6 @@ export function useWorkspaceAgent() {
     Record<string, { selectedOptionIds: string[]; freeText: string }>
   >({});
   const [queuedMessages, setQueuedMessages] = useState<QueuedAgentMessage[]>([]);
-  const [panelTab, setPanelTab] = useState<OrchAssistantPanelTab>("chat");
   const [pendingAttachments, setPendingAttachments] = useState<AgentTextAttachment[]>([]);
   const [lastRunSucceededAt, setLastRunSucceededAt] = useState<number | null>(null);
   const [moodNow, setMoodNow] = useState(() => Date.now());
@@ -250,16 +260,12 @@ export function useWorkspaceAgent() {
   const resumedRunIdRef = useRef<string | null>(null);
 
   const addScopeChipAndMaybeSeed = useCallback(
-    (chip: AgentScopeRef, draftForSeed: string = draft) => {
+    (chip: AgentScopeRef, _draftForSeed: string = draft) => {
       addScopeChip(chip);
-      const seed = nodeChipPlanSeed({ toolPreset: selectedToolPreset, draft: draftForSeed, chip });
-      if (seed) setDraft(seed);
-      return seed !== null;
+      return false;
     },
-    [addScopeChip, draft, selectedToolPreset, setDraft],
+    [addScopeChip, draft],
   );
-
-  useAgentScopeModeListener(addScopeChipAndMaybeSeed);
 
   const unlockedSurfaces = useMemo(
     () => composerUnlockedSurfaces(surface, scopeChips),
@@ -277,13 +283,20 @@ export function useWorkspaceAgent() {
   const {
     queryClient,
     conversationsListQueryOptions,
+    conversationsSettledQueryOptions,
+    conversationsCompactQueryOptions,
     conversationsQuery,
+    settledConversationsQuery,
+    compactConversationsQuery,
     modelCatalogQuery,
     accountStatusQuery,
     activeConversationQuery,
     toolsCatalogQuery,
     renameConversationMutation,
     deleteConversationMutation,
+    settleConversationMutation,
+    unsettleConversationMutation,
+    markConversationReadMutation,
     composerDraftQueryOptions,
     composerDraftQuery,
     upsertComposerDraftMutation,
@@ -293,9 +306,14 @@ export function useWorkspaceAgent() {
   } = data;
 
   const conversationList = conversationsQuery.data?.conversations ?? [];
+  const settledConversationList = settledConversationsQuery.data?.conversations ?? [];
+  const compactConversationList = compactConversationsQuery.data?.conversations ?? [];
   const activeConversation = activeConversationQuery.data ?? null;
 
   const sendContextRef = useRef<OrchTurnSendContext>({});
+  useEffect(() => {
+    setTopbarSlot(document.getElementById("orch-topbar-slot"));
+  }, []);
   const transport = useMemo(() => new OrchTurnStreamTransport(() => sendContextRef.current), []);
 
   const modelOptions = useMemo(() => {
@@ -343,6 +361,11 @@ export function useWorkspaceAgent() {
           );
         }
         void queryClient.invalidateQueries({ queryKey: conversationsListQueryOptions.queryKey });
+        void queryClient.invalidateQueries({ queryKey: conversationsSettledQueryOptions.queryKey });
+        void queryClient.invalidateQueries({ queryKey: conversationsCompactQueryOptions.queryKey });
+        if (!dataPart.data.stopped && useWorkspaceAgentStore.getState().expanded) {
+          fireOrchConfetti();
+        }
         void queryClient.invalidateQueries({
           queryKey: orpc.agent.conversations.get.queryKey({
             input: { conversationId: dataPart.data.conversationId },
@@ -484,62 +507,80 @@ export function useWorkspaceAgent() {
   const composerTrigger = getActiveWorkspaceAgentTrigger(draft);
   const agencyTeamId = teamId ?? "";
 
+  const mentionQueryEnabled = composerTrigger?.kind === "at";
   const projectsQuery = useAgencyProjectsQuery(agencyTeamId);
+  const clientsQuery = useAgencyClientsQuery(mentionQueryEnabled ? agencyTeamId : "");
+  const entriesQuery = useAgencyTimeEntriesQuery(mentionQueryEnabled ? agencyTeamId : "", 1, 30);
+  const presenceMembers = useAgencyPresenceMembers(mentionQueryEnabled ? agencyTeamId : "");
   const projectTasksQuery = useAgencyProjectTasksQuery(agencyTeamId, {
-    search: composerTrigger?.kind === "slash" ? composerTrigger.query || undefined : undefined,
+    search: mentionQueryEnabled ? composerTrigger.query || undefined : undefined,
     pageSize: 50,
-    enabled: composerTrigger?.kind === "slash",
+    enabled: mentionQueryEnabled,
   });
-
-  const slashCandidates = useMemo((): WorkspaceAgentSlashCandidate[] => {
-    if (!teamId || composerTrigger?.kind !== "slash") return [];
-    const projects = projectsQuery.data?.items ?? [];
-    const tasks = projectTasksQuery.data?.items ?? [];
-    return [
-      ...projects.map((project) => ({
-        kind: "project" as const,
-        id: project.id,
-        label: project.name,
-      })),
-      ...tasks.map((task) => ({
-        kind: "task" as const,
-        id: task.id,
-        label: task.title,
-      })),
-    ];
-  }, [composerTrigger?.kind, projectTasksQuery.data?.items, projectsQuery.data?.items, teamId]);
 
   const selectedNodeIds = useMemo(
     () => new Set(scopeChips.filter((chip) => chip.kind === "node").map((chip) => chip.id)),
     [scopeChips],
   );
 
-  const selectedSlashIds = useMemo(
-    () =>
-      new Set(
-        scopeChips
-          .filter((chip) => chip.kind === "project" || chip.kind === "task")
-          .map((chip) => chip.id),
-      ),
-    [scopeChips],
-  );
-
   const composerTriggerSuggestions = useMemo((): WorkspaceAgentComposerTriggerSuggestion[] => {
     if (!composerTrigger) return [];
-    if (composerTrigger.kind === "at") {
-      return getWorkspaceAgentMentionSuggestions(
-        workspaceNodes,
-        composerTrigger.query,
-        selectedNodeIds,
-      ).map((node) => ({ kind: "at", id: node.id, label: node.title }));
+    if (composerTrigger.kind === "slash") {
+      return getOrchSlashCommandSuggestions(composerTrigger.query).map((item) => ({
+        kind: "command" as const,
+        id: item.verb,
+        label: item.label,
+        hint: item.hint,
+      }));
     }
-    if (!teamId) return [];
-    return getWorkspaceAgentSlashSuggestions(
-      slashCandidates,
+    const query = composerTrigger.query.trim().toLowerCase();
+    const matches = (label: string) => !query || label.toLowerCase().includes(query);
+    const selectedIds = new Set(scopeChips.map((chip) => `${chip.kind}:${chip.id}`));
+    const suggestions: WorkspaceAgentComposerTriggerSuggestion[] = [];
+    for (const node of getWorkspaceAgentMentionSuggestions(
+      workspaceNodes,
       composerTrigger.query,
-      selectedSlashIds,
-    ).map((entry) => ({ kind: entry.kind, id: entry.id, label: entry.label }));
-  }, [composerTrigger, selectedNodeIds, selectedSlashIds, slashCandidates, teamId, workspaceNodes]);
+      selectedNodeIds,
+      4,
+    )) {
+      suggestions.push({ kind: "at", id: node.id, label: node.title });
+    }
+    if (teamId) {
+      for (const project of projectsQuery.data?.items ?? []) {
+        if (!matches(project.name) || selectedIds.has(`project:${project.id}`)) continue;
+        suggestions.push({ kind: "project", id: project.id, label: project.name });
+      }
+      for (const task of projectTasksQuery.data?.items ?? []) {
+        if (!matches(task.title) || selectedIds.has(`task:${task.id}`)) continue;
+        suggestions.push({ kind: "task", id: task.id, label: task.title });
+      }
+      for (const client of clientsQuery.data?.items ?? []) {
+        if (!matches(client.name) || selectedIds.has(`client:${client.id}`)) continue;
+        suggestions.push({ kind: "client", id: client.id, label: client.name });
+      }
+      for (const member of presenceMembers.members) {
+        if (!matches(member.userName) || selectedIds.has(`member:${member.userId}`)) continue;
+        suggestions.push({ kind: "member", id: member.userId, label: member.userName });
+      }
+      for (const entry of entriesQuery.data?.items ?? []) {
+        const label = entry.description?.trim() || entry.taskTitle || "Time entry";
+        if (!matches(label) || selectedIds.has(`timeEntry:${entry.id}`)) continue;
+        suggestions.push({ kind: "entry", id: entry.id, label });
+      }
+    }
+    return suggestions.slice(0, 8);
+  }, [
+    clientsQuery.data?.items,
+    composerTrigger,
+    entriesQuery.data?.items,
+    presenceMembers.members,
+    projectTasksQuery.data?.items,
+    projectsQuery.data?.items,
+    scopeChips,
+    selectedNodeIds,
+    teamId,
+    workspaceNodes,
+  ]);
 
   const composerTriggerOpen =
     Boolean(composerTrigger) && composerTriggerSuggestions.length > 0 && !composerTriggerDismissed;
@@ -724,7 +765,7 @@ export function useWorkspaceAgent() {
       boundTaskConversationRef.current = null;
       return;
     }
-    if (!expanded) return;
+    if (!expanded && orchPresence !== "thread") return;
     if (boundTaskConversationRef.current === boundTaskId) return;
     let cancelled = false;
     void orpcClient.agent.conversations
@@ -756,6 +797,7 @@ export function useWorkspaceAgent() {
     boundTaskTitle,
     conversationsListQueryOptions.queryKey,
     expanded,
+    orchPresence,
     queryClient,
     switchConversation,
   ]);
@@ -763,7 +805,7 @@ export function useWorkspaceAgent() {
   const addMentionedNode = useCallback(
     (node: WorkspaceNode) => {
       const chip = { kind: "node" as const, id: node.id, label: node.title };
-      const strippedDraft = stripActiveWorkspaceAgentMention(draft);
+      const strippedDraft = stripActiveWorkspaceAgentTrigger(draft);
       if (!addScopeChipAndMaybeSeed(chip, strippedDraft)) {
         setDraft(strippedDraft);
       }
@@ -774,19 +816,50 @@ export function useWorkspaceAgent() {
 
   const onPickComposerTrigger = useCallback(
     (candidate: WorkspaceAgentComposerTriggerSuggestion) => {
-      const chip = {
-        kind: candidate.kind === "at" ? ("node" as const) : candidate.kind,
-        id: candidate.id,
-        label: candidate.label,
-      };
       const strippedDraft = stripActiveWorkspaceAgentTrigger(draft);
-      if (!addScopeChipAndMaybeSeed(chip, strippedDraft)) {
-        setDraft(strippedDraft);
+      if (candidate.kind === "command") {
+        const verb = candidate.id as OrchSlashVerb;
+        if (isEntitySlashVerb(verb)) {
+          setDraft(`${strippedDraft}@`);
+        } else {
+          setDraft(strippedDraft);
+          if (verb === "new") startNewConversation();
+          if (verb === "stop") {
+            void transport.cancelActiveRun();
+            void stop();
+          }
+          if (verb === "settle" && activeConversationId) {
+            void settleConversationMutation.mutateAsync({ conversationId: activeConversationId });
+          }
+          if (verb === "memory") {
+            setDraft("Show my recent memory notes.");
+          }
+        }
+        setComposerTriggerDismissed(false);
+        return;
       }
+      const kind =
+        candidate.kind === "at"
+          ? ("node" as const)
+          : candidate.kind === "entry"
+            ? ("timeEntry" as const)
+            : candidate.kind;
+      addScopeChipAndMaybeSeed({ kind, id: candidate.id, label: candidate.label }, strippedDraft);
+      setDraft(strippedDraft);
       markScopeHintSeen();
       setComposerTriggerDismissed(false);
     },
-    [addScopeChipAndMaybeSeed, draft, markScopeHintSeen, setDraft],
+    [
+      activeConversationId,
+      addScopeChipAndMaybeSeed,
+      draft,
+      markScopeHintSeen,
+      setDraft,
+      settleConversationMutation,
+      startNewConversation,
+      stop,
+      transport,
+    ],
   );
 
   const onDismissComposerTrigger = useCallback(() => {
@@ -811,7 +884,37 @@ export function useWorkspaceAgent() {
         toolPreset?: DashboardAgentToolPreset;
       } = { text: draft },
     ) => {
-      const content = input.text.trim();
+      let content = input.text.trim();
+      const submittedCommand = parseSubmittedSlashCommand(content);
+      if (submittedCommand && (input.attachments ?? pendingAttachments).length === 0) {
+        if (submittedCommand === "new") {
+          startNewConversation();
+          setDraft("");
+          return true;
+        }
+        if (submittedCommand === "stop") {
+          void transport.cancelActiveRun();
+          void stop();
+          setDraft("");
+          return true;
+        }
+        if (submittedCommand === "settle") {
+          if (activeConversationId) {
+            await settleConversationMutation.mutateAsync({ conversationId: activeConversationId });
+            setExpanded(false);
+            setCompactOpen(true);
+          }
+          setDraft("");
+          return true;
+        }
+        if (isEntitySlashVerb(submittedCommand)) {
+          setDraft("@");
+          return true;
+        }
+        if (submittedCommand === "memory") {
+          content = "Show my recent memory notes.";
+        }
+      }
       const attachments = input.attachments ?? pendingAttachments;
       const model = modelPresetState.outboundModelId?.trim();
       const action = nextSendAction({
@@ -896,6 +999,17 @@ export function useWorkspaceAgent() {
       modelPresetState.modelPreset,
       modelPresetState.outboundModelId,
       scopeChips,
+      setCompactOpen,
+      setDraft,
+      setExpanded,
+      settleConversationMutation,
+      startNewConversation,
+      stop,
+      surface,
+      teamId,
+      transport,
+      workspaceNodes,
+      pendingAttachments,
       setDraft,
       surface,
       teamId,
@@ -1301,11 +1415,148 @@ export function useWorkspaceAgent() {
   const eclipseMood = resolveEclipseMood({
     isStreaming,
     error: displayError,
-    unreadCount: inboxUnreadCount,
-    pendingProposalCount,
+    unreadCount: compactConversationList.filter((item) => item.unread).length,
+    pendingProposalCount:
+      pendingProposalCount + compactConversationList.filter((item) => item.activeRunId).length,
     lastRunSucceededAt,
     now: moodNow,
   });
+
+  const matchesSettle = (title: string, preview: string) => {
+    const query = settleSearch.trim().toLowerCase();
+    if (!query) return true;
+    return title.toLowerCase().includes(query) || preview.toLowerCase().includes(query);
+  };
+
+  const compactThreads = compactConversationList.map((item) => ({
+    id: item.id,
+    title: item.title,
+    preview: item.lastMessagePreview ?? "",
+    running: Boolean(item.activeRunId),
+    unread: item.unread,
+  }));
+  const openThreads = conversationList
+    .filter((item) => matchesSettle(item.title, item.lastMessagePreview ?? ""))
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      preview: item.lastMessagePreview ?? "",
+      running: Boolean(item.activeRunId),
+      unread: item.unread,
+    }));
+  const settledThreads = settledConversationList
+    .filter((item) => matchesSettle(item.title, item.lastMessagePreview ?? ""))
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      preview: item.lastMessagePreview ?? "",
+      running: Boolean(item.activeRunId),
+      unread: item.unread,
+    }));
+
+  const invalidateConversationLists = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: conversationsListQueryOptions.queryKey });
+    void queryClient.invalidateQueries({ queryKey: conversationsSettledQueryOptions.queryKey });
+    void queryClient.invalidateQueries({ queryKey: conversationsCompactQueryOptions.queryKey });
+  }, [
+    conversationsCompactQueryOptions.queryKey,
+    conversationsListQueryOptions.queryKey,
+    conversationsSettledQueryOptions.queryKey,
+    queryClient,
+  ]);
+
+  useEffect(() => {
+    if (!expanded || !activeConversationId) return;
+    void markConversationReadMutation
+      .mutateAsync({ conversationId: activeConversationId })
+      .then(() => {
+        invalidateConversationLists();
+      });
+  }, [activeConversationId, expanded, invalidateConversationLists, markConversationReadMutation]);
+
+  const onSettleActive = useCallback(async () => {
+    if (!activeConversationId) return;
+    await settleConversationMutation.mutateAsync({ conversationId: activeConversationId });
+    startNewConversation();
+    invalidateConversationLists();
+  }, [
+    activeConversationId,
+    invalidateConversationLists,
+    settleConversationMutation,
+    startNewConversation,
+  ]);
+
+  const onUnsettle = useCallback(
+    async (conversationId: string) => {
+      await unsettleConversationMutation.mutateAsync({ conversationId });
+      invalidateConversationLists();
+      switchConversation(conversationId);
+    },
+    [invalidateConversationLists, switchConversation, unsettleConversationMutation],
+  );
+
+  const onSelectCompactThread = useCallback(
+    (conversationId: string) => {
+      switchConversation(conversationId);
+      setExpanded(true);
+      void markConversationReadMutation.mutateAsync({ conversationId }).then(() => {
+        invalidateConversationLists();
+      });
+    },
+    [invalidateConversationLists, markConversationReadMutation, setExpanded, switchConversation],
+  );
+
+  const onOpenOrch = useCallback(() => {
+    setExpanded(true);
+    if (activeConversationId) {
+      void markConversationReadMutation
+        .mutateAsync({ conversationId: activeConversationId })
+        .then(() => {
+          invalidateConversationLists();
+        });
+    }
+  }, [
+    activeConversationId,
+    invalidateConversationLists,
+    markConversationReadMutation,
+    setExpanded,
+  ]);
+
+  const onCollapseExpanded = useCallback(() => {
+    setExpanded(false);
+    setCompactOpen(true);
+  }, [setCompactOpen, setExpanded]);
+
+  const onEclipseToggle = useCallback(() => {
+    if (expanded) {
+      setExpanded(false);
+      setCompactOpen(true);
+      return;
+    }
+    setCompactOpen(!compactOpen);
+  }, [compactOpen, expanded, setCompactOpen, setExpanded]);
+
+  const onCompactPickFiles = useCallback((files: File[]) => {
+    void Promise.all(
+      files.map(
+        (file) =>
+          new Promise<{ url: string; filename: string; mediaType: string }>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("Couldn't read that file."));
+            reader.onload = () => {
+              resolve({
+                url: String(reader.result ?? ""),
+                filename: file.name,
+                mediaType: file.type,
+              });
+            };
+            reader.readAsDataURL(file);
+          }),
+      ),
+    ).then((parts) => {
+      setPendingAttachments((current) => [...current, ...filePartsToAgentAttachments(parts)]);
+    });
+  }, []);
 
   const onMarkInboxRead = useCallback(
     (noteId: string) => {
@@ -1317,13 +1568,6 @@ export function useWorkspaceAgent() {
     },
     [markInboxReadMutation, queryClient],
   );
-
-  const onEclipseOpen = useCallback(() => {
-    if (inboxUnreadCount > 0 && !expanded) {
-      setPanelTab("inbox");
-    }
-    setExpanded(!expanded);
-  }, [expanded, inboxUnreadCount, setExpanded]);
 
   const emptyHint =
     surface === "agency"
@@ -1351,6 +1595,25 @@ export function useWorkspaceAgent() {
     surface,
     teamId,
     expanded,
+    compactOpen,
+    topbarSlot,
+    settleSearch,
+    setSettleSearch,
+    settledOpen,
+    setSettledOpen,
+    compactThreads,
+    openThreads,
+    settledThreads,
+    compactBadgeCount: compactThreads.length,
+    settling: settleConversationMutation.isPending,
+    onSettleActive,
+    onUnsettle,
+    onSelectCompactThread,
+    onOpenOrch,
+    onCollapseExpanded,
+    onEclipseToggle,
+    onCompactOpenChange: setCompactOpen,
+    onCompactPickFiles,
     setExpanded,
     toggleExpanded,
     orchPresence,
@@ -1441,8 +1704,9 @@ export function useWorkspaceAgent() {
       stamp: conversation.lastMessageAt || conversation.updatedAt,
       costUsd: conversation.usageSummary?.totals.costUsd ?? 0,
     })),
-    historyQuery,
-    setHistoryQuery,
+    conversationsLoading: conversationsQuery.isLoading,
+    startNewConversation,
+    switchConversation,
     threadSearchOpen,
     onToggleThreadSearch,
     threadSearchQuery,
@@ -1450,10 +1714,6 @@ export function useWorkspaceAgent() {
     threadSearchHits,
     threadSearchIndex,
     onThreadSearchStep,
-    activeCostUsd: activeConversation?.usageSummary?.totals.costUsd ?? 0,
-    conversationsLoading: conversationsQuery.isLoading,
-    startNewConversation,
-    switchConversation,
     deleteConversationById,
     deletingConversationId,
     isRenameDialogOpen,
@@ -1513,8 +1773,6 @@ export function useWorkspaceAgent() {
     readAloudPlaying,
     readAloudSupported,
     onToggleReadAloud: toggleReadAloud,
-    panelTab,
-    setPanelTab,
     pendingAttachments,
     setPendingAttachments,
     inboxNotes,
@@ -1522,7 +1780,6 @@ export function useWorkspaceAgent() {
     inboxOneLiner,
     onMarkInboxRead,
     eclipseMood,
-    onEclipseOpen,
   };
 }
 

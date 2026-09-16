@@ -83,6 +83,14 @@ export function suggestionRowLabel(suggestion: WorkspaceAgentComposerTriggerSugg
       return `project · ${suggestion.label}`;
     case "task":
       return `task · ${suggestion.label}`;
+    case "command":
+      return suggestion.hint ? `${suggestion.label} — ${suggestion.hint}` : suggestion.label;
+    case "client":
+      return `client · ${suggestion.label}`;
+    case "member":
+      return `member · ${suggestion.label}`;
+    case "entry":
+      return `entry · ${suggestion.label}`;
     default: {
       const _exhaustive: never = suggestion.kind;
       return _exhaustive;
