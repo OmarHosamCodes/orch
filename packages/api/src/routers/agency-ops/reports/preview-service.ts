@@ -9,7 +9,7 @@ import {
   queryProjectShareMetrics,
   queryReportTotals,
 } from "./aggregate-queries";
-import { pickPreviewClients, resolveClientPreviewAmount } from "./preview-helpers";
+import { resolveClientPreviewAmount, sortPreviewClients } from "./preview-helpers";
 import { listAllAgencyTimeEntries } from "./service";
 
 export async function getAgencyReportPreview(
@@ -37,26 +37,24 @@ export async function getAgencyReportPreview(
     queryClientPreviewStats(filters),
   ]);
 
-  const picked = pickPreviewClients(clientStats);
-  const previewClientIds = picked.preview.map((client) => client.clientId);
-  const sampleItems = [];
-  if (previewClientIds.length > 0) {
+  const previewClients = sortPreviewClients(clientStats);
+  const items: Awaited<ReturnType<typeof listAllAgencyTimeEntries>>["items"] = [];
+  if (previewClients.length > 0) {
     let page = 1;
     while (true) {
       const listed = await listAllAgencyTimeEntries(actorUserId, {
         ...input,
-        clientIds: previewClientIds,
         page,
         pageSize: 5_000,
       });
-      sampleItems.push(...listed.items);
-      if (sampleItems.length >= listed.total || listed.items.length < 5_000) break;
+      items.push(...listed.items);
+      if (items.length >= listed.total || listed.items.length < 5_000) break;
       page += 1;
     }
   }
 
-  const entriesByClient = new Map<string, typeof sampleItems>();
-  for (const entry of sampleItems) {
+  const entriesByClient = new Map<string, typeof items>();
+  for (const entry of items) {
     const list = entriesByClient.get(entry.clientId) ?? [];
     list.push(entry);
     entriesByClient.set(entry.clientId, list);
@@ -72,9 +70,8 @@ export async function getAgencyReportPreview(
       internalBillableSeconds: share.internalBillableSeconds,
       externalSeconds: share.externalSeconds,
     },
-    totalClientCount: picked.totalClientCount,
-    omittedClientCount: picked.omittedClientCount,
-    clients: picked.preview.map((client) => {
+    totalClientCount: previewClients.length,
+    clients: previewClients.map((client) => {
       const nonWasteSeconds = Math.max(0, client.seconds - client.wasteSeconds);
       const amount = resolveClientPreviewAmount({
         rateAmount: client.billableRateAmount,

@@ -1,20 +1,8 @@
 import { amountFromDurationAndRate } from "../billing/client-billable-income";
 
-/** First client blocks in export (name) order. The document preview never dumps the corpus. */
-export const REPORT_PREVIEW_CLIENT_LIMIT = 3;
-
-export function pickPreviewClients<T extends { clientId: string; clientName: string }>(
-  clients: readonly T[],
-  limit = REPORT_PREVIEW_CLIENT_LIMIT,
-): { preview: T[]; omittedClientCount: number; totalClientCount: number } {
-  const sorted = [...clients].sort((left, right) =>
-    left.clientName.localeCompare(right.clientName),
-  );
-  return {
-    preview: sorted.slice(0, Math.max(0, limit)),
-    omittedClientCount: Math.max(0, sorted.length - Math.max(0, limit)),
-    totalClientCount: sorted.length,
-  };
+/** Export (name) order for every client in the scoped range. */
+export function sortPreviewClients<T extends { clientName: string }>(clients: readonly T[]): T[] {
+  return [...clients].sort((left, right) => left.clientName.localeCompare(right.clientName));
 }
 
 export function resolveClientPreviewAmount(input: {

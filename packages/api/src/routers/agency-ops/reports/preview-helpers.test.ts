@@ -1,28 +1,17 @@
 import { describe, expect, test } from "bun:test";
 
-import { pickPreviewClients, resolveClientPreviewAmount } from "./preview-helpers";
+import { resolveClientPreviewAmount, sortPreviewClients } from "./preview-helpers";
 
-describe("pickPreviewClients", () => {
-  test("takes the first clients in name order and counts the rest as omitted", () => {
-    const picked = pickPreviewClients(
-      [
-        { clientId: "b", clientName: "Zebra" },
-        { clientId: "a", clientName: "Acme" },
-        { clientId: "c", clientName: "North" },
-        { clientId: "d", clientName: "Delta" },
-      ],
-      3,
-    );
+describe("sortPreviewClients", () => {
+  test("orders every client by name", () => {
+    const sorted = sortPreviewClients([
+      { clientId: "b", clientName: "Zebra" },
+      { clientId: "a", clientName: "Acme" },
+      { clientId: "c", clientName: "North" },
+      { clientId: "d", clientName: "Delta" },
+    ]);
 
-    expect(picked.preview.map((client) => client.clientName)).toEqual(["Acme", "Delta", "North"]);
-    expect(picked.omittedClientCount).toBe(1);
-    expect(picked.totalClientCount).toBe(4);
-  });
-
-  test("omits nothing when the catalog fits the limit", () => {
-    const picked = pickPreviewClients([{ clientId: "a", clientName: "Acme" }]);
-    expect(picked.omittedClientCount).toBe(0);
-    expect(picked.preview).toHaveLength(1);
+    expect(sorted.map((client) => client.clientName)).toEqual(["Acme", "Delta", "North", "Zebra"]);
   });
 });
 

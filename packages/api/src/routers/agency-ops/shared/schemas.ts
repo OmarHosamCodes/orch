@@ -293,7 +293,6 @@ export const reportsPreviewSchema = z.object({
     externalSeconds: z.number().int().nonnegative(),
   }),
   totalClientCount: z.number().int().nonnegative(),
-  omittedClientCount: z.number().int().nonnegative(),
   clients: z.array(reportsPreviewClientSchema),
 });
 
