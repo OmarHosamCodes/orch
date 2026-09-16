@@ -71,6 +71,7 @@ type WorkspaceAgentChatPanelViewProps = {
   onDismissArtifact: () => void;
   onOpenArtifactCanvas: (artifact: AiUiArtifact) => void;
   proposalBusyId: string | null;
+  proposalActionError: { proposalId: string; message: string } | null;
   planConfirmingId: string | null;
   answeredQuestionIds: ReadonlySet<string>;
   resolvedPlanIds: ReadonlySet<string>;
@@ -125,6 +126,7 @@ export function WorkspaceAgentChatPanelView({
   onDismissArtifact,
   onOpenArtifactCanvas,
   proposalBusyId,
+  proposalActionError,
   planConfirmingId,
   answeredQuestionIds,
   resolvedPlanIds,
@@ -206,6 +208,12 @@ export function WorkspaceAgentChatPanelView({
             ? proposalBusyId === stickyItem.proposal.proposalId
             : false
         }
+        proposalError={
+          stickyItem?.kind === "proposal" &&
+          proposalActionError?.proposalId === stickyItem.proposal.proposalId
+            ? proposalActionError.message
+            : null
+        }
         onQuestionSelectedOptionIdsChange={(ids) => {
           if (stickyItem?.kind !== "question") return;
           onQuestionSelectedOptionIdsChange(stickyItem.question.questionId, ids);
@@ -266,6 +274,7 @@ export function WorkspaceAgentChatPanelView({
           streamingMessageId,
           streamStopped,
           proposalBusyId,
+          proposalActionError,
           planConfirmingId,
           answeredQuestionIds,
           resolvedPlanIds,

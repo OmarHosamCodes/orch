@@ -9,6 +9,7 @@ import {
   formatAgencyQuestionAnswerMessage,
   getLastUserFileParts,
   getLastUserText,
+  resolveCreatedObjectHref,
 } from "./orch-ui-message";
 
 describe("orch-ui-message", () => {
@@ -274,31 +275,26 @@ describe("orch-ui-message", () => {
     });
   });
 
-  test("rehydrates question cards before tool traces", () => {
+  test("rehydrates knowledge created-object cards with an object href", () => {
     const [message] = dashboardMessagesToUIMessages([
       {
         id: "a1",
         role: "assistant",
-        content: "Answer the question above to continue.",
+        content: "Saved your reporting preferences.",
         attachments: [],
         contextNodeTitles: [],
         model: "test-model",
         toolsCalled: [
           {
             id: "tool-1",
-            name: "ask_agency_question",
-            input: { prompt: "Which cleanup first?", kind: "single" },
+            name: "apply_knowledge_action",
+            input: {},
             output: {
-              questionId: "aq-1",
-              prompt: "Which cleanup first?",
-              kind: "single",
-              options: [
-                { id: "standup", label: "Standup typos" },
-                { id: "internal", label: "Internal meetings" },
-              ],
-              allowFreeText: false,
-              status: "pending",
-              note: "Waiting for the user to answer in the UI.",
+              applied: true,
+              objectId: "kobj-1",
+              objectType: "note",
+              label: "personal reporting preferences",
+              boardHref: "/canvas",
             },
             status: "completed",
             error: null,
@@ -310,10 +306,12 @@ describe("orch-ui-message", () => {
     ]);
 
     expect(message?.parts.map((part) => part.type)).toEqual([
-      "data-orchQuestion",
+      "data-orchCreatedObject",
       "dynamic-tool",
       "text",
     ]);
+    const created = message?.parts.find((part) => part.type === "data-orchCreatedObject");
+    expect(created && "data" in created ? created.data.href : null).toBe("/object/kobj-1");
   });
 
   test("rehydrates plan and proposal cards from persisted tool outputs", () => {
@@ -469,5 +467,78 @@ describe("orch-ui-message", () => {
         },
       ]),
     ).toEqual(new Set(["aq-1"]));
+  });
+
+  test("strips leaked tool markup and hydrates a tool chip", () => {
+    const [message] = dashboardMessagesToUIMessages([
+      {
+        id: "a1",
+        role: "assistant",
+        content: "<|tool_call_start|>[get_agency_reports_summary()]<|tool_call_end|>",
+        attachments: [],
+        contextNodeTitles: [],
+        model: "test-model",
+        toolsCalled: [],
+        artifacts: [],
+        createdAt: "2026-07-26T00:00:00.000Z",
+      },
+    ]);
+    expect(message?.parts.map((part) => part.type)).toEqual(["dynamic-tool"]);
+    const toolPart = message?.parts[0];
+    expect(toolPart && "toolName" in toolPart ? toolPart.toolName : null).toBe(
+      "get_agency_reports_summary",
+    );
+  });
+
+  test("rewrites knowledge Open href off the canvas board", () => {
+    expect(
+      resolveCreatedObjectHref({
+        kind: "knowledge",
+        id: "kobj-1",
+        href: "/canvas",
+      }),
+    ).toBe("/object/kobj-1");
+  });
+
+  test("drops leaked tool markup from live token chunks", () => {
+    const mapEvent = createOrchEventToChunkMapper();
+    mapEvent({
+      type: "started",
+      runId: "agent-run-1",
+      conversationId: "c1",
+      createdConversation: true,
+      userMessageId: "u1",
+      assistantMessageId: "a1",
+      model: "test-model",
+    });
+    expect(
+      mapEvent({
+        type: "token",
+        delta: "<|tool_call_start|>[get_agency_reports_summary()]<|tool_call_end|>",
+      }),
+    ).toEqual([]);
+  });
+
+  test("drops leaked Calling dumps from live token chunks", () => {
+    const mapEvent = createOrchEventToChunkMapper();
+    mapEvent({
+      type: "started",
+      runId: "agent-run-1",
+      conversationId: "c1",
+      createdConversation: true,
+      userMessageId: "u1",
+      assistantMessageId: "a1",
+      model: "test-model",
+    });
+    expect(
+      mapEvent({
+        type: "token",
+        delta:
+          "I'll gather.\n[Calling get_agency_time_summary... call_id: '53820608'] [Tool result call_53820608] {'ok': true}",
+      }),
+    ).toEqual([
+      { type: "text-start", id: "a1" },
+      { type: "text-delta", id: "a1", delta: "I'll gather.\n" },
+    ]);
   });
 });

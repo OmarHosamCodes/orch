@@ -8,11 +8,14 @@ import { AgencyQuestionCardView } from "@/features/workspace-agent/agency-questi
 import { AgentMessageArtifactCardView } from "@/features/workspace-agent/agent-message-artifact-card-view";
 import { AgentStickyArchiveReceiptView } from "@/features/workspace-agent/agent-sticky-dock-view";
 import { OrchCreatedObjectCardView } from "@/features/workspace-agent/orch-created-object-card-view";
-import type {
-  OrchAgencyQuestionAnswer,
-  OrchUIDataParts,
-  OrchUIMessage,
+import { OrchToolTraceView } from "@/features/workspace-agent/orch-tool-trace-view";
+import {
+  resolveCreatedObjectHref,
+  type OrchAgencyQuestionAnswer,
+  type OrchUIDataParts,
+  type OrchUIMessage,
 } from "@/features/workspace-agent/orch-ui-message";
+import { getWorkspaceAgentToolTraceViewModel } from "@/features/workspace-agent/workspace-agent-view-models";
 import { isPartStickyDocked } from "@/features/workspace-agent/sticky-dock";
 import { WorkspaceAgentThreadMessageContext } from "@/features/workspace-agent/workspace-agent-thread-slots";
 
@@ -76,6 +79,11 @@ function OrchProposalDataPart({ data }: { data: unknown }) {
     <AgencyProposalCardView
       proposal={proposal}
       busy={ctx.proposalBusyId === proposal.proposalId}
+      error={
+        ctx.proposalActionError?.proposalId === proposal.proposalId
+          ? ctx.proposalActionError.message
+          : null
+      }
       onApprove={() => ctx.onApproveProposal(proposal.proposalId)}
       onReject={() => ctx.onRejectProposal(proposal.proposalId)}
     />
@@ -157,10 +165,38 @@ function OrchCreatedObjectDataPart({ data }: { data: unknown }) {
   const object = asCreatedObject(data);
   return (
     <OrchCreatedObjectCardView
-      object={object}
+      object={{ ...object, href: resolveCreatedObjectHref(object) }}
       onOpen={(href) => {
         if (ctx.onOpenBoard) ctx.onOpenBoard(href);
       }}
+    />
+  );
+}
+
+function renderDynamicToolPart(part: OrchUIMessage["parts"][number], index: number): ReactNode {
+  if (part.type !== "dynamic-tool") return null;
+  const status =
+    part.state === "output-error"
+      ? "error"
+      : part.state === "output-available"
+        ? "completed"
+        : "in_progress";
+  const view = getWorkspaceAgentToolTraceViewModel({
+    id: part.toolCallId,
+    name: part.toolName,
+    input: part.input,
+    output: "output" in part ? part.output : undefined,
+    status,
+    error: "errorText" in part && typeof part.errorText === "string" ? part.errorText : null,
+  });
+  return (
+    <OrchToolTraceView
+      key={index}
+      name={view.name}
+      status={view.status}
+      inputText={view.inputText}
+      outputText={view.outputText}
+      error={view.error}
     />
   );
 }
@@ -173,6 +209,9 @@ function renderPart(part: OrchUIMessage["parts"][number], index: number): ReactN
         <Markdown remarkPlugins={[remarkGfm]}>{part.text}</Markdown>
       </div>
     );
+  }
+  if (part.type === "dynamic-tool") {
+    return renderDynamicToolPart(part, index);
   }
   if (part.type === "data-orchPlan") {
     return <OrchPlanDataPart key={index} data={part.data} />;

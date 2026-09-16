@@ -1,3 +1,8 @@
+import {
+  createLeakedToolMarkupFilter,
+  extractLeakedToolCallNames,
+  stripLeakedToolCallMarkup,
+} from "@orch/agent/tool-call-markup";
 import type {
   AgentChatTurnStreamEvent,
   AgentToolCall,
@@ -197,10 +202,25 @@ export function dashboardMessagesToUIMessages(
         }
         parts.push(toolCallToDynamicPart(entry));
       }
+      const knownToolNames = new Set(
+        message.toolsCalled.map((entry) => (typeof entry === "string" ? entry : entry.name)),
+      );
+      for (const name of extractLeakedToolCallNames(message.content)) {
+        if (knownToolNames.has(name)) continue;
+        parts.push({
+          type: "dynamic-tool",
+          toolName: name,
+          toolCallId: `leaked-${name}`,
+          state: "output-available",
+          input: {},
+          output: null,
+        });
+      }
     }
 
-    if (message.content.trim()) {
-      parts.push({ type: "text", text: message.content, state: "done" });
+    const visibleContent = stripLeakedToolCallMarkup(message.content);
+    if (visibleContent) {
+      parts.push({ type: "text", text: visibleContent, state: "done" });
     }
 
     if (parts.length === 0) {
@@ -217,6 +237,26 @@ export function dashboardMessagesToUIMessages(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+export function resolveCreatedObjectHref(input: {
+  kind: "node" | "block" | "knowledge";
+  id: string;
+  href: string;
+}): string {
+  if (
+    input.kind === "knowledge" &&
+    (!input.href || input.href === "/canvas" || input.href === "/")
+  ) {
+    return `/object/${input.id}`;
+  }
+  if (
+    (input.kind === "node" || input.kind === "block") &&
+    (!input.href || input.href === "/canvas" || input.href === "/")
+  ) {
+    return `/node/${input.id}`;
+  }
+  return input.href;
 }
 
 function toolCallToPrimaryDataPart(tool: AgentToolCall): OrchUIMessage["parts"][number] | null {
@@ -237,19 +277,20 @@ function toolCallToPrimaryDataPart(tool: AgentToolCall): OrchUIMessage["parts"][
               ? output.nodeId
               : null;
       if (!id) return null;
+      const kind =
+        tool.name === "apply_knowledge_action"
+          ? ("knowledge" as const)
+          : typeof output.blockId === "string"
+            ? ("block" as const)
+            : ("node" as const);
       return {
         type: "data-orchCreatedObject",
         id,
         data: {
-          kind:
-            tool.name === "apply_knowledge_action"
-              ? "knowledge"
-              : typeof output.blockId === "string"
-                ? "block"
-                : "node",
+          kind,
           id,
           title,
-          href,
+          href: resolveCreatedObjectHref({ kind, id, href }),
         },
       };
     }
@@ -348,6 +389,7 @@ export function createOrchEventToChunkMapper() {
   let textStarted = false;
   let textId = "orch-text";
   const startedTools = new Set<string>();
+  const markupFilter = createLeakedToolMarkupFilter();
 
   return function mapEvent(event: AgentChatTurnStreamEvent): OrchUIMessageChunk[] {
     switch (event.type) {
@@ -369,12 +411,14 @@ export function createOrchEventToChunkMapper() {
         ];
       }
       case "token": {
+        const delta = markupFilter.push(event.delta);
+        if (!delta) return [];
         const chunks: OrchUIMessageChunk[] = [];
         if (!textStarted) {
           textStarted = true;
           chunks.push({ type: "text-start", id: textId });
         }
-        chunks.push({ type: "text-delta", id: textId, delta: event.delta });
+        chunks.push({ type: "text-delta", id: textId, delta });
         return chunks;
       }
       case "tool": {
@@ -434,7 +478,10 @@ export function createOrchEventToChunkMapper() {
           {
             type: "data-orchCreatedObject",
             id: event.object.id,
-            data: event.object,
+            data: {
+              ...event.object,
+              href: resolveCreatedObjectHref(event.object),
+            },
           },
         ];
       case "proposal":
@@ -457,6 +504,14 @@ export function createOrchEventToChunkMapper() {
         return [{ type: "error", errorText: event.message }];
       case "completed": {
         const chunks: OrchUIMessageChunk[] = [];
+        const rest = markupFilter.flush();
+        if (rest) {
+          if (!textStarted) {
+            textStarted = true;
+            chunks.push({ type: "text-start", id: textId });
+          }
+          chunks.push({ type: "text-delta", id: textId, delta: rest });
+        }
         if (textStarted) {
           chunks.push({ type: "text-end", id: textId });
         }

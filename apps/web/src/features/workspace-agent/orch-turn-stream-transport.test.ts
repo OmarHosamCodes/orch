@@ -41,6 +41,20 @@ describe("OrchTurnStreamTransport", () => {
     expect(first.done).toBe(false);
   });
 
+  test("reconnectToStream forwards the caller abort signal", async () => {
+    const transport = new OrchTurnStreamTransport();
+    transport.rememberRun("agent-run-1", 0);
+    const listener = new AbortController();
+    let seenSignal: AbortSignal | undefined;
+    transport.subscribeRun = async (_input, options) => {
+      seenSignal = options.signal;
+    };
+    const stream = await transport.reconnectToStream({ abortSignal: listener.signal });
+    expect(stream).not.toBeNull();
+    await stream!.getReader().read();
+    expect(seenSignal).toBe(listener.signal);
+  });
+
   test("fills Orch extras from getContext when Thread send omits body", async () => {
     const transport = new OrchTurnStreamTransport(() => ({
       surface: "canvas",

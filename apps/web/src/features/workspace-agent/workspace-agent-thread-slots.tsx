@@ -26,6 +26,7 @@ export type WorkspaceAgentThreadMessageContextValue = {
   streamingMessageId: string | null;
   streamStopped: boolean;
   proposalBusyId: string | null;
+  proposalActionError: { proposalId: string; message: string } | null;
   planConfirmingId: string | null;
   answeredQuestionIds: ReadonlySet<string>;
   resolvedPlanIds: ReadonlySet<string>;

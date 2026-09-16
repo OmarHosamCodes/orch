@@ -223,6 +223,10 @@ export function useWorkspaceAgent() {
   const [canvasOpen, setCanvasOpen] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [proposalBusyId, setProposalBusyId] = useState<string | null>(null);
+  const [proposalActionError, setProposalActionError] = useState<{
+    proposalId: string;
+    message: string;
+  } | null>(null);
   const [planConfirmingId, setPlanConfirmingId] = useState<string | null>(null);
   const [answeredQuestionIds, setAnsweredQuestionIds] = useState<Set<string>>(() => new Set());
   const [resolvedPlanIds, setResolvedPlanIds] = useState<Set<string>>(() => new Set());
@@ -243,6 +247,7 @@ export function useWorkspaceAgent() {
   const drainLockRef = useRef(false);
   const draftUpsertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const boundTaskConversationRef = useRef<string | null>(null);
+  const resumedRunIdRef = useRef<string | null>(null);
 
   const addScopeChipAndMaybeSeed = useCallback(
     (chip: AgentScopeRef, draftForSeed: string = draft) => {
@@ -357,6 +362,7 @@ export function useWorkspaceAgent() {
     setMessages,
     error: chatError,
     regenerate,
+    resumeStream,
   } = chat;
   const isStreaming = status === "streaming" || status === "submitted";
   const canSend = !isStreaming;
@@ -595,6 +601,19 @@ export function useWorkspaceAgent() {
     messages.length,
     setMessages,
   ]);
+
+  useEffect(() => {
+    const runId = activeConversation?.activeRunId;
+    if (!runId) {
+      resumedRunIdRef.current = null;
+      return;
+    }
+    if (resumedRunIdRef.current === runId || isStreaming || messages.length === 0) return;
+    resumedRunIdRef.current = runId;
+    // Fresh tab has no local chunks — replay from seq 0, not the server cursor.
+    transport.rememberRun(runId, 0);
+    void resumeStream();
+  }, [activeConversation?.activeRunId, isStreaming, messages.length, resumeStream, transport]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -1101,6 +1120,8 @@ export function useWorkspaceAgent() {
   const onApproveProposal = useCallback(
     async (proposalId: string) => {
       setProposalBusyId(proposalId);
+      setProposalActionError(null);
+      setError(null);
       try {
         const approved = await approveProposalMutation.mutateAsync(proposalId);
         setResolvedProposalIds((prev) => new Set(prev).add(proposalId));
@@ -1115,7 +1136,10 @@ export function useWorkspaceAgent() {
         await invalidateAgencyCaches();
         toast.success("Change approved and applied.");
       } catch (approveError) {
-        setError(getErrorMessage(approveError, "Failed to approve proposal."));
+        setProposalActionError({
+          proposalId,
+          message: getErrorMessage(approveError, "Failed to approve proposal."),
+        });
       } finally {
         setProposalBusyId(null);
       }
@@ -1126,12 +1150,17 @@ export function useWorkspaceAgent() {
   const onRejectProposal = useCallback(
     async (proposalId: string) => {
       setProposalBusyId(proposalId);
+      setProposalActionError(null);
+      setError(null);
       try {
         await rejectProposalMutation.mutateAsync(proposalId);
         setResolvedProposalIds((prev) => new Set(prev).add(proposalId));
         toast.message("Proposal rejected.");
       } catch (rejectError) {
-        setError(getErrorMessage(rejectError, "Failed to reject proposal."));
+        setProposalActionError({
+          proposalId,
+          message: getErrorMessage(rejectError, "Failed to reject proposal."),
+        });
       } finally {
         setProposalBusyId(null);
       }
@@ -1457,6 +1486,7 @@ export function useWorkspaceAgent() {
     closeCanvas,
     dismissArtifact,
     proposalBusyId,
+    proposalActionError,
     planConfirmingId,
     answeredQuestionIds,
     resolvedPlanIds,

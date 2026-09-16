@@ -16,6 +16,7 @@ type AgencyProposalCardViewModel = {
 type AgencyProposalCardViewProps = {
   proposal: AgencyProposalCardViewModel;
   busy: boolean;
+  error?: string | null;
   onApprove: () => void;
   onReject: () => void;
   className?: string;
@@ -47,6 +48,7 @@ function PreviewColumn({ title, value }: { title: string; value: unknown }) {
 export function AgencyProposalCardView({
   proposal,
   busy,
+  error = null,
   onApprove,
   onReject,
   className,
@@ -73,6 +75,12 @@ export function AgencyProposalCardView({
         <PreviewColumn title="Before" value={proposal.before} />
         <PreviewColumn title="After" value={proposal.after} />
       </div>
+
+      {error ? (
+        <p role="alert" className="text-xs leading-snug text-destructive">
+          {error}
+        </p>
+      ) : null}
 
       <div className="flex justify-end gap-2">
         <Button

@@ -110,7 +110,9 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
     });
   }
 
-  async reconnectToStream(): Promise<ReadableStream<OrchUIMessageChunk> | null> {
+  async reconnectToStream(options?: {
+    abortSignal?: AbortSignal;
+  }): Promise<ReadableStream<OrchUIMessageChunk> | null> {
     if (!this.runId) {
       return null;
     }
@@ -119,6 +121,7 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
     const runId = this.runId;
     const afterSeq = this.lastSeq;
     const transport = this;
+    const signal = options?.abortSignal ?? new AbortController().signal;
 
     return new ReadableStream<OrchUIMessageChunk>({
       async start(controller) {
@@ -126,7 +129,7 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
           await transport.subscribeRun(
             { runId, afterSeq },
             {
-              signal: new AbortController().signal,
+              signal,
               onEvent: (event) => {
                 transport.lastSeq += 1;
                 for (const chunk of mapEvent(event)) {

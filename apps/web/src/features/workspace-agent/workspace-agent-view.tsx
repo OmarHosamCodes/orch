@@ -106,6 +106,7 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
                     onDismissArtifact={view.dismissArtifact}
                     onOpenArtifactCanvas={view.openArtifactCanvas}
                     proposalBusyId={view.proposalBusyId}
+                    proposalActionError={view.proposalActionError}
                     planConfirmingId={view.planConfirmingId}
                     answeredQuestionIds={view.answeredQuestionIds}
                     resolvedPlanIds={view.resolvedPlanIds}

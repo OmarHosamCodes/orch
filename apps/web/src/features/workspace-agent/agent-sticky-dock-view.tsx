@@ -41,6 +41,7 @@ type AgentStickyDockViewProps = {
   questionCanSubmit: boolean;
   planConfirming: boolean;
   proposalBusy: boolean;
+  proposalError?: string | null;
   onQuestionSelectedOptionIdsChange: (ids: string[]) => void;
   onQuestionFreeTextChange: (value: string) => void;
   onAnswerQuestion: (answer: OrchAgencyQuestionAnswer) => void;
@@ -61,6 +62,7 @@ export function AgentStickyDockView({
   questionCanSubmit,
   planConfirming,
   proposalBusy,
+  proposalError = null,
   onQuestionSelectedOptionIdsChange,
   onQuestionFreeTextChange,
   onAnswerQuestion,
@@ -147,6 +149,7 @@ export function AgentStickyDockView({
               <AgencyProposalCardView
                 proposal={item.proposal}
                 busy={proposalBusy}
+                error={proposalError}
                 onApprove={() => onApproveProposal(item.proposal.proposalId)}
                 onReject={() => onRejectProposal(item.proposal.proposalId)}
                 embedded
