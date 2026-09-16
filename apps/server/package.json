@@ -15,6 +15,7 @@
     "db:import:clockify": "bun run src/operations/imports/import-clockify.ts",
     "db:import:clockify-backfill": "bun run src/operations/backfills/import-clockify-backfill.ts",
     "db:verify:clockify-backfill": "bun run src/operations/backfills/verify-clockify-backfill.ts",
+    "db:backfill:entity-icons": "bun run src/operations/backfills/backfill-entity-icons.ts",
     "cleanup:agency-operator-nodes": "bun run src/operations/maintenance/cleanup-agency-operator-nodes.ts",
     "db:seed": "bun run src/operations/seeds/seed.ts",
     "db:seed:massive": "bun run src/operations/seeds/seed-massive.ts",
