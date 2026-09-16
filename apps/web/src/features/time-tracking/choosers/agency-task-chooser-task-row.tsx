@@ -2,6 +2,7 @@ import { Star } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import {
   agencyFocusRingClass,
@@ -22,6 +23,9 @@ import { cn } from "@/lib/utils";
 type AgencyTaskChooserTaskRowProps = {
   taskId: string;
   title: string;
+  projectId: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   selected: boolean;
   bestMatch?: boolean;
   active?: boolean;
@@ -42,6 +46,9 @@ function prefersReducedMotionNow(): boolean {
 export function AgencyTaskChooserTaskRow({
   taskId,
   title,
+  projectId,
+  colorHueId,
+  iconKey,
   selected,
   bestMatch = false,
   active = false,
@@ -123,12 +130,20 @@ export function AgencyTaskChooserTaskRow({
         <span
           dir="auto"
           className={cn(
-            "min-w-0 flex-1 truncate text-sm font-normal leading-snug",
+            "flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-normal leading-snug",
             selected ? "font-medium text-primary" : "text-muted-foreground",
             !selected && bestMatch && "font-medium text-foreground",
           )}
         >
-          {highlightSearch ? <AgencySearchHighlight text={title} query={searchTerm} /> : title}
+          <AgencyEntityMark
+            name={title}
+            projectId={projectId}
+            iconKey={iconKey}
+            colorHueId={colorHueId}
+          />
+          <span className="min-w-0 truncate">
+            {highlightSearch ? <AgencySearchHighlight text={title} query={searchTerm} /> : title}
+          </span>
         </span>
       </motion.button>
       <motion.button

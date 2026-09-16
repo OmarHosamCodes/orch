@@ -2,6 +2,7 @@ import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
+import { AgencyEntityIconPickerView } from "@/features/shared/agency-entity-icon-picker-view";
 import { agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
 import { AgencyMemberChooser } from "@/features/shared/choosers/agency-member-chooser";
 import { AGENCY_CURRENCY_OPTIONS, formatRate } from "@/features/shared/format-rate";
@@ -27,6 +28,8 @@ export function AgencyMyTasksEditDialogView({
     members,
     title,
     setTitle,
+    iconKey,
+    setIconKey,
     assignedToTeam,
     setAssignedToTeam,
     assigneeUserIds,
@@ -70,6 +73,13 @@ export function AgencyMyTasksEditDialogView({
                 "h-9 rounded-lg border-default bg-default text-sm",
                 agencyInputPlaceholderClass,
               )}
+            />
+
+            <AgencyEntityIconPickerView
+              name={title}
+              value={iconKey}
+              onChange={setIconKey}
+              disabled={pending}
             />
 
             <div className="flex flex-wrap items-center gap-2">

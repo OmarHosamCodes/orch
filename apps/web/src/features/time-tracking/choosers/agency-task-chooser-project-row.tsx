@@ -2,7 +2,7 @@ import { ChevronDown, Plus, Star } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 
-import { AgencyProjectHueDot } from "@/features/shared/agency-project-hue-dot";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import {
   agencyFocusRingClass,
@@ -22,6 +22,7 @@ type AgencyTaskChooserProjectRowProps = {
   projectName: string;
   clientName: string;
   colorHueId?: number | null;
+  iconKey?: string | null;
   taskCount: number;
   expanded: boolean;
   favorited: boolean;
@@ -44,6 +45,7 @@ export function AgencyTaskChooserProjectRow({
   projectName,
   clientName,
   colorHueId,
+  iconKey,
   taskCount,
   expanded,
   favorited,
@@ -82,7 +84,12 @@ export function AgencyTaskChooserProjectRow({
         onClick={onToggle}
         aria-expanded={pickMode ? undefined : expanded}
       >
-        <AgencyProjectHueDot projectId={projectId} colorHueId={colorHueId} className="size-2" />
+        <AgencyEntityMark
+          name={projectName}
+          projectId={projectId}
+          iconKey={iconKey}
+          colorHueId={colorHueId}
+        />
         <span className="min-w-0 flex-1 truncate text-sm leading-snug">
           <span
             className="font-semibold text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"

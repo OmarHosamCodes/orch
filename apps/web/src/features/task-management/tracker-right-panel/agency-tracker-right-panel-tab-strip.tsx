@@ -24,11 +24,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/ui/context-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export type AgencyTrackerRightPanelTabStripProps = {

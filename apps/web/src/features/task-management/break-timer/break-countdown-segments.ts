@@ -197,7 +197,8 @@ export function selectBreakCountdownSegmentInInput(
     input.setSelectionRange(start, end);
     return;
   }
-  const caret = segmentIndex === 0 ? start + (slotIndex as BreakMinuteSlotIndex) : start + slotIndex;
+  const caret =
+    segmentIndex === 0 ? start + (slotIndex as BreakMinuteSlotIndex) : start + slotIndex;
   input.setSelectionRange(caret, caret);
 }
 

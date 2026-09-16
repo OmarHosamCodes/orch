@@ -1,4 +1,4 @@
-import { AgencyProjectHueDot } from "@/features/shared/agency-project-hue-dot";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { agencyWorkMetaClass } from "@/features/shared/agency-ui";
 import { projectHueStyle } from "@/features/shared/project-palette";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,9 @@ type AgencyTimeEntryProjectLabelProps = {
   projectName: string;
   clientName?: string;
   taskTitle?: string;
+  colorHueId?: number | null;
+  taskIconKey?: string | null;
+  projectIconKey?: string | null;
   format?: "project-client" | "task-project" | "task-client";
   className?: string;
 };
@@ -17,14 +20,25 @@ export function AgencyTimeEntryProjectLabel({
   projectName,
   clientName,
   taskTitle,
+  colorHueId,
+  taskIconKey,
+  projectIconKey,
   format = "project-client",
   className,
 }: AgencyTimeEntryProjectLabelProps) {
-  const projectStyle = projectHueStyle(projectId);
+  const projectStyle = projectHueStyle(projectId, colorHueId);
+  const boundTaskTitle = taskTitle?.trim() || null;
+  const markName =
+    (format === "task-client" || format === "task-project") && boundTaskTitle
+      ? boundTaskTitle
+      : projectName;
+  const markIconKey =
+    (format === "task-client" || format === "task-project") && boundTaskTitle
+      ? (taskIconKey ?? null)
+      : (projectIconKey ?? null);
 
   if (format === "task-client") {
-    const resolvedTaskTitle = taskTitle?.trim();
-    if (!resolvedTaskTitle) {
+    if (!boundTaskTitle) {
       // Project-only entry: show project · client instead of a misleading "Task" placeholder.
       return (
         <span
@@ -34,7 +48,12 @@ export function AgencyTimeEntryProjectLabel({
             className,
           )}
         >
-          <AgencyProjectHueDot projectId={projectId} />
+          <AgencyEntityMark
+            name={projectName}
+            projectId={projectId}
+            iconKey={projectIconKey}
+            colorHueId={colorHueId}
+          />
           <span
             className="truncate font-medium text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"
             style={projectStyle}
@@ -54,12 +73,17 @@ export function AgencyTimeEntryProjectLabel({
           className,
         )}
       >
-        <AgencyProjectHueDot projectId={projectId} />
+        <AgencyEntityMark
+          name={markName}
+          projectId={projectId}
+          iconKey={markIconKey}
+          colorHueId={colorHueId}
+        />
         <span
           className="truncate font-medium text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"
           style={projectStyle}
         >
-          {resolvedTaskTitle}
+          {boundTaskTitle}
         </span>
         <span className="truncate">- {clientName || "General"}</span>
       </span>
@@ -75,7 +99,12 @@ export function AgencyTimeEntryProjectLabel({
           className,
         )}
       >
-        <AgencyProjectHueDot projectId={projectId} />
+        <AgencyEntityMark
+          name={markName}
+          projectId={projectId}
+          iconKey={markIconKey}
+          colorHueId={colorHueId}
+        />
         <span
           className="truncate font-medium text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"
           style={projectStyle}
@@ -95,7 +124,12 @@ export function AgencyTimeEntryProjectLabel({
         className,
       )}
     >
-      <AgencyProjectHueDot projectId={projectId} />
+      <AgencyEntityMark
+        name={projectName}
+        projectId={projectId}
+        iconKey={projectIconKey}
+        colorHueId={colorHueId}
+      />
       <span
         className="truncate font-medium text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"
         style={projectStyle}

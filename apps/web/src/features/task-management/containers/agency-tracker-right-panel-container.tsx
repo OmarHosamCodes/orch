@@ -73,14 +73,16 @@ export function AgencyTrackerRightPanelContainer({
                       const stagger = railStaggerIndex(rowIndex++);
                       const project = tasksView.projects.find((item) => item.id === task.projectId);
                       const assignerMember =
-                        tasksView.members.find((member) => member.userId === task.createdByUserId) ??
-                        null;
+                        tasksView.members.find(
+                          (member) => member.userId === task.createdByUserId,
+                        ) ?? null;
                       return (
                         <AgencyMyTasksRailRow
                           key={task.id}
                           task={task}
                           view={tasksView}
                           projectName={project?.name ?? "Project"}
+                          colorHueId={project?.colorHueId}
                           assignerMember={assignerMember}
                           variants={railListItemVariants}
                           stagger={stagger}

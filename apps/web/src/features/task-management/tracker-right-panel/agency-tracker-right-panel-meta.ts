@@ -95,9 +95,7 @@ export function buildTrackerRightPanelCollapsedRailGroups(input: {
 
     const isRunning =
       kind === "break"
-        ? kindSurfaces.some(
-            (surface) => surface.kind === "break" && isBreakRunning(surface),
-          )
+        ? kindSurfaces.some((surface) => surface.kind === "break" && isBreakRunning(surface))
         : kind === "my-tasks" &&
           kindSurfaces.some((surface) => input.pendingSurfaceIds.has(surface.id));
 

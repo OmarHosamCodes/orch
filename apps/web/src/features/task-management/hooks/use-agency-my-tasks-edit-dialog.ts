@@ -1,3 +1,4 @@
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -33,6 +34,8 @@ export type AgencyMyTasksEditDialogViewModel = {
   members: AgencyMemberOption[];
   title: string;
   setTitle: (value: string) => void;
+  iconKey: AgencyEntityIconKey | null;
+  setIconKey: (value: AgencyEntityIconKey | null) => void;
   assignedToTeam: boolean;
   setAssignedToTeam: (value: boolean) => void;
   assigneeUserIds: string[];
@@ -60,6 +63,7 @@ export type AgencyMyTasksEditDialogViewModel = {
 function emptyDraft(): MyTasksEditDraft {
   return {
     title: "",
+    iconKey: null,
     assignedToTeam: false,
     assigneeUserIds: [],
     estimateMinutes: null,
@@ -164,6 +168,10 @@ export function useAgencyMyTasksEditDialog({
     setDraft((prev) => ({ ...prev, title: value }));
   }
 
+  function setIconKey(value: AgencyEntityIconKey | null) {
+    setDraft((prev) => ({ ...prev, iconKey: value }));
+  }
+
   function setAssignedToTeam(value: boolean) {
     setDraft((prev) => ({
       ...prev,
@@ -215,6 +223,7 @@ export function useAgencyMyTasksEditDialog({
         teamId,
         taskId: task.id,
         title: draft.title.trim(),
+        iconKey: draft.iconKey !== baseline.iconKey ? draft.iconKey : undefined,
         assignedToTeam: draft.assignedToTeam,
         assigneeUserIds: draft.assignedToTeam ? [] : draft.assigneeUserIds,
         estimateMinutes: draft.estimateMinutes,
@@ -237,6 +246,8 @@ export function useAgencyMyTasksEditDialog({
     members,
     title: draft.title,
     setTitle,
+    iconKey: draft.iconKey,
+    setIconKey,
     assignedToTeam: draft.assignedToTeam,
     setAssignedToTeam,
     assigneeUserIds: draft.assigneeUserIds,

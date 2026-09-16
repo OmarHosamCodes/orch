@@ -203,6 +203,9 @@ export function AgencyDescriptionDatalistField({
                           projectName={option.projectName}
                           clientName={option.clientName || undefined}
                           taskTitle={option.taskTitle ?? undefined}
+                          colorHueId={option.colorHueId}
+                          taskIconKey={option.taskIconKey}
+                          projectIconKey={option.projectIconKey}
                           className="min-w-0 max-w-full"
                         />
                       </button>

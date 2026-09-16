@@ -16,6 +16,7 @@ describe("myTasksEditDraftFromTask", () => {
   test("copies fields and sorts assignee ids", () => {
     expect(myTasksEditDraftFromTask(task)).toEqual({
       title: "Loyal Rev",
+      iconKey: null,
       assignedToTeam: false,
       assigneeUserIds: ["u1", "u2"],
       estimateMinutes: 60,

@@ -85,12 +85,7 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
       }
     }
     return pending;
-  }, [
-    runningTaskOnMyTasks,
-    surfaces,
-    tasksView.isAddingTask,
-    tasksView.runningTaskId,
-  ]);
+  }, [runningTaskOnMyTasks, surfaces, tasksView.isAddingTask, tasksView.runningTaskId]);
 
   const surfaceMenuItems = useMemo(
     () => buildSurfaceMenuItems(canOpenSurface),
@@ -111,12 +106,7 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
     function isTypingTarget(target: EventTarget | null): boolean {
       if (!(target instanceof HTMLElement)) return false;
       const tag = target.tagName;
-      return (
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        tag === "SELECT" ||
-        target.isContentEditable
-      );
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;

@@ -72,7 +72,9 @@ export function useAgencyTaskRow(props: AgencyTaskRowProps) {
   } = props;
   const [editingDescription, setEditingDescription] = useState(false);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
-  const projectName = projects.find((project) => project.id === task.projectId)?.name ?? "Project";
+  const project = projects.find((item) => item.id === task.projectId);
+  const projectName = project?.name ?? "Project";
+  const projectColorHueId = project?.colorHueId ?? null;
   const isSelected = task.id === selectedTaskId;
   const completionCount = task.viewerCompletionCount ?? 0;
   const isDone = readOnly || task.viewerStatus === "done";
@@ -154,6 +156,7 @@ export function useAgencyTaskRow(props: AgencyTaskRowProps) {
     showAllAssignees,
     nested,
     projectName,
+    projectColorHueId,
     isSelected,
     completionCount,
     isDone,

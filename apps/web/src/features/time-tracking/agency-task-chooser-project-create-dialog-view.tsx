@@ -1,6 +1,7 @@
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
+import { AgencyEntityIconPickerView } from "@/features/shared/agency-entity-icon-picker-view";
 import { AgencySearchSelect } from "@/features/shared/agency-search-select";
 import {
   agencyFocusRingClass,
@@ -30,6 +31,8 @@ export function AgencyTaskChooserProjectCreateDialogView({
     setClientId,
     colorHueId,
     setColorHueId,
+    iconKey,
+    setIconKey,
     templateId,
     setTemplateId,
     palette,
@@ -114,6 +117,19 @@ export function AgencyTaskChooserProjectCreateDialogView({
                   aria-label="Template"
                 />
               </div>
+            </div>
+
+            <div className={agencyFormFieldClass}>
+              <span id={`${formId}-icon-label`} className={agencyFormLabelClass}>
+                Icon
+              </span>
+              <AgencyEntityIconPickerView
+                name={projectName}
+                value={iconKey}
+                onChange={setIconKey}
+                disabled={isPending}
+                labelledBy={`${formId}-icon-label`}
+              />
             </div>
 
             <div className={agencyFormFieldClass}>

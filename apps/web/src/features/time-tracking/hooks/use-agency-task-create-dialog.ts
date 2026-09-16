@@ -1,5 +1,7 @@
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { useEffect, useId, useState, type FormEvent } from "react";
 
+import { useAgencyEntityIconDraft } from "@/features/shared/use-agency-entity-icon-draft";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 
 export type UseAgencyTaskCreateDialogOptions = {
@@ -14,6 +16,8 @@ export type AgencyTaskCreateDialogViewModel = {
   formId: string;
   title: string;
   setTitle: (value: string) => void;
+  iconKey: AgencyEntityIconKey | null;
+  setIconKey: (value: AgencyEntityIconKey | null) => void;
   canSubmit: boolean;
   isPending: boolean;
   handleSubmit: (event: FormEvent) => Promise<void>;
@@ -28,6 +32,7 @@ export function useAgencyTaskCreateDialog({
 }: UseAgencyTaskCreateDialogOptions): AgencyTaskCreateDialogViewModel {
   const formId = useId();
   const [title, setTitle] = useState("");
+  const { displayIconKey, setIconKey, submitIconKey } = useAgencyEntityIconDraft(title, open);
   const createProjectTask = useAgencyOpsStore((state) => state.createProjectTask);
   const isPending = useAgencyOpsStore((state) => state.isCreatingTask);
 
@@ -45,6 +50,7 @@ export function useAgencyTaskCreateDialog({
       teamId,
       projectId,
       title: title.trim(),
+      iconKey: submitIconKey,
       successToast: false,
     });
 
@@ -58,6 +64,8 @@ export function useAgencyTaskCreateDialog({
     formId,
     title,
     setTitle,
+    iconKey: displayIconKey,
+    setIconKey,
     canSubmit,
     isPending,
     handleSubmit,

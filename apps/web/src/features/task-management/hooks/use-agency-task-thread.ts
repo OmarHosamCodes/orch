@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 import type { AgencyTaskMessage } from "@orch/api/routers/agency-ops/task-messages/schemas";
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 
 import { findProjectTaskInCache } from "@/features/shared/agency-query-cache";
 import { toAgencyMemberOption } from "@/features/shared/agency-member-option";
@@ -275,6 +276,9 @@ export function useAgencyTaskThread({
 
   return {
     title,
+    projectId,
+    colorHueId: resolvedProject?.colorHueId ?? null,
+    iconKey: cachedTask?.iconKey ?? null,
     projectLabel,
     assignedToTeam,
     assignees,
@@ -311,6 +315,13 @@ export function useAgencyTaskThread({
     onTitleCancel,
     onAssignedToTeamChange,
     onAssigneeUserIdsChange,
+    onChangeIcon: (iconKey: AgencyEntityIconKey | null) => {
+      void updateProjectTask({
+        teamId,
+        taskId,
+        iconKey,
+      });
+    },
     onComposerContentChange: setComposerContent,
     onComposerPickFiles: (files: File[]) => {
       setComposerFiles((prev) => [...prev, ...files].slice(0, 10));

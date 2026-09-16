@@ -6,8 +6,11 @@ export type DescriptionSuggestionEntry = {
   description: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey?: string | null;
   projectId: string;
   projectName: string;
+  colorHueId?: number | null;
+  projectIconKey?: string | null;
   clientName: string;
   /** ISO datetime from the source entry; used for recency / time-of-day ranking. */
   startedAt?: string;
@@ -17,8 +20,11 @@ export type DescriptionDatalistOption = {
   description: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey?: string | null;
   projectId: string;
   projectName: string;
+  colorHueId?: number | null;
+  projectIconKey?: string | null;
   clientName: string;
   /** How many recent entries collapsed into this compound. */
   frequency: number;
@@ -77,8 +83,11 @@ export function buildDescriptionDatalistOptions(
           description,
           taskId: entry.taskId,
           taskTitle: entry.taskTitle,
+          taskIconKey: entry.taskIconKey,
           projectId: entry.projectId,
           projectName: entry.projectName,
+          colorHueId: entry.colorHueId,
+          projectIconKey: entry.projectIconKey,
           clientName: entry.clientName,
         },
       });
@@ -92,8 +101,11 @@ export function buildDescriptionDatalistOptions(
         description,
         taskId: entry.taskId,
         taskTitle: entry.taskTitle,
+        taskIconKey: entry.taskIconKey,
         projectId: entry.projectId,
         projectName: entry.projectName,
+        colorHueId: entry.colorHueId,
+        projectIconKey: entry.projectIconKey,
         clientName: entry.clientName,
       };
     }

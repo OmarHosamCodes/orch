@@ -15,6 +15,7 @@ export type ChooserProject = {
   clientName: string;
   clientId?: string;
   colorHueId?: number | null;
+  iconKey?: string | null;
 };
 
 export type ChooserTask = {
@@ -22,6 +23,7 @@ export type ChooserTask = {
   projectId: string;
   title: string;
   status: string;
+  iconKey?: string | null;
 };
 
 export type ChooserProjectGroup = {

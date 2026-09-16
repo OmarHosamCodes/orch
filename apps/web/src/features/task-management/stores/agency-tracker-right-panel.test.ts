@@ -64,7 +64,9 @@ describe("agency-tracker-right-panel store", () => {
     expect(first).not.toBe(second);
     expect(useAgencyTrackerRightPanelStore.getState().surfaces).toHaveLength(2);
     expect(
-      useAgencyTrackerRightPanelStore.getState().surfaces.every((surface) => surface.kind === "break"),
+      useAgencyTrackerRightPanelStore
+        .getState()
+        .surfaces.every((surface) => surface.kind === "break"),
     ).toBe(true);
   });
 

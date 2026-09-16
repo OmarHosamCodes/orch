@@ -40,12 +40,13 @@ import {
   type TaskChooserKeyboardItem,
 } from "@/features/time-tracking/agency-task-chooser-keyboard";
 
-type Project = Pick<AgencyProject, "id" | "clientId" | "clientName" | "name"> & {
-  colorHueId?: number | null;
-};
+type Project = Pick<
+  AgencyProject,
+  "id" | "clientId" | "clientName" | "name" | "colorHueId" | "iconKey"
+>;
 type AgencyTask = Pick<
   AgencyProjectTask,
-  "id" | "projectId" | "title" | "status" | "assignedToTeam" | "assignees"
+  "id" | "projectId" | "title" | "status" | "assignedToTeam" | "assignees" | "iconKey"
 >;
 
 type AgencyTaskChooserClientOption = {
@@ -246,6 +247,7 @@ export function useAgencyTaskChooser(
       clientId: cached?.clientId ?? "",
       clientName: fallbackClientName ?? cached?.clientName ?? "",
       colorHueId: cached?.colorHueId ?? null,
+      iconKey: cached?.iconKey ?? null,
     };
   }, [fallbackClientName, fallbackProjectId, fallbackProjectName, projectsById, selectedProject]);
 

@@ -27,7 +27,10 @@ export function AgencyTrackerRightPanelCollapsedRailView({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex h-full w-full min-w-0 flex-col items-center" aria-label="Panel collapsed">
+      <div
+        className="flex h-full w-full min-w-0 flex-col items-center"
+        aria-label="Panel collapsed"
+      >
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -98,7 +101,9 @@ export function AgencyTrackerRightPanelCollapsedRailView({
                           : group.kind === "my-tasks"
                             ? "bg-success text-success-foreground"
                             : "bg-muted-foreground/80 text-background",
-                        group.kind === "my-tasks" && !group.isRunning && agencyMyTasksCountTickClass,
+                        group.kind === "my-tasks" &&
+                          !group.isRunning &&
+                          agencyMyTasksCountTickClass,
                       )}
                     >
                       {badge}

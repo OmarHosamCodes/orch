@@ -22,11 +22,6 @@ export function AgencyWorkSurface({ teamId, onSegmentChange }: AgencyWorkSurface
   }
 
   return (
-    <AgencyWorkSurfaceRootView
-      view={view}
-      trackerControl={null}
-      content={null}
-      taskRail={null}
-    />
+    <AgencyWorkSurfaceRootView view={view} trackerControl={null} content={null} taskRail={null} />
   );
 }

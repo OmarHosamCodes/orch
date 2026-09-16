@@ -55,6 +55,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
     open,
     searchTerm,
     triggerProject,
+    selectedTask,
     triggerTaskTitle,
     favorites,
     clientGroups,
@@ -123,6 +124,9 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
             taskTitle={triggerTaskTitle}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
+            taskIconKey={selectedTask?.iconKey}
             className="min-w-0"
           />
         );
@@ -134,6 +138,8 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectId={triggerProject.id}
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
             className="min-w-0"
           />
         );
@@ -147,6 +153,8 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectId={triggerProject.id}
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
             className="min-w-0"
           />
         );
@@ -175,6 +183,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
           projectName={entry.project.name}
           clientName={entry.project.clientName}
           colorHueId={entry.project.colorHueId}
+          iconKey={entry.project.iconKey}
           taskCount={entry.tasks.length}
           expanded={expanded}
           favorited={favorited}
@@ -211,6 +220,9 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                       key={task.id}
                       taskId={task.id}
                       title={task.title}
+                      projectId={entry.project.id}
+                      colorHueId={entry.project.colorHueId}
+                      iconKey={task.iconKey}
                       selected={task.id === value}
                       bestMatch={Boolean(bestMatchTaskId) && task.id === bestMatchTaskId}
                       active={activeOptionKey === taskOptionKey}

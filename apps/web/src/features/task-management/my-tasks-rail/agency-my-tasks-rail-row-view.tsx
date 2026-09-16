@@ -2,6 +2,7 @@ import { Check, MoreVertical } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import type { ReactNode, KeyboardEvent } from "react";
 
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import {
   agencyMyTasksCheckPopClass,
@@ -36,7 +37,10 @@ import { cn } from "@/lib/utils";
 type AgencyMyTasksRailRowViewProps = {
   taskId: string;
   title: string;
+  projectId: string;
   projectName: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   assigner: MyTasksAssignerDisplay;
   timeConsumer: MyTasksTimeConsumerDisplay | null;
   isDone: boolean;
@@ -61,7 +65,10 @@ type AgencyMyTasksRailRowViewProps = {
 export function AgencyMyTasksRailRowView({
   taskId,
   title,
+  projectId,
   projectName,
+  colorHueId,
+  iconKey,
   assigner,
   timeConsumer,
   isDone,
@@ -153,33 +160,41 @@ export function AgencyMyTasksRailRowView({
       </motion.button>
 
       <div className="min-w-0">
-        <motion.button
-          type="button"
-          className={cn(
-            "max-w-full truncate text-left text-sm font-medium text-foreground",
-            "cursor-pointer underline-offset-2 hover:underline hover:text-highlighted",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
-          )}
-          aria-expanded={isThreadOpen}
-          aria-label={`Open thread for ${title}`}
-          initial={false}
-          animate={{
-            opacity: isDone ? 0.65 : 1,
-            x: isDone ? 2 : 0,
-          }}
-          transition={railRowStateTransition}
-          style={{
-            textDecorationLine: isDone ? "line-through" : undefined,
-            textDecorationColor:
-              "color-mix(in oklch, var(--color-muted-foreground) 80%, transparent)",
-          }}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenThread();
-          }}
-        >
-          {title}
-        </motion.button>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <AgencyEntityMark
+            name={title}
+            projectId={projectId}
+            iconKey={iconKey}
+            colorHueId={colorHueId}
+          />
+          <motion.button
+            type="button"
+            className={cn(
+              "min-w-0 max-w-full truncate text-left text-sm font-medium text-foreground",
+              "cursor-pointer underline-offset-2 hover:underline hover:text-highlighted",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
+            )}
+            aria-expanded={isThreadOpen}
+            aria-label={`Open thread for ${title}`}
+            initial={false}
+            animate={{
+              opacity: isDone ? 0.65 : 1,
+              x: isDone ? 2 : 0,
+            }}
+            transition={railRowStateTransition}
+            style={{
+              textDecorationLine: isDone ? "line-through" : undefined,
+              textDecorationColor:
+                "color-mix(in oklch, var(--color-muted-foreground) 80%, transparent)",
+            }}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenThread();
+            }}
+          >
+            {title}
+          </motion.button>
+        </div>
         <motion.div
           className="mt-0.5 truncate text-xs text-muted"
           initial={false}

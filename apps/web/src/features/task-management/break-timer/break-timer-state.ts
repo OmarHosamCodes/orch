@@ -92,7 +92,10 @@ export function resetBreakTimer(
   return createBreakTimerFields(nextDuration);
 }
 
-export function setBreakDuration(fields: BreakTimerFields, durationSeconds: number): BreakTimerFields {
+export function setBreakDuration(
+  fields: BreakTimerFields,
+  durationSeconds: number,
+): BreakTimerFields {
   if (fields.startedAt != null) return fields;
   return {
     ...fields,
@@ -109,7 +112,10 @@ export function formatBreakCountdown(totalSeconds: number): string {
 }
 
 export function clampCustomBreakMinutes(minutes: number): number {
-  return Math.min(BREAK_CUSTOM_MAX_MINUTES, Math.max(BREAK_CUSTOM_MIN_MINUTES, Math.round(minutes)));
+  return Math.min(
+    BREAK_CUSTOM_MAX_MINUTES,
+    Math.max(BREAK_CUSTOM_MIN_MINUTES, Math.round(minutes)),
+  );
 }
 
 export type ParseBreakDurationResult =
