@@ -23,6 +23,7 @@ export type AgencyOpsJourneyStepStatus = "planned" | "active" | "done" | "blocke
 export type AgencyOpsProjectTaskMemberStatus = "open" | "in_progress" | "done";
 export type AgencyOpsClientCategory = "internal" | "external";
 export type AgencyOpsFavoriteKind = "project" | "task";
+export type AgencyOpsEntityIconSource = "auto" | "manual";
 export type AgencyOpsProjectTemplateMilestone = {
   title: string;
   assigneeUserIds?: string[];
@@ -73,6 +74,8 @@ export const agencyOpsProject = pgTable(
       .references(() => agencyOpsClient.id, { onDelete: "restrict" }),
     name: text("name").notNull(),
     colorHueId: integer("color_hue_id"),
+    iconKey: text("icon_key"),
+    iconSource: text("icon_source").$type<AgencyOpsEntityIconSource>().notNull().default("auto"),
     /** Optional override; null inherits the client billable rate. */
     billableRateAmount: integer("billable_rate_amount"),
     currency: text("currency").notNull().default("USD"),
@@ -150,6 +153,8 @@ export const agencyOpsProjectTask = pgTable(
       .notNull()
       .references(() => agencyOpsProject.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    iconKey: text("icon_key"),
+    iconSource: text("icon_source").$type<AgencyOpsEntityIconSource>().notNull().default("auto"),
     status: text("status").$type<AgencyOpsProjectTaskStatus>().notNull().default("open"),
     taskKind: text("task_kind").$type<AgencyOpsProjectTaskKind>().notNull().default("standard"),
     assignedToTeam: boolean("assigned_to_team").notNull().default(false),
@@ -544,10 +549,7 @@ export const agencyOpsActiveTimerLink = pgTable(
   },
   (table) => [
     index("agency_ops_active_timer_link_timer_idx").on(table.activeTimerId),
-    index("agency_ops_active_timer_link_timer_sort_idx").on(
-      table.activeTimerId,
-      table.sortOrder,
-    ),
+    index("agency_ops_active_timer_link_timer_sort_idx").on(table.activeTimerId, table.sortOrder),
   ],
 );
 

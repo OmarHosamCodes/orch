@@ -470,6 +470,13 @@
       "when": 1787900000043,
       "tag": "0068_dashboard_conversation_task",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1787900000044,
+      "tag": "0069_agency_entity_icons",
+      "breakpoints": true
     }
   ]
 }
