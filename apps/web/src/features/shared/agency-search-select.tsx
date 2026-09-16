@@ -1,12 +1,13 @@
-import { Check, ChevronDown, Search } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { agencyListSearchMatches } from "@/features/shared/agency-list-search";
-import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
-import { Input } from "@/ui/input";
+import {
+  AgencyPickerEmpty,
+  AgencyPickerRow,
+  AgencyPickerSearch,
+  AgencyPickerTrigger,
+} from "@/features/shared/pickers/agency-picker-shell";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { agencyFocusRingClass, agencyInputPlaceholderClass } from "@/features/shared/agency-ui";
-import { cn } from "@/lib/utils";
 
 type AgencySearchSelectOption = {
   value: string;
@@ -44,7 +45,6 @@ export function AgencySearchSelect({
 }: AgencySearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const isChip = variant === "chip";
 
   const selectedOption = useMemo(() => {
     if (!value) return emptyOption ?? null;
@@ -76,105 +76,40 @@ export function AgencySearchSelect({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <button
+        <AgencyPickerTrigger
           id={id}
-          type="button"
+          variant={variant}
+          glyph={selectedGlyph}
+          label={selectedLabel}
+          open={open}
+          filled={Boolean(value || emptyOption)}
           disabled={disabled}
           aria-label={ariaLabel}
-          aria-expanded={open}
-          className={cn(
-            "flex min-w-0 items-center gap-1.5 font-sans",
-            "transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
-            "hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
-            agencyFocusRingClass,
-            "motion-reduce:transition-none",
-            isChip
-              ? "h-8 w-fit max-w-full rounded-full border border-default bg-elevated px-2 text-xs font-semibold"
-              : "h-9 w-full rounded-xl border border-default bg-default px-2.5 text-sm",
-            value || emptyOption ? "text-foreground" : "text-muted",
-            className,
-          )}
-        >
-          {selectedGlyph ? (
-            <span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
-              {selectedGlyph}
-            </span>
-          ) : null}
-          <span className="min-w-0 flex-1 truncate text-left">{selectedLabel}</span>
-          <ChevronDown
-            className={cn(
-              "shrink-0 opacity-70 transition-transform duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
-              open && "rotate-180",
-              isChip ? "size-3" : "size-3.5",
-              "motion-reduce:transition-none",
-            )}
-            aria-hidden
-          />
-        </button>
+          className={className}
+        />
       </PopoverTrigger>
       <PopoverContent align="start" size="chooser" className="z-[60] overflow-hidden p-0">
-        <div className="shrink-0 border-b border-border p-2">
-          <div className="relative">
-            <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
-            <Input
-              autoFocus
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={searchPlaceholder}
-              aria-label={searchPlaceholder}
-              className={cn(
-                "h-9 rounded-lg border-default bg-default pl-8 font-sans text-base md:text-sm",
-                agencyInputPlaceholderClass,
-              )}
-            />
-          </div>
-        </div>
+        <AgencyPickerSearch
+          autoFocus
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder={searchPlaceholder}
+        />
         <div className="min-h-0 max-h-64 overflow-y-auto p-1">
           {filteredOptions.length === 0 ? (
-            <p className="px-3 py-4 text-center text-xs text-muted">No matches.</p>
+            <AgencyPickerEmpty>No matches.</AgencyPickerEmpty>
           ) : (
-            filteredOptions.map((option) => {
-              const selected = option.value === value;
-              return (
-                <button
-                  key={option.value || "__empty"}
-                  type="button"
-                  aria-pressed={selected}
-                  className={cn(
-                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-start",
-                    "transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent",
-                    selected && "bg-accent text-accent-foreground",
-                    agencyFocusRingClass,
-                    "motion-reduce:transition-none",
-                  )}
-                  onClick={() => handleSelect(option.value)}
-                >
-                  {option.glyph ? (
-                    <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full">
-                      {option.glyph}
-                    </span>
-                  ) : null}
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span
-                      className={cn(
-                        "min-w-0 text-sm font-medium break-words",
-                        selected ? "text-primary" : "text-highlighted",
-                      )}
-                    >
-                      <AgencySearchHighlight text={option.label} query={searchTerm} />
-                    </span>
-                    {option.description ? (
-                      <span className="text-[11px] text-muted-foreground break-words">
-                        {option.description}
-                      </span>
-                    ) : null}
-                  </span>
-                  {selected ? (
-                    <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
-                  ) : null}
-                </button>
-              );
-            })
+            filteredOptions.map((option) => (
+              <AgencyPickerRow
+                key={option.value || "__empty"}
+                glyph={option.glyph}
+                label={option.label}
+                query={searchTerm}
+                description={option.description}
+                selected={option.value === value}
+                onSelect={() => handleSelect(option.value)}
+              />
+            ))
           )}
         </div>
       </PopoverContent>
