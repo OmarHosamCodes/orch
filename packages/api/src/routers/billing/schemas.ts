@@ -34,6 +34,13 @@ export const checkoutUrlSchema = z.object({
   url: z.string().url(),
 });
 
+export const checkoutKindSchema = z.enum(["agency", "credits"]);
+
+export const confirmCheckoutResultSchema = z.object({
+  billing: teamBillingSnapshotSchema,
+  checkoutKind: checkoutKindSchema,
+});
+
 export const billingStateSchema = z.object({
   plan: z.enum(AGENCY_PLANS),
   tier: z.enum(TIERS),

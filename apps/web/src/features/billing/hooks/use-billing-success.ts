@@ -48,20 +48,13 @@ export function useBillingSuccess() {
 
     void (async () => {
       try {
-        const snapshot = await orpcClient.billing.confirmCheckout({
+        const result = await orpcClient.billing.confirmCheckout({
           teamId,
           checkoutId,
         });
         queryClient.invalidateQueries({ queryKey: billingStateQueryKey(teamId) });
 
-        const nextStatus = resolveCheckoutConfirmationStatus(snapshot);
-        if (nextStatus === "error") {
-          setErrorMessage("This checkout did not activate Agency billing for the team.");
-          setStatus("error");
-          return;
-        }
-
-        setStatus(nextStatus);
+        setStatus(resolveCheckoutConfirmationStatus(result.checkoutKind));
       } catch (error) {
         setErrorMessage(getErrorMessage(error, "We couldn't confirm this checkout."));
         setStatus("error");

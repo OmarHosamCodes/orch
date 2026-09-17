@@ -91,10 +91,15 @@ export async function createCreditCheckout(
   });
 }
 
+export type ConfirmCheckoutResult = {
+  billing: Awaited<ReturnType<typeof getTeamBilling>>;
+  checkoutKind: "agency" | "credits";
+};
+
 export async function confirmCheckout(
   actorUserId: string,
   input: { teamId: string; checkoutId: string },
-) {
+): Promise<ConfirmCheckoutResult> {
   await requireTeamMembership(actorUserId, input.teamId);
 
   const checkout = await fetchPolarCheckout(input.checkoutId);
@@ -117,7 +122,7 @@ export async function confirmCheckout(
         message: "This checkout did not add Orch credits to the team.",
       });
     }
-    return snapshot;
+    return { billing: snapshot, checkoutKind: "credits" };
   }
 
   if (isPolarProProduct(checkout.productId)) {
@@ -141,7 +146,7 @@ export async function confirmCheckout(
         message: "Agency billing is not active for this team yet.",
       });
     }
-    return snapshot;
+    return { billing: snapshot, checkoutKind: "agency" };
   }
 
   throw new ORPCError("BAD_REQUEST", {

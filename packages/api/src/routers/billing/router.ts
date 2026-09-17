@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   billingStateSchema,
   checkoutUrlSchema,
-  teamBillingSnapshotSchema,
+  confirmCheckoutResultSchema,
 } from "./schemas";
 import {
   confirmCheckout,
@@ -44,6 +44,6 @@ export const billingRouter = {
       }),
     )
     .handler(async ({ context, input }) =>
-      teamBillingSnapshotSchema.parse(await confirmCheckout(context.session.user.id, input)),
+      confirmCheckoutResultSchema.parse(await confirmCheckout(context.session.user.id, input)),
     ),
 };

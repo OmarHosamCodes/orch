@@ -20,11 +20,12 @@ mock.module("../../billing-polar-checkout", () => ({
   fetchPolarCheckout,
 }));
 
-const [{ db }, { user }, teamService, billingService, { env }] = await Promise.all([
+const [{ db }, { user }, teamService, billingService, billingTeam, { env }] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema/auth"),
   import("../team/service"),
   import("./service"),
+  import("../../billing-team"),
   import("@orch/env/server"),
 ]);
 
@@ -155,12 +156,13 @@ describe("confirmCheckout", () => {
       status: "succeeded",
     }));
 
-    const snapshot = await billingService.confirmCheckout(ownerId, {
+    const result = await billingService.confirmCheckout(ownerId, {
       teamId: team.id,
       checkoutId: "chk_confirm",
     });
 
-    expect(snapshot).toMatchObject({
+    expect(result.checkoutKind).toBe("agency");
+    expect(result.billing).toMatchObject({
       teamId: team.id,
       plan: "agency",
       seats: 2,
@@ -202,12 +204,37 @@ describe("confirmCheckout", () => {
       status: "succeeded",
     }));
 
-    const snapshot = await billingService.confirmCheckout(ownerId, {
+    const result = await billingService.confirmCheckout(ownerId, {
       teamId: team.id,
       checkoutId: "chk_credits",
     });
 
-    expect(snapshot.orchCreditsRemaining).toBe(100);
+    expect(result.checkoutKind).toBe("credits");
+    expect(result.billing.orchCreditsRemaining).toBe(100);
+  });
+
+  test("classifies credit checkout as credits on an already paid Agency team", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Agency Credits" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: "polar-credits",
+      seats: 1,
+      subscriptionId: null,
+      status: "succeeded",
+    }));
+
+    const result = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId: "chk_credits_agency",
+    });
+
+    expect(result.checkoutKind).toBe("credits");
+    expect(result.billing.plan).toBe("agency");
+    expect(result.billing.orchCreditsRemaining).toBe(100);
   });
 
   test("rejects checkout for an unknown Polar product", async () => {

@@ -5,10 +5,7 @@ export type BillingSuccessStatus =
   | "credits_added"
   | "error";
 
-type CheckoutConfirmationSnapshot = {
-  plan: "trial" | "leftover" | "agency" | "agency_unlimited";
-  orchCreditsRemaining: number;
-};
+export type CheckoutKind = "agency" | "credits";
 
 /** `useShellBootGate` expects dataReady — false while confirmation is in flight. */
 export function isBillingSuccessDataReady(status: BillingSuccessStatus): boolean {
@@ -16,15 +13,16 @@ export function isBillingSuccessDataReady(status: BillingSuccessStatus): boolean
 }
 
 export function resolveCheckoutConfirmationStatus(
-  snapshot: CheckoutConfirmationSnapshot,
-): "agency_active" | "credits_added" | "error" {
-  if (snapshot.plan === "agency" || snapshot.plan === "agency_unlimited") {
-    return "agency_active";
+  checkoutKind: CheckoutKind,
+): "agency_active" | "credits_added" {
+  switch (checkoutKind) {
+    case "agency":
+      return "agency_active";
+    case "credits":
+      return "credits_added";
+    default: {
+      const _exhaustive: never = checkoutKind;
+      return _exhaustive;
+    }
   }
-
-  if (snapshot.orchCreditsRemaining > 0) {
-    return "credits_added";
-  }
-
-  return "error";
 }

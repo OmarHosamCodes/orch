@@ -19,27 +19,12 @@ describe("isBillingSuccessDataReady", () => {
 });
 
 describe("resolveCheckoutConfirmationStatus", () => {
-  test("maps paid Agency plans to agency_active", () => {
-    expect(
-      resolveCheckoutConfirmationStatus({ plan: "agency", orchCreditsRemaining: 0 }),
-    ).toBe("agency_active");
-    expect(
-      resolveCheckoutConfirmationStatus({ plan: "agency_unlimited", orchCreditsRemaining: 0 }),
-    ).toBe("agency_active");
+  test("maps Polar checkout kind to UI status", () => {
+    expect(resolveCheckoutConfirmationStatus("agency")).toBe("agency_active");
+    expect(resolveCheckoutConfirmationStatus("credits")).toBe("credits_added");
   });
 
-  test("maps credit-only snapshots to credits_added", () => {
-    expect(
-      resolveCheckoutConfirmationStatus({ plan: "trial", orchCreditsRemaining: 100 }),
-    ).toBe("credits_added");
-    expect(
-      resolveCheckoutConfirmationStatus({ plan: "leftover", orchCreditsRemaining: 50 }),
-    ).toBe("credits_added");
-  });
-
-  test("rejects unchanged trial without credits", () => {
-    expect(
-      resolveCheckoutConfirmationStatus({ plan: "trial", orchCreditsRemaining: 0 }),
-    ).toBe("error");
+  test("credit checkout stays credits_added even when billing plan is Agency", () => {
+    expect(resolveCheckoutConfirmationStatus("credits")).toBe("credits_added");
   });
 });
