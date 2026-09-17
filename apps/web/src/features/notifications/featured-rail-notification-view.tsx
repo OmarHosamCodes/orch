@@ -48,7 +48,7 @@ export function FeaturedRailNotificationView({ view }: FeaturedRailNotificationV
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-center gap-1.5">
             <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-            <p className="truncate text-[11px] font-medium text-muted-foreground">
+            <p className="truncate text-[11px] font-medium tabular-nums text-muted-foreground">
               {view.isAppUpdate ? "Update" : "Needs action"}
               {!view.isAppUpdate && view.relativeTime ? (
                 <span className="text-muted-foreground/80"> · {view.relativeTime}</span>
@@ -87,16 +87,12 @@ export function FeaturedRailNotificationView({ view }: FeaturedRailNotificationV
           size="sm"
           className="h-8 w-full rounded-full bg-sidebar-foreground text-xs font-semibold text-sidebar hover:bg-sidebar-foreground/90"
           disabled={view.actionPending}
+          aria-busy={view.actionPending}
           onClick={view.onPrimaryCta}
         >
-          {view.actionPending ? (
-            <Loader2 className="size-3.5 animate-spin" aria-hidden />
-          ) : (
-            <>
-              {view.ctaLabel}
-              <ArrowRight className="size-3.5" aria-hidden />
-            </>
-          )}
+          {view.actionPending ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+          {view.ctaLabel}
+          {view.actionPending ? null : <ArrowRight className="size-3.5" aria-hidden />}
         </Button>
         {view.moreLabel ? (
           <button

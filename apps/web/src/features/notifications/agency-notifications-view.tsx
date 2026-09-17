@@ -156,7 +156,7 @@ function InboxNotificationRow({
                     <NotificationSentence parts={parts} />
                   </p>
                 )}
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
                   {view.formatRelativeTime(notification.createdAt)}
                 </p>
               </div>
@@ -183,16 +183,12 @@ function InboxNotificationRow({
                 size="sm"
                 className="mt-2.5 h-8 w-full rounded-full text-xs font-semibold"
                 disabled={pending}
+                aria-busy={pending}
                 onClick={() => view.onPrimaryAction(notification)}
               >
-                {pending ? (
-                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                ) : (
-                  <>
-                    {cta.label}
-                    <ArrowRight className="size-3.5" aria-hidden />
-                  </>
-                )}
+                {pending ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+                {cta.label}
+                {pending ? null : <ArrowRight className="size-3.5" aria-hidden />}
               </Button>
             ) : (
               <Button
@@ -274,7 +270,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
               disabled={!view.hasUnread || view.markAllReadPending}
               onClick={view.onMarkAllRead}
             >
-              Mark all read
+              Mark all as read
             </Button>
           ) : null}
         </div>
@@ -287,9 +283,9 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
           ) : (
             <div className="max-h-[420px] space-y-3 overflow-y-auto px-3 py-3">
               <div className="space-y-2 rounded-xl border border-border/50 px-3 py-2.5">
-                <p className="text-sm font-medium text-foreground">Focus & quiet hours</p>
+                <p className="text-sm font-medium text-foreground">Focus and quiet hours</p>
                 <p className="text-xs text-muted-foreground">
-                  Push pauses while you focus or during quiet hours. The inbox still fills.
+                  Push pauses during focus or quiet hours. New items still appear in your inbox.
                 </p>
                 <div className="flex items-center gap-2 pt-1">
                   <Checkbox
@@ -432,7 +428,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
         {view.showPushPrompt ? (
           <div className="border-t border-border/60 px-3 py-2.5">
             <p className="text-xs text-muted-foreground">
-              Enable push only when something needs you — assignments and replies, not every update.
+              Enable push only when something needs you. Assignments and replies, not every update.
             </p>
             <div className="mt-2 flex items-center gap-2">
               <Button
@@ -442,7 +438,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
                 disabled={view.pushBusy}
                 onClick={view.onEnablePush}
               >
-                Enable
+                Enable push
               </Button>
               <Button
                 type="button"

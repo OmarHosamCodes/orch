@@ -37,7 +37,7 @@ export function FeaturedRailAlertsView({ view }: FeaturedRailAlertsViewProps) {
         <div
           className={cn(
             "inline-flex h-7 w-10 shrink-0 items-center justify-center",
-            instrumentPlateInkClass("warning"),
+            instrumentPlateInkClass(view.plate.tone),
           )}
         >
           <AlertPlateGlyph
