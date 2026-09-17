@@ -17,12 +17,14 @@ import { Button } from "@/ui/button";
 type AgencyMyTasksEditDialogViewProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  canEditRecords: boolean;
   viewModel: AgencyMyTasksEditDialogViewModel;
 };
 
 export function AgencyMyTasksEditDialogView({
   open,
   onOpenChange,
+  canEditRecords,
   viewModel,
 }: AgencyMyTasksEditDialogViewProps) {
   const {
@@ -57,17 +59,28 @@ export function AgencyMyTasksEditDialogView({
     onCancel,
   } = viewModel;
 
+  const fieldsDisabled = pending || !canEditRecords;
+
   return (
     <AgencyCompactDialog open={open} onOpenChange={onOpenChange} showCloseButton={!pending}>
       <AgencyCompactDialogHeader title="Edit task" description={projectLabel} />
-      <AgencyCompactDialogForm id={formId} onSubmit={(event) => void handleSubmit(event)}>
+      <AgencyCompactDialogForm
+        id={formId}
+        onSubmit={(event) => {
+          if (!canEditRecords) {
+            event.preventDefault();
+            return;
+          }
+          void handleSubmit(event);
+        }}
+      >
         <AgencyCompactDialogBody>
           <AgencyIdentityField
             value={title}
             onChange={setTitle}
             placeholder="Task name"
-            autoFocus
-            disabled={pending}
+            autoFocus={canEditRecords}
+            disabled={fieldsDisabled}
             iconKey={iconKey}
             onIconChange={setIconKey}
             aria-label="Task name"
@@ -89,12 +102,12 @@ export function AgencyMyTasksEditDialogView({
               placeholder="Assignees"
               triggerVariant="stack"
               contentAlign="start"
-              disabled={pending}
+              disabled={fieldsDisabled}
               className="shrink-0"
             />
             <AgencyMyTasksEstimatePopover
               value={estimateMinutes}
-              disabled={pending}
+              disabled={fieldsDisabled}
               onChange={setEstimateMinutes}
             />
           </AgencyCompactDialogMeta>
@@ -109,7 +122,7 @@ export function AgencyMyTasksEditDialogView({
               onCurrencyChange={setBillableRateCurrency}
               currencyOptions={AGENCY_CURRENCY_OPTIONS}
               placeholder="Inherit"
-              disabled={pending}
+              disabled={fieldsDisabled}
               preview={
                 ratePreviewAmount != null
                   ? `≈ ${formatRate(ratePreviewAmount, agencyCurrency, { perHour: true })}`
@@ -125,11 +138,13 @@ export function AgencyMyTasksEditDialogView({
         </AgencyCompactDialogBody>
         <AgencyCompactDialogFooter>
           <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={pending}>
-            Cancel
+            {canEditRecords ? "Cancel" : "Close"}
           </Button>
-          <Button type="submit" size="sm" disabled={!canSubmit} form={formId}>
-            Save
-          </Button>
+          {canEditRecords ? (
+            <Button type="submit" size="sm" disabled={!canSubmit} form={formId}>
+              Save
+            </Button>
+          ) : null}
         </AgencyCompactDialogFooter>
       </AgencyCompactDialogForm>
     </AgencyCompactDialog>

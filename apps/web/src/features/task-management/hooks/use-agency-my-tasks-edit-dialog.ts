@@ -10,7 +10,7 @@ import {
 } from "@/features/shared/format-rate";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import {
-  canSaveMyTasksEdit,
+  canSubmitMyTasksEditDialog,
   myTasksEditDraftFromTask,
   type MyTasksEditDraft,
 } from "@/features/task-management/agency-my-tasks-edit-draft";
@@ -159,7 +159,8 @@ export function useAgencyMyTasksEditDialog({
         )
       : null;
 
-  const canSubmit = canSaveMyTasksEdit({
+  const canSubmit = canSubmitMyTasksEditDialog({
+    canEditRecords,
     draft,
     baseline,
     pending,
@@ -208,7 +209,7 @@ export function useAgencyMyTasksEditDialog({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canEditRecords || !canSubmit) return;
     setEditError(null);
     try {
       const rateChanged =

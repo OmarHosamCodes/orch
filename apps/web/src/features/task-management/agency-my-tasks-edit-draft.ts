@@ -76,3 +76,14 @@ export function canSaveMyTasksEdit(args: {
   if (args.billableRateAmountValid === false) return false;
   return isMyTasksEditDraftDirty(args.baseline, args.draft);
 }
+
+export function canSubmitMyTasksEditDialog(args: {
+  canEditRecords: boolean;
+  draft: MyTasksEditDraft;
+  baseline: MyTasksEditDraft;
+  pending: boolean;
+  billableRateAmountValid?: boolean;
+}): boolean {
+  if (!args.canEditRecords) return false;
+  return canSaveMyTasksEdit(args);
+}

@@ -10,6 +10,11 @@ export function AgencyMyTasksEditDialogContainer(props: AgencyMyTasksEditDialogP
   const { open, onOpenChange } = props;
   const viewModel = useAgencyMyTasksEditDialog(props);
   return (
-    <AgencyMyTasksEditDialogView open={open} onOpenChange={onOpenChange} viewModel={viewModel} />
+    <AgencyMyTasksEditDialogView
+      open={open}
+      onOpenChange={onOpenChange}
+      canEditRecords={viewModel.canEditRecords}
+      viewModel={viewModel}
+    />
   );
 }

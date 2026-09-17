@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   canSaveMyTasksEdit,
+  canSubmitMyTasksEditDialog,
   isMyTasksEditDraftDirty,
   myTasksEditDraftFromTask,
 } from "./agency-my-tasks-edit-draft";
@@ -89,5 +90,31 @@ describe("canSaveMyTasksEdit", () => {
       }),
     ).toBe(false);
     expect(canSaveMyTasksEdit({ baseline, draft: baseline, pending: false })).toBe(false);
+  });
+});
+
+describe("canSubmitMyTasksEditDialog", () => {
+  const baseline = myTasksEditDraftFromTask(task);
+
+  test("viewer cannot submit even when draft is dirty", () => {
+    expect(
+      canSubmitMyTasksEditDialog({
+        canEditRecords: false,
+        baseline,
+        draft: { ...baseline, title: "Loyal Rev 2" },
+        pending: false,
+      }),
+    ).toBe(false);
+  });
+
+  test("editor can submit when save rules pass", () => {
+    expect(
+      canSubmitMyTasksEditDialog({
+        canEditRecords: true,
+        baseline,
+        draft: { ...baseline, title: "Loyal Rev 2" },
+        pending: false,
+      }),
+    ).toBe(true);
   });
 });
