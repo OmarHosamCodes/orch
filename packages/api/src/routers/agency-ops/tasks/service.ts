@@ -264,6 +264,7 @@ export async function listAgencyProjectTasks(
     search?: string;
     page?: number;
     pageSize?: number;
+    detail?: "full" | "chooser";
   },
 ) {
   await requireTeamMembership(actorUserId, input.teamId, "viewer");
@@ -394,6 +395,7 @@ export async function listAgencyProjectTasks(
   const pageSize = Math.min(100, Math.max(1, input.pageSize ?? 50));
   const offset = (page - 1) * pageSize;
   const whereClause = and(...filters);
+  const chooserDetail = input.detail === "chooser";
 
   const countSelect = {
     count: wantsDoneByCompletion
@@ -402,17 +404,14 @@ export async function listAgencyProjectTasks(
   };
 
   // Always join project/client so trash + archived-client filters apply (search also needs them).
-  const [countRow] = await db
+  const countQuery = db
     .select(countSelect)
     .from(agencyOpsProjectTask)
     .innerJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsProjectTask.projectId))
     .innerJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
     .where(whereClause);
 
-  const parsedTotal = Number(countRow?.count ?? 0);
-  const total = Number.isFinite(parsedTotal) && parsedTotal >= 0 ? parsedTotal : 0;
-
-  const rows = await db
+  const rowsQuery = db
     .select(projectTaskSelectWithParentRates)
     .from(agencyOpsProjectTask)
     .innerJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsProjectTask.projectId))
@@ -424,6 +423,11 @@ export async function listAgencyProjectTasks(
     .limit(pageSize)
     .offset(offset);
 
+  const [countRow, rows] = await Promise.all([countQuery, rowsQuery]);
+
+  const parsedTotal = Number(countRow[0]?.count ?? 0);
+  const total = Number.isFinite(parsedTotal) && parsedTotal >= 0 ? parsedTotal : 0;
+
   const assigneesByTask = await loadTaskAssignees(rows.map((row) => row.id));
   const memberStatusesByTask = input.assigneeUserId
     ? await loadTaskMemberStatuses(rows.map((row) => row.id))
@@ -434,10 +438,12 @@ export async function listAgencyProjectTasks(
         input.assigneeUserId,
       )
     : undefined;
-  const trackedSecondsByTask = await loadTaskTrackedSeconds(
-    rows.map((row) => row.id),
-    actorUserId,
-  );
+  const trackedSecondsByTask = chooserDetail
+    ? new Map<string, number>()
+    : await loadTaskTrackedSeconds(
+        rows.map((row) => row.id),
+        actorUserId,
+      );
 
   return {
     items: await Promise.all(
@@ -448,10 +454,14 @@ export async function listAgencyProjectTasks(
           input.assigneeUserId,
           memberStatusesByTask?.get(row.id),
           blueprintsByTask?.get(row.id),
-        ).then((task) => ({
-          ...task,
-          totalTrackedSeconds: trackedSecondsByTask.get(row.id) ?? 0,
-        })),
+        ).then((task) =>
+          chooserDetail
+            ? task
+            : {
+                ...task,
+                totalTrackedSeconds: trackedSecondsByTask.get(row.id) ?? 0,
+              },
+        ),
       ),
     ),
     page,

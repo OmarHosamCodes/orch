@@ -29,6 +29,7 @@ export const tasksRouter = {
           search: z.string().optional(),
           page: z.number().int().min(1).optional(),
           pageSize: z.number().int().min(1).max(100).optional(),
+          detail: z.enum(["full", "chooser"]).optional(),
         }),
       )
       .handler(async ({ context, input }) => {

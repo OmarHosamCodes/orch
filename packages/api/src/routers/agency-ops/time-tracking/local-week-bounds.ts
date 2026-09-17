@@ -26,6 +26,19 @@ export function getLocalWeekStartKeyFromDateKey(
   return getWeekStartKey(dateKey, weekStartsOn);
 }
 
+export function applyDailyDurationTotals(
+  summaries: Map<string, { daily: Map<string, number>; totalSeconds: number }>,
+  rows: Array<{ dateKey: string; totalSeconds: number }>,
+  weekStartsOn: number = DEFAULT_WORK_SCHEDULE.weekStartsOn,
+): void {
+  for (const row of rows) {
+    const summary = summaries.get(getLocalWeekStartKeyFromDateKey(row.dateKey, weekStartsOn));
+    if (!summary) continue;
+    summary.daily.set(row.dateKey, (summary.daily.get(row.dateKey) ?? 0) + row.totalSeconds);
+    summary.totalSeconds += row.totalSeconds;
+  }
+}
+
 export function localInstantFromDateKey(
   dateKey: string,
   utcOffsetMinutes: number,
