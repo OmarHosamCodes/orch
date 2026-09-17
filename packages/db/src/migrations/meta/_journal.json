@@ -491,6 +491,13 @@
       "when": 1787900000046,
       "tag": "0071_tracker_list_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1787900000047,
+      "tag": "0072_workspace_team_billing",
+      "breakpoints": true
     }
   ]
 }

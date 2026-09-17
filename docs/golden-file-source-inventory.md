@@ -19,9 +19,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1022 |
+| golden-feature | 1024 |
 | server-operation | 13 |
-| shared-infrastructure | 420 |
+| shared-infrastructure | 421 |
 | static-presentation | 17 |
 
 ## Counts by domain
@@ -38,7 +38,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | clients | 15 |
 | configuration | 3 |
 | dashboard | 13 |
-| database-platform | 46 |
+| database-platform | 47 |
 | deployment | 6 |
 | environment | 5 |
 | integrations | 2 |
@@ -52,10 +52,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | resourcing | 46 |
 | server-platform | 25 |
 | task-management | 121 |
-| team | 19 |
+| team | 20 |
 | time-tracking | 127 |
 | web-platform | 163 |
-| workspace | 138 |
+| workspace | 139 |
 
 ## Artifacts
 
@@ -1474,6 +1474,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/migrations/0069_agency_entity_icons.sql` | agency-shared | persistence-migration | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical persistence-migration layer. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0070_conversation_last_read.sql` | agent | persistence-migration | golden-feature | agent-domain | Feature-owned agent artifact in the canonical persistence-migration layer. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0071_tracker_list_indexes.sql` | agency-shared | persistence-migration | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical persistence-migration layer. | content: SQL schema mutation statements; structure: ordered migration path |
+| `packages/db/src/migrations/0072_workspace_team_billing.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/meta/0000_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0001_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0002_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
@@ -1489,6 +1490,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/schema/auth.ts` | auth | persistence-schema | golden-feature | identity-domain | Feature-owned auth artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/index.ts` | database-platform | persistence-schema | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-schema support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/notifications.ts` | notifications | persistence-schema | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
+| `packages/db/src/schema/team-billing.ts` | team | persistence-schema | golden-feature | team-domain | Feature-owned team artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/team.ts` | team | persistence-schema | golden-feature | team-domain | Feature-owned team artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/workspace-knowledge.ts` | workspace | persistence-schema | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/src/schema/workspace.ts` | workspace | persistence-schema | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
@@ -1518,6 +1520,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/workspace/src/strategy.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/workspace/src/tasks.test.ts` | workspace | test | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/workspace/src/tasks.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
+| `packages/workspace/src/tiers.test.ts` | workspace | test | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/workspace/src/tiers.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/workspace/src/types.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/workspace/tsconfig.json` | workspace | build-config | shared-infrastructure | workspace-domain | Cross-cutting workspace build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata; structure: recognized build, test, database, runtime, or package config |
