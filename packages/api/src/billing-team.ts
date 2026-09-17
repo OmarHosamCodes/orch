@@ -50,14 +50,33 @@ export async function getTeamBilling(
   teamId: string,
   now = new Date(),
 ): Promise<TeamBillingSnapshot> {
-  const [billing] = await db
+  let [billing] = await db
     .select()
     .from(workspaceTeamBilling)
     .where(eq(workspaceTeamBilling.teamId, teamId))
     .limit(1);
 
   if (!billing) {
-    throw notEntitledError();
+    const [team] = await db
+      .select({ id: workspaceTeam.id })
+      .from(workspaceTeam)
+      .where(eq(workspaceTeam.id, teamId))
+      .limit(1);
+
+    if (!team) {
+      throw notEntitledError();
+    }
+
+    await insertTrialBilling(db, teamId, now);
+    [billing] = await db
+      .select()
+      .from(workspaceTeamBilling)
+      .where(eq(workspaceTeamBilling.teamId, teamId))
+      .limit(1);
+
+    if (!billing) {
+      throw notEntitledError();
+    }
   }
 
   const resolvedPlan = resolvePlanAt({

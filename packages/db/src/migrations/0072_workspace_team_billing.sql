@@ -11,3 +11,20 @@ CREATE TABLE "workspace_team_billing" (
   "updated_at" timestamp DEFAULT now() NOT NULL
 );
 CREATE UNIQUE INDEX "workspace_team_billing_polar_sub_idx" ON "workspace_team_billing" ("polar_subscription_id");
+
+-- Existing agencies predate this table. Give each one the same initial
+-- trial as a newly created personal agency; lifetime owners resolve to
+-- agency_unlimited at read time.
+INSERT INTO "workspace_team_billing" (
+  "team_id",
+  "plan",
+  "seats",
+  "trial_ends_at"
+)
+SELECT
+  "id",
+  'trial',
+  1,
+  now() + interval '30 days'
+FROM "workspace_team"
+ON CONFLICT ("team_id") DO NOTHING;

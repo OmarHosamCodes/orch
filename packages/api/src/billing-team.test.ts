@@ -5,7 +5,7 @@ Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
 const [
   { db },
-  { workspaceTeamBilling },
+  { workspaceTeam, workspaceTeamBilling, workspaceTeamMember },
   { user },
   teamService,
   ensurePersonalAgencyModule,
@@ -41,7 +41,58 @@ async function createFixtureUser(input: { lifetimePro?: boolean } = {}) {
   return id;
 }
 
+async function createUnbilledTeam(ownerId: string) {
+  const now = new Date();
+  const teamId = `team-unbilled-${crypto.randomUUID()}`;
+  await db.insert(workspaceTeam).values({
+    id: teamId,
+    name: "Pre-billing Agency",
+    createdByUserId: ownerId,
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.insert(workspaceTeamMember).values({
+    id: `team-member-unbilled-${crypto.randomUUID()}`,
+    teamId,
+    userId: ownerId,
+    role: "owner",
+    createdAt: now,
+    updatedAt: now,
+  });
+  return teamId;
+}
+
 describe("team billing snapshot", () => {
+  test("repairs an unbilled Lifetime Pro Agency as Unlimited", async () => {
+    const ownerId = await createFixtureUser({ lifetimePro: true });
+    const teamId = await createUnbilledTeam(ownerId);
+
+    await expect(
+      billingTeam.getTeamBilling(teamId, new Date("2026-09-17T00:00:00.000Z")),
+    ).resolves.toMatchObject({
+      plan: "agency_unlimited",
+      seats: 1,
+    });
+  });
+
+  test("repairs an unbilled regular Agency with a trial", async () => {
+    const ownerId = await createFixtureUser();
+    const teamId = await createUnbilledTeam(ownerId);
+
+    await expect(
+      billingTeam.getTeamBilling(teamId, new Date("2026-09-17T00:00:00.000Z")),
+    ).resolves.toMatchObject({
+      plan: "trial",
+    });
+    expect(
+      await db
+        .select()
+        .from(workspaceTeamBilling)
+        .where(eq(workspaceTeamBilling.teamId, teamId))
+        .limit(1),
+    ).toHaveLength(1);
+  });
+
   test("Lifetime Pro maps the owned personal Agency to Unlimited after the trial clock", async () => {
     const ownerId = await createFixtureUser({ lifetimePro: true });
     const memberId = await createFixtureUser();
