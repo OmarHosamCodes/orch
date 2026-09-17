@@ -16,7 +16,9 @@ function hasRoleAtLeast(role: WorkspaceTeamRole, required: WorkspaceTeamRole) {
   return TEAM_ROLE_WEIGHT[role] >= TEAM_ROLE_WEIGHT[required];
 }
 
-export function insufficientRoleError(required: WorkspaceTeamRole): ORPCError {
+export function insufficientRoleError(
+  required: WorkspaceTeamRole,
+): ORPCError<"FORBIDDEN", { code: "insufficient_role" }> {
   return new ORPCError("FORBIDDEN", {
     message:
       required === "owner"

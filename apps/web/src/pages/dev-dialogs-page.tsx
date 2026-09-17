@@ -210,6 +210,7 @@ function MyTasksEditEntry() {
       <AgencyMyTasksEditDialogView
         open={open}
         onOpenChange={setOpen}
+        canEditRecords
         viewModel={
           {
             formId: "dev-task-edit",
