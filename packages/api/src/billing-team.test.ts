@@ -18,6 +18,7 @@ const [
   billingTeam,
   clientsService,
   projectsService,
+  tasksService,
 ] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema"),
@@ -27,6 +28,7 @@ const [
   import("./billing-team"),
   import("./routers/agency-ops/clients/service"),
   import("./routers/agency-ops/projects/service"),
+  import("./routers/agency-ops/tasks/service"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -690,5 +692,113 @@ describe("create service volume caps", () => {
         and(eq(agencyOpsProject.teamId, team.id), eq(agencyOpsProject.name, journeyName)),
       );
     expect(rows).toHaveLength(0);
+  });
+
+  test("createAgencyProjectTask rejects the 3rd trial task and does not insert it", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    const [project] = await db
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: "P",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsProject.id });
+    await db.insert(agencyOpsProjectTask).values(
+      Array.from({ length: 2 }, (_, i) => ({
+        id: createWorkspaceId("agency-project-task"),
+        teamId: team.id,
+        projectId: project!.id,
+        title: `T${i}`,
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    );
+    await expect(
+      tasksService.createAgencyProjectTask(ownerId, {
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Overflow",
+      }),
+    ).rejects.toMatchObject({ data: { code: "limit_reached" } });
+    const rows = await db
+      .select()
+      .from(agencyOpsProjectTask)
+      .where(eq(agencyOpsProjectTask.projectId, project!.id));
+    expect(rows).toHaveLength(2);
+  });
+
+  test("createAgencyProjectTask title merge at cap does not throw", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    const [project] = await db
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: "P",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsProject.id });
+    await db.insert(agencyOpsProjectTask).values([
+      {
+        id: createWorkspaceId("agency-project-task"),
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Alpha",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: createWorkspaceId("agency-project-task"),
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Beta",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await expect(
+      tasksService.createAgencyProjectTask(ownerId, {
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Alpha",
+      }),
+    ).resolves.toMatchObject({ title: "Alpha" });
   });
 });

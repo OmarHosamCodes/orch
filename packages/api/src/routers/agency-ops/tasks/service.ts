@@ -43,6 +43,7 @@ import {
   readStoredEntityIcon,
   type AgencyEntityIconKey,
 } from "../shared/entity-icon-catalog";
+import { assertWithinLimit } from "../../../billing-team";
 
 async function createTaskBlueprintForViewer(
   teamId: string,
@@ -574,6 +575,10 @@ export async function createAgencyProjectTask(
 
   try {
     const [created] = await db.transaction(async (tx) => {
+      await assertWithinLimit(input.teamId, "tasksPerProject", {
+        projectId: input.projectId,
+        tx,
+      });
       const [task] = await tx
         .insert(agencyOpsProjectTask)
         .values({
