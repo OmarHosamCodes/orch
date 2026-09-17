@@ -1,4 +1,4 @@
-import { Bot, Coffee, ListTodo } from "lucide-react";
+import { Coffee, ListTodo } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { TrackerRightPanelSurfaceKind } from "@/features/task-management/stores/agency-tracker-right-panel";
@@ -31,12 +31,6 @@ const SURFACE_MENU_ITEMS: Omit<AgencyTrackerRightPanelSurfaceMenuItem, "disabled
     label: "Break",
     shortcut: "B",
     icon: <Coffee className="size-4 shrink-0" strokeWidth={2} aria-hidden />,
-  },
-  {
-    kind: "agent",
-    label: "Agent",
-    shortcut: "A",
-    icon: <Bot className="size-4 shrink-0" strokeWidth={2} aria-hidden />,
   },
 ];
 

@@ -81,25 +81,4 @@ describe("buildTrackerRightPanelCollapsedRailGroups", () => {
     expect(groups[0]?.badgeCount).toBe(2);
   });
 
-  test("includes agent group when agent surface is open", () => {
-    const agent = surface({ id: "agent-1", kind: "agent" });
-
-    const groups = buildTrackerRightPanelCollapsedRailGroups({
-      surfaces: [agent],
-      activeSurfaceId: "agent-1",
-      pendingSurfaceIds: new Set(),
-      openTaskCount: 0,
-    });
-
-    expect(groups).toEqual([
-      {
-        kind: "agent",
-        count: 1,
-        targetSurfaceId: "agent-1",
-        isActiveKind: true,
-        isRunning: false,
-        badgeCount: null,
-      },
-    ]);
-  });
 });

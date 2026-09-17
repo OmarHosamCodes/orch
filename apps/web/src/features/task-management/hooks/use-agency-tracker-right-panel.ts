@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAgencyMyTasksRail } from "@/features/task-management/hooks/use-agency-my-tasks-rail";
 import { buildSurfaceMenuItems } from "@/features/task-management/tracker-right-panel/agency-tracker-right-panel-surface-menu-view";
 import {
+  TRACKER_RIGHT_PANEL_AGENT_ENABLED,
   useAgencyTrackerRightPanelStore,
   type TrackerRightPanelSurface,
   type TrackerRightPanelSurfaceKind,
@@ -38,6 +39,14 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    if (TRACKER_RIGHT_PANEL_AGENT_ENABLED) return;
+    const { surfaces, closeSurface } = useAgencyTrackerRightPanelStore.getState();
+    for (const surface of surfaces) {
+      if (surface.kind === "agent") closeSurface(surface.id);
+    }
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => tickBreaks(), 1000);
@@ -119,9 +128,6 @@ export function useAgencyTrackerRightPanel({ teamId }: UseAgencyTrackerRightPane
       } else if (key === "b" && canOpenSurface("break")) {
         event.preventDefault();
         onOpenSurfaceKind("break");
-      } else if (key === "a" && canOpenSurface("agent")) {
-        event.preventDefault();
-        onOpenSurfaceKind("agent");
       }
     }
     window.addEventListener("keydown", onKeyDown);

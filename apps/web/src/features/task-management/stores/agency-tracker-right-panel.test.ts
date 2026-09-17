@@ -46,16 +46,20 @@ describe("agency-tracker-right-panel store", () => {
     expect(state.activeSurfaceId).toBeNull();
   });
 
-  test("canOpenSurface enforces singleton my-tasks and agent", () => {
+  test("canOpenSurface enforces singleton my-tasks and hides agent for now", () => {
     const store = useAgencyTrackerRightPanelStore.getState();
     expect(store.canOpenSurface("my-tasks")).toBe(true);
     expect(store.canOpenSurface("break")).toBe(true);
-    expect(store.canOpenSurface("agent")).toBe(true);
+    expect(store.canOpenSurface("agent")).toBe(false);
     store.openMyTasks();
     expect(useAgencyTrackerRightPanelStore.getState().canOpenSurface("my-tasks")).toBe(false);
     expect(useAgencyTrackerRightPanelStore.getState().canOpenSurface("break")).toBe(true);
-    useAgencyTrackerRightPanelStore.getState().openSurface("agent");
-    expect(useAgencyTrackerRightPanelStore.getState().canOpenSurface("agent")).toBe(false);
+    expect(useAgencyTrackerRightPanelStore.getState().openSurface("agent")).toBe(
+      useAgencyTrackerRightPanelStore.getState().activeSurfaceId,
+    );
+    expect(useAgencyTrackerRightPanelStore.getState().surfaces.some((s) => s.kind === "agent")).toBe(
+      false,
+    );
   });
 
   test("openSurface creates multiple break tabs", () => {

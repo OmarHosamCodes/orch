@@ -22,6 +22,61 @@ type AgencyTimeEntriesLogViewProps = {
   renderGroupRow: AgencyTimeEntryGroupRowRenderer;
 };
 
+function AgencyTimeEntriesLogDayBlock({
+  view,
+  renderGroupRow,
+  item,
+  measureRef,
+  index,
+  offset,
+}: {
+  view: AgencyTimeEntriesLogViewModel;
+  renderGroupRow: AgencyTimeEntryGroupRowRenderer;
+  item: AgencyTimeEntriesLogViewModel["virtualDays"][number];
+  measureRef?: (element: HTMLDivElement | null) => void;
+  index?: number;
+  offset?: number;
+}) {
+  return (
+    <div
+      ref={measureRef}
+      data-index={index}
+      className={offset == null ? "w-full pb-[20px]" : "absolute top-0 left-0 w-full pb-[20px]"}
+      style={offset == null ? undefined : { transform: `translateY(${offset}px)` }}
+    >
+      {item.week ? (
+        <AgencyTimeEntryWeekHeaderView
+          label={item.week.label}
+          totalSeconds={item.week.totalSeconds}
+          weekStartKey={item.week.weekStartKey}
+        />
+      ) : null}
+      <AgencyTimeEntryDayGroupView
+        teamId={view.teamId}
+        day={item.day}
+        renderGroupRow={renderGroupRow}
+        selectedEntryIds={view.selectedEntryIds}
+        bulkEditActive={view.bulkEditDayKey === item.day.dateKey}
+        bulkFieldEditOpen={view.bulkFieldEditOpen && view.bulkEditDayKey === item.day.dateKey}
+        bulkDraft={view.bulkDraft}
+        onBulkDraftChange={view.onBulkDraftChange}
+        onToggleEntrySelected={view.onToggleEntrySelected}
+        onToggleDayBulkEdit={view.onToggleDayBulkEdit}
+        onToggleBulkFieldEdit={view.onToggleBulkFieldEdit}
+        onDeleteSelected={view.onDeleteSelected}
+        onMarkSelectedAsWaste={view.onMarkSelectedAsWaste}
+        onApplyBulk={view.onApplyBulk}
+        onCreateTag={view.onCreateTag}
+        tagCreatePending={view.tagCreatePending}
+        tags={view.tags}
+        projects={view.projects}
+        tasks={view.tasks}
+        wastePending={view.wastePending}
+      />
+    </div>
+  );
+}
+
 function AgencyTimeEntriesLogSkeleton() {
   return (
     <div className="flex flex-col gap-5" aria-busy="true" aria-label="Loading time entries">
@@ -113,7 +168,7 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
               Choose task
             </Button>
           </div>
-        ) : (
+        ) : view.virtualize ? (
           <div
             className="relative min-h-full bg-background"
             style={{ height: `${view.virtualTotalSize}px` }}
@@ -122,47 +177,28 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
               const item = view.virtualDays[virtualItem.index];
               if (!item) return null;
               return (
-                <div
+                <AgencyTimeEntriesLogDayBlock
                   key={virtualItem.key}
-                  ref={view.measureVirtualDay}
-                  data-index={virtualItem.index}
-                  className="absolute top-0 left-0 w-full pb-[20px]"
-                  style={{ transform: `translateY(${virtualItem.start}px)` }}
-                >
-                  {item.week ? (
-                    <AgencyTimeEntryWeekHeaderView
-                      label={item.week.label}
-                      totalSeconds={item.week.totalSeconds}
-                      weekStartKey={item.week.weekStartKey}
-                    />
-                  ) : null}
-                  <AgencyTimeEntryDayGroupView
-                    teamId={view.teamId}
-                    day={item.day}
-                    renderGroupRow={renderGroupRow}
-                    selectedEntryIds={view.selectedEntryIds}
-                    bulkEditActive={view.bulkEditDayKey === item.day.dateKey}
-                    bulkFieldEditOpen={
-                      view.bulkFieldEditOpen && view.bulkEditDayKey === item.day.dateKey
-                    }
-                    bulkDraft={view.bulkDraft}
-                    onBulkDraftChange={view.onBulkDraftChange}
-                    onToggleEntrySelected={view.onToggleEntrySelected}
-                    onToggleDayBulkEdit={view.onToggleDayBulkEdit}
-                    onToggleBulkFieldEdit={view.onToggleBulkFieldEdit}
-                    onDeleteSelected={view.onDeleteSelected}
-                    onMarkSelectedAsWaste={view.onMarkSelectedAsWaste}
-                    onApplyBulk={view.onApplyBulk}
-                    onCreateTag={view.onCreateTag}
-                    tagCreatePending={view.tagCreatePending}
-                    tags={view.tags}
-                    projects={view.projects}
-                    tasks={view.tasks}
-                    wastePending={view.wastePending}
-                  />
-                </div>
+                  view={view}
+                  renderGroupRow={renderGroupRow}
+                  item={item}
+                  measureRef={view.measureVirtualDay}
+                  index={virtualItem.index}
+                  offset={virtualItem.start}
+                />
               );
             })}
+          </div>
+        ) : (
+          <div className="min-h-full bg-background">
+            {view.virtualDays.map((item) => (
+              <AgencyTimeEntriesLogDayBlock
+                key={item.key}
+                view={view}
+                renderGroupRow={renderGroupRow}
+                item={item}
+              />
+            ))}
           </div>
         )}
         {view.showPagination ? (

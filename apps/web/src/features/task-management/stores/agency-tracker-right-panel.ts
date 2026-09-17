@@ -13,6 +13,9 @@ import {
 const STORAGE_KEY_V2 = "orch.agency.tracker-right-panel.v2";
 const STORAGE_KEY_V1 = "orch.agency.tracker-right-panel.v1";
 
+/** Re-enable when the tracker Agent surface ships. */
+export const TRACKER_RIGHT_PANEL_AGENT_ENABLED = false;
+
 export type TrackerRightPanelSurfaceKind = "my-tasks" | "break" | "agent";
 
 export type TrackerRightPanelMyTasksSurface = {
@@ -123,6 +126,16 @@ function normalizeSurfaces(surfaces: TrackerRightPanelSurface[]): TrackerRightPa
   });
 }
 
+function withoutDisabledSurfaces(state: PersistedState): PersistedState {
+  if (TRACKER_RIGHT_PANEL_AGENT_ENABLED) return state;
+  const surfaces = state.surfaces.filter((surface) => surface.kind !== "agent");
+  const activeSurfaceId =
+    state.activeSurfaceId && surfaces.some((surface) => surface.id === state.activeSurfaceId)
+      ? state.activeSurfaceId
+      : (surfaces[0]?.id ?? null);
+  return { ...state, surfaces, activeSurfaceId };
+}
+
 function readPersistedV1(): PersistedState | null {
   if (typeof window === "undefined") return null;
   try {
@@ -139,11 +152,11 @@ function readPersistedV1(): PersistedState | null {
       surfaces.some((surface) => surface.id === parsed.activeSurfaceId)
         ? parsed.activeSurfaceId
         : (surfaces[0]?.id ?? null);
-    return {
+    return withoutDisabledSurfaces({
       isOpen: Boolean(parsed.isOpen),
       surfaces: normalizeSurfaces(surfaces),
       activeSurfaceId,
-    };
+    });
   } catch {
     return null;
   }
@@ -177,11 +190,11 @@ function readPersisted(): PersistedState {
       surfaces.some((surface) => surface.id === parsed.activeSurfaceId)
         ? parsed.activeSurfaceId
         : (surfaces[0]?.id ?? null);
-    return {
+    return withoutDisabledSurfaces({
       isOpen: Boolean(parsed.isOpen),
       surfaces: normalizeSurfaces(surfaces),
       activeSurfaceId,
-    };
+    });
   } catch {
     return DEFAULT_STATE;
   }
@@ -218,7 +231,9 @@ export const useAgencyTrackerRightPanelStore = create<AgencyTrackerRightPanelSto
   hydrated: false,
   hydrate: () => {
     if (get().hydrated) return;
-    set({ ...readPersisted(), hydrated: true });
+    const persisted = readPersisted();
+    set({ ...persisted, hydrated: true });
+    writePersisted(persisted);
   },
   persist: () => {
     const { isOpen, surfaces, activeSurfaceId } = get();
@@ -226,6 +241,7 @@ export const useAgencyTrackerRightPanelStore = create<AgencyTrackerRightPanelSto
   },
   hasSurfaceKind: (kind) => get().surfaces.some((surface) => surface.kind === kind),
   canOpenSurface: (kind) => {
+    if (kind === "agent" && !TRACKER_RIGHT_PANEL_AGENT_ENABLED) return false;
     if (kind === "break") return true;
     return !get().hasSurfaceKind(kind);
   },
@@ -251,6 +267,9 @@ export const useAgencyTrackerRightPanelStore = create<AgencyTrackerRightPanelSto
   openSurface: (kind, options) => {
     if (kind === "my-tasks") return get().openMyTasks();
     if (kind === "agent") {
+      if (!TRACKER_RIGHT_PANEL_AGENT_ENABLED) {
+        return get().activeSurfaceId ?? get().surfaces[0]?.id ?? "";
+      }
       const existing = get().surfaces.find((surface) => surface.kind === "agent");
       if (existing) {
         set({ isOpen: true, activeSurfaceId: existing.id });

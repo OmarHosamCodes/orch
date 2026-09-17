@@ -8,7 +8,10 @@ import {
   useAgencyProjectsQuery,
   useAgencyTimeEntriesQuery,
 } from "@/features/shared/agency-queries";
+import { prefetchAgencySyncQueryOptions } from "@/features/shared/agency-query-options";
 import { useAgencyProjectTasksForChooserQuery } from "@/features/shared/agency-task-chooser-catalog";
+import { orpc } from "@/lib/orpc";
+import { getQueryClient } from "@/lib/query-client";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { findProjectTaskInCache } from "@/features/shared/agency-query-cache";
 import { useTeamWorkSchedule } from "@/features/shared/use-team-work-schedule";
@@ -43,6 +46,7 @@ const ESTIMATED_ENTRY_ROW_HEIGHT = 56;
 const ESTIMATED_DAY_HEADER_HEIGHT = 52;
 const WEEK_HEADER_HEIGHT = 62;
 const DAY_GAP = 20;
+const VIRTUALIZE_DAY_THRESHOLD = 16;
 
 type UseAgencyTimeEntriesLogOptions = {
   teamId: string;
@@ -58,6 +62,7 @@ export type AgencyTimeEntriesLogViewModel = {
   entriesEmpty: boolean;
   weekGroups: TimeEntryWeekGroup[];
   virtualDays: VirtualTimeEntryDay[];
+  virtualize: boolean;
   virtualItems: Array<{ index: number; key: string | number | bigint; start: number }>;
   virtualTotalSize: number;
   measureVirtualDay: (element: HTMLDivElement | null) => void;
@@ -195,8 +200,9 @@ export function useAgencyTimeEntriesLog({
     () => flattenTimeEntryWeeksForVirtualization(weekGroups),
     [weekGroups],
   );
+  const virtualize = virtualDays.length > VIRTUALIZE_DAY_THRESHOLD;
   const virtualizer = useVirtualizer({
-    count: virtualDays.length,
+    count: virtualize ? virtualDays.length : 0,
     getScrollElement: () => scrollContainerRef.current,
     getItemKey: (index) => virtualDays[index]?.key ?? index,
     estimateSize: (index) => {
@@ -242,6 +248,23 @@ export function useAgencyTimeEntriesLog({
   useEffect(() => {
     resetForTeam();
   }, [teamId, resetForTeam]);
+
+  useEffect(() => {
+    if (!teamId || page >= maxPage || totalEntries === 0) return;
+    try {
+      const utcOffsetMinutes = new Date().getTimezoneOffset();
+      void getQueryClient().prefetchQuery(
+        prefetchAgencySyncQueryOptions(
+          orpc.agencyOps.timeEntries.listMine.queryOptions({
+            input: { teamId, page: page + 1, pageSize, utcOffsetMinutes },
+          }),
+          "hot",
+        ),
+      );
+    } catch {
+      // QueryProvider binds the client after first paint in some boot paths.
+    }
+  }, [teamId, page, pageSize, maxPage, totalEntries]);
 
   const logQueryError = entriesQuery.error ?? projectsQuery.error ?? null;
 
@@ -500,6 +523,7 @@ export function useAgencyTimeEntriesLog({
     entriesEmpty: entries.length === 0,
     weekGroups,
     virtualDays,
+    virtualize,
     virtualItems,
     virtualTotalSize: virtualizer.getTotalSize(),
     measureVirtualDay: virtualizer.measureElement,
