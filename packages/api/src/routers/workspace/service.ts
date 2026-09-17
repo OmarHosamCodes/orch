@@ -1,5 +1,10 @@
 import { db } from "@orch/db";
-import { dashboardWorkspace, workspaceMarketplaceItem, workspaceTeamMember } from "@orch/db/schema";
+import {
+  dashboardWorkspace,
+  workspaceMarketplaceItem,
+  workspaceTeam,
+  workspaceTeamMember,
+} from "@orch/db/schema";
 import {
   createWorkspaceId,
   normalizeWorkspaceNode,
@@ -15,23 +20,49 @@ import {
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, ilike, inArray, lt, or } from "drizzle-orm";
 
-import { getTeamBilling } from "../../billing-team";
+import { assertWithinLimit, getTeamBilling } from "../../billing-team";
 import { requireAgencyRole, requireTeamMembership } from "../../lib/team-membership";
-import { getBillingStateForUser } from "../../billing-guard";
 import { deleteKnowledgeForNode, syncKnowledgeFromNodes } from "./knowledge-service";
+
+async function resolveActorAgencyTeamId(actorUserId: string): Promise<string | null> {
+  const [owned] = await db
+    .select({ id: workspaceTeam.id })
+    .from(workspaceTeam)
+    .where(eq(workspaceTeam.createdByUserId, actorUserId))
+    .limit(1);
+  if (owned) return owned.id;
+
+  const [member] = await db
+    .select({ teamId: workspaceTeamMember.teamId })
+    .from(workspaceTeamMember)
+    .where(eq(workspaceTeamMember.userId, actorUserId))
+    .limit(1);
+
+  return member?.teamId ?? null;
+}
 
 export async function assertCanSaveWorkspaceNodes(
   actorUserId: string,
-  input: { nodeCount: number },
+  input: { nodes: WorkspaceNode[]; now?: Date },
 ) {
-  const billing = await getBillingStateForUser(actorUserId);
-  const { nodeCount } = input;
-  if (nodeCount > billing.limits.workspaceNodes) {
-    throw new ORPCError("FORBIDDEN", {
-      message: `Your ${billing.tier} plan allows up to ${billing.limits.workspaceNodes} workspace nodes`,
-      data: { limit: billing.limits.workspaceNodes, current: nodeCount },
-    });
+  const teamId = await resolveActorAgencyTeamId(actorUserId);
+  if (!teamId) return;
+
+  const now = input.now;
+  await assertWithinLimit(teamId, "nodes", { count: input.nodes.length, now });
+
+  let maxTabs = 0;
+  let maxBlocks = 0;
+  for (const node of input.nodes) {
+    const tabs = node.tabs ?? [];
+    if (tabs.length > maxTabs) maxTabs = tabs.length;
+    for (const tab of tabs) {
+      const blockCount = tab.blocks?.length ?? 0;
+      if (blockCount > maxBlocks) maxBlocks = blockCount;
+    }
   }
+  await assertWithinLimit(teamId, "tabs", { count: maxTabs, now });
+  await assertWithinLimit(teamId, "blocks", { count: maxBlocks, now });
 }
 
 const TEAM_ROLE_WEIGHT: Record<WorkspaceTeamRole, number> = {

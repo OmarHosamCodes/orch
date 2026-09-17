@@ -232,20 +232,20 @@ function planPhrase(plan: AgencyPlan): string {
   }
 }
 
-function volumeNoun(counter: VolumeCounter): string {
+function volumeNoun(counter: VolumeCounter, limit: number): string {
   switch (counter) {
     case "clients":
-      return "clients";
+      return limit === 1 ? "client" : "clients";
     case "projects":
-      return "projects";
+      return limit === 1 ? "project" : "projects";
     case "tasksPerProject":
-      return "tasks per project";
+      return limit === 1 ? "task per project" : "tasks per project";
     case "nodes":
-      return "workspace nodes";
+      return limit === 1 ? "workspace node" : "workspace nodes";
     case "blocks":
-      return "blocks per tab";
+      return limit === 1 ? "block per tab" : "blocks per tab";
     case "tabs":
-      return "tabs per node";
+      return limit === 1 ? "tab per node" : "tabs per node";
     default: {
       const _exhaustive: never = counter;
       return _exhaustive;
@@ -255,7 +255,7 @@ function volumeNoun(counter: VolumeCounter): string {
 
 function limitReachedError(plan: AgencyPlan, counter: VolumeCounter, n: number) {
   return new ORPCError("FORBIDDEN", {
-    message: `This agency can have ${n} ${volumeNoun(counter)} on ${planPhrase(plan)}. Subscribe to add more.`,
+    message: `This agency can have ${n} ${volumeNoun(counter, n)} on ${planPhrase(plan)}. Subscribe to add more.`,
     data: { code: "limit_reached", plan, counter, limit: n },
   });
 }

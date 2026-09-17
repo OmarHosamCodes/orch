@@ -44,7 +44,7 @@ export const workspaceRouter = {
     workspaceSnapshotOutputSchema.parse(await getWorkspaceSnapshot(context.session.user.id, {})),
   ),
   save: protectedProcedure.input(workspaceSaveInputSchema).handler(async ({ input, context }) => {
-    await assertCanSaveWorkspaceNodes(context.session.user.id, { nodeCount: input.nodes.length });
+    await assertCanSaveWorkspaceNodes(context.session.user.id, { nodes: input.nodes });
     return workspaceSaveOutputSchema.parse(
       await saveWorkspaceNodes(context.session.user.id, { nodes: input.nodes }),
     );
