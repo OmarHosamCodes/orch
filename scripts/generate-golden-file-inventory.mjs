@@ -155,6 +155,7 @@ const featureDomainAliases = new Map([
   ["tags", "time-tracking"],
   ["team", "team"],
   ["team-billing", "team"],
+  ["team-billing-credits", "team"],
   ["time-tracking", "time-tracking"],
   ["user-settings", "web-platform"],
   ["workspace", "workspace"],
