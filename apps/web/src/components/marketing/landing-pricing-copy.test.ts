@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, test } from "bun:test";
 
 import {
@@ -36,5 +39,14 @@ describe("landing pricing copy", () => {
     expect(LANDING_PRICING_COLUMNS.some((column) => column.title === "Agency Unlimited")).toBe(
       true,
     );
+  });
+
+  test("LandingPage mounts LandingPricing after the hero", () => {
+    const source = readFileSync(join(import.meta.dir, "../../pages/landing-page.tsx"), "utf8");
+    expect(source).toContain(
+      'import { LandingPricing } from "@/components/marketing/landing-pricing"',
+    );
+    expect(source.indexOf("<LandingHero")).toBeLessThan(source.indexOf("<LandingPricing"));
+    expect(source).toContain("scrollToLandingTarget");
   });
 });

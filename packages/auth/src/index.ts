@@ -195,7 +195,7 @@ export const auth = betterAuth({
           products: polarCheckoutProducts(resolvePolarCatalog(env)),
           successUrl: "/billing/success?checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
-          returnUrl: new URL("/pricing", primaryCorsOrigin).toString(),
+          returnUrl: `${primaryCorsOrigin}/#pricing`,
         }),
         portal({
           returnUrl: new URL("/canvas", primaryCorsOrigin).toString(),
