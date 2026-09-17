@@ -93,24 +93,19 @@ function PaceBarGlyph({ ratio, className }: { ratio: number; className?: string 
 
 function DonutGlyph({ ratio, className }: { ratio: number; className?: string }) {
   const r = Math.min(1, Math.max(0, ratio));
-  const c = 2 * Math.PI * 9;
+  const radius = 11;
+  const c = 2 * Math.PI * radius;
   const dash = c * r;
   return (
     <svg viewBox="0 0 64 28" className={className} aria-hidden>
       <g transform="translate(32 14)">
-        <circle
-          r="9"
-          fill="none"
-          className="stroke-current opacity-25"
-          strokeWidth="2"
-          strokeDasharray="2 2"
-        />
+        <circle r={radius} fill="none" className="stroke-current opacity-25" strokeWidth="3.5" />
         {r > 0 ? (
           <circle
-            r="9"
+            r={radius}
             fill="none"
             className="stroke-current"
-            strokeWidth="2.5"
+            strokeWidth="3.5"
             strokeDasharray={`${dash} ${c}`}
             strokeLinecap="round"
             transform="rotate(-90)"
@@ -294,6 +289,7 @@ type InstrumentPlateProps = {
   onClick?: () => void;
   /** Shared-layout morph id; omitted when reduced motion or plate is the morph source while open. */
   layoutId?: string;
+  className?: string;
 };
 
 export function InstrumentPlate({
@@ -304,6 +300,7 @@ export function InstrumentPlate({
   glyph,
   onClick,
   layoutId,
+  className,
 }: InstrumentPlateProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const ink = instrumentPlateInkClass(tone);
@@ -323,12 +320,13 @@ export function InstrumentPlate({
       </span>
     </>
   );
-  const className = cn(
+  const plateClassName = cn(
     "flex min-h-[7.5rem] flex-col items-center justify-between gap-2 rounded-surface border px-3 py-3 text-center transition-[colors,transform] duration-150 ease-out",
     "motion-reduce:transition-none motion-reduce:active:scale-100",
     onClick && "active:scale-[0.985]",
     onClick && agencyFocusRingClass,
     instrumentPlateSurfaceClass(),
+    className,
   );
 
   const sharedLayoutId = prefersReducedMotion ? undefined : layoutId;
@@ -338,7 +336,7 @@ export function InstrumentPlate({
       <motion.button
         type="button"
         onClick={onClick}
-        className={className}
+        className={plateClassName}
         aria-label={ariaLabel}
         layoutId={sharedLayoutId}
         transition={memberProfileGaugeMorphTransition}
@@ -349,7 +347,7 @@ export function InstrumentPlate({
   }
 
   return (
-    <div className={className} role="img" aria-label={ariaLabel}>
+    <div className={plateClassName} role="img" aria-label={ariaLabel}>
       {body}
     </div>
   );

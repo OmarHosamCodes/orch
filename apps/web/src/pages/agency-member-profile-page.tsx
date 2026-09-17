@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useParams } from "@/lib/navigation";
 
+import { AppShellPage } from "@/features/app-shell/app-shell-page";
+import { shellPageNestClass } from "@/features/app-shell/app-shell-ui";
 import { AgencyMemberProfile } from "@/features/member-profile/agency-member-profile";
 import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
 import { teamListQueryOptions } from "@/features/team/team-queries";
@@ -34,23 +36,29 @@ export function AgencyMemberProfilePage() {
 
   if (isPending) {
     return (
-      <div className="h-full min-h-0 overflow-y-auto">
-        <div className={cn(agencyEmptyPanelClass, "m-6")}>Loading profile…</div>
-      </div>
+      <AppShellPage>
+        <div className={shellPageNestClass}>
+          <div className={agencyEmptyPanelClass}>Loading profile…</div>
+        </div>
+      </AppShellPage>
     );
   }
 
   if (!subjectUserId) {
     return (
-      <div className="h-full min-h-0 overflow-y-auto">
-        <div className={cn(agencyErrorPanelClass, "m-6")}>Sign in to view your profile.</div>
-      </div>
+      <AppShellPage>
+        <div className={shellPageNestClass}>
+          <div className={agencyErrorPanelClass}>Sign in to view your profile.</div>
+        </div>
+      </AppShellPage>
     );
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto bg-background text-foreground">
-      <AgencyMemberProfile subjectUserId={subjectUserId} />
-    </div>
+    <AppShellPage>
+      <div className={cn(shellPageNestClass, "bg-background text-foreground")}>
+        <AgencyMemberProfile subjectUserId={subjectUserId} />
+      </div>
+    </AppShellPage>
   );
 }

@@ -1,16 +1,4 @@
-import {
-  Calendar,
-  CalendarOff,
-  Camera,
-  ChevronRight,
-  Loader2,
-  Mail,
-  MapPin,
-  Pencil,
-  Phone,
-  UserRound,
-} from "lucide-react";
-import type { ReactNode } from "react";
+import { CalendarOff, Camera, Loader2, Pencil } from "lucide-react";
 
 import {
   AgencyCommandBar,
@@ -42,8 +30,7 @@ import {
   agencyFocusRingClass,
   agencyFormFieldClass,
   agencyFormLabelClass,
-  agencyMetricClass,
-  agencyWorkMetaClass,
+  agencyPanelClass,
   agencyWorkTitleClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
@@ -63,9 +50,6 @@ import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
-/** Profile panels: shadcn surface tokens + theme radius (not hardcoded 2rem / Nuxt aliases). */
-const profilePanelClass = "rounded-surface border border-border bg-card";
-
 function safeHttpUrl(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
@@ -78,108 +62,180 @@ function safeHttpUrl(value: string | null | undefined): string | null {
   }
 }
 
-function OrchAgentGlyph({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <circle
-        cx="16"
-        cy="16"
-        r="12"
-        fill="none"
-        className="stroke-current opacity-30"
-        strokeWidth="1.25"
-      />
-      <circle
-        cx="16"
-        cy="16"
-        r="7"
-        fill="none"
-        className="stroke-current opacity-45"
-        strokeWidth="1.25"
-        strokeDasharray="2 3"
-      />
-      <circle cx="16" cy="16" r="3.25" className="fill-current" />
-      <line
-        x1="16"
-        y1="3"
-        x2="16"
-        y2="6.5"
-        className="stroke-current opacity-55"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="16"
-        y1="25.5"
-        x2="16"
-        y2="29"
-        className="stroke-current opacity-35"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function AskOrchRailCard({
-  memberName,
-  periodLabel,
-  isSelf,
-  onAsk,
-}: {
-  memberName: string;
-  periodLabel: string;
-  isSelf: boolean;
-  onAsk: () => void;
-}) {
-  const subject = isSelf ? "your profile" : memberName.trim() || "this member";
-
-  return (
-    <button
-      type="button"
-      onClick={onAsk}
-      className={cn(
-        profilePanelClass,
-        "group flex w-full items-center gap-3 px-3 py-3 text-start",
-        "transition-colors duration-150 ease-out hover:bg-muted/40",
-        agencyFocusRingClass,
-        "motion-reduce:transition-none",
-      )}
-      aria-label={`Open Orch with a draft summary for ${subject} (${periodLabel})`}
-    >
-      <span
-        className="grid size-10 shrink-0 place-items-center rounded-lg text-chart-2"
-        aria-hidden
-      >
-        <OrchAgentGlyph className="size-5" />
-      </span>
-
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-foreground">Ask Orch</span>
-        <span className={cn(agencyWorkMetaClass, "mt-0.5 block text-pretty tabular-nums")}>
-          Opens a scoped draft for {subject}
-          <span aria-hidden> · </span>
-          {periodLabel}
-        </span>
-      </span>
-
-      <ChevronRight
-        className={cn(
-          "size-4 shrink-0 text-muted-foreground/70",
-          "transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-foreground",
-          "motion-reduce:transition-none motion-reduce:group-hover:translate-x-0",
-        )}
-        aria-hidden
-      />
-    </button>
-  );
-}
-
 type Props = {
   viewModel: AgencyMemberProfileViewModel;
 };
 
-type LeaveGauge = NonNullable<AgencyMemberProfileViewModel["profile"]>["leaveGauges"][number];
+type ProfileData = NonNullable<AgencyMemberProfileViewModel["profile"]>;
+type LeaveGauge = ProfileData["leaveGauges"][number];
+
+function IdentityMetaChip({ children }: { children: string }) {
+  return <span className="text-xs text-muted">{children}</span>;
+}
+
+function ProfileIdentityStrip({
+  profile,
+  subjectUserId,
+  profileImagePending,
+  onUploadImage,
+  onEditHr,
+  onAddOffDay,
+}: {
+  profile: ProfileData;
+  subjectUserId: string;
+  profileImagePending: boolean;
+  onUploadImage: (file: File) => void;
+  onEditHr: () => void;
+  onAddOffDay: () => void;
+}) {
+  const chips = [
+    profile.hr.departmentName,
+    profile.hr.employmentTypeLabel,
+    profile.hr.workModelLabel,
+    profile.joinedAtLabel ? `Joined ${profile.joinedAtLabel}` : null,
+  ].filter((value): value is string => Boolean(value && value.trim() && value.trim() !== "—"));
+
+  const socials = [
+    { href: safeHttpUrl(profile.hr.linkedinUrl), label: "LinkedIn" },
+    { href: safeHttpUrl(profile.hr.xUrl), label: "X" },
+    { href: safeHttpUrl(profile.hr.instagramUrl), label: "Instagram" },
+  ].filter((item): item is { href: string; label: string } => Boolean(item.href));
+
+  return (
+    <section
+      className="flex min-w-0 shrink-0 items-start justify-between gap-3"
+      aria-labelledby="member-profile-name"
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="relative shrink-0">
+          <AgencyMemberAvatar
+            name={profile.userName}
+            userId={subjectUserId}
+            avatarUrl={profile.userAvatarUrl}
+            size="md"
+            className="size-12 shrink-0 rounded-xl"
+            alt={profile.userName}
+          />
+          {profile.isSelf ? (
+            <label
+              className="absolute -right-1.5 -bottom-1.5 inline-flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2"
+              aria-label="Change profile image"
+            >
+              {profileImagePending ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              ) : (
+                <Camera className="size-3.5" aria-hidden />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={profileImagePending}
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) void onUploadImage(file);
+                }}
+              />
+            </label>
+          ) : null}
+        </div>
+        <div className="min-w-0">
+          <h1
+            id="member-profile-name"
+            className={cn(agencyWorkTitleClass, "text-base text-balance")}
+          >
+            {profile.userName}
+          </h1>
+          {chips.length > 0 ? (
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              {chips.map((chip, index) => (
+                <span key={chip} className="inline-flex items-center gap-2">
+                  {index > 0 ? (
+                    <span className="text-muted" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  <IdentityMetaChip>{chip}</IdentityMetaChip>
+                </span>
+              ))}
+            </p>
+          ) : null}
+          {socials.length > 0 ? (
+            <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+              {socials.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted underline-offset-2 hover:underline"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {(profile.canEditHr || profile.canManageLeave) && (
+        <div className="flex shrink-0 items-center">
+          {profile.canEditHr ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className={agencyFocusRingClass}
+                  onClick={onEditHr}
+                  aria-label="Edit contact details"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Edit contact details</TooltipContent>
+            </Tooltip>
+          ) : null}
+          {profile.canManageLeave ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className={agencyFocusRingClass}
+                  onClick={onAddOffDay}
+                  aria-label="Add off day"
+                >
+                  <CalendarOff className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Add off day</TooltipContent>
+            </Tooltip>
+          ) : null}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function plateMobileOrderClass(key: LeaveGauge["key"]): string {
+  switch (key) {
+    case "leaves":
+      return "max-xl:order-1";
+    case "period":
+      return "max-xl:order-2";
+    case "present":
+      return "max-xl:order-4";
+    case "waste":
+      return "max-xl:order-5";
+    default: {
+      const _exhaustive: never = key;
+      return _exhaustive;
+    }
+  }
+}
 
 function ProfileStatPlate({
   gauge,
@@ -211,38 +267,8 @@ function ProfileStatPlate({
       }
       onClick={onOpen}
       layoutId={isOpen ? undefined : memberProfileGaugeLayoutId(gauge.key)}
+      className={cn("h-full", plateMobileOrderClass(gauge.key))}
     />
-  );
-}
-
-function PersonalRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string | null;
-}) {
-  const display = value?.trim() || "—";
-  const empty = display === "—";
-
-  return (
-    <div className="flex items-center gap-2.5 py-2">
-      <span className="shrink-0 text-muted-foreground" aria-hidden>
-        {icon}
-      </span>
-      <span className="w-[5.5rem] shrink-0 text-xs text-muted-foreground">{label}</span>
-      <p
-        className={cn(
-          "min-w-0 flex-1 truncate text-sm",
-          empty ? "text-muted-foreground" : "text-foreground",
-        )}
-        title={empty ? undefined : display}
-      >
-        {display}
-      </p>
-    </div>
   );
 }
 
@@ -250,20 +276,16 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
   const { profile, period } = viewModel;
 
   if (!viewModel.teamId) {
-    return (
-      <div className={cn(agencyEmptyPanelClass, "m-6")}>
-        Select a team to open a member profile.
-      </div>
-    );
+    return <div className={agencyEmptyPanelClass}>Select a team to open a member profile.</div>;
   }
 
   if (viewModel.loading && !profile) {
-    return <SurfaceShimmer className="min-h-[32rem]" label="Loading member profile" />;
+    return <SurfaceShimmer className="min-h-0 flex-1" label="Loading member profile" />;
   }
 
   if (viewModel.error && !profile) {
     return (
-      <div className={cn(agencyErrorPanelClass, "m-6 flex flex-wrap items-center gap-3")}>
+      <div className={cn(agencyErrorPanelClass, "flex flex-wrap items-center gap-3")}>
         <span>{viewModel.error}</span>
         <Button type="button" variant="outline" size="sm" onClick={viewModel.retry}>
           Retry
@@ -273,16 +295,14 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
   }
 
   if (!profile) {
-    return (
-      <div className={cn(agencyEmptyPanelClass, "m-6")}>No profile data for this member yet.</div>
-    );
+    return <div className={agencyEmptyPanelClass}>No profile data for this member yet.</div>;
   }
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="mx-auto max-w-7xl space-y-5 p-surface">
+      <div className="shimmer-container flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto xl:overflow-hidden">
         <AgencyCommandBar.Root
-          className="w-full"
+          className="w-full shrink-0"
           busy={viewModel.refreshing}
           busyLabel="Refreshing profile"
         >
@@ -319,224 +339,34 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
           </AgencyCommandBar.End>
         </AgencyCommandBar.Root>
 
-        <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)_minmax(17.5rem,20rem)] xl:items-start">
-          <aside className="space-y-4 max-xl:order-1">
-            <section className={cn(profilePanelClass, "p-surface")}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="relative">
-                  <AgencyMemberAvatar
-                    name={profile.userName}
-                    userId={viewModel.subjectUserId}
-                    avatarUrl={profile.userAvatarUrl}
-                    size="md"
-                    className="size-16 shrink-0 rounded-xl transition-transform duration-200 ease-out hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
-                    alt={profile.userName}
-                  />
-                  {profile.isSelf ? (
-                    <label
-                      className="absolute -bottom-2 -right-2 inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2"
-                      aria-label="Change profile image"
-                    >
-                      {viewModel.profileImagePending ? (
-                        <Loader2 className="size-4 animate-spin" aria-hidden />
-                      ) : (
-                        <Camera className="size-4" aria-hidden />
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        disabled={viewModel.profileImagePending}
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0];
-                          event.currentTarget.value = "";
-                          if (file) void viewModel.uploadProfileImage(file);
-                        }}
-                      />
-                    </label>
-                  ) : null}
-                </div>
-                {(profile.canEditHr || profile.canManageLeave) && (
-                  <div className="-mr-1.5 -mt-1.5 flex shrink-0 items-center">
-                    {profile.canEditHr ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className={agencyFocusRingClass}
-                            onClick={() => viewModel.setHrDialogOpen(true)}
-                            aria-label="Edit contact details"
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">Edit contact details</TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                    {profile.canManageLeave ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className={agencyFocusRingClass}
-                            onClick={() => viewModel.openAddOffDayDialog()}
-                            aria-label="Add off day"
-                          >
-                            <CalendarOff className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">Add off day</TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-              <h1 className="mt-3 text-wrap text-base font-semibold leading-snug text-balance text-foreground">
-                {profile.userName}
-              </h1>
-              <dl className="mt-4 space-y-2.5 border-t border-border pt-3">
-                <div className="flex justify-between gap-3 text-sm">
-                  <dt className="text-muted-foreground">Department</dt>
-                  <dd className="text-right text-foreground">{profile.hr.departmentName ?? "—"}</dd>
-                </div>
-                <div className="flex justify-between gap-3 text-sm">
-                  <dt className="text-muted-foreground">Employment</dt>
-                  <dd className="text-right text-foreground">
-                    {profile.hr.employmentTypeLabel ?? "—"}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-3 text-sm">
-                  <dt className="text-muted-foreground">Work model</dt>
-                  <dd className="text-right text-foreground">{profile.hr.workModelLabel ?? "—"}</dd>
-                </div>
-                <div className="flex justify-between gap-3 text-sm">
-                  <dt className="text-muted-foreground">Joined</dt>
-                  <dd className={agencyMetricClass}>{profile.joinedAtLabel}</dd>
-                </div>
-              </dl>
-              {(safeHttpUrl(profile.hr.linkedinUrl) ||
-                safeHttpUrl(profile.hr.xUrl) ||
-                safeHttpUrl(profile.hr.instagramUrl)) && (
-                <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3 text-xs">
-                  {safeHttpUrl(profile.hr.linkedinUrl) ? (
-                    <a
-                      href={safeHttpUrl(profile.hr.linkedinUrl)!}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground underline-offset-2 hover:underline"
-                    >
-                      LinkedIn
-                    </a>
-                  ) : null}
-                  {safeHttpUrl(profile.hr.xUrl) ? (
-                    <a
-                      href={safeHttpUrl(profile.hr.xUrl)!}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground underline-offset-2 hover:underline"
-                    >
-                      X
-                    </a>
-                  ) : null}
-                  {safeHttpUrl(profile.hr.instagramUrl) ? (
-                    <a
-                      href={safeHttpUrl(profile.hr.instagramUrl)!}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground underline-offset-2 hover:underline"
-                    >
-                      Instagram
-                    </a>
-                  ) : null}
-                </div>
-              )}
-            </section>
+        <ProfileIdentityStrip
+          profile={profile}
+          subjectUserId={viewModel.subjectUserId}
+          profileImagePending={viewModel.profileImagePending}
+          onUploadImage={viewModel.uploadProfileImage}
+          onEditHr={() => viewModel.setHrDialogOpen(true)}
+          onAddOffDay={() => viewModel.openAddOffDayDialog()}
+        />
 
-            <section className={cn(profilePanelClass, "p-surface")}>
-              <h2 className={agencyWorkTitleClass}>Personal info</h2>
-              <div className="mt-1 divide-y divide-border">
-                <PersonalRow
-                  icon={<UserRound className="size-4" />}
-                  label="Gender"
-                  value={profile.hr.gender}
-                />
-                <PersonalRow
-                  icon={<Calendar className="size-4" />}
-                  label="Date of birth"
-                  value={profile.hr.dateOfBirthLabel}
-                />
-                <PersonalRow
-                  icon={<Mail className="size-4" />}
-                  label="Email"
-                  value={profile.email}
-                />
-                <PersonalRow
-                  icon={<Phone className="size-4" />}
-                  label="Phone"
-                  value={profile.hr.phone}
-                />
-                <PersonalRow
-                  icon={<MapPin className="size-4" />}
-                  label="Address"
-                  value={profile.hr.address}
-                />
-              </div>
-            </section>
-          </aside>
-
-          <main className="min-w-0 space-y-5 max-xl:order-3">
-            <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
-              {profile.leaveGauges.map((gauge) => (
-                <ProfileStatPlate
-                  key={gauge.key}
-                  gauge={gauge}
-                  isOpen={viewModel.openGaugeKey === gauge.key}
-                  onOpen={() => viewModel.openGauge(gauge.key)}
-                />
-              ))}
-            </div>
-
+        <div
+          className="grid shrink-0 grid-cols-2 items-stretch gap-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(20rem,24rem)] xl:gap-6"
+          aria-label="Period health"
+        >
+          {profile.leaveGauges.map((gauge) => (
+            <ProfileStatPlate
+              key={gauge.key}
+              gauge={gauge}
+              isOpen={viewModel.openGaugeKey === gauge.key}
+              onOpen={() => viewModel.openGauge(gauge.key)}
+            />
+          ))}
+          <div className="col-span-2 min-h-0 max-xl:order-3 xl:col-span-1">
             <MemberProfileAlertsPanel alerts={viewModel.alerts} />
+          </div>
+        </div>
 
-            {profile.timeline.length === 0 ? (
-              <section className={cn(profilePanelClass, "p-surface")}>
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className={agencyWorkTitleClass}>Activity & reviews</h2>
-                  {profile.canAddReview ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className={agencyFocusRingClass}
-                      onClick={() => viewModel.setReviewDialogOpen(true)}
-                    >
-                      Add review
-                    </Button>
-                  ) : null}
-                </div>
-                <div className={cn(agencyEmptyPanelClass, "mt-4")}>
-                  {profile.isSelf
-                    ? "No activity in this period yet. Log time in Tracker to populate this timeline."
-                    : "No activity recorded for this member in this period."}
-                </div>
-              </section>
-            ) : (
-              <MemberProfileActivityRails
-                teamId={viewModel.teamId}
-                days={profile.timeline}
-                totalEventsLabel={`${profile.timeline.reduce((sum, day) => sum + day.items.length, 0)} events`}
-                highlightDate={viewModel.highlightedActivityDate}
-                canAddReview={profile.canAddReview}
-                onAddReview={() => viewModel.setReviewDialogOpen(true)}
-              />
-            )}
-          </main>
-
-          <aside className="space-y-4 max-xl:order-2">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 max-xl:shrink-0 xl:flex-row">
+          <aside className="flex w-full shrink-0 flex-col max-xl:min-h-0 xl:order-2 xl:h-full xl:w-[20rem]">
             <MemberProfileCalendarPanel
               calendar={profile.calendar}
               canManageLeave={profile.canManageLeave}
@@ -545,14 +375,49 @@ export function AgencyMemberProfileView({ viewModel }: Props) {
               onOpenAddOffDay={viewModel.openAddOffDay}
               onOpenRemoveLeave={viewModel.openRemoveLeave}
             />
-
-            <AskOrchRailCard
-              memberName={profile.userName}
-              periodLabel={period.label}
-              isSelf={profile.isSelf}
-              onAsk={viewModel.askOrchAboutMember}
-            />
           </aside>
+          {profile.timeline.length === 0 ? (
+            <section
+              className={cn(
+                agencyPanelClass,
+                "flex min-h-0 min-w-0 flex-1 flex-col p-4 xl:order-1",
+              )}
+              aria-labelledby="member-profile-activity"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2 id="member-profile-activity" className={agencyWorkTitleClass}>
+                  Activity & reviews
+                </h2>
+                {profile.canAddReview ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className={agencyFocusRingClass}
+                    onClick={() => viewModel.setReviewDialogOpen(true)}
+                  >
+                    Add review
+                  </Button>
+                ) : null}
+              </div>
+              <div className={cn(agencyEmptyPanelClass, "mt-4 flex-1")}>
+                {profile.isSelf
+                  ? "No activity in this period yet. Log time in Tracker to populate this timeline."
+                  : "No activity recorded for this member in this period."}
+              </div>
+            </section>
+          ) : (
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col xl:order-1">
+              <MemberProfileActivityRails
+                teamId={viewModel.teamId}
+                days={profile.timeline}
+                totalEventsLabel={`${profile.timeline.reduce((sum, day) => sum + day.items.length, 0)} events`}
+                highlightDate={viewModel.highlightedActivityDate}
+                canAddReview={profile.canAddReview}
+                onAddReview={() => viewModel.setReviewDialogOpen(true)}
+              />
+            </div>
+          )}
         </div>
       </div>
 

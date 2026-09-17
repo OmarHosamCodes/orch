@@ -8,10 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { Button } from "@/ui/button";
-import { agencyFocusRingClass, agencyWorkMetaClass } from "@/features/shared/agency-ui";
-
-/** Profile panels: shadcn surface tokens + theme radius. */
-const profilePanelClass = "rounded-surface border border-border bg-card";
+import {
+  agencyFocusRingClass,
+  agencyPanelClass,
+  agencyWorkMetaClass,
+} from "@/features/shared/agency-ui";
 
 type CalendarDayStatus = "present" | "leave" | "holiday" | "weekend" | "empty";
 
@@ -52,14 +53,14 @@ function calendarDayStatusClass(status: CalendarDayStatus, inMonth: boolean): st
   if (!inMonth) return "text-foreground/30";
   switch (status) {
     case "present":
-      return "bg-success text-success-foreground";
+      return "bg-muted/40 text-foreground";
     case "leave":
-      return "bg-warning text-warning-foreground";
+      return "bg-muted/40 text-foreground";
     case "holiday":
-      return "border border-chart-1/35 bg-chart-1/18 text-foreground";
+      return "border border-border bg-muted/30 text-foreground";
     case "weekend":
       return cn(
-        "bg-muted/60 text-muted-foreground",
+        "bg-muted/25 text-muted-foreground",
         "[background-image:repeating-linear-gradient(-45deg,transparent_0_2.5px,var(--border)_2.5px_3.5px)]",
       );
     case "empty":
@@ -91,11 +92,22 @@ function calendarDayStatusSuffix(status: CalendarDayStatus): string {
 }
 
 function calendarLegendSwatchClass(status: CalendarDayStatus): string {
-  return cn(
-    "size-2.5 shrink-0 rounded-md",
-    calendarDayStatusClass(status, true),
-    status === "empty" && "bg-transparent ring-1 ring-border",
-  );
+  switch (status) {
+    case "present":
+      return "size-2.5 shrink-0 rounded-full bg-success";
+    case "leave":
+      return "size-2.5 shrink-0 rounded-full bg-warning";
+    case "holiday":
+      return "size-2.5 shrink-0 rounded-full bg-chart-1";
+    case "weekend":
+      return "size-2.5 shrink-0 rounded-md bg-muted ring-1 ring-border";
+    case "empty":
+      return "size-2.5 shrink-0 rounded-md bg-transparent ring-1 ring-border";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
 }
 
 function calendarLegendAriaLabel(status: CalendarDayStatus, count: number, label: string): string {
@@ -212,7 +224,7 @@ function MemberProfileCalendarFooter({
 
   return (
     <div
-      className="member-profile-calendar-footer mt-3 border-t border-border pt-2.5"
+      className="member-profile-calendar-footer mt-auto border-t border-border pt-2.5"
       aria-label={`${calendarLabel} summary`}
     >
       <div className={cn(agencyWorkMetaClass, "flex flex-wrap gap-x-2.5 gap-y-1")} role="list">
@@ -241,8 +253,8 @@ export function MemberProfileCalendarPanel({
   onOpenRemoveLeave,
 }: MemberProfileCalendarPanelProps) {
   return (
-    <section className={cn(profilePanelClass, "p-4")}>
-      <div className="mb-2 flex items-center gap-1">
+    <section className={cn(agencyPanelClass, "flex h-full min-h-0 flex-col p-4")}>
+      <div className="mb-2 flex shrink-0 items-center gap-1">
         <Button
           type="button"
           variant="ghost"
@@ -269,14 +281,14 @@ export function MemberProfileCalendarPanel({
           <ChevronRight className="size-4" aria-hidden />
         </Button>
       </div>
-      <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] text-muted-foreground">
+      <div className="grid shrink-0 grid-cols-7 gap-0.5 text-center text-[10px] text-muted-foreground">
         {calendar.weekdayLabels.map((label, index) => (
           <span key={`${label}-${index}`} className="py-0.5">
             {label}
           </span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid min-h-0 flex-1 grid-cols-7 content-start gap-0.5">
         {calendar.days.map((day) => (
           <div key={day.date} className="min-w-0">
             <MemberProfileCalendarDayCell
