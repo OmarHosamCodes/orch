@@ -5,7 +5,6 @@ import {
   AgencyCompactDialogFooter,
   AgencyCompactDialogForm,
   AgencyCompactDialogHeader,
-  AgencyCompactDialogMeta,
 } from "@/features/shared/dialog-kit/agency-compact-dialog-shell";
 import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
 import { Button } from "@/ui/button";
@@ -80,31 +79,27 @@ export function AgencyTaskChooserProjectCreateDialogView({
             aria-label="Project name"
           />
 
-          <AgencyCompactDialogMeta>
-            <AgencySearchSelect
-              id={`${formId}-client`}
-              value={clientId}
-              onValueChange={setClientId}
-              options={clientOptions}
-              placeholder="Client"
-              searchPlaceholder="Search clients…"
-              disabled={clients.length === 0 || isPending}
-              aria-label="Client"
-              variant="chip"
-            />
-            <AgencySearchSelect
-              id={`${formId}-template`}
-              value={templateId}
-              onValueChange={setTemplateId}
-              options={templateOptions}
-              emptyOption={{ value: "", label: "No template" }}
-              placeholder="No template"
-              searchPlaceholder="Search templates…"
-              disabled={isPending}
-              aria-label="Template"
-              variant="chip"
-            />
-          </AgencyCompactDialogMeta>
+          <AgencySearchSelect
+            id={`${formId}-client`}
+            value={clientId}
+            onValueChange={setClientId}
+            options={clientOptions}
+            placeholder="Client"
+            searchPlaceholder="Search clients…"
+            disabled={clients.length === 0 || isPending}
+            aria-label="Client"
+          />
+          <AgencySearchSelect
+            id={`${formId}-template`}
+            value={templateId}
+            onValueChange={setTemplateId}
+            options={templateOptions}
+            emptyOption={{ value: "", label: "No template" }}
+            placeholder="No template"
+            searchPlaceholder="Search templates…"
+            disabled={isPending}
+            aria-label="Template"
+          />
         </AgencyCompactDialogBody>
         <AgencyCompactDialogFooter>
           <Button

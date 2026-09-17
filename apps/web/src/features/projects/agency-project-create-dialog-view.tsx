@@ -9,7 +9,6 @@ import {
   AgencyCompactDialogFooter,
   AgencyCompactDialogForm,
   AgencyCompactDialogHeader,
-  AgencyCompactDialogMeta,
 } from "@/features/shared/dialog-kit/agency-compact-dialog-shell";
 import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
 import { AgencyKitReveal } from "@/features/shared/dialog-kit/agency-kit-reveal";
@@ -102,25 +101,16 @@ export function AgencyProjectCreateDialogView({
             aria-label="Project name"
           />
 
-          <AgencyCompactDialogMeta>
-            {!clientLocked ? (
-              <AgencySearchSelect
-                id={`${formId}-client`}
-                value={clientId}
-                onValueChange={setClientId}
-                options={clients.map((client) => ({ value: client.id, label: client.name }))}
-                placeholder="Client"
-                searchPlaceholder="Search clients…"
-                disabled={clients.length === 0 || isProjectMutationPending}
-                aria-label="Client"
-                variant="chip"
-              />
-            ) : selectedClient ? (
-              <span className="inline-flex h-8 max-w-full items-center rounded-full border border-default bg-elevated px-2.5 text-xs font-semibold text-highlighted">
-                <span className="truncate">{selectedClient.name}</span>
-              </span>
-            ) : null}
-          </AgencyCompactDialogMeta>
+          <AgencySearchSelect
+            id={`${formId}-client`}
+            value={clientLocked ? (selectedClient?.id ?? clientId) : clientId}
+            onValueChange={setClientId}
+            options={clients.map((client) => ({ value: client.id, label: client.name }))}
+            placeholder="Client"
+            searchPlaceholder="Search clients…"
+            disabled={clientLocked || clients.length === 0 || isProjectMutationPending}
+            aria-label="Client"
+          />
 
           <AgencyKitReveal open={isJourneyMode}>
             <div className="space-y-2 pt-1">

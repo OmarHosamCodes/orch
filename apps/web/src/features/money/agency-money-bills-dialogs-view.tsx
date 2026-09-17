@@ -463,19 +463,18 @@ export function AgencyMoneyBillsDialogs({ bills }: BillsDialogsProps) {
         />
         <AgencyCompactDialogForm id={create.formId} noValidate onSubmit={create.onSubmit}>
           <AgencyCompactDialogBody>
+            <AgencySearchSelect
+              value={create.clientId}
+              onValueChange={create.onClientIdChange}
+              options={create.clients.map((client) => ({
+                value: client.id,
+                label: client.name,
+              }))}
+              placeholder="Client"
+              searchPlaceholder="Search clients"
+              aria-label="Client"
+            />
             <AgencyCompactDialogMeta>
-              <AgencySearchSelect
-                value={create.clientId}
-                onValueChange={create.onClientIdChange}
-                options={create.clients.map((client) => ({
-                  value: client.id,
-                  label: client.name,
-                }))}
-                placeholder="Client"
-                searchPlaceholder="Search clients"
-                aria-label="Client"
-                variant="chip"
-              />
               <MemberProfileLeaveRangePicker
                 triggerId="money-bill-period"
                 startDate={create.periodStart}
