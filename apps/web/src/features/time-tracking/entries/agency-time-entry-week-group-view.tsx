@@ -36,21 +36,27 @@ type AgencyTimeEntryWeekGroupViewProps = {
   projects?: AgencyProject[];
   tasks?: AgencyProjectTask[];
   wastePending?: boolean;
+  headerClassName?: string;
 };
 
 type AgencyTimeEntryWeekHeaderViewProps = {
   label: string;
   totalSeconds: number;
   weekStartKey?: string;
+  className?: string;
 };
 
 export function AgencyTimeEntryWeekHeaderView({
   label,
   totalSeconds,
   weekStartKey,
+  className,
 }: AgencyTimeEntryWeekHeaderViewProps) {
   return (
-    <header data-week-head={weekStartKey} className={agencyTimeWeekHeadStateClass()}>
+    <header
+      data-week-head={weekStartKey}
+      className={cn(agencyTimeWeekHeadStateClass(), className)}
+    >
       <h2 className={agencyWorkWeekLabelClass}>{label}</h2>
       <p className={cn("inline-flex items-baseline gap-2", agencyWorkWeekLabelClass)}>
         <span>Week total:</span>
@@ -83,6 +89,7 @@ export function AgencyTimeEntryWeekGroupView({
   projects,
   tasks,
   wastePending,
+  headerClassName,
 }: AgencyTimeEntryWeekGroupViewProps) {
   return (
     <section className={agencyTimeWeekGroupClass}>
@@ -90,6 +97,7 @@ export function AgencyTimeEntryWeekGroupView({
         label={week.label}
         totalSeconds={week.totalSeconds}
         weekStartKey={week.weekStartKey}
+        className={headerClassName}
       />
 
       <div className={agencyTimeWeekGroupBodyClass}>

@@ -65,6 +65,7 @@ export function AgencyReportEntryDetailsDialogView({
                   teamId={viewModel.teamId}
                   week={week}
                   renderGroupRow={renderGroupRow}
+                  headerClassName="static min-h-0 border-0 bg-transparent px-3 py-1"
                   selectedEntryIds={viewModel.selectedEntryIds}
                   bulkEditDayKey={viewModel.bulkEditDayKey}
                   bulkFieldEditOpen={viewModel.bulkFieldEditOpen}
