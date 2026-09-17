@@ -1,3 +1,5 @@
+Bun.env.POLAR_PRODUCT_PRO = "polar-pro";
+
 import { describe, expect, test } from "bun:test";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate.js";
 import { TIER_LIMITS } from "@orch/workspace/tiers";
@@ -53,13 +55,19 @@ describe("normalizeBillingState", () => {
     });
   });
 
-  test("prefers an active Polar subscription over the lifetime override", () => {
-    const result = normalizeBillingState(createCustomerState("polar-paid"), {
+  test("an unknown Polar product does not grant Pro", () => {
+    const result = normalizeBillingState(createCustomerState("polar-credits"), {
+      lifetimePro: false,
+    });
+    expect(result.tier).toBe("free");
+    expect(result.subscription).toBeNull();
+  });
+
+  test("lifetime still applies when the only Polar product is not Pro", () => {
+    const result = normalizeBillingState(createCustomerState("polar-credits"), {
       lifetimePro: true,
     });
-
-    expect(result.subscription?.source).toBe("polar");
-    expect(result.subscription?.isLifetime).toBe(false);
-    expect(result.subscription?.productId).toBe("polar-paid");
+    expect(result.tier).toBe("pro");
+    expect(result.subscription?.source).toBe("lifetime");
   });
 });

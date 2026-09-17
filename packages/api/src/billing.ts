@@ -78,12 +78,5 @@ export function normalizeBillingState(
     return getPolarProBillingState(proSubscription);
   }
 
-  // Fallback: any active subscription counts as Pro
-  const anyActive = customerState.activeSubscriptions[0];
-
-  if (anyActive) {
-    return getPolarProBillingState(anyActive);
-  }
-
   return fallbackBilling;
 }
