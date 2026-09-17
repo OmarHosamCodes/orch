@@ -12,6 +12,22 @@ export function isBillingSuccessDataReady(status: BillingSuccessStatus): boolean
   return status !== "confirming";
 }
 
+export function initialBillingSuccessStatus(
+  checkoutId: string | undefined,
+): BillingSuccessStatus {
+  return checkoutId ? "confirming" : "idle";
+}
+
+/** Without a Polar checkout_id we never claim Agency activation from confirm. */
+export function billingSuccessStatusWithoutCheckoutConfirm(
+  checkoutId: string | undefined,
+): BillingSuccessStatus | null {
+  if (!checkoutId) {
+    return "idle";
+  }
+  return null;
+}
+
 export function resolveCheckoutConfirmationStatus(
   checkoutKind: CheckoutKind,
 ): "agency_active" | "credits_added" {

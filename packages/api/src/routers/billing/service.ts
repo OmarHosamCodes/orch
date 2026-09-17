@@ -1,7 +1,12 @@
 import { ORPCError } from "@orpc/server";
 import { env } from "@orch/env/server";
 
-import { applyCreditPack, applyPolarSnapshot, getTeamBilling } from "../../billing-team";
+import {
+  applyCreditPack,
+  applyPolarSnapshot,
+  getTeamBilling,
+  hasCreditGrantForCheckout,
+} from "../../billing-team";
 import { createPolarCheckout, fetchPolarCheckout } from "../../billing-polar-checkout";
 import { requireTeamMembership } from "../../lib/team-membership";
 
@@ -117,7 +122,7 @@ export async function confirmCheckout(
       credits: 100,
     });
     const snapshot = await getTeamBilling(input.teamId);
-    if (!applied && snapshot.orchCreditsRemaining <= 0) {
+    if (!applied && !(await hasCreditGrantForCheckout(input.checkoutId))) {
       throw new ORPCError("BAD_REQUEST", {
         message: "This checkout did not add Orch credits to the team.",
       });

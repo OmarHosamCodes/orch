@@ -4,7 +4,7 @@ import { BillingSuccessView } from "@/features/billing/billing-success-view";
 import { useBillingSuccess } from "@/features/billing/hooks/use-billing-success";
 
 export function BillingSuccessContainer() {
-  const { status, errorMessage, openPortal, isBooting } = useBillingSuccess();
+  const { status, errorMessage, openPortal, isBooting, plan, creditsPlan } = useBillingSuccess();
 
   return (
     <AppShellPage>
@@ -12,6 +12,8 @@ export function BillingSuccessContainer() {
         <BillingSuccessView
           status={status}
           errorMessage={errorMessage}
+          plan={plan}
+          creditsPlan={creditsPlan}
           onOpenPortal={() => void openPortal()}
         />
       </ShellBootSurface>

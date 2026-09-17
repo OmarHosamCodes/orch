@@ -217,6 +217,16 @@ export async function applyPaidPlan(
   }
 }
 
+export async function hasCreditGrantForCheckout(checkoutId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ checkoutId: workspaceTeamBillingCreditGrant.checkoutId })
+    .from(workspaceTeamBillingCreditGrant)
+    .where(eq(workspaceTeamBillingCreditGrant.checkoutId, checkoutId))
+    .limit(1);
+
+  return Boolean(row);
+}
+
 export async function applyCreditPack(
   teamId: string,
   input: { checkoutId: string; credits: number },

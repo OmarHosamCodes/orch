@@ -20,14 +20,15 @@ mock.module("../../billing-polar-checkout", () => ({
   fetchPolarCheckout,
 }));
 
-const [{ db }, { user }, teamService, billingService, billingTeam, { env }] = await Promise.all([
-  import("@orch/db"),
-  import("@orch/db/schema/auth"),
-  import("../team/service"),
-  import("./service"),
-  import("../../billing-team"),
-  import("@orch/env/server"),
-]);
+const [{ db }, { user, workspaceTeamBilling }, teamService, billingService, billingTeam, { env }] =
+  await Promise.all([
+    import("@orch/db"),
+    import("@orch/db/schema"),
+    import("../team/service"),
+    import("./service"),
+    import("../../billing-team"),
+    import("@orch/env/server"),
+  ]);
 
 const polarProProductId = env.POLAR_PRODUCT_PRO.split(",")[0]!.trim();
 
@@ -211,6 +212,40 @@ describe("confirmCheckout", () => {
 
     expect(result.checkoutKind).toBe("credits");
     expect(result.billing.orchCreditsRemaining).toBe(100);
+  });
+
+  test("replay credit confirm is idempotent after credits are spent", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Replay Credits" });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: "polar-credits",
+      seats: 1,
+      subscriptionId: null,
+      status: "succeeded",
+    }));
+
+    const checkoutId = "chk_credits_replay";
+    const first = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId,
+    });
+    expect(first.checkoutKind).toBe("credits");
+    expect(first.billing.orchCreditsRemaining).toBe(100);
+
+    await db
+      .update(workspaceTeamBilling)
+      .set({ orchCreditsRemaining: 0 })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    const replay = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId,
+    });
+    expect(replay.checkoutKind).toBe("credits");
+    expect(replay.billing.orchCreditsRemaining).toBe(0);
   });
 
   test("classifies credit checkout as credits on an already paid Agency team", async () => {
