@@ -635,7 +635,7 @@ body:has(.app-shell) {
   width: 100%;
   min-height: 0;
   padding: var(--shell-chrome-band-padding);
-  overflow: hidden;
+  overflow: visible;
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
 }
@@ -1930,6 +1930,42 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   z-index: 1;
 }
 
+.member-profile-cal-day--present::after,
+.member-profile-cal-day--leave::after,
+.member-profile-cal-day--holiday::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.member-profile-cal-day--present::after {
+  inset-inline: 18%;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--success);
+}
+
+.member-profile-cal-day--leave::after {
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--warning);
+}
+
+.member-profile-cal-day--holiday::after {
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--chart-1);
+}
+
 .member-profile-cal-day--today:not(:disabled) {
   box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--foreground) 16%, transparent);
 }
@@ -1940,12 +1976,10 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 
 .member-profile-cal-day--holiday[data-state="open"] {
   border-color: color-mix(in oklch, var(--chart-1) 50%, transparent);
-  background-color: color-mix(in oklch, var(--chart-1) 24%, transparent);
 }
 
 .member-profile-cal-day--holiday:not(:disabled):hover {
-  filter: saturate(1.06) brightness(1.03);
-  border-color: color-mix(in oklch, var(--chart-1) 50%, transparent);
+  filter: brightness(1.04);
 }
 
 .member-profile-cal-day--holiday:not(:disabled):hover .member-profile-cal-party {

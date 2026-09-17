@@ -1,7 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { type ReactNode } from "react";
 
 import { RouteError, RouteNotFound } from "@/features/app-shell/route-status";
@@ -70,8 +68,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         {children}
         <Toaster position="bottom-right" />
-        {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-left" /> : null}
-        {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
         <Scripts />
       </body>
     </html>

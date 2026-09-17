@@ -18,6 +18,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAgencyChromeRouteImport } from './routes/_authenticated/_agency-chrome'
 import { Route as AuthenticatedCanvasRouteImport } from './routes/_authenticated/canvas'
 import { Route as DevDialogsRouteImport } from './routes/dev.dialogs'
+import { Route as DevNotificationsRouteImport } from './routes/dev.notifications'
 import { Route as AuthenticatedAgencyMeRouteImport } from './routes/_authenticated/agency.me'
 import { Route as AuthenticatedBillingSuccessRouteImport } from './routes/_authenticated/billing.success'
 import { Route as AuthenticatedNodeIdRouteImport } from './routes/_authenticated/node.$id'
@@ -78,6 +79,11 @@ const AuthenticatedCanvasRoute = AuthenticatedCanvasRouteImport.update({
 const DevDialogsRoute = DevDialogsRouteImport.update({
   id: '/dev/dialogs',
   path: '/dev/dialogs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevNotificationsRoute = DevNotificationsRouteImport.update({
+  id: '/dev/notifications',
+  path: '/dev/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAgencyMeRoute = AuthenticatedAgencyMeRouteImport.update({
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/notifications': typeof DevNotificationsRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/notifications': typeof DevNotificationsRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/_authenticated/_agency-chrome': typeof AuthenticatedAgencyChromeRouteWithChildren
   '/_authenticated/canvas': typeof AuthenticatedCanvasRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/notifications': typeof DevNotificationsRoute
   '/_authenticated/agency/me': typeof AuthenticatedAgencyMeRoute
   '/_authenticated/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/_authenticated/node/$id': typeof AuthenticatedNodeIdRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/canvas'
     | '/dev/dialogs'
+    | '/dev/notifications'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/canvas'
     | '/dev/dialogs'
+    | '/dev/notifications'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_agency-chrome'
     | '/_authenticated/canvas'
     | '/dev/dialogs'
+    | '/dev/notifications'
     | '/_authenticated/agency/me'
     | '/_authenticated/billing/success'
     | '/_authenticated/node/$id'
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   DevDialogsRoute: typeof DevDialogsRoute
+  DevNotificationsRoute: typeof DevNotificationsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -417,6 +430,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/dialogs'
       fullPath: '/dev/dialogs'
       preLoaderRoute: typeof DevDialogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/notifications': {
+      id: '/dev/notifications'
+      path: '/dev/notifications'
+      fullPath: '/dev/notifications'
+      preLoaderRoute: typeof DevNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agency/me': {
@@ -633,6 +653,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   DevDialogsRoute: DevDialogsRoute,
+  DevNotificationsRoute: DevNotificationsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
