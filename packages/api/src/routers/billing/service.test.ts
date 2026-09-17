@@ -168,7 +168,7 @@ describe("confirmCheckout", () => {
     });
   });
 
-  test("does not apply Agency when Polar omits a subscription id", async () => {
+  test("rejects Pro checkout when Polar omits a subscription id", async () => {
     const ownerId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Confirm Checkout" });
 
@@ -181,17 +181,12 @@ describe("confirmCheckout", () => {
       status: "succeeded",
     }));
 
-    const snapshot = await billingService.confirmCheckout(ownerId, {
-      teamId: team.id,
-      checkoutId: "chk_no_sub",
-    });
-
-    expect(snapshot).toMatchObject({
-      teamId: team.id,
-      plan: "trial",
-      seats: 1,
-      polarSubscriptionId: null,
-    });
+    await expect(
+      billingService.confirmCheckout(ownerId, {
+        teamId: team.id,
+        checkoutId: "chk_no_sub",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   test("applies Orch credits for the configured credit product", async () => {

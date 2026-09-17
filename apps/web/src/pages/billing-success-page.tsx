@@ -1,6 +1,7 @@
 import { AppShellPage } from "@/features/app-shell/app-shell-page";
 import { ShellBootSurface } from "@/features/app-shell/components/shell-boot-surface";
 import { useShellBootGate } from "@/features/app-shell/shell/use-shell-boot-gate";
+import { isBillingSuccessDataReady } from "@/features/billing/billing-success-readiness";
 import { useBillingSuccess } from "@/features/billing/hooks/use-billing-success";
 import { BillingSuccessView } from "@/features/billing/views/billing-success-view";
 import { useTeamStore } from "@/features/team/team-store";
@@ -11,7 +12,7 @@ export function BillingSuccessPage() {
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
   const checkoutId = searchParams.get("checkout_id") ?? undefined;
   const { status, errorMessage, openPortal } = useBillingSuccess(selectedTeamId, checkoutId);
-  const { isBooting } = useShellBootGate(status === "confirming");
+  const { isBooting } = useShellBootGate(isBillingSuccessDataReady(status));
 
   return (
     <AppShellPage>

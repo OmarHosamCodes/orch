@@ -107,8 +107,26 @@ export async function confirmCheckout(
   }
 
   if (env.POLAR_PRODUCT_ORCH_CREDITS && checkout.productId === env.POLAR_PRODUCT_ORCH_CREDITS) {
-    await applyCreditPack(input.teamId, { checkoutId: input.checkoutId, credits: 100 });
-  } else if (isPolarProProduct(checkout.productId) && checkout.subscriptionId) {
+    const { applied } = await applyCreditPack(input.teamId, {
+      checkoutId: input.checkoutId,
+      credits: 100,
+    });
+    const snapshot = await getTeamBilling(input.teamId);
+    if (!applied && snapshot.orchCreditsRemaining <= 0) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "This checkout did not add Orch credits to the team.",
+      });
+    }
+    return snapshot;
+  }
+
+  if (isPolarProProduct(checkout.productId)) {
+    if (!checkout.subscriptionId) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "This checkout did not include an active Agency subscription.",
+      });
+    }
+
     await applyPolarSnapshot(input.teamId, {
       teamId: input.teamId,
       subscriptionId: checkout.subscriptionId,
@@ -116,6 +134,14 @@ export async function confirmCheckout(
       seats: checkout.seats,
       status: "active",
     });
+
+    const snapshot = await getTeamBilling(input.teamId);
+    if (snapshot.plan !== "agency" && snapshot.plan !== "agency_unlimited") {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "Agency billing is not active for this team yet.",
+      });
+    }
+    return snapshot;
   }
 
   return getTeamBilling(input.teamId);
