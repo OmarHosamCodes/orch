@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   isBillingSuccessDataReady,
-  isCheckoutConfirmationSuccessful,
+  resolveCheckoutConfirmationStatus,
 } from "./billing-success-readiness";
 
 describe("isBillingSuccessDataReady", () => {
@@ -10,32 +10,36 @@ describe("isBillingSuccessDataReady", () => {
     expect(isBillingSuccessDataReady("confirming")).toBe(false);
   });
 
-  test("is ready for active, error, and idle", () => {
-    expect(isBillingSuccessDataReady("active")).toBe(true);
+  test("is ready after confirmation finishes", () => {
+    expect(isBillingSuccessDataReady("agency_active")).toBe(true);
+    expect(isBillingSuccessDataReady("credits_added")).toBe(true);
     expect(isBillingSuccessDataReady("error")).toBe(true);
     expect(isBillingSuccessDataReady("idle")).toBe(true);
   });
 });
 
-describe("isCheckoutConfirmationSuccessful", () => {
-  test("accepts paid Agency plans", () => {
+describe("resolveCheckoutConfirmationStatus", () => {
+  test("maps paid Agency plans to agency_active", () => {
     expect(
-      isCheckoutConfirmationSuccessful({ plan: "agency", orchCreditsRemaining: 0 }),
-    ).toBe(true);
+      resolveCheckoutConfirmationStatus({ plan: "agency", orchCreditsRemaining: 0 }),
+    ).toBe("agency_active");
     expect(
-      isCheckoutConfirmationSuccessful({ plan: "agency_unlimited", orchCreditsRemaining: 0 }),
-    ).toBe(true);
+      resolveCheckoutConfirmationStatus({ plan: "agency_unlimited", orchCreditsRemaining: 0 }),
+    ).toBe("agency_active");
   });
 
-  test("accepts credit-only snapshots", () => {
+  test("maps credit-only snapshots to credits_added", () => {
     expect(
-      isCheckoutConfirmationSuccessful({ plan: "trial", orchCreditsRemaining: 100 }),
-    ).toBe(true);
+      resolveCheckoutConfirmationStatus({ plan: "trial", orchCreditsRemaining: 100 }),
+    ).toBe("credits_added");
+    expect(
+      resolveCheckoutConfirmationStatus({ plan: "leftover", orchCreditsRemaining: 50 }),
+    ).toBe("credits_added");
   });
 
   test("rejects unchanged trial without credits", () => {
     expect(
-      isCheckoutConfirmationSuccessful({ plan: "trial", orchCreditsRemaining: 0 }),
-    ).toBe(false);
+      resolveCheckoutConfirmationStatus({ plan: "trial", orchCreditsRemaining: 0 }),
+    ).toBe("error");
   });
 });

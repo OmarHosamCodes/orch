@@ -209,4 +209,25 @@ describe("confirmCheckout", () => {
 
     expect(snapshot.orchCreditsRemaining).toBe(100);
   });
+
+  test("rejects checkout for an unknown Polar product", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Unknown Product" });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: "polar-unknown",
+      seats: 1,
+      subscriptionId: "sub_unknown",
+      status: "succeeded",
+    }));
+
+    await expect(
+      billingService.confirmCheckout(ownerId, {
+        teamId: team.id,
+        checkoutId: "chk_unknown",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

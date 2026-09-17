@@ -7,7 +7,7 @@ import { billingStateQueryKey, useBilling } from "@/features/billing/billing-que
 import {
   type BillingSuccessStatus,
   isBillingSuccessDataReady,
-  isCheckoutConfirmationSuccessful,
+  resolveCheckoutConfirmationStatus,
 } from "@/features/billing/billing-success-readiness";
 import { useTeamStore } from "@/features/team/team-store";
 import { useSearchParams } from "@/lib/navigation";
@@ -23,7 +23,7 @@ export function useBillingSuccess() {
   const { openPortal } = useBilling(teamId);
   const confirmedCheckoutIdRef = useRef<string | null>(null);
   const [status, setStatus] = useState<BillingSuccessStatus>(() =>
-    checkoutId ? "confirming" : "active",
+    checkoutId ? "confirming" : "agency_active",
   );
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -37,7 +37,7 @@ export function useBillingSuccess() {
   useEffect(() => {
     if (!teamId || !shouldRunBillingCheckoutConfirm(checkoutId, confirmedCheckoutIdRef.current)) {
       if (!checkoutId) {
-        setStatus("active");
+        setStatus("agency_active");
       }
       return;
     }
@@ -54,13 +54,14 @@ export function useBillingSuccess() {
         });
         queryClient.invalidateQueries({ queryKey: billingStateQueryKey(teamId) });
 
-        if (!isCheckoutConfirmationSuccessful(snapshot)) {
+        const nextStatus = resolveCheckoutConfirmationStatus(snapshot);
+        if (nextStatus === "error") {
           setErrorMessage("This checkout did not activate Agency billing for the team.");
           setStatus("error");
           return;
         }
 
-        setStatus("active");
+        setStatus(nextStatus);
       } catch (error) {
         setErrorMessage(getErrorMessage(error, "We couldn't confirm this checkout."));
         setStatus("error");

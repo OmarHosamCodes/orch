@@ -2,6 +2,7 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 import { Link } from "@/lib/navigation";
 
 import { shellConfirmInClass, shellStaggerItemClass } from "@/features/app-shell/app-shell-ui";
+import { billingCreditsAddedCopy } from "@/features/billing/billing-success-copy";
 import type { BillingSuccessStatus } from "@/features/billing/billing-success-readiness";
 import { Button } from "@/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,9 @@ export type BillingSuccessViewProps = {
 
 export function BillingSuccessView({ status, errorMessage, onOpenPortal }: BillingSuccessViewProps) {
   const isError = status === "error";
-  const isActive = status === "active";
+  const isAgencyActive = status === "agency_active";
+  const isCreditsAdded = status === "credits_added";
+  const creditsCopy = billingCreditsAddedCopy();
 
   return (
     <div className="flex h-full items-start justify-center overflow-y-auto bg-default px-4 pt-12 sm:px-6 lg:px-8">
@@ -36,19 +39,23 @@ export function BillingSuccessView({ status, errorMessage, onOpenPortal }: Billi
         <h1 className="mb-2 text-2xl font-bold text-highlighted">
           {isError
             ? "Billing confirmation failed"
-            : isActive
-              ? "Agency is active"
-              : "Confirming billing"}
+            : isCreditsAdded
+              ? creditsCopy.title
+              : isAgencyActive
+                ? "Agency is active"
+                : "Confirming billing"}
         </h1>
         <p className="mb-8 text-muted">
           {isError
             ? errorMessage
-            : isActive
-              ? "This team can use Tracker, projects, money, and people."
-              : "Hang on while we apply your checkout to this team."}
+            : isCreditsAdded
+              ? creditsCopy.body
+              : isAgencyActive
+                ? "This team can use Tracker, projects, money, and people."
+                : "Hang on while we apply your checkout to this team."}
         </p>
 
-        {isActive ? (
+        {isAgencyActive ? (
           <div className="flex flex-col gap-3">
             <Button asChild size="lg">
               <Link to="/agency">Open Tracker</Link>
@@ -61,6 +68,23 @@ export function BillingSuccessView({ status, errorMessage, onOpenPortal }: Billi
               onClick={onOpenPortal}
             >
               Manage billing
+            </Button>
+          </div>
+        ) : null}
+
+        {isCreditsAdded ? (
+          <div className="flex flex-col gap-3">
+            <Button asChild size="lg">
+              <Link to="/canvas">{creditsCopy.primary}</Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className={shellStaggerItemClass}
+              style={{ "--stagger-i": 1 } as React.CSSProperties}
+              onClick={onOpenPortal}
+            >
+              {creditsCopy.secondary}
             </Button>
           </div>
         ) : null}

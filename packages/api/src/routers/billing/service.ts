@@ -144,5 +144,7 @@ export async function confirmCheckout(
     return snapshot;
   }
 
-  return getTeamBilling(input.teamId);
+  throw new ORPCError("BAD_REQUEST", {
+    message: "This checkout product is not supported for team billing.",
+  });
 }
