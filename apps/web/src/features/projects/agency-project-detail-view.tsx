@@ -108,6 +108,7 @@ export function AgencyProjectDetailView({
     retryLoad,
     isTrashed,
     isOwner,
+    canEditRecords,
     isProjectMutationPending,
     restoreProject,
     requestMoveToTrash,
@@ -173,7 +174,7 @@ export function AgencyProjectDetailView({
               <p className="text-sm text-highlighted">
                 This project is in trash. Restore it to use it in Agency again.
               </p>
-              {isOwner ? (
+              {canEditRecords ? (
                 <Button size="sm" disabled={isProjectMutationPending} onClick={restoreProject}>
                   <ArchiveRestore className="size-3.5" />
                   Restore
@@ -210,7 +211,7 @@ export function AgencyProjectDetailView({
                   iconKey={project.iconKey}
                   colorHueId={project.colorHueId}
                   size="header"
-                  disabled={!isOwner || isTrashed}
+                  disabled={!canEditRecords || isTrashed}
                   ariaLabel="Change project icon"
                   onChange={onChangeProjectIcon}
                 />
@@ -280,7 +281,7 @@ export function AgencyProjectDetailView({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {isOwner && !isTrashed ? (
+              {canEditRecords && !isTrashed ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" aria-label="More project actions">

@@ -25,6 +25,7 @@ import {
 } from "@/features/shared/stores/agency-ops";
 import type { AgencyListFiltersApplied } from "@/features/shared/use-agency-list-filters";
 import { getTaskGroupKey } from "@/features/task-management/agency-task-utils";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
@@ -69,6 +70,8 @@ type AgencyClientsBookCorridor = {
 export type AgencyClientsTableViewModel = {
   openNewClient: () => void;
   isOwner: boolean;
+  canEditRecords: boolean;
+  canEditRates: boolean;
   corridors: AgencyClientsBookCorridor[];
   filteredClients: AgencyClientsBookRow[];
   clients: AgencyClientsTableClient[];
@@ -119,7 +122,7 @@ export function useAgencyClientsTable({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const clientsQuery = useAgencyClientsQuery(teamId, { archiveFilter: filters.archiveFilter });
   const bookIndexQuery = useAgencyClientsBookIndexQuery(teamId, {
@@ -295,14 +298,16 @@ export function useAgencyClientsTable({
     } = { teamId, clientId };
 
     if (name !== client.name) patch.name = name;
-    if (editCategoryDraft !== client.category) patch.category = editCategoryDraft;
-    const catalogAmount = catalogRateAmount(
-      client.sourceBillableRateAmount,
-      client.billableRateAmount,
-    );
-    if (billableRateAmount !== catalogAmount || editCurrencyDraft !== client.currency) {
-      patch.billableRateAmount = billableRateAmount;
-      patch.currency = editCurrencyDraft;
+    if (canEditRates) {
+      if (editCategoryDraft !== client.category) patch.category = editCategoryDraft;
+      const catalogAmount = catalogRateAmount(
+        client.sourceBillableRateAmount,
+        client.billableRateAmount,
+      );
+      if (billableRateAmount !== catalogAmount || editCurrencyDraft !== client.currency) {
+        patch.billableRateAmount = billableRateAmount;
+        patch.currency = editCurrencyDraft;
+      }
     }
 
     setEditClientId("");
@@ -340,6 +345,8 @@ export function useAgencyClientsTable({
   return {
     openNewClient,
     isOwner,
+    canEditRecords,
+    canEditRates,
     corridors,
     filteredClients,
     clients,

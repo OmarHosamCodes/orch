@@ -138,7 +138,8 @@ function ClientBookRow({
   onSelect: (clientId: string) => void;
 }) {
   const {
-    isOwner,
+    canEditRecords,
+    canEditRates,
     isClientMutationPending,
     editClientId,
     setEditClientId,
@@ -258,7 +259,7 @@ function ClientBookRow({
       </span>
 
       <div className="flex justify-end" onClick={(event) => event.stopPropagation()}>
-        {isOwner ? (
+        {canEditRecords ? (
           <Popover
             open={editClientId === client.id}
             onOpenChange={(open) => setEditClientId(open ? client.id : "")}
@@ -352,63 +353,70 @@ function ClientBookRow({
                       autoFocus
                     />
                   </div>
-                  <div>
-                    <Label
-                      htmlFor={`edit-client-category-${client.id}`}
-                      className="text-xs font-medium"
-                    >
-                      Category
-                    </Label>
-                    <Select
-                      value={editCategoryDraft}
-                      onValueChange={(value) =>
-                        setEditCategoryDraft(value as "internal" | "external")
-                      }
-                    >
-                      <SelectTrigger
-                        id={`edit-client-category-${client.id}`}
-                        className="mt-1 w-full"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="external">External</SelectItem>
-                        <SelectItem value="internal">Internal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor={`edit-client-rate-${client.id}`}
-                      className="text-xs font-medium"
-                    >
-                      Catalog rate / hour
-                    </Label>
-                    <div className="mt-1 flex gap-2">
-                      <Input
-                        id={`edit-client-rate-${client.id}`}
-                        value={editBillableRateDraft}
-                        onChange={(e) => setEditBillableRateDraft(e.target.value)}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Leave blank if not set"
-                        className="min-w-0 flex-1"
-                      />
-                      <Select value={editCurrencyDraft} onValueChange={setEditCurrencyDraft}>
-                        <SelectTrigger aria-label="Rate currency" className="w-[5.5rem] shrink-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {AGENCY_CURRENCY_OPTIONS.map((code) => (
-                            <SelectItem key={code} value={code}>
-                              {code}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  {canEditRates ? (
+                    <>
+                      <div>
+                        <Label
+                          htmlFor={`edit-client-category-${client.id}`}
+                          className="text-xs font-medium"
+                        >
+                          Category
+                        </Label>
+                        <Select
+                          value={editCategoryDraft}
+                          onValueChange={(value) =>
+                            setEditCategoryDraft(value as "internal" | "external")
+                          }
+                        >
+                          <SelectTrigger
+                            id={`edit-client-category-${client.id}`}
+                            className="mt-1 w-full"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="external">External</SelectItem>
+                            <SelectItem value="internal">Internal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor={`edit-client-rate-${client.id}`}
+                          className="text-xs font-medium"
+                        >
+                          Catalog rate / hour
+                        </Label>
+                        <div className="mt-1 flex gap-2">
+                          <Input
+                            id={`edit-client-rate-${client.id}`}
+                            value={editBillableRateDraft}
+                            onChange={(e) => setEditBillableRateDraft(e.target.value)}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Leave blank if not set"
+                            className="min-w-0 flex-1"
+                          />
+                          <Select value={editCurrencyDraft} onValueChange={setEditCurrencyDraft}>
+                            <SelectTrigger
+                              aria-label="Rate currency"
+                              className="w-[5.5rem] shrink-0"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {AGENCY_CURRENCY_OPTIONS.map((code) => (
+                                <SelectItem key={code} value={code}>
+                                  {code}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
                 <Button
                   type="submit"
@@ -417,10 +425,11 @@ function ClientBookRow({
                   disabled={
                     !editNameDraft.trim() ||
                     isClientMutationPending ||
-                    Boolean(
-                      editBillableRateDraft.trim() &&
-                      parseBillableRateAmount(editBillableRateDraft) === null,
-                    )
+                    (canEditRates &&
+                      Boolean(
+                        editBillableRateDraft.trim() &&
+                        parseBillableRateAmount(editBillableRateDraft) === null,
+                      ))
                   }
                 >
                   Save
@@ -439,8 +448,16 @@ export function AgencyClientsTableView({
   searchQuery,
   onSelect,
 }: AgencyClientsTableViewProps) {
-  const { openNewClient, isOwner, corridors, clients, isLoading, isError, errorMessage, refetch } =
-    viewModel;
+  const {
+    openNewClient,
+    canEditRecords,
+    corridors,
+    clients,
+    isLoading,
+    isError,
+    errorMessage,
+    refetch,
+  } = viewModel;
 
   if (isLoading) {
     return <SurfaceShimmer className="min-h-80" label="Loading clients" />;
@@ -467,7 +484,7 @@ export function AgencyClientsTableView({
         <p className="mt-1 text-xs text-muted">
           Add your first client to start grouping projects and time.
         </p>
-        {isOwner ? (
+        {canEditRecords ? (
           <Button variant="secondary" size="sm" className="mt-4" onClick={openNewClient}>
             <Plus />
             New client

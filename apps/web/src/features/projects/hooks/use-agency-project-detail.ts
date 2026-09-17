@@ -31,6 +31,7 @@ import {
 } from "@/features/shared/stores/agency-ops";
 import { startOfWeekUtc } from "@/features/shared/use-agency-time-range-filters";
 import { useTeamWorkSchedule } from "@/features/shared/use-team-work-schedule";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   canvasNodeHref,
@@ -85,6 +86,8 @@ export type AgencyProjectDetailViewModel = {
   retryLoad: () => void;
   isTrashed: boolean;
   isOwner: boolean;
+  canEditRecords: boolean;
+  canEditRates: boolean;
   isProjectMutationPending: boolean;
   restoreProject: () => void;
   requestMoveToTrash: () => void;
@@ -149,7 +152,7 @@ export function useAgencyProjectDetail({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const projectsQuery = useQuery({
     ...orpc.agencyOps.projects.list.queryOptions({
@@ -165,7 +168,7 @@ export function useAgencyProjectDetail({
     ...orpc.agencyOps.fxRates.list.queryOptions({
       input: { teamId },
     }),
-    enabled: Boolean(teamId) && isOwner,
+    enabled: Boolean(teamId) && canEditRates,
   });
 
   const project = (projectsQuery.data?.items ?? []).find((entry) => entry.id === projectId) ?? null;
@@ -470,6 +473,8 @@ export function useAgencyProjectDetail({
     retryLoad,
     isTrashed: Boolean(project?.deletedAt),
     isOwner,
+    canEditRecords,
+    canEditRates,
     isProjectMutationPending,
     restoreProject,
     requestMoveToTrash,
@@ -486,7 +491,7 @@ export function useAgencyProjectDetail({
     saveProjectRate,
     canSaveProjectRate,
     onChangeProjectIcon: (iconKey) => {
-      if (!teamId || !projectId) return;
+      if (!teamId || !projectId || !canEditRecords) return;
       void agencyOps.updateProject({
         teamId,
         projectId,

@@ -119,7 +119,8 @@ function ProjectBookRow({
   viewModel: AgencyProjectsTableViewModel;
   onSelect: (projectId: string) => void;
 }) {
-  const { isOwner, isProjectMutationPending, requestDeleteProject, restoreProject } = viewModel;
+  const { canEditRecords, isProjectMutationPending, requestDeleteProject, restoreProject } =
+    viewModel;
   const isTrashed = Boolean(project.deletedAt);
   const hasBudget = projectHasBudget(viewModel.budgetsByProject.get(project.id) ?? null);
 
@@ -197,7 +198,7 @@ function ProjectBookRow({
       </span>
 
       <div className="flex justify-end" onClick={(event) => event.stopPropagation()}>
-        {isOwner ? (
+        {canEditRecords ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -243,7 +244,7 @@ export function AgencyProjectsTableView({
 }: AgencyProjectsTableViewProps) {
   const {
     openNewProject,
-    isOwner,
+    canEditRecords,
     corridors,
     clients,
     projects,
@@ -294,7 +295,7 @@ export function AgencyProjectsTableView({
         <p className="mt-1 text-xs text-muted">
           Create your first project to start tracking time and budgets.
         </p>
-        {isOwner ? (
+        {canEditRecords ? (
           <Button variant="secondary" size="sm" className="mt-4" onClick={openNewProject}>
             <Plus />
             New project

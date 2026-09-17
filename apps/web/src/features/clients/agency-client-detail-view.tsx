@@ -225,7 +225,8 @@ export function AgencyClientDetailView({
     isError,
     errorMessage,
     retryLoad,
-    isOwner,
+    canEditRecords,
+    canEditRates,
     client,
     isArchived,
     weekDurationSeconds,
@@ -306,7 +307,7 @@ export function AgencyClientDetailView({
               <p className="text-sm text-highlighted">
                 This client is archived. Unarchive to use it in Agency again.
               </p>
-              {isOwner ? (
+              {canEditRecords ? (
                 <Button size="sm" disabled={isClientMutationPending} onClick={unarchiveClient}>
                   <ArchiveRestore className="size-3.5" />
                   Unarchive
@@ -347,7 +348,7 @@ export function AgencyClientDetailView({
                     {clientContactCompletenessLabel(contactCompleteness)}
                   </span>
                 </span>
-                {contactIncomplete && isOwner && !isArchived ? (
+                {contactIncomplete && canEditRecords && !isArchived ? (
                   <button
                     type="button"
                     className={cn(
@@ -363,7 +364,7 @@ export function AgencyClientDetailView({
                 {rateMissing ? (
                   <>
                     <span aria-hidden>·</span>
-                    {isOwner && !isArchived ? (
+                    {canEditRates && !isArchived ? (
                       <button
                         type="button"
                         className={cn(
@@ -384,7 +385,7 @@ export function AgencyClientDetailView({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {isOwner && !isArchived ? (
+              {canEditRecords && !isArchived ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" aria-label="More client actions">
@@ -459,7 +460,7 @@ export function AgencyClientDetailView({
                     </span>
                   ) : null}
                 </div>
-                {isOwner && !isArchived && projects.length > 0 ? (
+                {canEditRecords && !isArchived && projects.length > 0 ? (
                   <Button variant="ghost" size="sm" onClick={() => setCreateProjectOpen(true)}>
                     <Plus className="size-3.5" />
                     New project
@@ -472,7 +473,7 @@ export function AgencyClientDetailView({
                   <p className="mt-1 text-xs text-muted">
                     Create a project to start tracking time under this client.
                   </p>
-                  {isOwner && !isArchived ? (
+                  {canEditRecords && !isArchived ? (
                     <Button
                       variant="secondary"
                       size="sm"
@@ -551,7 +552,7 @@ export function AgencyClientDetailView({
                     <p className="mt-2 text-[11px] font-bold text-warning">Catalog rate not set</p>
                   ) : null}
                 </header>
-                {isOwner ? (
+                {canEditRecords || canEditRates ? (
                   <form
                     className="space-y-3"
                     onSubmit={(event) => {
@@ -559,83 +560,99 @@ export function AgencyClientDetailView({
                       saveCommercial();
                     }}
                   >
-                    <div>
-                      <Label htmlFor={`client-name-${clientId}`} className="text-[11px] font-bold">
-                        Name
-                      </Label>
-                      <Input
-                        id={`client-name-${clientId}`}
-                        value={editNameDraft}
-                        onChange={(e) => setEditNameDraft(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor={`client-category-${clientId}`}
-                        className="text-[11px] font-bold"
-                      >
-                        Category
-                      </Label>
-                      <Select
-                        value={editCategoryDraft}
-                        onValueChange={(value) =>
-                          setEditCategoryDraft(value as "internal" | "external")
-                        }
-                      >
-                        <SelectTrigger id={`client-category-${clientId}`} className="mt-1 w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="external">External</SelectItem>
-                          <SelectItem value="internal">Internal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor={`client-rate-${clientId}`} className="text-[11px] font-bold">
-                        Catalog rate / hour
-                      </Label>
-                      <div className="mt-1 flex gap-2">
+                    {canEditRecords ? (
+                      <div>
+                        <Label htmlFor={`client-name-${clientId}`} className="text-[11px] font-bold">
+                          Name
+                        </Label>
                         <Input
-                          id={`client-rate-${clientId}`}
-                          value={editBillableRateDraft}
-                          onChange={(e) => setEditBillableRateDraft(e.target.value)}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Leave blank if not set"
-                          className="min-w-0 flex-1"
+                          id={`client-name-${clientId}`}
+                          value={editNameDraft}
+                          onChange={(e) => setEditNameDraft(e.target.value)}
+                          className="mt-1"
                         />
-                        <Select value={editCurrencyDraft} onValueChange={setEditCurrencyDraft}>
-                          <SelectTrigger aria-label="Rate currency" className="w-[5.5rem] shrink-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {AGENCY_CURRENCY_OPTIONS.map((code) => (
-                              <SelectItem key={code} value={code}>
-                                {code}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </div>
-                      {ratePreviewAmount != null ? (
-                        <p className="mt-1 text-[11px] text-muted">
-                          ≈ {formatRate(ratePreviewAmount, agencyCurrency, { perHour: true })}
-                        </p>
-                      ) : null}
-                    </div>
+                    ) : null}
+                    {canEditRates ? (
+                      <>
+                        <div>
+                          <Label
+                            htmlFor={`client-category-${clientId}`}
+                            className="text-[11px] font-bold"
+                          >
+                            Category
+                          </Label>
+                          <Select
+                            value={editCategoryDraft}
+                            onValueChange={(value) =>
+                              setEditCategoryDraft(value as "internal" | "external")
+                            }
+                          >
+                            <SelectTrigger
+                              id={`client-category-${clientId}`}
+                              className="mt-1 w-full"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="external">External</SelectItem>
+                              <SelectItem value="internal">Internal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label
+                            htmlFor={`client-rate-${clientId}`}
+                            className="text-[11px] font-bold"
+                          >
+                            Catalog rate / hour
+                          </Label>
+                          <div className="mt-1 flex gap-2">
+                            <Input
+                              id={`client-rate-${clientId}`}
+                              value={editBillableRateDraft}
+                              onChange={(e) => setEditBillableRateDraft(e.target.value)}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="Leave blank if not set"
+                              className="min-w-0 flex-1"
+                            />
+                            <Select value={editCurrencyDraft} onValueChange={setEditCurrencyDraft}>
+                              <SelectTrigger
+                                aria-label="Rate currency"
+                                className="w-[5.5rem] shrink-0"
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {AGENCY_CURRENCY_OPTIONS.map((code) => (
+                                  <SelectItem key={code} value={code}>
+                                    {code}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {ratePreviewAmount != null ? (
+                            <p className="mt-1 text-[11px] text-muted">
+                              ≈ {formatRate(ratePreviewAmount, agencyCurrency, { perHour: true })}
+                            </p>
+                          ) : null}
+                        </div>
+                      </>
+                    ) : null}
                     <Button
                       type="submit"
                       size="sm"
                       disabled={
-                        !editNameDraft.trim() ||
+                        (canEditRecords && !editNameDraft.trim()) ||
                         isClientMutationPending ||
-                        Boolean(
-                          editBillableRateDraft.trim() &&
-                          parseBillableRateAmount(editBillableRateDraft) === null,
-                        )
+                        (canEditRates &&
+                          Boolean(
+                            editBillableRateDraft.trim() &&
+                            parseBillableRateAmount(editBillableRateDraft) === null,
+                          ))
                       }
                     >
                       Save commercial
@@ -688,7 +705,7 @@ export function AgencyClientDetailView({
                     </p>
                   ) : null}
                 </header>
-                {isOwner ? (
+                {canEditRecords ? (
                   <form
                     className="space-y-3"
                     onSubmit={(event) => {

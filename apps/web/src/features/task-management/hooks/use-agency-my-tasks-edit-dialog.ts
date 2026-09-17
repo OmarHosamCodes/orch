@@ -15,6 +15,7 @@ import {
   type MyTasksEditDraft,
 } from "@/features/task-management/agency-my-tasks-edit-draft";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -43,6 +44,7 @@ export type AgencyMyTasksEditDialogViewModel = {
   estimateMinutes: number | null;
   setEstimateMinutes: (value: number | null) => void;
   isOwner: boolean;
+  canEditRecords: boolean;
   billableRateDraft: string;
   setBillableRateDraft: (value: string) => void;
   billableRateCurrency: string;
@@ -93,7 +95,7 @@ export function useAgencyMyTasksEditDialog({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId) && open,
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const fxRatesQuery = useQuery({
     ...orpc.agencyOps.fxRates.list.queryOptions({
@@ -255,6 +257,7 @@ export function useAgencyMyTasksEditDialog({
     estimateMinutes: draft.estimateMinutes,
     setEstimateMinutes,
     isOwner,
+    canEditRecords,
     billableRateDraft: draft.billableRateDraft,
     setBillableRateDraft,
     billableRateCurrency: draft.billableRateCurrency,

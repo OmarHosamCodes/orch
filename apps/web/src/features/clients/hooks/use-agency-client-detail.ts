@@ -18,6 +18,7 @@ import {
   selectIsContactMutationPending,
   useAgencyOpsStore,
 } from "@/features/shared/stores/agency-ops";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -49,6 +50,8 @@ export type AgencyClientDetailViewModel = {
   errorMessage: string;
   retryLoad: () => void;
   isOwner: boolean;
+  canEditRecords: boolean;
+  canEditRates: boolean;
   client: {
     id: string;
     name: string;
@@ -137,7 +140,7 @@ export function useAgencyClientDetail({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const summaryQuery = useQuery({
     ...orpc.agencyOps.clients.commercialSummary.queryOptions({
@@ -158,7 +161,7 @@ export function useAgencyClientDetail({
     ...orpc.agencyOps.fxRates.list.queryOptions({
       input: { teamId },
     }),
-    enabled: Boolean(teamId) && isOwner,
+    enabled: Boolean(teamId) && canEditRates,
   });
 
   const summary = summaryQuery.data;
@@ -244,14 +247,16 @@ export function useAgencyClientDetail({
     } = { teamId, clientId: client.id };
 
     if (name !== client.name) patch.name = name;
-    if (editCategoryDraft !== client.category) patch.category = editCategoryDraft;
-    const catalogAmount = catalogRateAmount(
-      client.sourceBillableRateAmount,
-      client.billableRateAmount,
-    );
-    if (billableRateAmount !== catalogAmount || editCurrencyDraft !== client.currency) {
-      patch.billableRateAmount = billableRateAmount;
-      patch.currency = editCurrencyDraft;
+    if (canEditRates) {
+      if (editCategoryDraft !== client.category) patch.category = editCategoryDraft;
+      const catalogAmount = catalogRateAmount(
+        client.sourceBillableRateAmount,
+        client.billableRateAmount,
+      );
+      if (billableRateAmount !== catalogAmount || editCurrencyDraft !== client.currency) {
+        patch.billableRateAmount = billableRateAmount;
+        patch.currency = editCurrencyDraft;
+      }
     }
     if (Object.keys(patch).length === 2) return;
     void agencyOps.updateClient(patch).then(() => {
@@ -307,6 +312,8 @@ export function useAgencyClientDetail({
       void projectsQuery.refetch();
     },
     isOwner,
+    canEditRecords,
+    canEditRates,
     client,
     isArchived: Boolean(client?.archivedAt),
     weekDurationSeconds: summary?.weekDurationSeconds ?? 0,

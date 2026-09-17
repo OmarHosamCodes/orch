@@ -19,6 +19,7 @@ import { getTaskGroupKey } from "@/features/task-management/agency-task-utils";
 import { agencyListSearchMatches } from "@/features/shared/agency-list-search";
 import { catalogRateAmount } from "@/features/shared/format-rate";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   groupProjectsByCorridor,
@@ -67,6 +68,8 @@ type AgencyProjectsBookCorridor = {
 export type AgencyProjectsTableViewModel = {
   openNewProject: () => void;
   isOwner: boolean;
+  canEditRecords: boolean;
+  canEditRates: boolean;
   corridors: AgencyProjectsBookCorridor[];
   filteredProjects: AgencyProjectsBookRow[];
   hoursThisWeekByProject: Map<string, number>;
@@ -108,7 +111,7 @@ export function useAgencyProjectsTable({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const projectsQuery = useAgencyProjectsQuery(teamId, {
     archiveFilter: filters.archiveFilter,
@@ -321,6 +324,8 @@ export function useAgencyProjectsTable({
   return {
     openNewProject,
     isOwner,
+    canEditRecords,
+    canEditRates,
     corridors,
     filteredProjects,
     hoursThisWeekByProject,
