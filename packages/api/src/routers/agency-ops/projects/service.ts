@@ -47,6 +47,33 @@ import {
 } from "../shared/entity-icon-catalog";
 import { assertWithinLimit } from "../../../billing-team";
 
+type AgencyProjectCommercialInput = {
+  billableRateAmount?: number | null;
+  currency?: string;
+};
+
+function projectInputTouchesCommercialFields(input: AgencyProjectCommercialInput): boolean {
+  if ("billableRateAmount" in input && input.billableRateAmount !== undefined) {
+    return true;
+  }
+  if ("currency" in input && input.currency !== undefined) {
+    return true;
+  }
+  return false;
+}
+
+async function requireAgencyProjectWriteRole(
+  actorUserId: string,
+  teamId: string,
+  input: AgencyProjectCommercialInput,
+) {
+  if (projectInputTouchesCommercialFields(input)) {
+    await requireAgencyRole(actorUserId, teamId, "owner");
+  } else {
+    await requireAgencyRole(actorUserId, teamId, "editor");
+  }
+}
+
 type AgencyProjectRecord = {
   id: string;
   teamId: string;
@@ -245,7 +272,7 @@ export async function createAgencyProject(
     return created.project;
   }
 
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   const now = new Date();
@@ -477,7 +504,7 @@ export async function createAgencyProjectWithJourney(
     }>;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   if (input.milestones.length === 0) {
@@ -671,7 +698,7 @@ export async function updateAgencyProjectJourneySteps(
     }>;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -745,7 +772,7 @@ export async function addAgencyProjectJourneyStep(
     stepKind?: "milestone" | "checkpoint";
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -888,7 +915,7 @@ export async function removeAgencyProjectJourneyStep(
     stepId: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -959,7 +986,7 @@ export async function updateAgencyProject(
     currency?: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyProjectWriteRole(actorUserId, input.teamId, input);
   await getProjectByIdForTeam(input.teamId, input.projectId);
 
   if (input.clientId) {
@@ -1102,7 +1129,7 @@ export async function deleteAgencyProject(
     projectId: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   const project = await getProjectByIdForTeam(input.teamId, input.projectId, {
     includeDeleted: true,
   });
@@ -1146,7 +1173,7 @@ export async function restoreAgencyProject(
     projectId: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId, { includeDeleted: true });
 
   const now = new Date();

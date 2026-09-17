@@ -553,7 +553,7 @@ export async function createAgencyProjectTask(
     description?: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
 
   const title = input.title.trim();
@@ -1083,7 +1083,7 @@ export async function deleteAgencyProjectTask(
     taskId: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const [deleted] = await db
     .delete(agencyOpsProjectTask)

@@ -51,7 +51,7 @@ export async function createAgencyTag(
   actorUserId: string,
   input: { teamId: string; name: string },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const now = new Date();
   const [created] = await db
@@ -80,7 +80,7 @@ export async function deleteAgencyTag(
   actorUserId: string,
   input: { teamId: string; tagId: string },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const [tag] = await db
     .select({ id: agencyOpsTag.id })

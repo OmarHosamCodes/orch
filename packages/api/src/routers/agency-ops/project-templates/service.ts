@@ -103,7 +103,7 @@ export async function createAgencyProjectTemplate(
     milestones: Array<{ title: string; assigneeUserIds?: string[] }>;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const name = input.name.trim();
   if (!name) {
@@ -149,7 +149,7 @@ export async function updateAgencyProjectTemplate(
     milestones?: Array<{ title: string; assigneeUserIds?: string[] }>;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getAgencyProjectTemplateForTeam(actorUserId, {
     teamId: input.teamId,
     templateId: input.templateId,
@@ -203,7 +203,7 @@ export async function deleteAgencyProjectTemplate(
   actorUserId: string,
   input: { teamId: string; templateId: string },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getAgencyProjectTemplateForTeam(actorUserId, {
     teamId: input.teamId,
     templateId: input.templateId,
