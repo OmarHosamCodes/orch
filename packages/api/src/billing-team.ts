@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { and, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@orch/db";
+import { env } from "@orch/env/server";
 import {
   agencyOpsClient,
   agencyOpsProject,
@@ -19,6 +20,14 @@ import {
 } from "@orch/workspace/tiers";
 
 import { getBillingStateForUser } from "./billing-guard";
+
+export type PolarSubscriptionView = {
+  teamId: string;
+  subscriptionId: string;
+  productId: string;
+  seats: number;
+  status: "active" | "canceled" | "revoked";
+};
 
 export type TeamBillingSnapshot = {
   teamId: string;
@@ -41,6 +50,25 @@ export type VolumeCapDbExecutor = {
   select: typeof db.select;
   update: typeof db.update;
 };
+
+function polarProProductIds(): string[] {
+  return (env.POLAR_PRODUCT_PRO ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function isPolarProProduct(productId: string): boolean {
+  return polarProProductIds().includes(productId);
+}
+
+function startOfUtcMonth(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+}
+
+function isAfterUtcMonth(now: Date, periodStart: Date): boolean {
+  return startOfUtcMonth(now).getTime() > startOfUtcMonth(periodStart).getTime();
+}
 
 function notEntitledError() {
   return new ORPCError("FORBIDDEN", {
@@ -121,6 +149,9 @@ function mapTeamBillingSnapshot(
   seats = billing.seats,
 ): TeamBillingSnapshot {
   const limits = AGENCY_PLAN_LIMITS[plan];
+  const floor = limits.orchMessagesIncluded;
+  const orchMessagesIncluded =
+    limits.orchMessagesPeriod === "month" ? floor * seats : floor;
 
   return {
     teamId: billing.teamId,
@@ -130,7 +161,7 @@ function mapTeamBillingSnapshot(
     polarSubscriptionId: billing.polarSubscriptionId,
     polarProductId: billing.polarProductId,
     orchMessagesUsed: billing.orchMessagesUsed,
-    orchMessagesIncluded: limits.orchMessagesIncluded,
+    orchMessagesIncluded,
     orchCreditsRemaining: billing.orchCreditsRemaining,
     limits,
   };
@@ -156,7 +187,11 @@ export async function assertAgencyEntitled(teamId: string, now = new Date()) {
 export async function applyPaidPlan(
   teamId: string,
   plan: Extract<AgencyPlan, "agency" | "agency_unlimited">,
-  input: { seats: number },
+  input: {
+    seats: number;
+    polarSubscriptionId?: string;
+    polarProductId?: string;
+  },
   executor: VolumeCapDbExecutor = db,
 ) {
   const [updated] = await executor
@@ -164,6 +199,12 @@ export async function applyPaidPlan(
     .set({
       plan,
       seats: input.seats,
+      ...(input.polarSubscriptionId !== undefined
+        ? {
+            polarSubscriptionId: input.polarSubscriptionId,
+            polarProductId: input.polarProductId ?? null,
+          }
+        : {}),
       updatedAt: new Date(),
     })
     .where(eq(workspaceTeamBilling.teamId, teamId))
@@ -172,6 +213,21 @@ export async function applyPaidPlan(
   if (!updated) {
     throw notEntitledError();
   }
+}
+
+export async function applyPolarSnapshot(
+  teamId: string,
+  polar: PolarSubscriptionView,
+): Promise<void> {
+  if (polar.status !== "active" || !isPolarProProduct(polar.productId)) {
+    return;
+  }
+
+  await applyPaidPlan(teamId, "agency", {
+    seats: Math.max(1, polar.seats),
+    polarSubscriptionId: polar.subscriptionId,
+    polarProductId: polar.productId,
+  });
 }
 
 export type VolumeCounter =
@@ -241,6 +297,35 @@ function numericLimit(value: number | null | undefined): number | null {
 
 type TeamBillingRow = typeof workspaceTeamBilling.$inferSelect;
 
+async function maybeRollOrchMessagesPeriod(
+  billing: TeamBillingRow,
+  plan: AgencyPlan,
+  now: Date,
+  executor: VolumeCapDbExecutor,
+): Promise<TeamBillingRow> {
+  const limits = AGENCY_PLAN_LIMITS[plan];
+  if (limits.orchMessagesPeriod !== "month") {
+    return billing;
+  }
+
+  if (!isAfterUtcMonth(now, billing.orchMessagesPeriodStart)) {
+    return billing;
+  }
+
+  const periodStart = startOfUtcMonth(now);
+  const [updated] = await executor
+    .update(workspaceTeamBilling)
+    .set({
+      orchMessagesUsed: 0,
+      orchMessagesPeriodStart: periodStart,
+      updatedAt: now,
+    })
+    .where(eq(workspaceTeamBilling.teamId, billing.teamId))
+    .returning();
+
+  return updated ?? billing;
+}
+
 async function lockTeamBillingRowForVolumeCap(
   executor: VolumeCapDbExecutor,
   teamId: string,
@@ -283,11 +368,14 @@ async function resolveTeamBillingSnapshot(
     ownerTier: "free",
   });
   if (lifetimePlan === "agency_unlimited") {
-    return mapTeamBillingSnapshot(billing, lifetimePlan, 1);
+    const seats = billing.polarSubscriptionId ? billing.seats : 1;
+    const rolled = await maybeRollOrchMessagesPeriod(billing, lifetimePlan, now, executor);
+    return mapTeamBillingSnapshot(rolled, lifetimePlan, seats);
   }
 
   if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
-    return mapTeamBillingSnapshot(billing, resolvedPlan);
+    const rolled = await maybeRollOrchMessagesPeriod(billing, resolvedPlan, now, executor);
+    return mapTeamBillingSnapshot(rolled, resolvedPlan);
   }
 
   const ownerBilling = owner ? await getBillingStateForUser(owner.id) : null;
@@ -300,7 +388,8 @@ async function resolveTeamBillingSnapshot(
     await applyPaidPlan(teamId, plan, { seats: 1 }, executor);
   }
 
-  return mapTeamBillingSnapshot(billing, plan);
+  const rolled = await maybeRollOrchMessagesPeriod(billing, plan, now, executor);
+  return mapTeamBillingSnapshot(rolled, plan);
 }
 
 export async function assertWithinLimit(

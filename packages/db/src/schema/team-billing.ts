@@ -16,6 +16,7 @@ export const workspaceTeamBilling = pgTable(
     polarSubscriptionId: text("polar_subscription_id"),
     polarProductId: text("polar_product_id"),
     orchMessagesUsed: integer("orch_messages_used").notNull().default(0),
+    orchMessagesPeriodStart: timestamp("orch_messages_period_start").defaultNow().notNull(),
     orchCreditsRemaining: integer("orch_credits_remaining").notNull().default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

@@ -8,6 +8,7 @@ import {
 import { createWorkspaceId } from "@orch/workspace";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
+Bun.env.POLAR_PRODUCT_PRO ??= "polar-pro";
 
 const [
   { db },
@@ -272,6 +273,42 @@ describe("team billing snapshot", () => {
     await expect(billingTeam.assertAgencyEntitled(team.id, after)).rejects.toMatchObject({
       code: "FORBIDDEN",
       data: { code: "trial_ended" },
+    });
+  });
+
+  test("applyPolarSnapshot writes agency seats from Polar quantity", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Seats Agency" });
+    await billingTeam.applyPolarSnapshot(team.id, {
+      teamId: team.id,
+      subscriptionId: "sub_1",
+      productId: Bun.env.POLAR_PRODUCT_PRO ?? "polar-pro",
+      seats: 3,
+      status: "active",
+    });
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      plan: "agency",
+      seats: 3,
+      orchMessagesIncluded: 150,
+    });
+  });
+
+  test("lifetime Unlimited uses Polar seats when a subscription exists", async () => {
+    const ownerId = await createFixtureUser({ lifetimePro: true });
+    const team = await ensurePersonalAgencyModule.ensurePersonalAgency(ownerId, {
+      name: "Life",
+    });
+    await billingTeam.applyPolarSnapshot(team.id, {
+      teamId: team.id,
+      subscriptionId: "sub_life",
+      productId: Bun.env.POLAR_PRODUCT_PRO ?? "polar-pro",
+      seats: 2,
+      status: "active",
+    });
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      plan: "agency_unlimited",
+      seats: 2,
+      orchMessagesIncluded: 400,
     });
   });
 
