@@ -1,3 +1,4 @@
+import { rejectIfUploadsBlocked } from "@orch/api/billing-uploads";
 import { createContext, type Context } from "@orch/api/context";
 import { compressImage, replaceFileExtension } from "@orch/api/image-compression";
 import {
@@ -75,6 +76,12 @@ export function registerTaskAttachmentUploadRoute(app: Hono) {
     const projectId = await resolveTaskProjectId(teamId, taskId);
     if (!projectId) {
       return c.json({ error: "Task not found" }, 404);
+    }
+
+    const uploadGate = await rejectIfUploadsBlocked(teamId);
+    if (!uploadGate.ok) {
+      const { status, body } = uploadGate.response;
+      return c.json(body, status);
     }
 
     let fileName = file.name;

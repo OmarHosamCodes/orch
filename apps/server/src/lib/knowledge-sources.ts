@@ -1,3 +1,4 @@
+import { rejectIfUploadsBlocked } from "@orch/api/billing-uploads";
 import { createContext, type Context } from "@orch/api/context";
 import { compressImage, replaceFileExtension } from "@orch/api/image-compression";
 import { getKnowledgeSourceReadUrl, uploadKnowledgeSourceBuffer } from "@orch/api/storage";
@@ -51,6 +52,12 @@ export function registerKnowledgeSourceUploadRoute(app: Hono) {
     const memberUserId = await requireAuthTeamAccess(requestContext, teamId);
     if (!memberUserId) {
       return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const uploadGate = await rejectIfUploadsBlocked(teamId);
+    if (!uploadGate.ok) {
+      const { status, body } = uploadGate.response;
+      return c.json(body, status);
     }
 
     let fileName = file.name;
