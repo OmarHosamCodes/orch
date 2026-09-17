@@ -17,7 +17,7 @@ export function agencyPlanLabel(
     case "agency_unlimited":
       return "Agency Unlimited";
     case undefined:
-      return "Trial";
+      return "Leftover";
     default: {
       const _exhaustive: never = plan;
       return _exhaustive;

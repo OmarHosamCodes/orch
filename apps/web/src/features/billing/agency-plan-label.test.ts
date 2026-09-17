@@ -12,4 +12,8 @@ describe("agencyPlanLabel", () => {
     expect(agencyPlanLabel("trial")).toBe("Trial");
     expect(agencyPlanLabel("agency")).toBe("Agency");
   });
+
+  test("undefined plan is Leftover while billing is loading", () => {
+    expect(agencyPlanLabel(undefined)).toBe("Leftover");
+  });
 });
