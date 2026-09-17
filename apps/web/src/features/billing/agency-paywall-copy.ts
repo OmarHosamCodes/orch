@@ -15,3 +15,19 @@ export function agencyPaywallCopy(_plan: "leftover"): AgencyPaywallCopy {
     secondary: "Open Canvas",
   };
 }
+
+export type AgencySeatInviteCopy = {
+  title: string;
+  body: string;
+  primary: string;
+  secondary: string;
+};
+
+export function agencySeatInviteCopy(): AgencySeatInviteCopy {
+  return {
+    title: "Add a seat",
+    body: "Trial is solo. Adding someone starts Agency billing for this team.",
+    primary: "Continue to checkout",
+    secondary: "Cancel",
+  };
+}

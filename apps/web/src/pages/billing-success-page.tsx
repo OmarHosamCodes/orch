@@ -1,5 +1,5 @@
 import { CheckCircle } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "@/lib/navigation";
 
 import { AppShellPage } from "@/features/app-shell/app-shell-page";
@@ -7,6 +7,7 @@ import { ShellBootSurface } from "@/features/app-shell/components/shell-boot-sur
 import { useShellBootGate } from "@/features/app-shell/shell/use-shell-boot-gate";
 import { useBilling } from "@/features/billing/billing-queries";
 import { useTeamStore } from "@/features/team/team-store";
+import { orpcClient } from "@/lib/orpc";
 import { Button } from "@/ui/button";
 import { shellConfirmInClass, shellStaggerItemClass } from "@/features/app-shell/app-shell-ui";
 import { cn } from "@/lib/utils";
@@ -15,13 +16,41 @@ export function BillingSuccessPage() {
   const [searchParams] = useSearchParams();
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
   const { refreshBillingState, billingQuery, openPortal } = useBilling(selectedTeamId);
-  const { isBooting } = useShellBootGate(!billingQuery.isPending);
+  const [confirmingCheckout, setConfirmingCheckout] = useState(false);
+  const { isBooting } = useShellBootGate(!billingQuery.isPending && !confirmingCheckout);
 
   const checkoutId = searchParams.get("checkout_id") ?? undefined;
 
   useEffect(() => {
     refreshBillingState();
   }, [refreshBillingState]);
+
+  useEffect(() => {
+    if (!checkoutId || !selectedTeamId) {
+      return;
+    }
+
+    let cancelled = false;
+    setConfirmingCheckout(true);
+
+    void (async () => {
+      try {
+        await orpcClient.billing.confirmCheckout({
+          teamId: selectedTeamId,
+          checkoutId,
+        });
+      } finally {
+        if (!cancelled) {
+          refreshBillingState();
+          setConfirmingCheckout(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutId, refreshBillingState, selectedTeamId]);
 
   return (
     <AppShellPage>
@@ -41,12 +70,6 @@ export function BillingSuccessPage() {
             <p className="mb-8 text-muted">
               This team can use Tracker, projects, money, and people.
             </p>
-
-            {checkoutId ? (
-              <p className="mb-6 text-xs text-muted">
-                Checkout ID: <span className="font-mono">{checkoutId}</span>
-              </p>
-            ) : null}
 
             <div className="flex flex-col gap-3">
               <Button asChild size="lg">

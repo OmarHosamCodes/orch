@@ -49,6 +49,16 @@ async function checkoutBilling(slug = "pro") {
   await authClient.checkout({ slug });
 }
 
+async function checkoutSeats(teamId: string, seats: number) {
+  const { url } = await orpcClient.billing.createSeatCheckout({ teamId, seats });
+  window.location.assign(url);
+}
+
+async function checkoutCredits(teamId: string) {
+  const { url } = await orpcClient.billing.createCreditCheckout({ teamId });
+  window.location.assign(url);
+}
+
 async function openBillingPortal() {
   await authClient.customer.portal();
 }
@@ -70,7 +80,11 @@ export function useBilling(teamId?: string | null, enabled = true) {
     billingQuery,
     ...derived,
     checkout: checkoutBilling,
+    checkoutSeats: (seats: number) => checkoutSeats(teamId ?? "", seats),
+    checkoutCredits: () => checkoutCredits(teamId ?? ""),
     openPortal: openBillingPortal,
     refreshBillingState: () => refreshBillingState(queryClient, teamId),
   };
 }
+
+export { billingStateQueryKey, checkoutSeats };

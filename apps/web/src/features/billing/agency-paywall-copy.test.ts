@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { agencyPaywallCopy } from "./agency-paywall-copy";
+import { agencyPaywallCopy, agencySeatInviteCopy } from "./agency-paywall-copy";
 
 describe("agencyPaywallCopy", () => {
   test("returns the locked trial-ended copy for leftover agencies", () => {
@@ -13,5 +13,16 @@ describe("agencyPaywallCopy", () => {
     );
     expect(copy.primary).toBe("Subscribe — 1 seat");
     expect(copy.secondary).toBe("Open Canvas");
+  });
+});
+
+describe("agencySeatInviteCopy", () => {
+  test("returns the locked trial invite seat dialog copy", () => {
+    const copy = agencySeatInviteCopy();
+
+    expect(copy.title).toBe("Add a seat");
+    expect(copy.body).toBe("Trial is solo. Adding someone starts Agency billing for this team.");
+    expect(copy.primary).toBe("Continue to checkout");
+    expect(copy.secondary).toBe("Cancel");
   });
 });
