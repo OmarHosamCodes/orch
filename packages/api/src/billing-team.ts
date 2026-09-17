@@ -238,7 +238,8 @@ export type VolumeCounter =
   | "nodes"
   | "blocks"
   | "tabs"
-  | "members";
+  | "members"
+  | "orchMessages";
 
 function planPhrase(plan: AgencyPlan): string {
   switch (plan) {
@@ -273,6 +274,8 @@ function volumeNoun(counter: VolumeCounter, limit: number): string {
       return limit === 1 ? "tab per node" : "tabs per node";
     case "members":
       return limit === 1 ? "member" : "members";
+    case "orchMessages":
+      return limit === 1 ? "Orch message" : "Orch messages";
     default: {
       const _exhaustive: never = counter;
       return _exhaustive;
@@ -298,6 +301,13 @@ function uploadBlockedError() {
   return new ORPCError("FORBIDDEN", {
     message: "File uploads are included with Agency. Subscribe to attach files.",
     data: { code: "upload_blocked" },
+  });
+}
+
+function orchCreditsError() {
+  return new ORPCError("FORBIDDEN", {
+    message: "This agency has used its included Orch messages. Buy credits to continue.",
+    data: { code: "orch_credits" },
   });
 }
 
@@ -403,6 +413,50 @@ async function resolveTeamBillingSnapshot(
   return mapTeamBillingSnapshot(rolled, plan);
 }
 
+export async function consumeOrchMessage(
+  teamId: string,
+  now = new Date(),
+  tx?: VolumeCapDbExecutor,
+): Promise<void> {
+  const consume = async (executor: VolumeCapDbExecutor) => {
+    const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+    const snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
+
+    if (snapshot.orchMessagesUsed < snapshot.orchMessagesIncluded) {
+      await executor
+        .update(workspaceTeamBilling)
+        .set({
+          orchMessagesUsed: snapshot.orchMessagesUsed + 1,
+          updatedAt: now,
+        })
+        .where(eq(workspaceTeamBilling.teamId, teamId));
+      return;
+    }
+
+    if (snapshot.orchCreditsRemaining > 0) {
+      await executor
+        .update(workspaceTeamBilling)
+        .set({
+          orchCreditsRemaining: snapshot.orchCreditsRemaining - 1,
+          updatedAt: now,
+        })
+        .where(eq(workspaceTeamBilling.teamId, teamId));
+      return;
+    }
+
+    throw orchCreditsError();
+  };
+
+  if (tx) {
+    await consume(tx);
+    return;
+  }
+
+  await db.transaction(async (transaction) => {
+    await consume(transaction);
+  });
+}
+
 export async function assertWithinLimit(
   teamId: string,
   counter: VolumeCounter,
@@ -504,6 +558,14 @@ export async function assertWithinLimit(
           .where(eq(workspaceTeamMember.teamId, teamId))
       )[0]!.value;
       break;
+    }
+    case "orchMessages": {
+      const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
+      const remainingIncluded = snapshot.orchMessagesIncluded - snapshot.orchMessagesUsed;
+      if (adding <= remainingIncluded) return;
+      if (adding <= snapshot.orchCreditsRemaining) return;
+      throw orchCreditsError();
     }
     default: {
       const _exhaustive: never = counter;

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ORPCError } from "@orpc/server";
 import { protectedProcedure } from "../../procedures";
 import { toInternalServerError } from "../../dev-errors";
 import { approveAgencyProposal, confirmAgentPlan, rejectAgencyProposal } from "./agency-proposals";
@@ -43,7 +44,6 @@ import {
 } from "./composer-draft-service";
 import {
   appendDashboardConversationTurn,
-  assertCanCreateDashboardConversation,
   deleteDashboardConversation,
   getAgentToolsCatalog,
   getDashboardConversation,
@@ -268,10 +268,6 @@ export const agentRouter = {
   chat: {
     turn: protectedProcedure.input(agentChatTurnInputSchema).handler(async ({ input, context }) => {
       try {
-        if (!input.conversationId) {
-          await assertCanCreateDashboardConversation(context.session.user.id, {});
-        }
-
         return agentChatTurnResponseSchema.parse(
           await appendDashboardConversationTurn(context.session.user.id, {
             actorUserName: context.session.user.name,
@@ -279,6 +275,9 @@ export const agentRouter = {
           }),
         );
       } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
         throw toInternalServerError("agent.chat.turn", error, {
           conversationId: input.conversationId ?? null,
           requestedNodesCount: input.nodes?.length,
@@ -295,10 +294,6 @@ export const agentRouter = {
       signal,
     }) {
       try {
-        if (!input.conversationId) {
-          await assertCanCreateDashboardConversation(context.session.user.id, {});
-        }
-
         for await (const event of streamDashboardConversationTurn(context.session.user.id, {
           actorUserName: context.session.user.name,
           turn: input,
@@ -307,6 +302,9 @@ export const agentRouter = {
           yield agentChatTurnStreamEventSchema.parse(event);
         }
       } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
         throw toInternalServerError("agent.chat.turnStream", error, {
           conversationId: input.conversationId ?? null,
           requestedNodesCount: input.nodes?.length,

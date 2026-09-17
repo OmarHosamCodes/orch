@@ -1020,3 +1020,69 @@ describe("create service volume caps", () => {
     expect(rows.some((row) => row.title === "Alpha")).toBe(true);
   });
 });
+
+describe("consumeOrchMessage", () => {
+  test("trial allows 5 included messages then rejects the 6th with orch_credits", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Orch Trial" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    for (let i = 0; i < 5; i += 1) {
+      await billingTeam.consumeOrchMessage(team.id, now);
+    }
+
+    const snapshot = await billingTeam.getTeamBilling(team.id, now);
+    expect(snapshot.orchMessagesUsed).toBe(5);
+
+    await expect(billingTeam.consumeOrchMessage(team.id, now)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "This agency has used its included Orch messages. Buy credits to continue.",
+      data: { code: "orch_credits" },
+    });
+  });
+
+  test("paid agency with one seat includes 50 messages per month", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Orch Paid" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    const snapshot = await billingTeam.getTeamBilling(team.id, now);
+    expect(snapshot.orchMessagesIncluded).toBe(50);
+
+    for (let i = 0; i < 50; i += 1) {
+      await billingTeam.consumeOrchMessage(team.id, now);
+    }
+
+    await expect(billingTeam.getTeamBilling(team.id, now)).resolves.toMatchObject({
+      orchMessagesUsed: 50,
+    });
+  });
+
+  test("orch credits are consumed after included messages are exhausted", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Orch Credits" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    for (let i = 0; i < 5; i += 1) {
+      await billingTeam.consumeOrchMessage(team.id, now);
+    }
+
+    await db
+      .update(workspaceTeamBilling)
+      .set({ orchCreditsRemaining: 2 })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    await billingTeam.consumeOrchMessage(team.id, now);
+    await billingTeam.consumeOrchMessage(team.id, now);
+
+    await expect(billingTeam.getTeamBilling(team.id, now)).resolves.toMatchObject({
+      orchMessagesUsed: 5,
+      orchCreditsRemaining: 0,
+    });
+
+    await expect(billingTeam.consumeOrchMessage(team.id, now)).rejects.toMatchObject({
+      data: { code: "orch_credits" },
+    });
+  });
+});

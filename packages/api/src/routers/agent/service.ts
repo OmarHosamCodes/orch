@@ -45,6 +45,8 @@ import type { AgencyOpsMemberProfileAlertContext } from "@orch/db/schema";
 import {
   dashboardConversation,
   dashboardConversationMessage,
+  workspaceTeam,
+  workspaceTeamMember,
   type DashboardConversationMessageArtifactRecord,
   type DashboardConversationMessageAttachmentRecord,
   type DashboardConversationMessageContextNodeTitlesRecord,
@@ -55,7 +57,7 @@ import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
-import { getBillingStateForUser } from "../../billing-guard";
+import { consumeOrchMessage } from "../../billing-team";
 import { listAgencyClients } from "../agency-ops/clients/service";
 import { listPeriodMoneyObligations } from "../agency-ops/billing/money-export-service";
 import { listAgencyProjects } from "../agency-ops/projects/service";
@@ -104,6 +106,29 @@ import {
   scheduleDetachedRun,
   subscribeRun,
 } from "./run-service";
+
+async function resolveActorAgencyTeamId(actorUserId: string): Promise<string | null> {
+  const [owned] = await db
+    .select({ id: workspaceTeam.id })
+    .from(workspaceTeam)
+    .where(eq(workspaceTeam.createdByUserId, actorUserId))
+    .limit(1);
+  if (owned) return owned.id;
+
+  const [member] = await db
+    .select({ teamId: workspaceTeamMember.teamId })
+    .from(workspaceTeamMember)
+    .where(eq(workspaceTeamMember.userId, actorUserId))
+    .limit(1);
+
+  return member?.teamId ?? null;
+}
+
+async function consumeOrchMessageForActor(actorUserId: string, now = new Date()) {
+  const teamId = await resolveActorAgencyTeamId(actorUserId);
+  if (!teamId) return;
+  await consumeOrchMessage(teamId, now);
+}
 
 function entryIdsFromMemberAlertContext(context: AgencyOpsMemberProfileAlertContext): string[] {
   const raw = context as AgencyOpsMemberProfileAlertContext & { entryIds?: string[] };
@@ -450,26 +475,6 @@ export function getAgentToolsCatalog(actorUserId: string, input: AgentToolCatalo
     }),
   });
 }
-export async function assertCanCreateDashboardConversation(
-  actorUserId: string,
-  _input: Record<string, never>,
-) {
-  const billing = await getBillingStateForUser(actorUserId);
-
-  if (billing.limits.aiConversations === -1) return;
-
-  const existing = await listDashboardConversations(actorUserId, {});
-  if (existing.conversations.length >= billing.limits.aiConversations) {
-    throw new ORPCError("FORBIDDEN", {
-      message: `Your ${billing.tier} plan allows up to ${billing.limits.aiConversations} AI conversations`,
-      data: {
-        limit: billing.limits.aiConversations,
-        current: existing.conversations.length,
-      },
-    });
-  }
-}
-
 function normalizeConversationUsageSummary(
   usageSummary: DashboardConversationUsageSummaryRecord | null | undefined,
 ) {
@@ -816,6 +821,8 @@ export async function appendDashboardConversationTurn(
   }
 
   const now = new Date();
+  await consumeOrchMessageForActor(userId, now);
+
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
       ? turn.nodes
@@ -1021,6 +1028,8 @@ export async function* streamDashboardConversationTurn(
   }
 
   const now = new Date();
+  await consumeOrchMessageForActor(userId, now);
+
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
       ? turn.nodes
