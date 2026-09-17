@@ -93,6 +93,38 @@ describe("team billing snapshot", () => {
     ).toHaveLength(1);
   });
 
+  test("concurrent repairs of an unbilled Agency both resolve", async () => {
+    const ownerId = await createFixtureUser();
+    const teamId = await createUnbilledTeam(ownerId);
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    await expect(
+      Promise.all([
+        billingTeam.getTeamBilling(teamId, now),
+        billingTeam.getTeamBilling(teamId, now),
+      ]),
+    ).resolves.toEqual([
+      expect.objectContaining({ plan: "trial" }),
+      expect.objectContaining({ plan: "trial" }),
+    ]);
+    expect(
+      await db
+        .select()
+        .from(workspaceTeamBilling)
+        .where(eq(workspaceTeamBilling.teamId, teamId))
+        .limit(1),
+    ).toHaveLength(1);
+  });
+
+  test("inserting trial billing for an already-billed Agency is a no-op", async () => {
+    const ownerId = await createFixtureUser();
+    const teamId = await createUnbilledTeam(ownerId);
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    await billingTeam.insertTrialBilling(db, teamId, now);
+    await expect(billingTeam.insertTrialBilling(db, teamId, now)).resolves.toBeUndefined();
+  });
+
   test("Lifetime Pro maps the owned personal Agency to Unlimited after the trial clock", async () => {
     const ownerId = await createFixtureUser({ lifetimePro: true });
     const memberId = await createFixtureUser();

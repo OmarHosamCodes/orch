@@ -43,7 +43,7 @@ export async function insertTrialBilling(target: BillingInsertTarget, teamId: st
     trialEndsAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
     createdAt: now,
     updatedAt: now,
-  });
+  }).onConflictDoNothing();
 }
 
 export async function getTeamBilling(
