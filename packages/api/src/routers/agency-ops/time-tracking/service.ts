@@ -466,7 +466,15 @@ export async function listAgencyActiveMembers(
     teamId: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
+
+  const activeTimerWhere =
+    role === "viewer"
+      ? and(
+          eq(agencyOpsActiveTimer.teamId, input.teamId),
+          eq(agencyOpsActiveTimer.userId, actorUserId),
+        )
+      : eq(agencyOpsActiveTimer.teamId, input.teamId);
 
   const rows = await db
     .select({
@@ -482,7 +490,7 @@ export async function listAgencyActiveMembers(
     .innerJoin(user, eq(user.id, agencyOpsActiveTimer.userId))
     .leftJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsActiveTimer.projectId))
     .leftJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
-    .where(eq(agencyOpsActiveTimer.teamId, input.teamId))
+    .where(activeTimerWhere)
     .orderBy(asc(user.name));
 
   return {
@@ -1838,7 +1846,7 @@ export async function getAgencyTimeSummary(
     memberUserId?: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
