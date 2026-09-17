@@ -7,7 +7,7 @@ import { RouteError, RouteNotFound, RoutePending } from "@/features/app-shell/ro
 import { resolveLegacyAgencyRedirect } from "@/features/shared/agency-legacy-redirects";
 import { useTeamStore } from "@/features/team/team-store";
 import { loadAuthenticatedShell } from "@/lib/authenticated-boot";
-import { fetchBootShellChrome } from "@/lib/boot-prefetch";
+import { ensurePersonalAgencyOnBoot, fetchBootShellChrome } from "@/lib/boot-prefetch";
 import { fetchBootSession } from "@/lib/session-boot";
 import { AuthProvider } from "@/providers/auth-provider";
 
@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated")({
       preferredTeamId: useTeamStore.getState().selectedTeamId,
       fetchSession: () => fetchBootSession(),
       fetchChrome: async (teamId) => fetchBootShellChrome({ data: teamId ? { teamId } : {} }),
+      ensurePersonal: () => ensurePersonalAgencyOnBoot(),
     });
   },
   pendingComponent: () => <RoutePending variant="logo" label="Opening your workspace" />,

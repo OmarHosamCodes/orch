@@ -11,6 +11,7 @@ export async function loadAuthenticatedShell(input: {
   preferredTeamId?: string | null;
   fetchSession: () => Promise<BootSession>;
   fetchChrome: (teamId?: string) => Promise<BootShellChrome>;
+  ensurePersonal?: () => Promise<unknown>;
 }): Promise<{ session: NonNullable<BootSession>; teamCount: number }> {
   const bootStartedAt = Date.now();
   const preferredTeamId = input.preferredTeamId || undefined;
@@ -26,13 +27,18 @@ export async function loadAuthenticatedShell(input: {
           })
           .catch(() => undefined)
       : Promise.resolve();
-  const [chrome] = await Promise.all([chromePromise, billingPromise]);
+  let [chrome] = await Promise.all([chromePromise, billingPromise]);
 
   if (!session) {
     const redirectTo = `${input.location.pathname}${input.location.searchStr}`;
     throw redirect({
       href: `/login?redirect=${encodeURIComponent(redirectTo || "/canvas")}`,
     });
+  }
+
+  if (chrome.teams?.items.length === 0 && input.ensurePersonal) {
+    await input.ensurePersonal();
+    chrome = await input.fetchChrome(preferredTeamId);
   }
 
   seedBootChromeQueries(input.queryClient, chrome, bootStartedAt);

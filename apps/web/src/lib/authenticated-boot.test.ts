@@ -89,6 +89,29 @@ describe("loadAuthenticatedShell", () => {
     expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
   });
 
+  test("empty team boot ensures a personal agency and refetches chrome", async () => {
+    const queryClient = createClient();
+    const ensurePersonal = mock(async () => ({ id: "team-a" }));
+    const fetchChrome = mock(async () =>
+      fetchChrome.mock.calls.length === 1
+        ? { ...chromeFor(""), teams: { items: [] }, teamId: "" }
+        : chromeFor("team-a"),
+    );
+
+    const result = await loadAuthenticatedShell({
+      queryClient,
+      location: { pathname: "/canvas", searchStr: "" },
+      fetchSession: async () => session,
+      fetchChrome,
+      ensurePersonal,
+    });
+
+    expect(ensurePersonal).toHaveBeenCalledTimes(1);
+    expect(fetchChrome).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ session, teamCount: 2 });
+    expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
+  });
+
   test("failed team list does not seed an empty list over a good cache", async () => {
     const queryClient = createClient();
     queryClient.setQueryData(teamListQueryKey(), teams);

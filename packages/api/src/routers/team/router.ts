@@ -14,6 +14,7 @@ import {
   teamUpdateInputSchema,
   teamUpdateMemberRoleInputSchema,
 } from "./schemas";
+import { ensurePersonalAgency } from "./ensure-personal-agency";
 import {
   addTeamMember,
   assertCanCreateTeam,
@@ -32,6 +33,13 @@ export const teamRouter = {
     const teams = await listUserTeams(context.session.user.id, {});
 
     return z.object({ items: z.array(teamSummarySchema) }).parse({ items: teams });
+  }),
+  ensurePersonal: protectedProcedure.handler(async ({ context }) => {
+    return teamSummarySchema.parse(
+      await ensurePersonalAgency(context.session.user.id, {
+        name: context.session.user.name,
+      }),
+    );
   }),
   get: protectedProcedure.input(teamGetInputSchema).handler(async ({ context, input }) => {
     return teamDetailSchema.parse(await getTeam(context.session.user.id, input));

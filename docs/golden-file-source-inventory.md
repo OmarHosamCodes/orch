@@ -19,7 +19,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1026 |
+| golden-feature | 1028 |
 | server-operation | 13 |
 | shared-infrastructure | 421 |
 | static-presentation | 17 |
@@ -52,7 +52,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | resourcing | 46 |
 | server-platform | 25 |
 | task-management | 121 |
-| team | 20 |
+| team | 22 |
 | time-tracking | 127 |
 | web-platform | 163 |
 | workspace | 139 |
@@ -1370,6 +1370,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/notifications/service.integration.test.ts` | notifications | test | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/notifications/service.ts` | notifications | api-service | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/system.ts` | api-platform | api-router | shared-infrastructure | api-platform | Cross-cutting api-platform api-router support rather than a feature-owned business workflow. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
+| `packages/api/src/routers/team/ensure-personal-agency.test.ts` | team | test | golden-feature | team-domain | Feature-owned team artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
+| `packages/api/src/routers/team/ensure-personal-agency.ts` | team | domain-logic | golden-feature | team-domain | Feature-owned team artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/team/router.ts` | team | api-router | golden-feature | team-domain | Feature-owned team artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
 | `packages/api/src/routers/team/schemas.ts` | team | api-contract | golden-feature | team-domain | Feature-owned team artifact in the canonical api-contract layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/team/service.integration.test.ts` | team | test | golden-feature | team-domain | Feature-owned team artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |

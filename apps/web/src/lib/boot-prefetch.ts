@@ -43,3 +43,12 @@ export const fetchBootShellChrome = createServerFn({ method: "GET" })
     const client = createServerOrpcClient(cookie);
     return loadBootShellChrome(client, data.teamId);
   });
+
+export const ensurePersonalAgencyOnBoot = createServerFn({ method: "POST" }).handler(async () => {
+  const cookie = getRequestHeader("cookie") ?? "";
+  if (!cookie) {
+    throw new Error("Cannot ensure a personal Agency without an authenticated session.");
+  }
+
+  return createServerOrpcClient(cookie).team.ensurePersonal();
+});
