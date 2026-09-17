@@ -8,6 +8,7 @@ mock.module("@/lib/env", () => ({
 }));
 
 const listCalls: Array<{ page: number; search?: string; teamId: string }> = [];
+let listShouldFail = false;
 
 function orpcQueryKey(path: string[], input: unknown) {
   return [path, { input, type: "query" }] as const;
@@ -49,6 +50,7 @@ mock.module("@/lib/orpc", () => ({
             search: input.search,
             teamId: input.teamId,
           });
+          if (listShouldFail) throw new Error("hydrate failed");
           return makeListPage(input.page, input.pageSize ?? 100, 250);
         },
       },
@@ -66,8 +68,10 @@ const {
   agencyTaskChooserInfiniteQueryOptions,
   chooserNextPageParam,
   chooserPrefetchPageCount,
+  chooserRemainderPageNumbers,
   ensureAgencyTaskChooserCatalog,
   flattenChooserPages,
+  hydrateRemainingChooserPages,
   keepPreviousChooserDataForTeam,
   mergeChooserTasksById,
   shouldDrainChooserNextPage,
@@ -179,6 +183,26 @@ describe("chooserPrefetchPageCount", () => {
   });
 });
 
+describe("chooserRemainderPageNumbers", () => {
+  test("returns remaining pages after the first paint page", () => {
+    expect(chooserRemainderPageNumbers({ total: 0, pageSize: 100, loadedPageCount: 1 })).toEqual(
+      [],
+    );
+    expect(chooserRemainderPageNumbers({ total: 100, pageSize: 100, loadedPageCount: 1 })).toEqual(
+      [],
+    );
+    expect(chooserRemainderPageNumbers({ total: 101, pageSize: 100, loadedPageCount: 1 })).toEqual([
+      2,
+    ]);
+    expect(chooserRemainderPageNumbers({ total: 250, pageSize: 100, loadedPageCount: 1 })).toEqual([
+      2, 3,
+    ]);
+    expect(chooserRemainderPageNumbers({ total: 250, pageSize: 100, loadedPageCount: 3 })).toEqual(
+      [],
+    );
+  });
+});
+
 describe("agencyTaskChooserInfiniteQueryOptions", () => {
   test("shares infinite then catalog/search keys and catalog-only freshness", () => {
     const catalog = agencyTaskChooserInfiniteQueryOptions("team-1", "catalog");
@@ -233,6 +257,7 @@ describe("keepPreviousChooserDataForTeam", () => {
 describe("ensureAgencyTaskChooserCatalog", () => {
   function setupClient() {
     listCalls.length = 0;
+    listShouldFail = false;
     return new QueryClient({
       defaultOptions: {
         queries: { retry: false, gcTime: Infinity },
@@ -278,5 +303,40 @@ describe("ensureAgencyTaskChooserCatalog", () => {
     expect(listCalls).toEqual([]);
     const data = client.getQueryData<{ pages: unknown[] }>(options.queryKey);
     expect(data?.pages).toHaveLength(2);
+  });
+
+  test("hydrateRemainingChooserPages writes remaining pages in one cache update", async () => {
+    const client = setupClient();
+    const options = agencyTaskChooserInfiniteQueryOptions("team-1", "catalog");
+    client.setQueryData(options.queryKey, {
+      pages: [makeListPage(1, PAGE_SIZE, 250)],
+      pageParams: [1],
+    });
+
+    await hydrateRemainingChooserPages(client, "team-1");
+
+    expect(listCalls.map((call) => call.page).sort((left, right) => left - right)).toEqual([2, 3]);
+    const data = client.getQueryData<{ pages: Array<{ page: number }> }>(options.queryKey);
+    expect(data?.pages.map((page) => page.page)).toEqual([1, 2, 3]);
+  });
+
+  test("hydrateRemainingChooserPages does not retry after a remainder fetch error", async () => {
+    const client = setupClient();
+    listShouldFail = true;
+    const options = agencyTaskChooserInfiniteQueryOptions("team-fail", "catalog");
+    client.setQueryData(options.queryKey, {
+      pages: [makeListPage(1, PAGE_SIZE, 250)],
+      pageParams: [1],
+    });
+
+    await hydrateRemainingChooserPages(client, "team-fail");
+    const failedCalls = listCalls.length;
+    expect(failedCalls).toBeGreaterThan(0);
+
+    await hydrateRemainingChooserPages(client, "team-fail");
+    expect(listCalls.length).toBe(failedCalls);
+
+    const data = client.getQueryData<{ pages: Array<{ page: number }> }>(options.queryKey);
+    expect(data?.pages.map((page) => page.page)).toEqual([1]);
   });
 });
