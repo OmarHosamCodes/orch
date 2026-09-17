@@ -63,6 +63,30 @@ async function createUnbilledTeam(ownerId: string) {
 }
 
 describe("team billing snapshot", () => {
+  test("prioritizes the lifetime and Polar overlays above a leftover snapshot", () => {
+    expect(
+      billingTeam.resolveTeamBillingPlanOverlay({
+        snapshotPlan: "leftover",
+        lifetimePro: true,
+        ownerTier: "pro",
+      }),
+    ).toBe("agency_unlimited");
+    expect(
+      billingTeam.resolveTeamBillingPlanOverlay({
+        snapshotPlan: "leftover",
+        lifetimePro: false,
+        ownerTier: "pro",
+      }),
+    ).toBe("agency");
+    expect(
+      billingTeam.resolveTeamBillingPlanOverlay({
+        snapshotPlan: "leftover",
+        lifetimePro: false,
+        ownerTier: "free",
+      }),
+    ).toBe("leftover");
+  });
+
   test("repairs an unbilled Lifetime Pro Agency as Unlimited", async () => {
     const ownerId = await createFixtureUser({ lifetimePro: true });
     const teamId = await createUnbilledTeam(ownerId);

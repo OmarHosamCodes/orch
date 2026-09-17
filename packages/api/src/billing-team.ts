@@ -11,6 +11,8 @@ import {
   type AgencyPlanLimits,
 } from "@orch/workspace/tiers";
 
+import { getBillingStateForUser } from "./billing-guard";
+
 export type TeamBillingSnapshot = {
   teamId: string;
   plan: AgencyPlan;
@@ -33,6 +35,22 @@ function notEntitledError() {
     message: "This agency is not subscribed.",
     data: { code: "not_entitled", plan: null },
   });
+}
+
+export function resolveTeamBillingPlanOverlay(input: {
+  snapshotPlan: AgencyPlan;
+  lifetimePro: boolean;
+  ownerTier: "free" | "pro";
+}): AgencyPlan {
+  if (input.snapshotPlan === "agency" || input.snapshotPlan === "agency_unlimited") {
+    return input.snapshotPlan;
+  }
+
+  if (input.lifetimePro) {
+    return "agency_unlimited";
+  }
+
+  return input.ownerTier === "pro" ? "agency" : input.snapshotPlan;
 }
 
 export async function insertTrialBilling(target: BillingInsertTarget, teamId: string, now: Date) {
@@ -84,22 +102,50 @@ export async function getTeamBilling(
     trialEndsAt: billing.trialEndsAt,
     now,
   });
-  const [owner] =
-    billing.plan === "trial" || billing.plan === "leftover"
-      ? await db
-          .select({ lifetimePro: user.lifetimePro })
-          .from(workspaceTeam)
-          .innerJoin(user, eq(workspaceTeam.createdByUserId, user.id))
-          .where(eq(workspaceTeam.id, teamId))
-          .limit(1)
-      : [];
-  const plan = owner?.lifetimePro ? "agency_unlimited" : resolvedPlan;
+
+  if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
+    return mapTeamBillingSnapshot(billing, resolvedPlan);
+  }
+
+  const [owner] = await db
+    .select({ id: user.id, lifetimePro: user.lifetimePro })
+    .from(workspaceTeam)
+    .innerJoin(user, eq(workspaceTeam.createdByUserId, user.id))
+    .where(eq(workspaceTeam.id, teamId))
+    .limit(1);
+  const lifetimePlan = resolveTeamBillingPlanOverlay({
+    snapshotPlan: resolvedPlan,
+    lifetimePro: owner?.lifetimePro ?? false,
+    ownerTier: "free",
+  });
+  if (lifetimePlan === "agency_unlimited") {
+    return mapTeamBillingSnapshot(billing, lifetimePlan, 1);
+  }
+
+  const ownerBilling = owner ? await getBillingStateForUser(owner.id) : null;
+  const plan = resolveTeamBillingPlanOverlay({
+    snapshotPlan: resolvedPlan,
+    lifetimePro: false,
+    ownerTier: ownerBilling?.tier ?? "free",
+  });
+  if (plan === "agency") {
+    await applyPaidPlan(teamId, plan, { seats: 1 });
+  }
+
+  return mapTeamBillingSnapshot(billing, plan);
+}
+
+function mapTeamBillingSnapshot(
+  billing: typeof workspaceTeamBilling.$inferSelect,
+  plan: AgencyPlan,
+  seats = billing.seats,
+): TeamBillingSnapshot {
   const limits = AGENCY_PLAN_LIMITS[plan];
 
   return {
     teamId: billing.teamId,
     plan,
-    seats: plan === "agency_unlimited" && owner?.lifetimePro ? 1 : billing.seats,
+    seats,
     trialEndsAt: billing.trialEndsAt.toISOString(),
     polarSubscriptionId: billing.polarSubscriptionId,
     polarProductId: billing.polarProductId,
