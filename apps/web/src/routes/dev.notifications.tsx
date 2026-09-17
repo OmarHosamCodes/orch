@@ -11,6 +11,6 @@ export const Route = createFileRoute("/dev/notifications")({
   component: DevNotificationsPage,
   pendingComponent: () => <RoutePending label="Opening Notifications" />,
   head: () => ({
-    meta: [{ title: "Notifications (dev) — Orch" }],
+    meta: [{ title: "Dev notifications | Orch" }],
   }),
 });

@@ -7,6 +7,6 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/proj
   component: AgencyProjectDetailPage,
   validateSearch: validateProjectSearch,
   head: () => ({
-    meta: [{ title: "Project — Orch" }],
+    meta: [{ title: "Project | Orch" }],
   }),
 });

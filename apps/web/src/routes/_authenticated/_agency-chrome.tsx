@@ -9,6 +9,6 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome")({
   errorComponent: () => <RouteError message="Couldn't open Agency." />,
   notFoundComponent: RouteNotFound,
   head: () => ({
-    meta: [{ title: "Agency — Orch" }],
+    meta: [{ title: "Agency | Orch" }],
   }),
 });

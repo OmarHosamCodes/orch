@@ -13,6 +13,6 @@ export const Route = createFileRoute("/dev/dialogs")({
   component: DevDialogsPage,
   pendingComponent: () => <RoutePending label="Opening Dialogs" />,
   head: () => ({
-    meta: [{ title: "Dialogs (dev) — Orch" }],
+    meta: [{ title: "Dev dialogs | Orch" }],
   }),
 });

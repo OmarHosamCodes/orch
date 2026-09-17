@@ -10,6 +10,6 @@ export const Route = createFileRoute("/_authenticated/object/$id")({
   component: WorkspaceObjectPage,
   pendingComponent: () => <RoutePending label="Opening object" />,
   head: () => ({
-    meta: [{ title: "Object — Orch" }],
+    meta: [{ title: "Knowledge | Orch" }],
   }),
 });

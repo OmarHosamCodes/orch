@@ -7,6 +7,6 @@ export const Route = createFileRoute("/_authenticated/billing/success")({
   validateSearch: validateLooseSearch,
   component: BillingSuccessPage,
   head: () => ({
-    meta: [{ title: "Billing — Orch" }],
+    meta: [{ title: "Billing | Orch" }],
   }),
 });
