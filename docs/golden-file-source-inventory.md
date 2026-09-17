@@ -19,23 +19,23 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1056 |
+| golden-feature | 1062 |
 | server-operation | 13 |
-| shared-infrastructure | 427 |
+| shared-infrastructure | 428 |
 | static-presentation | 17 |
 
 ## Counts by domain
 
 | Domain | Artifacts |
 | --- | ---: |
-| agency-shared | 167 |
+| agency-shared | 168 |
 | agent | 167 |
 | api-platform | 13 |
 | architecture | 4 |
 | auth | 18 |
-| billing | 172 |
+| billing | 173 |
 | ci | 3 |
-| clients | 15 |
+| clients | 17 |
 | configuration | 3 |
 | dashboard | 13 |
 | database-platform | 48 |
@@ -46,14 +46,14 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | member-profile | 55 |
 | notifications | 48 |
 | performance | 9 |
-| projects | 28 |
+| projects | 29 |
 | reports | 55 |
 | repository | 13 |
 | resourcing | 46 |
 | server-platform | 26 |
 | task-management | 121 |
-| team | 27 |
-| time-tracking | 127 |
+| team | 28 |
+| time-tracking | 128 |
 | web-platform | 163 |
 | workspace | 140 |
 
@@ -262,6 +262,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/clients/containers/agency-client-detail-container.tsx` | clients | container | golden-feature | clients-domain | Feature-owned clients artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
 | `apps/web/src/features/clients/containers/agency-clients-table-container.tsx` | clients | container | golden-feature | clients-domain | Feature-owned clients artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
 | `apps/web/src/features/clients/hooks/use-agency-client-detail.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
+| `apps/web/src/features/clients/hooks/use-agency-clients-table.capabilities.test.ts` | clients | test | golden-feature | clients-domain | Feature-owned clients artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/clients/hooks/use-agency-clients-table.ts` | clients | feature-hook | golden-feature | clients-domain | Feature-owned clients artifact in the canonical feature-hook layer. | content: TanStack Query orchestration, feature query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/dashboard/agency-dashboard-hours-instrument.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/dashboard/agency-dashboard-surface-view.tsx` | dashboard | presentational-view | golden-feature | agency-dashboard-domain | Feature-owned dashboard artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -530,6 +531,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/shared/agency-sync.ts` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: TanStack Query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-task-chooser-catalog.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations, oRPC procedures or clients, TanStack Query orchestration; structure: test filename |
 | `apps/web/src/features/shared/agency-task-chooser-catalog.ts` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: oRPC procedures or clients, TanStack Query orchestration, React component or hook code; structure: source role and exported behavior |
+| `apps/web/src/features/shared/agency-team-capabilities.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-time-entry-links.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-ui.ts` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/agency-waste-badge.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -1199,6 +1201,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/image-compression.ts` | api-platform | domain-service | shared-infrastructure | api-platform | Cross-cutting api-platform domain-service support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/index.ts` | api-platform | domain-service | shared-infrastructure | api-platform | Cross-cutting api-platform domain-service support rather than a feature-owned business workflow. | content: oRPC procedures or clients, exported declarations; structure: source role and exported behavior |
 | `packages/api/src/lib/redis.ts` | api-platform | domain-service | shared-infrastructure | api-platform | Cross-cutting api-platform domain-service support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
+| `packages/api/src/lib/team-membership.test.ts` | team | test | golden-feature | team-domain | Feature-owned team artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/lib/team-membership.ts` | team | domain-logic | golden-feature | team-domain | Feature-owned team artifact in the canonical domain-logic layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/api/src/procedures.ts` | api-platform | domain-service | shared-infrastructure | api-platform | Cross-cutting api-platform domain-service support rather than a feature-owned business workflow. | content: oRPC procedures or clients, exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/agency-ops/billing/billing-router-schemas.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: Zod contracts, exported declarations; structure: source role and exported behavior |
@@ -1240,6 +1243,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/agency-ops/billing/money-pending-adjustment-service.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/billing/money-period-fx.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/agency-ops/billing/money-period-fx.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
+| `packages/api/src/routers/agency-ops/billing/money-scoreboard-service.rbac.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/agency-ops/billing/money-scoreboard-service.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/billing/money-settings-cache.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/billing/money-settings-helpers.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
@@ -1265,6 +1269,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/agency-ops/billing/salary-pool.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/agency-ops/billing/service.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/clients/router.ts` | clients | api-router | golden-feature | clients-domain | Feature-owned clients artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
+| `packages/api/src/routers/agency-ops/clients/service.rbac.test.ts` | clients | test | golden-feature | clients-domain | Feature-owned clients artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/agency-ops/clients/service.ts` | clients | api-service | golden-feature | clients-domain | Feature-owned clients artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/departments/router.ts` | resourcing | api-router | golden-feature | resourcing-domain | Feature-owned resourcing artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
 | `packages/api/src/routers/agency-ops/departments/service.ts` | resourcing | api-service | golden-feature | resourcing-domain | Feature-owned resourcing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
@@ -1292,6 +1297,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/agency-ops/project-templates/router.ts` | projects | api-router | golden-feature | projects-domain | Feature-owned projects artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
 | `packages/api/src/routers/agency-ops/project-templates/service.ts` | projects | api-service | golden-feature | projects-domain | Feature-owned projects artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/projects/router.ts` | projects | api-router | golden-feature | projects-domain | Feature-owned projects artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
+| `packages/api/src/routers/agency-ops/projects/service.rbac.test.ts` | projects | test | golden-feature | projects-domain | Feature-owned projects artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/agency-ops/projects/service.ts` | projects | api-service | golden-feature | projects-domain | Feature-owned projects artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/reports/aggregate-queries.ts` | reports | api-service | golden-feature | reports-domain | Feature-owned reports artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/reports/preview-helpers.test.ts` | reports | test | golden-feature | reports-domain | Feature-owned reports artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
@@ -1353,6 +1359,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/agency-ops/time-tracking/resolve-agency-timer-stop-binding.test.ts` | time-tracking | test | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/agency-ops/time-tracking/resolve-agency-timer-stop-binding.ts` | time-tracking | domain-logic | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/agency-ops/time-tracking/router.ts` | time-tracking | api-router | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
+| `packages/api/src/routers/agency-ops/time-tracking/service.rbac.test.ts` | time-tracking | test | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/agency-ops/time-tracking/service.ts` | time-tracking | api-service | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/agency-ops/time-tracking/time-gaps.test.ts` | time-tracking | test | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/agency-ops/time-tracking/time-gaps.ts` | time-tracking | domain-logic | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
@@ -1381,7 +1388,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/billing/router.ts` | billing | api-router | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-router layer. | content: Zod contracts, oRPC procedures or clients, exported declarations; structure: router role and procedure declarations |
 | `packages/api/src/routers/billing/schemas.ts` | billing | api-contract | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-contract layer. | content: Zod contracts, exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/billing/service.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
-| `packages/api/src/routers/billing/service.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: exported declarations; structure: service role or data-access behavior |
+| `packages/api/src/routers/billing/service.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/index.ts` | api-platform | api-router | shared-infrastructure | api-platform | Cross-cutting api-platform api-router support rather than a feature-owned business workflow. | content: exported declarations; structure: router role and procedure declarations |
 | `packages/api/src/routers/notifications/copy.test.ts` | notifications | test | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/notifications/copy.ts` | notifications | domain-logic | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
