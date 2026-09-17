@@ -1,4 +1,5 @@
 Bun.env.POLAR_PRODUCT_PRO = "polar-pro";
+Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited";
 
 import { describe, expect, test } from "bun:test";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate.js";
@@ -61,6 +62,12 @@ describe("normalizeBillingState", () => {
     });
     expect(result.tier).toBe("free");
     expect(result.subscription).toBeNull();
+  });
+
+  test("Unlimited Polar product still maps to the polar-backed overlay", () => {
+    const result = normalizeBillingState(createCustomerState("polar-unlimited"));
+    expect(result.tier).toBe("pro");
+    expect(result.subscription?.productId).toBe("polar-unlimited");
   });
 
   test("lifetime still applies when the only Polar product is not Pro", () => {

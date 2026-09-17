@@ -9,6 +9,7 @@ import { createWorkspaceId } from "@orch/workspace";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 Bun.env.POLAR_PRODUCT_PRO ??= "polar-pro";
+Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited";
 
 const [
   { db },
@@ -282,6 +283,23 @@ describe("team billing snapshot", () => {
       plan: "agency",
       seats: 3,
       orchMessagesIncluded: 150,
+    });
+  });
+
+  test("applyPolarSnapshot writes agency_unlimited for the Unlimited product", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Unlimited Agency" });
+    await billingTeam.applyPolarSnapshot(team.id, {
+      teamId: team.id,
+      subscriptionId: "sub_unl",
+      productId: "polar-unlimited",
+      seats: 2,
+      status: "active",
+    });
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      plan: "agency_unlimited",
+      seats: 2,
+      orchMessagesIncluded: 400,
     });
   });
 

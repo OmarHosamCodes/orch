@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { and, count, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@orch/db";
-import { env } from "@orch/env/server";
+import { env, planForPolarProductId, resolvePolarCatalog } from "@orch/env/server";
 import {
   agencyOpsClient,
   agencyOpsProject,
@@ -52,17 +52,6 @@ export type VolumeCapDbExecutor = {
   select: typeof db.select;
   update: typeof db.update;
 };
-
-function polarProProductIds(): string[] {
-  return (env.POLAR_PRODUCT_PRO ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
-
-function isPolarProProduct(productId: string): boolean {
-  return polarProProductIds().includes(productId);
-}
 
 function startOfUtcMonth(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
@@ -270,11 +259,14 @@ export async function applyPolarSnapshot(
   teamId: string,
   polar: PolarSubscriptionView,
 ): Promise<void> {
-  if (polar.status !== "active" || !isPolarProProduct(polar.productId)) {
+  const catalog = resolvePolarCatalog(env);
+  const plan =
+    polar.status === "active" ? planForPolarProductId(catalog, polar.productId) : null;
+  if (!plan) {
     return;
   }
 
-  await applyPaidPlan(teamId, "agency", {
+  await applyPaidPlan(teamId, plan, {
     seats: Math.max(1, polar.seats),
     polarSubscriptionId: polar.subscriptionId,
     polarProductId: polar.productId,
