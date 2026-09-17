@@ -9,16 +9,14 @@ const [
   { db },
   teamService,
   billingTeam,
-  {
-    startAgencyTimer,
-    listAgencyActiveMembers,
-    getAgencyTimeSummary,
-  },
+  { startAgencyTimer, listAgencyActiveMembers, getAgencyTimeSummary },
+  { getAgencyAgentTimeSummary },
 ] = await Promise.all([
   import("@orch/db"),
   import("../../team/service"),
   import("../../../billing-team"),
   import("./service"),
+  import("../../agent/service"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -108,5 +106,34 @@ describe("agency time tracking RBAC", () => {
         to: summaryTo,
       }),
     ).rejects.toMatchObject({ data: { code: "insufficient_role" } });
+  });
+
+  test("agent time summary is self-scoped for viewers and team-scoped for editors", async () => {
+    const viewerSummary = await getAgencyAgentTimeSummary(viewerId, {
+      teamId: team.id,
+      from: summaryFrom,
+      to: summaryTo,
+    });
+    expect(viewerSummary).toEqual({
+      totalSeconds: 0,
+      members: [
+        {
+          userId: viewerId,
+          name: "Time RBAC User",
+          seconds: 0,
+          isTiming: false,
+        },
+      ],
+    });
+
+    const editorSummary = await getAgencyAgentTimeSummary(editorId, {
+      teamId: team.id,
+      from: summaryFrom,
+      to: summaryTo,
+    });
+    expect(editorSummary.totalSeconds).toBe(0);
+    expect(editorSummary.members.map((member) => member.userId).sort()).toEqual(
+      [ownerId, editorId, viewerId].sort(),
+    );
   });
 });

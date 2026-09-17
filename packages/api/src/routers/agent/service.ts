@@ -65,6 +65,7 @@ import { getAgencyReportsSummary } from "../agency-ops/reports/service";
 import { listAgencyTags } from "../agency-ops/tags/service";
 import { listAgencyProjectTasks } from "../agency-ops/tasks/service";
 import { listMemberProfileAlerts } from "../agency-ops/member-profile/member-profile-alert-service";
+import { requireAgencyRole } from "../agency-ops/shared/membership";
 import {
   getAgencyActiveTimer,
   getAgencyTimeSummary,
@@ -160,6 +161,69 @@ function artifactsFromToolCalls(toolCalls: AgentToolCallEntry[]): AiUiArtifact[]
 
 function modelUserContent(content: string, attachments: AgentTextAttachment[]) {
   return buildAgentModelUserContent(content, attachments);
+}
+
+type AgencyAgentTimeSummaryInput = Parameters<AgencyAgentRuntime["getTimeSummary"]>[0];
+type AgencyAgentTimeSummary = Awaited<ReturnType<AgencyAgentRuntime["getTimeSummary"]>>;
+
+export async function getAgencyAgentTimeSummary(
+  actorUserId: string,
+  input: AgencyAgentTimeSummaryInput & { teamId: string },
+): Promise<AgencyAgentTimeSummary> {
+  const { teamId } = input;
+  const role = await requireAgencyRole(actorUserId, teamId, "viewer");
+
+  if (role !== "viewer") {
+    const result = await getAgencyTimeSummary(actorUserId, {
+      teamId,
+      from: input.from,
+      to: input.to,
+      memberUserId: input.memberUserId,
+      projectId: input.projectId,
+      clientId: input.clientId,
+    });
+    return {
+      totalSeconds: result.summary.totalSeconds,
+      members: result.summary.teamMembers.map((member) => ({
+        userId: member.id,
+        name: member.name,
+        seconds: member.totalSeconds,
+        isTiming: member.isActive,
+      })),
+    };
+  }
+
+  const [listed, activeTimer, members] = await Promise.all([
+    listMyAgencyTimeEntriesInRange(actorUserId, {
+      teamId,
+      from: input.from,
+      to: input.to,
+    }),
+    getAgencyActiveTimer(actorUserId, { teamId }),
+    listTeamMembers(actorUserId, { teamId }),
+  ]);
+  const includesActor = !input.memberUserId || input.memberUserId === actorUserId;
+  const entries = includesActor
+    ? listed.items.filter(
+        (entry) =>
+          (!input.projectId || entry.projectId === input.projectId) &&
+          (!input.clientId || entry.clientId === input.clientId),
+      )
+    : [];
+  const totalSeconds = entries.reduce((sum, entry) => sum + entry.durationSeconds, 0);
+  const actor = members.find((member) => member.userId === actorUserId);
+
+  return {
+    totalSeconds,
+    members: [
+      {
+        userId: actorUserId,
+        name: actor?.userName ?? "You",
+        seconds: totalSeconds,
+        isTiming: Boolean(activeTimer.timer),
+      },
+    ],
+  };
 }
 
 function createAgencyAgentRuntime(
@@ -289,23 +353,7 @@ function createAgencyAgentRuntime(
       };
     },
     getTimeSummary: async (input) => {
-      const result = await getAgencyTimeSummary(actorUserId, {
-        teamId,
-        from: input.from,
-        to: input.to,
-        memberUserId: input.memberUserId,
-        projectId: input.projectId,
-        clientId: input.clientId,
-      });
-      return {
-        totalSeconds: result.summary.totalSeconds,
-        members: result.summary.teamMembers.map((member) => ({
-          userId: member.id,
-          name: member.name,
-          seconds: member.totalSeconds,
-          isTiming: member.isActive,
-        })),
-      };
+      return getAgencyAgentTimeSummary(actorUserId, { teamId, ...input });
     },
     listTimeGaps: async ({ from, to }) => {
       const fromMs = Date.parse(`${from}T00:00:00.000Z`);

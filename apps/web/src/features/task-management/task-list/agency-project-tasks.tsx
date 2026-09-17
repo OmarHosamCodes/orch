@@ -2,6 +2,7 @@ import { AlertTriangle, ListChecks, ListPlus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { AgencyTaskGroupRow } from "@/features/task-management/task-list/agency-task-group-row";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -39,7 +40,9 @@ export function AgencyProjectTasks({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
+  const { canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
   const canEditTaskRate = teamQuery.data?.role === "owner" && !isTrashed;
+  const canEditTasks = canEditRecords && !isTrashed;
 
   const tasks = tasksQuery.data?.items ?? [];
   const taskGroups = groupTasksByProjectTitle(tasks);
@@ -56,13 +59,13 @@ export function AgencyProjectTasks({
 
   async function createTask() {
     const title = titleDraft.trim();
-    if (!title || !teamId || !projectId) return;
+    if (!canEditTasks || !title || !teamId || !projectId) return;
     setTitleDraft("");
     await agencyOps.createProjectTask({ teamId, projectId, title });
   }
 
   async function deleteTask(task: { id: string; title: string }) {
-    if (!teamId) return;
+    if (!canEditTasks || !teamId) return;
     await agencyOps.deleteProjectTask({
       teamId,
       taskId: task.id,
@@ -83,31 +86,33 @@ export function AgencyProjectTasks({
           ) : null}
         </div>
 
-        <form
-          className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:max-w-md"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void createTask();
-          }}
-        >
-          <div className="relative min-w-0 flex-1">
-            <ListPlus className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" />
-            <Input
-              value={titleDraft}
-              onChange={(e) => setTitleDraft(e.target.value)}
-              placeholder="Add a task"
-              className="pl-9"
-            />
-          </div>
-          <Button
-            type="submit"
-            size="sm"
-            aria-label="Add task"
-            disabled={!titleDraft.trim() || isCreatingTask}
+        {canEditTasks ? (
+          <form
+            className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:max-w-md"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void createTask();
+            }}
           >
-            <Plus />
-          </Button>
-        </form>
+            <div className="relative min-w-0 flex-1">
+              <ListPlus className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" />
+              <Input
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                placeholder="Add a task"
+                className="pl-9"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="sm"
+              aria-label="Add task"
+              disabled={!titleDraft.trim() || isCreatingTask}
+            >
+              <Plus />
+            </Button>
+          </form>
+        ) : null}
       </header>
 
       {tasksQuery.isPending ? (
@@ -147,7 +152,7 @@ export function AgencyProjectTasks({
               isRowPending={(taskId) => pendingTaskIds.includes(taskId)}
               canEditTaskRate={canEditTaskRate}
               onSelect={setSelectedTaskId}
-              onDeleteInstance={(task) => void deleteTask(task)}
+              onDeleteInstance={canEditTasks ? (task) => void deleteTask(task) : undefined}
             />
           ))}
         </ul>
