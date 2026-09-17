@@ -2,10 +2,12 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
 import type { AgencyTimeRangeFilters } from "@/features/shared/use-agency-time-range-filters";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
 import { useAgencyPresenceMembers } from "@/features/shared/agency-queries";
 import { type DashboardTeamMemberSheetMember } from "@/features/dashboard/dashboard-team-member-types";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 
 export type UseAgencyDashboardSurfaceProps = {
   teamId: string;
@@ -29,6 +31,11 @@ export function useAgencyDashboardSurface({
   const { range, projectId, memberUserId, clientId, clientIds, projectIds, memberUserIds } =
     filters;
   const { members: presenceMembers } = useAgencyPresenceMembers(teamId);
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const canViewTeamSummary = agencyTeamCapabilities(teamQuery.data?.role).isOwner;
   const dashboardQuery = useQuery({
     ...orpc.agencyOps.reports.dashboard.queryOptions({
       input: {
@@ -43,7 +50,7 @@ export function useAgencyDashboardSurface({
         memberUserIds,
       },
     }),
-    enabled: Boolean(teamId) && policyReady,
+    enabled: Boolean(teamId) && policyReady && canViewTeamSummary,
     placeholderData: keepPreviousData,
   });
 
@@ -115,7 +122,9 @@ export function useAgencyDashboardSurface({
   const errorMessage = getErrorMessage(dashboardQuery.error, "Try refreshing.");
 
   return {
-    isLoading: dashboardQuery.isLoading || !policyReady,
+    isLoading:
+      teamQuery.isPending || (canViewTeamSummary && (dashboardQuery.isLoading || !policyReady)),
+    canViewTeamSummary,
     isError: dashboardQuery.isError,
     errorMessage,
     summary,

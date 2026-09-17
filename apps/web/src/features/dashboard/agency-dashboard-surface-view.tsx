@@ -95,6 +95,7 @@ type AgencyDashboardSurfaceViewProps = {
 export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurfaceViewProps) {
   const {
     isLoading,
+    canViewTeamSummary,
     isError,
     errorMessage,
     summary,
@@ -114,6 +115,10 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
 
   if (isLoading) {
     return <SurfaceShimmer className="min-h-72" label="Loading dashboard" />;
+  }
+
+  if (!canViewTeamSummary) {
+    return null;
   }
 
   if (isError) {

@@ -142,7 +142,7 @@ export type AgencyTimeTrackerViewModel = {
   onProjectChange: (projectId: string) => void;
   onTaskChange: (taskId: string, projectId?: string) => void;
   onTagIdsChange: (tagIds: string[]) => void;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   onIsBillableChange: (isBillable: boolean) => void;
   onTaskChooserOpenChange: (open: boolean) => void;
   onElapsedFocus: () => void;
@@ -844,15 +844,17 @@ export function useAgencyTimeTracker({
       setTrackerTaskId(teamId, value || "");
     },
     onTagIdsChange: (tagIds) => setTrackerTagIds(teamId, tagIds),
-    onCreateTag: (name) => {
-      if (!teamId || tagCreatePending) return;
-      setTagCreatePending(true);
-      void createAgencyTag(teamId, name)
-        .then((created) => {
-          setTrackerTagIds(teamId, [...new Set([...selectedTagIds, created.id])]);
-        })
-        .finally(() => setTagCreatePending(false));
-    },
+    onCreateTag: tagsQuery.canEditRecords
+      ? (name) => {
+          if (!teamId || tagCreatePending) return;
+          setTagCreatePending(true);
+          void createAgencyTag(teamId, name)
+            .then((created) => {
+              setTrackerTagIds(teamId, [...new Set([...selectedTagIds, created.id])]);
+            })
+            .finally(() => setTagCreatePending(false));
+        }
+      : undefined,
     onIsBillableChange: (next) => setTrackerIsBillable(teamId, next),
     onTaskChooserOpenChange: setTaskChooserOpen,
     onElapsedFocus,

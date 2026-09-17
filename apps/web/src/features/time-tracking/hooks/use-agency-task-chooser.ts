@@ -7,7 +7,9 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import type {
   AgencyProject,
   AgencyProjectTask,
@@ -26,6 +28,7 @@ import {
 import { useAgencyProjectTasksForChooserQuery } from "@/features/shared/agency-task-chooser-catalog";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import { statusLabel } from "@/features/task-management/agency-task-status";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   buildAgencyTaskChooserSections,
   type ChooserClientGroup,
@@ -128,6 +131,7 @@ export type AgencyTaskChooserViewModel = {
   activeOptionKey: string | null;
   activeOptionDomId: string | undefined;
   createPriority: "default" | "demoted" | "elevated";
+  canEditRecords: boolean;
   statusLabel: (status: TaskStatus | undefined) => string;
   createTaskOpen: boolean;
   createTaskProjectId: string;
@@ -192,6 +196,11 @@ export function useAgencyTaskChooser(
   const [createTaskProjectId, setCreateTaskProjectId] = useState("");
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
   const favoritesQuery = useAgencyFavoritesQuery(teamId);
   const templatesQuery = useAgencyProjectTemplatesQuery(teamId);
   const toggleFavorite = useAgencyOpsStore((state) => state.toggleFavorite);
@@ -502,12 +511,14 @@ export function useAgencyTaskChooser(
   }
 
   function onOpenCreateTask(projectId: string) {
+    if (!canEditRecords) return;
     setOpen(false);
     setCreateTaskProjectId(projectId);
     setCreateTaskOpen(true);
   }
 
   function onOpenCreateProject() {
+    if (!canEditRecords) return;
     setOpen(false);
     setCreateProjectOpen(true);
   }
@@ -570,6 +581,7 @@ export function useAgencyTaskChooser(
     activeOptionKey,
     activeOptionDomId,
     createPriority,
+    canEditRecords,
     statusLabel,
     createTaskOpen,
     createTaskProjectId,

@@ -79,6 +79,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
     activeOptionKey,
     activeOptionDomId,
     createPriority,
+    canEditRecords,
     teamId,
     createTaskOpen,
     createTaskProjectId,
@@ -191,7 +192,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
           searchTerm={searchTerm}
           highlightSearch={highlightSearch}
           showClientName={showClientName}
-          showCreateTask={!pickProject}
+          showCreateTask={!pickProject && canEditRecords}
           createMuted={createMuted}
           pickMode={pickProject}
           onToggle={() => {
@@ -234,26 +235,28 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                     />
                   );
                 })}
-                <div className="flex items-center py-0.5 pl-5">
-                  <motion.button
-                    type="button"
-                    className={cn(
-                      createMuted
-                        ? agencyTaskChooserCreateActionMutedClass
-                        : agencyTaskChooserCreateActionClass,
-                      createElevated && "text-sm",
-                    )}
-                    whileTap={chooserTapScale}
-                    onPointerDown={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }}
-                    onClick={() => onOpenCreateTask(entry.project.id)}
-                  >
-                    <Plus className="size-3.5" aria-hidden />
-                    Create task
-                  </motion.button>
-                </div>
+                {canEditRecords ? (
+                  <div className="flex items-center py-0.5 pl-5">
+                    <motion.button
+                      type="button"
+                      className={cn(
+                        createMuted
+                          ? agencyTaskChooserCreateActionMutedClass
+                          : agencyTaskChooserCreateActionClass,
+                        createElevated && "text-sm",
+                      )}
+                      whileTap={chooserTapScale}
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                      onClick={() => onOpenCreateTask(entry.project.id)}
+                    >
+                      <Plus className="size-3.5" aria-hidden />
+                      Create task
+                    </motion.button>
+                  </div>
+                ) : null}
               </div>
             </motion.div>
           ) : null}
@@ -380,43 +383,49 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 )}
               </div>
 
-              <div className="shrink-0 border-t border-border px-3 py-2.5">
-                <motion.button
-                  type="button"
-                  className={cn(
-                    createMuted
-                      ? agencyTaskChooserCreateActionMutedClass
-                      : agencyTaskChooserCreateActionClass,
-                    "px-1 text-sm",
-                    createElevated && "text-primary",
-                  )}
-                  whileTap={chooserTapScale}
-                  onClick={onOpenCreateProject}
-                >
-                  <Plus className="size-4" aria-hidden />
-                  Create project
-                </motion.button>
-              </div>
+              {canEditRecords ? (
+                <div className="shrink-0 border-t border-border px-3 py-2.5">
+                  <motion.button
+                    type="button"
+                    className={cn(
+                      createMuted
+                        ? agencyTaskChooserCreateActionMutedClass
+                        : agencyTaskChooserCreateActionClass,
+                      "px-1 text-sm",
+                      createElevated && "text-primary",
+                    )}
+                    whileTap={chooserTapScale}
+                    onClick={onOpenCreateProject}
+                  >
+                    <Plus className="size-4" aria-hidden />
+                    Create project
+                  </motion.button>
+                </div>
+              ) : null}
             </MotionConfig>
           </PopoverContent>
         </Popover>
       </div>
 
-      <AgencyTaskCreateDialog
-        open={createTaskOpen}
-        onOpenChange={onCreateTaskOpenChange}
-        teamId={teamId}
-        projectId={createTaskProjectId}
-        onCreated={onTaskCreated}
-      />
-      <AgencyTaskChooserProjectCreateDialog
-        open={createProjectOpen}
-        onOpenChange={onCreateProjectOpenChange}
-        teamId={teamId}
-        clients={clients}
-        templates={templates}
-        onCreated={onProjectCreated}
-      />
+      {canEditRecords ? (
+        <>
+          <AgencyTaskCreateDialog
+            open={createTaskOpen}
+            onOpenChange={onCreateTaskOpenChange}
+            teamId={teamId}
+            projectId={createTaskProjectId}
+            onCreated={onTaskCreated}
+          />
+          <AgencyTaskChooserProjectCreateDialog
+            open={createProjectOpen}
+            onOpenChange={onCreateProjectOpenChange}
+            teamId={teamId}
+            clients={clients}
+            templates={templates}
+            onCreated={onProjectCreated}
+          />
+        </>
+      ) : null}
     </>
   );
 }

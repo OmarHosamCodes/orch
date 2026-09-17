@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
   startTransition,
@@ -54,6 +55,8 @@ import { parseAgencyPeriodQuery } from "@/features/shared/agency-period-query";
 import { orpcClient } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { AGENCY_CURRENCY_OPTIONS, parseBillableRateAmount } from "@/features/shared/format-rate";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   selectIsClientMutationPending,
   useAgencyOpsStore,
@@ -509,6 +512,11 @@ function ClientsFiltersRoot({
   const agencyOps = useAgencyOpsStore();
   const isClientMutationPending = useAgencyOpsStore(selectIsClientMutationPending);
   const listFilters = useAgencyListFilters({ teamId });
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
   const [newClientCategory, setNewClientCategory] = useState<"internal" | "external">("external");
@@ -524,25 +532,35 @@ function ClientsFiltersRoot({
 
   async function createClient() {
     const name = newClientName.trim();
-    if (!name || !teamId) return;
+    if (!name || !teamId || !canEditRecords) return;
 
     const billableRateAmount = parseBillableRateAmount(newClientBillableRate);
-    if (newClientBillableRate.trim() && billableRateAmount === null) return;
+    if (canEditRates && newClientBillableRate.trim() && billableRateAmount === null) return;
 
     resetNewClientForm();
     setNewClientOpen(false);
     await agencyOps.createClient({
       teamId,
       name,
-      category: newClientCategory,
-      billableRateAmount,
-      currency: newClientCurrency,
+      ...(canEditRates
+        ? {
+            category: newClientCategory,
+            billableRateAmount,
+            currency: newClientCurrency,
+          }
+        : {}),
     });
   }
 
   return (
     <AgencySegmentFiltersContext.Provider value={{ kind: "list", applied: listFilters.applied }}>
-      <AgencyClientsActionsContext.Provider value={{ openNewClient: () => setNewClientOpen(true) }}>
+      <AgencyClientsActionsContext.Provider
+        value={{
+          openNewClient: () => {
+            if (canEditRecords) setNewClientOpen(true);
+          },
+        }}
+      >
         <div className="space-y-4">
           {showBar ? (
             listFilters.isLoading ? (
@@ -554,98 +572,110 @@ function ClientsFiltersRoot({
                 segment="clients"
                 showArchiveFilter
               >
-                <Popover open={newClientOpen} onOpenChange={setNewClientOpen}>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" disabled={!teamId}>
-                      <Plus />
-                      New client
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" size="form" tone="morph" className="p-4">
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        void createClient();
-                      }}
-                    >
-                      <p className="text-sm font-medium text-foreground">New client</p>
-                      <Input
-                        value={newClientName}
-                        onChange={(event) => setNewClientName(event.target.value)}
-                        placeholder="Client name"
-                        aria-label="Client name"
-                        className="mt-3"
-                        autoFocus
-                      />
-                      <div className="mt-3 space-y-1.5">
-                        <Label htmlFor="new-client-category" className="text-xs font-medium">
-                          Category
-                        </Label>
-                        <Select
-                          value={newClientCategory}
-                          onValueChange={(value) =>
-                            setNewClientCategory(value === "internal" ? "internal" : "external")
+                {canEditRecords ? (
+                  <Popover open={newClientOpen} onOpenChange={setNewClientOpen}>
+                    <PopoverTrigger asChild>
+                      <Button size="sm" disabled={!teamId}>
+                        <Plus />
+                        New client
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" size="form" tone="morph" className="p-4">
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          void createClient();
+                        }}
+                      >
+                        <p className="text-sm font-medium text-foreground">New client</p>
+                        <Input
+                          value={newClientName}
+                          onChange={(event) => setNewClientName(event.target.value)}
+                          placeholder="Client name"
+                          aria-label="Client name"
+                          className="mt-3"
+                          autoFocus
+                        />
+                        {canEditRates ? (
+                          <>
+                            <div className="mt-3 space-y-1.5">
+                              <Label htmlFor="new-client-category" className="text-xs font-medium">
+                                Category
+                              </Label>
+                              <Select
+                                value={newClientCategory}
+                                onValueChange={(value) =>
+                                  setNewClientCategory(
+                                    value === "internal" ? "internal" : "external",
+                                  )
+                                }
+                              >
+                                <SelectTrigger id="new-client-category" className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="external">External</SelectItem>
+                                  <SelectItem value="internal">Internal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="mt-3">
+                              <Label htmlFor="new-client-rate" className="text-xs font-medium">
+                                Billable rate / hour
+                              </Label>
+                              <div className="mt-1.5 flex gap-2">
+                                <Input
+                                  id="new-client-rate"
+                                  value={newClientBillableRate}
+                                  onChange={(event) => setNewClientBillableRate(event.target.value)}
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="Optional"
+                                  className="min-w-0 flex-1"
+                                />
+                                <Select
+                                  value={newClientCurrency}
+                                  onValueChange={setNewClientCurrency}
+                                >
+                                  <SelectTrigger
+                                    aria-label="Rate currency"
+                                    className="w-[5.5rem] shrink-0"
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {AGENCY_CURRENCY_OPTIONS.map((code) => (
+                                      <SelectItem key={code} value={code}>
+                                        {code}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="mt-4 w-full"
+                          disabled={
+                            !newClientName.trim() ||
+                            isClientMutationPending ||
+                            Boolean(
+                              canEditRates &&
+                              newClientBillableRate.trim() &&
+                              parseBillableRateAmount(newClientBillableRate) === null,
+                            )
                           }
                         >
-                          <SelectTrigger id="new-client-category" className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="external">External</SelectItem>
-                            <SelectItem value="internal">Internal</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="mt-3">
-                        <Label htmlFor="new-client-rate" className="text-xs font-medium">
-                          Billable rate / hour
-                        </Label>
-                        <div className="mt-1.5 flex gap-2">
-                          <Input
-                            id="new-client-rate"
-                            value={newClientBillableRate}
-                            onChange={(event) => setNewClientBillableRate(event.target.value)}
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Optional"
-                            className="min-w-0 flex-1"
-                          />
-                          <Select value={newClientCurrency} onValueChange={setNewClientCurrency}>
-                            <SelectTrigger
-                              aria-label="Rate currency"
-                              className="w-[5.5rem] shrink-0"
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {AGENCY_CURRENCY_OPTIONS.map((code) => (
-                                <SelectItem key={code} value={code}>
-                                  {code}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        className="mt-4 w-full"
-                        disabled={
-                          !newClientName.trim() ||
-                          isClientMutationPending ||
-                          Boolean(
-                            newClientBillableRate.trim() &&
-                            parseBillableRateAmount(newClientBillableRate) === null,
-                          )
-                        }
-                      >
-                        Create
-                      </Button>
-                    </form>
-                  </PopoverContent>
-                </Popover>
+                          Create
+                        </Button>
+                      </form>
+                    </PopoverContent>
+                  </Popover>
+                ) : null}
               </ListFilterCommandBar>
             )
           ) : null}
@@ -674,12 +704,21 @@ function ProjectsFiltersRoot({
   children: ReactNode;
 }) {
   const listFilters = useAgencyListFilters({ teamId });
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
 
   return (
     <AgencySegmentFiltersContext.Provider value={{ kind: "list", applied: listFilters.applied }}>
       <AgencyProjectsActionsContext.Provider
-        value={{ openNewProject: () => setNewProjectOpen(true) }}
+        value={{
+          openNewProject: () => {
+            if (canEditRecords) setNewProjectOpen(true);
+          },
+        }}
       >
         <div className="space-y-4">
           {showBar ? (
@@ -692,23 +731,27 @@ function ProjectsFiltersRoot({
                 segment="projects"
                 showTrashFilter
               >
-                <Button
-                  size="sm"
-                  disabled={!teamId || listFilters.clients.length === 0}
-                  onClick={() => setNewProjectOpen(true)}
-                >
-                  <Plus />
-                  New project
-                </Button>
+                {canEditRecords ? (
+                  <Button
+                    size="sm"
+                    disabled={!teamId || listFilters.clients.length === 0}
+                    onClick={() => setNewProjectOpen(true)}
+                  >
+                    <Plus />
+                    New project
+                  </Button>
+                ) : null}
               </ListFilterCommandBar>
             )
           ) : null}
-          <AgencyProjectCreateDialog
-            open={newProjectOpen}
-            onOpenChange={setNewProjectOpen}
-            teamId={teamId}
-            clients={listFilters.clients}
-          />
+          {canEditRecords ? (
+            <AgencyProjectCreateDialog
+              open={newProjectOpen}
+              onOpenChange={setNewProjectOpen}
+              teamId={teamId}
+              clients={listFilters.clients}
+            />
+          ) : null}
           {children}
         </div>
       </AgencyProjectsActionsContext.Provider>

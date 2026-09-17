@@ -21,7 +21,7 @@ type AgencyTimeEntryRowContainerProps = {
   tasks: AgencyProjectTask[];
   tags: AgencyTagOption[];
   tagCreatePending: boolean;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   expanded: boolean;
   isTimerMutationPending: boolean;
   deletingEntryIds: string[];

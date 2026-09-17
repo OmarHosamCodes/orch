@@ -114,7 +114,7 @@ export type AgencyReportEntryDetailsDialogViewModel = {
   onDeleteSelected: (entryIds: string[]) => void;
   onMarkSelectedAsWaste: (entryIds: string[]) => void;
   onApplyBulk: () => void;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   onClose: () => void;
 };
 
@@ -470,7 +470,7 @@ export function useAgencyReportEntryDetailsDialog({
   }
 
   function createTag(name: string) {
-    if (!teamId || tagCreatePending) return;
+    if (!teamId || !tagsQuery.canEditRecords || tagCreatePending) return;
     setTagCreatePending(true);
     void createAgencyTag(teamId, name)
       .then((created) => {
@@ -519,7 +519,7 @@ export function useAgencyReportEntryDetailsDialog({
     onDeleteSelected: (entryIds) => void deleteSelected(entryIds),
     onMarkSelectedAsWaste: (entryIds) => void markSelectedAsWaste(entryIds),
     onApplyBulk: () => void applyBulkPatch(),
-    onCreateTag: createTag,
+    onCreateTag: tagsQuery.canEditRecords ? createTag : undefined,
     onClose: () => onOpenChange(false),
   };
 }

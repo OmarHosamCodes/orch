@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { user } from "@orch/db/schema/auth";
+import { agencyOpsProject } from "@orch/db/schema/agency-ops";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 Bun.env.POLAR_PRODUCT_PRO ??= "polar-pro";
@@ -10,8 +11,8 @@ const [
   teamService,
   billingTeam,
   { createAgencyClient },
-  { createAgencyProject },
-  { createAgencyProjectTask },
+  { createAgencyProject, createAgencyProjectWithJourney },
+  { createAgencyProjectTask, updateAgencyProjectTask },
 ] = await Promise.all([
   import("@orch/db"),
   import("../../team/service"),
@@ -22,8 +23,12 @@ const [
 ]);
 
 const fixtureUsers: string[] = [];
+const fixtureTeamIds: string[] = [];
 
 afterEach(async () => {
+  for (const teamId of fixtureTeamIds.splice(0)) {
+    await db.delete(agencyOpsProject).where(eq(agencyOpsProject.teamId, teamId));
+  }
   for (const userId of fixtureUsers.splice(0)) {
     await db.delete(user).where(eq(user.id, userId));
   }
@@ -68,6 +73,7 @@ describe("agency project RBAC", () => {
     editorId = await createFixtureUser();
     viewerId = await createFixtureUser();
     team = await teamService.createTeam(ownerId, { name: "RBAC Projects" });
+    fixtureTeamIds.push(team.id);
     await addPaidMember({
       ownerId,
       teamId: team.id,
@@ -92,13 +98,40 @@ describe("agency project RBAC", () => {
       clientId: homeClient.id,
       name: "Site",
     });
+    const task = await createAgencyProjectTask(editorId, {
+      teamId: team.id,
+      projectId: project.id,
+      title: "Build",
+    });
     await expect(
-      createAgencyProjectTask(editorId, {
+      updateAgencyProjectTask(editorId, {
         teamId: team.id,
-        projectId: project.id,
-        title: "Build",
+        taskId: task.id,
+        title: "Build now",
       }),
-    ).resolves.toMatchObject({ title: "Build" });
+    ).resolves.toMatchObject({ title: "Build now" });
+    await expect(
+      updateAgencyProjectTask(editorId, {
+        teamId: team.id,
+        taskId: task.id,
+        billableRateAmount: 10_000,
+        currency: "USD",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  test("editor creates a project journey", async () => {
+    await expect(
+      createAgencyProjectWithJourney(editorId, {
+        teamId: team.id,
+        clientId: client.id,
+        name: "Editor journey",
+        milestones: [{ title: "Ship", assigneeUserIds: [editorId] }],
+      }),
+    ).resolves.toMatchObject({
+      project: { name: "Editor journey" },
+      journey: { totalSteps: 3 },
+    });
   });
 
   test("viewer cannot create a project", async () => {
