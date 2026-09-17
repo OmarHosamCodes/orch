@@ -11,6 +11,7 @@ import { resolveShellRailNavItemId } from "@/features/app-shell/shell-nav-select
 import { ShellLiquidNavProvider } from "@/features/app-shell/shell-liquid-nav";
 import { useBilling } from "@/features/billing/billing-queries";
 import { useAgencySegmentShortcuts } from "@/features/shared/use-agency-segment-shortcuts";
+import { useTeamStore } from "@/features/team/team-store";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/ui/sheet";
 
@@ -45,7 +46,8 @@ export function AppShellRailOverlays() {
   const location = useLocation();
   const mobileNavOpen = useAppShellStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useAppShellStore((s) => s.setMobileNavOpen);
-  const { isPro, checkout, billingQuery } = useBilling();
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const { isPro, checkout, billingQuery } = useBilling(selectedTeamId);
   const showUpgrade = !isPro && !billingQuery.isPending;
   const activeNavId = resolveShellRailNavItemId(location.pathname);
 

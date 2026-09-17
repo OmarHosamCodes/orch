@@ -6,13 +6,15 @@ import { AppShellPage } from "@/features/app-shell/app-shell-page";
 import { ShellBootSurface } from "@/features/app-shell/components/shell-boot-surface";
 import { useShellBootGate } from "@/features/app-shell/shell/use-shell-boot-gate";
 import { useBilling } from "@/features/billing/billing-queries";
+import { useTeamStore } from "@/features/team/team-store";
 import { Button } from "@/ui/button";
 import { shellConfirmInClass, shellStaggerItemClass } from "@/features/app-shell/app-shell-ui";
 import { cn } from "@/lib/utils";
 
 export function BillingSuccessPage() {
   const [searchParams] = useSearchParams();
-  const { refreshBillingState, billingQuery, openPortal } = useBilling();
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const { refreshBillingState, billingQuery, openPortal } = useBilling(selectedTeamId);
   const { isBooting } = useShellBootGate(!billingQuery.isPending);
 
   const checkoutId = searchParams.get("checkout_id") ?? undefined;

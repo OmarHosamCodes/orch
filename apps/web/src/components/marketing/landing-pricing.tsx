@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@/lib/navigation";
 
 import { Button } from "@/ui/button";
 import { useBilling } from "@/features/billing/billing-queries";
+import { useTeamStore } from "@/features/team/team-store";
 
 type LimitFeature = {
   kind: "limit";
@@ -51,7 +52,8 @@ type LandingPricingProps = {
 
 export function LandingPricing({ isAuthenticated }: LandingPricingProps) {
   const navigate = useNavigate();
-  const { checkout, isPro, openPortal } = useBilling(isAuthenticated);
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const { checkout, isPro, openPortal } = useBilling(selectedTeamId, isAuthenticated);
 
   async function handleCheckout() {
     if (!isAuthenticated) {

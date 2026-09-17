@@ -19,16 +19,17 @@ const DEFAULT_BILLING_LIMITS: TierLimits = {
 
 type BillingState = Awaited<ReturnType<typeof orpcClient.billing.state>>;
 
-function billingStateQueryOptions(authEnabled: boolean) {
+function billingStateQueryOptions(teamId: string | null | undefined, enabled: boolean) {
+  const resolvedTeamId = teamId ?? "";
   return {
-    ...orpc.billing.state.queryOptions(),
-    enabled: authEnabled,
+    ...orpc.billing.state.queryOptions({ input: { teamId: resolvedTeamId } }),
+    enabled: enabled && Boolean(resolvedTeamId),
     staleTime: 5 * 60 * 1000,
   };
 }
 
-function billingStateQueryKey() {
-  return orpc.billing.state.queryOptions().queryKey;
+function billingStateQueryKey(teamId: string | null | undefined) {
+  return orpc.billing.state.queryOptions({ input: { teamId: teamId ?? "" } }).queryKey;
 }
 
 function deriveBillingState(data: BillingState | undefined) {
@@ -49,16 +50,17 @@ async function openBillingPortal() {
   await authClient.customer.portal();
 }
 
-function refreshBillingState(queryClient: QueryClient) {
-  queryClient.invalidateQueries({ queryKey: billingStateQueryKey() });
+function refreshBillingState(queryClient: QueryClient, teamId: string | null | undefined) {
+  if (!teamId) return;
+  queryClient.invalidateQueries({ queryKey: billingStateQueryKey(teamId) });
 }
 
-export function useBilling(enabled = true) {
+export function useBilling(teamId?: string | null, enabled = true) {
   const queryClient = useQueryClient();
   const { user } = useAuthSession();
-  const authEnabled = enabled && Boolean(user);
+  const queryEnabled = enabled && Boolean(user);
 
-  const billingQuery = useQuery(billingStateQueryOptions(authEnabled));
+  const billingQuery = useQuery(billingStateQueryOptions(teamId, queryEnabled));
   const derived = deriveBillingState(billingQuery.data);
 
   return {
@@ -66,6 +68,6 @@ export function useBilling(enabled = true) {
     ...derived,
     checkout: checkoutBilling,
     openPortal: openBillingPortal,
-    refreshBillingState: () => refreshBillingState(queryClient),
+    refreshBillingState: () => refreshBillingState(queryClient, teamId),
   };
 }

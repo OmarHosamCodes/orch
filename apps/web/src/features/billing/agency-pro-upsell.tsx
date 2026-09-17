@@ -3,9 +3,11 @@ import { Link } from "@/lib/navigation";
 
 import { Button } from "@/ui/button";
 import { useBilling } from "@/features/billing/billing-queries";
+import { useTeamStore } from "@/features/team/team-store";
 
 export function AgencyProUpsell() {
-  const { checkout } = useBilling();
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const { checkout } = useBilling(selectedTeamId);
   const [isLoading, setIsLoading] = useState(false);
   const [upgradeError, setUpgradeError] = useState("");
 

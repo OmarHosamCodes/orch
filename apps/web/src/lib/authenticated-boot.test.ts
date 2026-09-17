@@ -9,6 +9,7 @@ mock.module("@/lib/env", () => ({
 }));
 
 const { teamListQueryKey } = await import("@/features/team/team-queries");
+const { orpc } = await import("@/lib/orpc");
 const { loadAuthenticatedShell } = await import("./authenticated-boot");
 
 const session = { user: { id: "u1", name: "Ada", email: "ada@orch.test" } };
@@ -110,6 +111,36 @@ describe("loadAuthenticatedShell", () => {
     expect(fetchChrome).toHaveBeenCalledTimes(2);
     expect(result).toEqual({ session, teamCount: 2 });
     expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
+  });
+
+  test("prefetches billing for the resolved team after chrome loads", async () => {
+    const queryClient = createClient();
+    const prefetchQuery = mock(async () => undefined);
+    queryClient.prefetchQuery = prefetchQuery as typeof queryClient.prefetchQuery;
+    const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+
+    try {
+      await loadAuthenticatedShell({
+        queryClient,
+        location: { pathname: "/agency", searchStr: "" },
+        preferredTeamId: "team-b",
+        fetchSession: async () => session,
+        fetchChrome: async () => chromeFor("team-b"),
+      });
+
+      expect(prefetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: orpc.billing.state.queryOptions({ input: { teamId: "team-b" } }).queryKey,
+        }),
+      );
+    } finally {
+      if (windowDescriptor) {
+        Object.defineProperty(globalThis, "window", windowDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "window");
+      }
+    }
   });
 
   test("failed team list does not seed an empty list over a good cache", async () => {

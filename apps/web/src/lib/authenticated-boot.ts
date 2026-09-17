@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
 
-import { seedBootChromeQueries, type BootShellChrome } from "@/lib/boot-chrome";
+import { resolveBootTeamId, seedBootChromeQueries, type BootShellChrome } from "@/lib/boot-chrome";
 import { orpc } from "@/lib/orpc";
 import type { BootSession } from "@/lib/session-boot";
 
@@ -18,16 +18,7 @@ export async function loadAuthenticatedShell(input: {
   const sessionPromise = input.fetchSession();
   const chromePromise = input.fetchChrome(preferredTeamId);
   const session = await sessionPromise;
-  const billingPromise =
-    session && typeof window !== "undefined"
-      ? input.queryClient
-          .prefetchQuery({
-            ...orpc.billing.state.queryOptions(),
-            staleTime: 5 * 60 * 1000,
-          })
-          .catch(() => undefined)
-      : Promise.resolve();
-  let [chrome] = await Promise.all([chromePromise, billingPromise]);
+  let chrome = await chromePromise;
 
   if (!session) {
     const redirectTo = `${input.location.pathname}${input.location.searchStr}`;
@@ -39,6 +30,16 @@ export async function loadAuthenticatedShell(input: {
   if (chrome.teams?.items.length === 0 && input.ensurePersonal) {
     await input.ensurePersonal();
     chrome = await input.fetchChrome(preferredTeamId);
+  }
+
+  const teamId = resolveBootTeamId(chrome.teams?.items ?? [], preferredTeamId);
+  if (teamId && typeof window !== "undefined") {
+    await input.queryClient
+      .prefetchQuery({
+        ...orpc.billing.state.queryOptions({ input: { teamId } }),
+        staleTime: 5 * 60 * 1000,
+      })
+      .catch(() => undefined);
   }
 
   seedBootChromeQueries(input.queryClient, chrome, bootStartedAt);

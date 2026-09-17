@@ -6,6 +6,7 @@ import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { shellFocusRingClass } from "@/features/app-shell/app-shell-ui";
 import { useBilling } from "@/features/billing/billing-queries";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
+import { useTeamStore } from "@/features/team/team-store";
 import { UserSettingsModal } from "@/features/user-settings/user-settings-modal";
 import { useAuthSession } from "@/lib/auth-session";
 import { getServerUrl } from "@/lib/env";
@@ -24,7 +25,8 @@ type AppShellAccountMenuProps = {
 
 export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuProps) {
   const { user, isPending } = useAuthSession();
-  const { isPro } = useBilling();
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const { isPro } = useBilling(selectedTeamId);
   const updateAvailable = useAppUpdateStore((s) => s.updateAvailable);
   const [settingsOpen, setSettingsOpen] = useState(false);
 

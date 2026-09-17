@@ -39,8 +39,10 @@ export function AgencyPage() {
   const currentUserId = user?.id ?? "";
   const location = useLocation();
   const segment = agencySegmentFromPathname(location.pathname) ?? "work";
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
 
-  const { limits, billingQuery } = useBilling();
+  const { limits, billingQuery } = useBilling(selectedTeamId);
   const agencyEnabled = Boolean(limits.agencyOps);
   const billingGatePending = billingQuery.isPending;
   const showAgencyUpsell = !billingGatePending && !agencyEnabled;
@@ -51,9 +53,6 @@ export function AgencyPage() {
   });
 
   const teams = teamsQuery.data?.items ?? [];
-
-  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
 
   useEffect(() => {
     syncSelectedTeam(teams);

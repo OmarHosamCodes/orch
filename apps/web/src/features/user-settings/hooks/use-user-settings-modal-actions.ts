@@ -32,8 +32,8 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const session = authClient.useSession();
-  const { tier, isPro, checkout, openPortal } = useBilling();
   const teamId = useTeamStore((s) => s.selectedTeamId) ?? "";
+  const { tier, isPro, checkout, openPortal } = useBilling(teamId);
   const preferencesQuery = useAgencyNotificationPreferencesQuery(
     teamId,
     input.open && Boolean(teamId),
