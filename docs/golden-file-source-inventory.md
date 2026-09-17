@@ -19,7 +19,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1024 |
+| golden-feature | 1026 |
 | server-operation | 13 |
 | shared-infrastructure | 421 |
 | static-presentation | 17 |
@@ -33,7 +33,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | api-platform | 13 |
 | architecture | 4 |
 | auth | 14 |
-| billing | 148 |
+| billing | 150 |
 | ci | 3 |
 | clients | 15 |
 | configuration | 3 |
@@ -1163,6 +1163,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/agent/tsconfig.json` | agent | build-config | shared-infrastructure | agent-domain | Cross-cutting agent build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/api/package.json` | api-platform | dependency-config | shared-infrastructure | api-platform | Cross-cutting api-platform dependency-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, database access, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/api/src/billing-guard.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
+| `packages/api/src/billing-team.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
+| `packages/api/src/billing-team.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/api/src/billing.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/billing.ts` | billing | api-service | golden-feature | billing-domain | Feature-owned billing artifact in the canonical api-service layer. | content: exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/context.ts` | api-platform | domain-service | shared-infrastructure | api-platform | Cross-cutting api-platform domain-service support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |

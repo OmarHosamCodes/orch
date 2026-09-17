@@ -12,6 +12,7 @@ import { dashboardWorkspace, user, workspaceTeam, workspaceTeamMember } from "@o
 
 import { requireTeamMembership } from "../../lib/team-membership";
 import { getBillingStateForUser } from "../../billing-guard";
+import { insertTrialBilling } from "../../billing-team";
 import { formatAvatarUrl } from "../agency-ops/shared/avatar-helpers";
 
 export async function assertCanCreateTeam(actorUserId: string, _input: Record<string, never>) {
@@ -119,6 +120,8 @@ export async function createTeam(actorUserId: string, input: { name: string }) {
       createdAt: now,
       updatedAt: now,
     });
+
+    await insertTrialBilling(tx, teamId, now);
   });
 
   return {
