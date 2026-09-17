@@ -4,11 +4,12 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { user }, teamService, billingUploads] = await Promise.all([
+const [{ db }, { user }, teamService, billingUploads, uploadRouteOrder] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema/auth"),
   import("./routers/team/service"),
   import("./billing-uploads"),
+  import("./billing-upload-route-order"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -53,6 +54,27 @@ describe("mapUploadBlockedOrpcError", () => {
       ),
     ).toBeNull();
     expect(billingUploads.mapUploadBlockedOrpcError(new Error("boom"))).toBeNull();
+  });
+});
+
+describe("task/knowledge upload route validation order", () => {
+  test("runs upload_blocked before the 50MB size gate", () => {
+    const order = uploadRouteOrder.TASK_KNOWLEDGE_UPLOAD_VALIDATION_ORDER;
+    const gateIndex = order.indexOf("upload_blocked_gate");
+    const sizeIndex = order.indexOf("size_limit");
+    expect(gateIndex).toBeGreaterThan(order.indexOf("membership"));
+    expect(sizeIndex).toBeGreaterThan(gateIndex);
+  });
+
+  test("oversize helper returns 400 only after billing would allow uploads", () => {
+    const over = uploadRouteOrder.MAX_TASK_KNOWLEDGE_UPLOAD_BYTES + 1;
+    expect(uploadRouteOrder.oversizeUploadResponse(over)).toEqual({
+      status: 400,
+      body: { error: "File size must be under 50MB" },
+    });
+    expect(
+      uploadRouteOrder.oversizeUploadResponse(uploadRouteOrder.MAX_TASK_KNOWLEDGE_UPLOAD_BYTES),
+    ).toBeNull();
   });
 });
 

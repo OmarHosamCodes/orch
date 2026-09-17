@@ -111,42 +111,7 @@ export async function getTeamBilling(
     }
   }
 
-  const resolvedPlan = resolvePlanAt({
-    storedPlan: billing.plan,
-    trialEndsAt: billing.trialEndsAt,
-    now,
-  });
-
-  const [owner] = await db
-    .select({ id: user.id, lifetimePro: user.lifetimePro })
-    .from(workspaceTeam)
-    .innerJoin(user, eq(workspaceTeam.createdByUserId, user.id))
-    .where(eq(workspaceTeam.id, teamId))
-    .limit(1);
-  const lifetimePlan = resolveTeamBillingPlanOverlay({
-    snapshotPlan: resolvedPlan,
-    lifetimePro: owner?.lifetimePro ?? false,
-    ownerTier: "free",
-  });
-  if (lifetimePlan === "agency_unlimited") {
-    return mapTeamBillingSnapshot(billing, lifetimePlan, 1);
-  }
-
-  if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
-    return mapTeamBillingSnapshot(billing, resolvedPlan);
-  }
-
-  const ownerBilling = owner ? await getBillingStateForUser(owner.id) : null;
-  const plan = resolveTeamBillingPlanOverlay({
-    snapshotPlan: resolvedPlan,
-    lifetimePro: false,
-    ownerTier: ownerBilling?.tier ?? "free",
-  });
-  if (plan === "agency") {
-    await applyPaidPlan(teamId, plan, { seats: 1 });
-  }
-
-  return mapTeamBillingSnapshot(billing, plan);
+  return resolveTeamBillingSnapshot(teamId, billing, now);
 }
 
 function mapTeamBillingSnapshot(
@@ -272,17 +237,67 @@ function numericLimit(value: number | null | undefined): number | null {
   return value;
 }
 
-async function lockTeamBillingRowForVolumeCap(executor: VolumeCapDbExecutor, teamId: string) {
-  const [row] = await executor
-    .select({ teamId: workspaceTeamBilling.teamId })
+type TeamBillingRow = typeof workspaceTeamBilling.$inferSelect;
+
+async function lockTeamBillingRowForVolumeCap(
+  executor: VolumeCapDbExecutor,
+  teamId: string,
+): Promise<TeamBillingRow> {
+  const [billing] = await executor
+    .select()
     .from(workspaceTeamBilling)
     .where(eq(workspaceTeamBilling.teamId, teamId))
     .for("update")
     .limit(1);
 
-  if (!row) {
+  if (!billing) {
     throw notEntitledError();
   }
+
+  return billing;
+}
+
+async function resolveTeamBillingSnapshot(
+  teamId: string,
+  billing: TeamBillingRow,
+  now: Date,
+): Promise<TeamBillingSnapshot> {
+  const resolvedPlan = resolvePlanAt({
+    storedPlan: billing.plan,
+    trialEndsAt: billing.trialEndsAt,
+    now,
+  });
+
+  const [owner] = await db
+    .select({ id: user.id, lifetimePro: user.lifetimePro })
+    .from(workspaceTeam)
+    .innerJoin(user, eq(workspaceTeam.createdByUserId, user.id))
+    .where(eq(workspaceTeam.id, teamId))
+    .limit(1);
+  const lifetimePlan = resolveTeamBillingPlanOverlay({
+    snapshotPlan: resolvedPlan,
+    lifetimePro: owner?.lifetimePro ?? false,
+    ownerTier: "free",
+  });
+  if (lifetimePlan === "agency_unlimited") {
+    return mapTeamBillingSnapshot(billing, lifetimePlan, 1);
+  }
+
+  if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
+    return mapTeamBillingSnapshot(billing, resolvedPlan);
+  }
+
+  const ownerBilling = owner ? await getBillingStateForUser(owner.id) : null;
+  const plan = resolveTeamBillingPlanOverlay({
+    snapshotPlan: resolvedPlan,
+    lifetimePro: false,
+    ownerTier: ownerBilling?.tier ?? "free",
+  });
+  if (plan === "agency") {
+    await applyPaidPlan(teamId, plan, { seats: 1 });
+  }
+
+  return mapTeamBillingSnapshot(billing, plan);
 }
 
 export async function assertWithinLimit(
@@ -296,15 +311,17 @@ export async function assertWithinLimit(
     tx?: VolumeCapDbExecutor;
   },
 ) {
-  const snapshot = await getTeamBilling(teamId, extra?.now);
   const adding = extra?.adding ?? 1;
+  const now = extra?.now ?? new Date();
   let limit: number | null;
   let used: number;
   const executor = extra?.tx ?? db;
+  let snapshot: TeamBillingSnapshot;
 
   switch (counter) {
-    case "clients":
-      await lockTeamBillingRowForVolumeCap(executor, teamId);
+    case "clients": {
+      const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
       limit = numericLimit(snapshot.limits.clients);
       used = (
         await executor
@@ -313,8 +330,10 @@ export async function assertWithinLimit(
           .where(and(eq(agencyOpsClient.teamId, teamId), isNull(agencyOpsClient.archivedAt)))
       )[0]!.value;
       break;
-    case "projects":
-      await lockTeamBillingRowForVolumeCap(executor, teamId);
+    }
+    case "projects": {
+      const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
       limit = numericLimit(snapshot.limits.projects);
       used = (
         await executor
@@ -323,11 +342,13 @@ export async function assertWithinLimit(
           .where(and(eq(agencyOpsProject.teamId, teamId), isNull(agencyOpsProject.deletedAt)))
       )[0]!.value;
       break;
+    }
     case "tasksPerProject": {
       if (!extra?.projectId) {
         throw new ORPCError("BAD_REQUEST", { message: "projectId is required." });
       }
-      await lockTeamBillingRowForVolumeCap(executor, teamId);
+      const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
       limit = numericLimit(snapshot.limits.tasksPerProject);
       used = (
         await executor
@@ -342,27 +363,33 @@ export async function assertWithinLimit(
       )[0]!.value;
       break;
     }
-    case "nodes":
+    case "nodes": {
+      snapshot = await getTeamBilling(teamId, now);
       if (extra?.count == null) {
         throw new ORPCError("BAD_REQUEST", { message: "count is required." });
       }
       limit = snapshot.limits.workspaceNodes;
       used = extra.count;
       break;
-    case "blocks":
+    }
+    case "blocks": {
+      snapshot = await getTeamBilling(teamId, now);
       if (extra?.count == null) {
         throw new ORPCError("BAD_REQUEST", { message: "count is required." });
       }
       limit = snapshot.limits.blocksPerTab;
       used = extra.count;
       break;
-    case "tabs":
+    }
+    case "tabs": {
+      snapshot = await getTeamBilling(teamId, now);
       if (extra?.count == null) {
         throw new ORPCError("BAD_REQUEST", { message: "count is required." });
       }
       limit = snapshot.limits.tabsPerNode;
       used = extra.count;
       break;
+    }
     default: {
       const _exhaustive: never = counter;
       throw new ORPCError("BAD_REQUEST", { message: String(_exhaustive) });

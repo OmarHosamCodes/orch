@@ -34,3 +34,22 @@ Original 15-file process (catalog + live + boot/chooser neighbors) also **GREEN:
 ## Lint / format
 
 `bunx oxlint` clean on touched product/test files. `bunx oxfmt --check` clean after formatting `auth-session.ts`, `auth-session.test.ts`, and the README.
+
+---
+
+## Slice 2 final review (branch `from-brainiac-to-orch`)
+
+Worktree: `/home/omar/Projects/brainiac` (main repo, not a worktree)
+
+### Fixes
+
+1. **Upload status precedence.** Task-attachment and knowledge-source HTTP routes validate fields → membership → `rejectIfUploadsBlocked` (403 `upload_blocked`) → 50MB size (400) → S3. Shared helper: `packages/api/src/billing-upload-route-order.ts`.
+2. **Volume-cap snapshot under lock.** `assertWithinLimit` for `clients` / `projects` / `tasksPerProject` locks `workspace_team_billing` on the executor first, then resolves plan/limits from that locked row via `resolveTeamBillingSnapshot`. Payload counters (`nodes` / `blocks` / `tabs`) still use unlocked `getTeamBilling`.
+
+### Tests
+
+```
+bun test packages/api/src/billing-uploads.test.ts packages/api/src/billing-team.test.ts
+```
+
+**GREEN:** 37 pass, 0 fail (66 expect() calls). 2 files, ~17s.
