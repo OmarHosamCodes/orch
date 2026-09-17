@@ -25,13 +25,11 @@ export async function getPeriodScoreboard(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ) {
-  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
-  if (role === "owner") {
-    await syncFormulaPayoutLines(actorUserId, {
-      ...input,
-      refreshSnapshot: false,
-    });
-  }
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await syncFormulaPayoutLines(actorUserId, {
+    ...input,
+    refreshSnapshot: false,
+  });
 
   const [
     invoiceSummary,
