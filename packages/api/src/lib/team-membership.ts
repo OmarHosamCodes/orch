@@ -16,6 +16,16 @@ function hasRoleAtLeast(role: WorkspaceTeamRole, required: WorkspaceTeamRole) {
   return TEAM_ROLE_WEIGHT[role] >= TEAM_ROLE_WEIGHT[required];
 }
 
+export function insufficientRoleError(required: WorkspaceTeamRole): ORPCError {
+  return new ORPCError("FORBIDDEN", {
+    message:
+      required === "owner"
+        ? "Only the owner can change billing and invoices."
+        : "You need editor access for this action.",
+    data: { code: "insufficient_role" },
+  });
+}
+
 export async function requireTeamMembership(
   actorUserId: string,
   teamId: string,
@@ -32,7 +42,7 @@ export async function requireTeamMembership(
   }
 
   if (!hasRoleAtLeast(membership.role, requiredRole)) {
-    throw new ORPCError("UNAUTHORIZED");
+    throw insufficientRoleError(requiredRole);
   }
 
   return membership.role;
