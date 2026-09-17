@@ -2,11 +2,11 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 import { Link } from "@/lib/navigation";
 
 import { shellConfirmInClass, shellStaggerItemClass } from "@/features/app-shell/app-shell-ui";
-import type { BillingSuccessStatus } from "@/features/billing/hooks/use-billing-success";
+import type { BillingSuccessStatus } from "@/features/billing/billing-success-readiness";
 import { Button } from "@/ui/button";
 import { cn } from "@/lib/utils";
 
-type BillingSuccessViewProps = {
+export type BillingSuccessViewProps = {
   status: BillingSuccessStatus;
   errorMessage: string;
   onOpenPortal: () => void;

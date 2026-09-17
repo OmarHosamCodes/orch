@@ -1,18 +1,24 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
+import { useShellBootGate } from "@/features/app-shell/shell/use-shell-boot-gate";
 import { shouldRunBillingCheckoutConfirm } from "@/features/billing/billing-checkout-confirm";
 import { billingStateQueryKey, useBilling } from "@/features/billing/billing-queries";
 import {
   type BillingSuccessStatus,
+  isBillingSuccessDataReady,
   isCheckoutConfirmationSuccessful,
 } from "@/features/billing/billing-success-readiness";
+import { useTeamStore } from "@/features/team/team-store";
+import { useSearchParams } from "@/lib/navigation";
 import { orpcClient } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
-export type { BillingSuccessStatus } from "@/features/billing/billing-success-readiness";
+export function useBillingSuccess() {
+  const [searchParams] = useSearchParams();
+  const checkoutId = searchParams.get("checkout_id") ?? undefined;
+  const teamId = useTeamStore((state) => state.selectedTeamId) || undefined;
 
-export function useBillingSuccess(teamId: string | undefined, checkoutId: string | undefined) {
   const queryClient = useQueryClient();
   const { openPortal } = useBilling(teamId);
   const confirmedCheckoutIdRef = useRef<string | null>(null);
@@ -62,9 +68,12 @@ export function useBillingSuccess(teamId: string | undefined, checkoutId: string
     })();
   }, [checkoutId, queryClient, teamId]);
 
+  const { isBooting } = useShellBootGate(isBillingSuccessDataReady(status));
+
   return {
     status,
     errorMessage,
     openPortal,
+    isBooting,
   };
 }
