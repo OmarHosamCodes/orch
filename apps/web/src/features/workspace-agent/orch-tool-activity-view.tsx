@@ -23,7 +23,7 @@ export function OrchToolActivityView({ items }: OrchToolActivityViewProps) {
         <li key={item.id} className="text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             {item.status === "in_progress" ? (
-              <Loader2 className="size-3 animate-spin text-[#5b5bd6]" aria-hidden />
+              <Loader2 className="size-3 animate-spin text-muted-foreground" aria-hidden />
             ) : (
               <Check
                 className={cn(
@@ -32,15 +32,17 @@ export function OrchToolActivityView({ items }: OrchToolActivityViewProps) {
                 )}
               />
             )}
-            <span>{toolActivityLabel(item.name)}</span>
+            <span className={item.status === "in_progress" ? "text-foreground" : undefined}>
+              {toolActivityLabel(item.name)}
+            </span>
           </div>
           {item.detail ? (
             <Collapsible>
-              <CollapsibleTrigger className="mt-0.5 ps-4 text-[11px] text-muted-foreground/80 hover:text-foreground">
+              <CollapsibleTrigger className="mt-0.5 ps-4 text-[11px] text-muted-foreground hover:text-foreground">
                 Inspect
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <pre className="mt-1 max-h-32 overflow-auto rounded-md bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                <pre className="mt-1 max-h-32 overflow-auto rounded-[14.4px] bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
                   {item.detail}
                 </pre>
               </CollapsibleContent>

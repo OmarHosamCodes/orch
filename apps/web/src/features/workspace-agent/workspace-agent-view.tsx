@@ -1,4 +1,4 @@
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, MotionConfig, motion } from "motion/react";
 import { createPortal } from "react-dom";
 
 import { ErrorState } from "@/components/elements/error-state";
@@ -14,8 +14,6 @@ type WorkspaceAgentViewProps = {
   view: WorkspaceAgentViewModel;
 };
 
-const EASE_OUT_QUART: [number, number, number, number] = [0.25, 1, 0.5, 1];
-
 export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
   const hideChrome = view.orchPresence === "thread";
   const trigger = (
@@ -29,8 +27,39 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
     />
   );
 
-  const composer = (
+  const compactComposer = (
     <WorkspaceAgentThreadComposerView
+      layout="command"
+      placeholder={view.placeholder}
+      scopeChips={view.scopeChips}
+      onRemoveChip={view.removeScopeChip}
+      knowledgeCreateItems={view.knowledgeCreateItems}
+      onCreateKnowledgeKind={view.onCreateKnowledgeKind}
+      toolsMenuOpen={view.toolsMenuOpen}
+      onToolsMenuOpenChange={view.setToolsMenuOpen}
+      isStreaming={view.isStreaming}
+      queuedMessages={view.queuedMessages}
+      runningQueueLabel={view.runningQueueLabel}
+      onCancelQueuedMessage={view.onCancelQueuedMessage}
+      draft={view.draft}
+      onDraftChange={view.setDraft}
+      pendingAttachments={view.pendingAttachments}
+      onPendingAttachmentsChange={view.setPendingAttachments}
+      composerTriggerOpen={view.composerTriggerOpen}
+      composerTriggerSuggestions={view.composerTriggerSuggestions}
+      onPickComposerTrigger={view.onPickComposerTrigger}
+      onDismissComposerTrigger={view.onDismissComposerTrigger}
+      onSend={view.sendCompactMessage}
+      onStop={view.stopGeneration}
+      serverDraftOffer={view.serverDraftOffer}
+      onRestoreServerDraft={view.onRestoreServerDraft}
+      onDiscardServerDraft={() => void view.onDiscardServerDraft()}
+    />
+  );
+
+  const threadComposer = (
+    <WorkspaceAgentThreadComposerView
+      layout="command"
       placeholder={view.placeholder}
       scopeChips={view.scopeChips}
       onRemoveChip={view.removeScopeChip}
@@ -110,7 +139,7 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
       readAloudPlaying={view.readAloudPlaying}
       readAloudSupported={view.readAloudSupported}
       onToggleReadAloud={view.onToggleReadAloud}
-      composer={composer}
+      composer={threadComposer}
     />
   );
 
@@ -124,14 +153,7 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
               open={view.compactOpen}
               onOpenChange={view.onCompactOpenChange}
               trigger={trigger}
-              draft={view.draft}
-              onDraftChange={view.setDraft}
-              canSend={view.canSend}
-              isStreaming={view.isStreaming}
-              pendingAttachments={view.pendingAttachments}
-              onPickFiles={view.onCompactPickFiles}
-              onSend={() => void view.sendMessage()}
-              onStop={view.stopGeneration}
+              composer={compactComposer}
               threads={view.compactThreads}
               onSelectThread={view.onSelectCompactThread}
               onOpenOrch={view.onOpenOrch}
@@ -142,31 +164,31 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
       : null;
 
   return (
-    <MotionConfig reducedMotion="user">
-      {topbarChrome}
+    <LayoutGroup id="orch-companion-screen">
+      <MotionConfig reducedMotion="user">
+        {topbarChrome}
 
-      <AnimatePresence>
         {view.expanded && !hideChrome ? (
-          <motion.div
-            key="workspace-agent-expanded"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.14, ease: EASE_OUT_QUART } }}
-            className="contents"
-          >
-            <OrchExpandableScreenView
+          <OrchExpandableScreenView
+              title={
+                view.openThreads.find((thread) => thread.id === view.activeConversationId)?.title ??
+                view.settledThreads.find((thread) => thread.id === view.activeConversationId)
+                  ?.title ??
+                "Orch"
+              }
               search={view.settleSearch}
               onSearchChange={view.setSettleSearch}
-              canSettle={view.canManageConversation}
-              onSettle={() => void view.onSettleActive()}
-              settling={view.settling}
+              canSettle
+              settlingThreadId={view.settlingThreadId}
               openThreads={view.openThreads}
               settledThreads={view.settledThreads}
               settledOpen={view.settledOpen}
               onSettledOpenChange={view.setSettledOpen}
               activeConversationId={view.activeConversationId}
               onSelectThread={view.onSelectCompactThread}
+              onSettleThread={(id) => void view.onSettleThread(id)}
               onUnsettle={(id) => void view.onUnsettle(id)}
+              onNewThread={view.startNewConversation}
               onCollapse={view.onCollapseExpanded}
             >
               {thread}
@@ -189,12 +211,10 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
                   </motion.div>
                 ) : null}
               </AnimatePresence>
-            </OrchExpandableScreenView>
-          </motion.div>
+          </OrchExpandableScreenView>
         ) : null}
-      </AnimatePresence>
 
-      <AnimatePresence>
+        <AnimatePresence>
         {view.canvasOpen && view.activeArtifact ? (
           <AgentCanvasOverlayView
             key="workspace-agent-canvas"
@@ -203,7 +223,8 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
             closeRef={view.canvasCloseRef}
           />
         ) : null}
-      </AnimatePresence>
-    </MotionConfig>
+        </AnimatePresence>
+      </MotionConfig>
+    </LayoutGroup>
   );
 }

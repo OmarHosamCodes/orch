@@ -15,18 +15,13 @@ type OrchTodoListViewProps = {
 export function OrchTodoListView({ items }: OrchTodoListViewProps) {
   if (items.length === 0) return null;
   return (
-    <ul className="space-y-1 rounded-md border border-border px-2 py-1.5">
+    <ul className="space-y-0.5 rounded-[14.4px] border border-border px-2.5 py-2">
       {items.map((item) => (
-        <li key={item.id} className="flex items-start gap-1.5 text-xs">
+        <li key={item.id} className="flex items-start gap-2 text-xs">
           {item.status === "completed" ? (
             <Check className="mt-0.5 size-3 text-muted-foreground" aria-hidden />
           ) : (
-            <Circle
-              className={cn(
-                "mt-0.5 size-3",
-                item.status === "in-progress" ? "text-[#5b5bd6]" : "text-muted-foreground",
-              )}
-            />
+            <Circle className="mt-0.5 size-3 text-muted-foreground" />
           )}
           <span className={cn(item.status === "completed" && "text-muted-foreground line-through")}>
             {item.title}

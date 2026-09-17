@@ -23,7 +23,6 @@ import {
   useAgencyTimeEntriesQuery,
 } from "@/features/shared/agency-queries";
 import { useAgentCanvasOverlay } from "@/features/workspace-agent/hooks/use-agent-canvas-overlay";
-import { filePartsToAgentAttachments } from "@/features/workspace-agent/agent-attachments";
 import { fireOrchConfetti } from "@/features/workspace-agent/orch-confetti";
 import { useCurrentAgencyTeamStore } from "@/features/time-tracking/stores/agency-timer";
 import { useWorkspaceStore } from "@/features/workspace/workspace-local-state";
@@ -44,6 +43,7 @@ import {
   resolveEclipseMood,
   ECLIPSE_DONE_WINDOW_MS,
 } from "@/features/workspace-agent/eclipse-mood";
+import { mapConversationToOrchThreadRow } from "@/features/workspace-agent/orch-thread-row";
 import { CONTINUE_TURN_TEXT } from "@/features/workspace-agent/workspace-agent-continue";
 import { useWorkspaceAgentData } from "@/features/workspace-agent/hooks/use-workspace-agent-data";
 import { useWorkspaceAgentModelPreferences } from "@/features/workspace-agent/hooks/use-workspace-agent-model-preferences";
@@ -223,6 +223,7 @@ export function useWorkspaceAgent() {
   const [renameDraft, setRenameDraft] = useState("");
   const [topbarSlot, setTopbarSlot] = useState<HTMLElement | null>(null);
   const [settleSearch, setSettleSearch] = useState("");
+  const [settlingThreadId, setSettlingThreadId] = useState<string | null>(null);
   const [settledOpen, setSettledOpen] = useState(false);
   const [threadSearchOpen, setThreadSearchOpen] = useState(false);
   const [threadSearchQuery, setThreadSearchQuery] = useState("");
@@ -388,7 +389,6 @@ export function useWorkspaceAgent() {
     resumeStream,
   } = chat;
   const isStreaming = status === "streaming" || status === "submitted";
-  const canSend = !isStreaming;
 
   const threadSearchHits = useMemo(
     () => findWorkspaceAgentMessageHits(joinOrchMessageText(messages), threadSearchQuery),
@@ -657,6 +657,15 @@ export function useWorkspaceAgent() {
   }, [activeConversation?.activeRunId, isStreaming, messages.length, resumeStream, transport]);
 
   useEffect(() => {
+    if (!expanded || orchPresence === "thread") return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [expanded, orchPresence]);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const isMac = /mac|iphone|ipad/i.test(navigator.platform);
       const modifier = isMac ? event.metaKey : event.ctrlKey;
@@ -697,6 +706,7 @@ export function useWorkspaceAgent() {
         }
         if (expanded) {
           setExpanded(false);
+          setCompactOpen(true);
         }
       }
     }
@@ -882,6 +892,7 @@ export function useWorkspaceAgent() {
         text: string;
         attachments?: AgentTextAttachment[];
         toolPreset?: DashboardAgentToolPreset;
+        forceNewThread?: boolean;
       } = { text: draft },
     ) => {
       let content = input.text.trim();
@@ -940,9 +951,18 @@ export function useWorkspaceAgent() {
         setSelectedToolPreset(input.toolPreset);
       }
 
+      const forceNewThread = input.forceNewThread === true;
+      const outboundConversationId = forceNewThread ? null : activeConversationId;
+      if (forceNewThread) {
+        setActiveConversationId(null);
+        setMessages([]);
+        setError(null);
+        setStreamStopped(false);
+      }
+
       const orchBody = {
         ...buildOrchTurnSendContext({
-          conversationId: activeConversationId,
+          conversationId: outboundConversationId,
           surface,
           teamId,
           scopeChips,
@@ -971,7 +991,7 @@ export function useWorkspaceAgent() {
         if (action === "send") {
           try {
             await discardComposerDraftMutation.mutateAsync({
-              ...(activeConversationId ? { conversationId: activeConversationId } : {}),
+              ...(outboundConversationId ? { conversationId: outboundConversationId } : {}),
             });
             invalidateComposerDraftQuery();
           } catch {
@@ -1010,12 +1030,14 @@ export function useWorkspaceAgent() {
       transport,
       workspaceNodes,
       pendingAttachments,
-      setDraft,
-      surface,
-      teamId,
-      workspaceNodes,
-      pendingAttachments,
+      setMessages,
     ],
+  );
+
+  const sendCompactMessage = useCallback(
+    (input: { text: string; attachments?: AgentTextAttachment[] }) =>
+      sendMessage({ ...input, forceNewThread: true }),
+    [sendMessage],
   );
 
   const continueStoppedTurn = useCallback(() => {
@@ -1348,7 +1370,8 @@ export function useWorkspaceAgent() {
   const canvasOverlayActive = canvasOpen && activeArtifact !== null;
   const { closeRef: canvasCloseRef } = useAgentCanvasOverlay(canvasOverlayActive, closeCanvas);
 
-  const placeholder = surface === "agency" ? "Ask about your time" : "Ask about this canvas";
+  const placeholder =
+    surface === "agency" ? "Ask Orch, /settle, @client" : "Ask Orch, /settle, @node";
 
   const agencyTeamIdForTimer = surface === "agency" ? (teamId ?? "") : "";
   const activeTimerQuery = useAgencyActiveTimerQuery(agencyTeamIdForTimer);
@@ -1400,6 +1423,16 @@ export function useWorkspaceAgent() {
     return () => window.clearTimeout(timer);
   }, [lastRunSucceededAt]);
 
+  const anyThreadRunning =
+    compactConversationList.some((item) => Boolean(item.activeRunId)) ||
+    conversationList.some((item) => Boolean(item.activeRunId));
+
+  useEffect(() => {
+    if (!anyThreadRunning) return;
+    const timer = window.setInterval(() => setMoodNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [anyThreadRunning]);
+
   const inboxNotes = inboxQuery.data?.notes ?? [];
   const inboxUnreadCount = inboxNotes.filter((note) => note.readAt === null).length;
   const inboxOneLiner = inboxNotes.find((note) => note.readAt === null)?.title ?? null;
@@ -1428,31 +1461,15 @@ export function useWorkspaceAgent() {
     return title.toLowerCase().includes(query) || preview.toLowerCase().includes(query);
   };
 
-  const compactThreads = compactConversationList.map((item) => ({
-    id: item.id,
-    title: item.title,
-    preview: item.lastMessagePreview ?? "",
-    running: Boolean(item.activeRunId),
-    unread: item.unread,
-  }));
+  const compactThreads = compactConversationList.map((item) =>
+    mapConversationToOrchThreadRow(item, moodNow),
+  );
   const openThreads = conversationList
     .filter((item) => matchesSettle(item.title, item.lastMessagePreview ?? ""))
-    .map((item) => ({
-      id: item.id,
-      title: item.title,
-      preview: item.lastMessagePreview ?? "",
-      running: Boolean(item.activeRunId),
-      unread: item.unread,
-    }));
+    .map((item) => mapConversationToOrchThreadRow(item, moodNow));
   const settledThreads = settledConversationList
     .filter((item) => matchesSettle(item.title, item.lastMessagePreview ?? ""))
-    .map((item) => ({
-      id: item.id,
-      title: item.title,
-      preview: item.lastMessagePreview ?? "",
-      running: Boolean(item.activeRunId),
-      unread: item.unread,
-    }));
+    .map((item) => mapConversationToOrchThreadRow(item, moodNow, true));
 
   const invalidateConversationLists = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: conversationsListQueryOptions.queryKey });
@@ -1476,15 +1493,41 @@ export function useWorkspaceAgent() {
 
   const onSettleActive = useCallback(async () => {
     if (!activeConversationId) return;
-    await settleConversationMutation.mutateAsync({ conversationId: activeConversationId });
-    startNewConversation();
-    invalidateConversationLists();
+    setSettlingThreadId(activeConversationId);
+    try {
+      await settleConversationMutation.mutateAsync({ conversationId: activeConversationId });
+      startNewConversation();
+      invalidateConversationLists();
+    } finally {
+      setSettlingThreadId((current) => (current === activeConversationId ? null : current));
+    }
   }, [
     activeConversationId,
     invalidateConversationLists,
     settleConversationMutation,
     startNewConversation,
   ]);
+
+  const onSettleThread = useCallback(
+    async (conversationId: string) => {
+      setSettlingThreadId(conversationId);
+      try {
+        await settleConversationMutation.mutateAsync({ conversationId });
+        if (activeConversationId === conversationId) {
+          startNewConversation();
+        }
+        invalidateConversationLists();
+      } finally {
+        setSettlingThreadId((current) => (current === conversationId ? null : current));
+      }
+    },
+    [
+      activeConversationId,
+      invalidateConversationLists,
+      settleConversationMutation,
+      startNewConversation,
+    ],
+  );
 
   const onUnsettle = useCallback(
     async (conversationId: string) => {
@@ -1536,28 +1579,6 @@ export function useWorkspaceAgent() {
     setCompactOpen(!compactOpen);
   }, [compactOpen, expanded, setCompactOpen, setExpanded]);
 
-  const onCompactPickFiles = useCallback((files: File[]) => {
-    void Promise.all(
-      files.map(
-        (file) =>
-          new Promise<{ url: string; filename: string; mediaType: string }>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onerror = () => reject(new Error("Couldn't read that file."));
-            reader.onload = () => {
-              resolve({
-                url: String(reader.result ?? ""),
-                filename: file.name,
-                mediaType: file.type,
-              });
-            };
-            reader.readAsDataURL(file);
-          }),
-      ),
-    ).then((parts) => {
-      setPendingAttachments((current) => [...current, ...filePartsToAgentAttachments(parts)]);
-    });
-  }, []);
-
   const onMarkInboxRead = useCallback(
     (noteId: string) => {
       void markInboxReadMutation.mutateAsync({ noteId }).then(() => {
@@ -1605,15 +1626,15 @@ export function useWorkspaceAgent() {
     openThreads,
     settledThreads,
     compactBadgeCount: compactThreads.length,
-    settling: settleConversationMutation.isPending,
+    settlingThreadId,
     onSettleActive,
+    onSettleThread,
     onUnsettle,
     onSelectCompactThread,
     onOpenOrch,
     onCollapseExpanded,
     onEclipseToggle,
     onCompactOpenChange: setCompactOpen,
-    onCompactPickFiles,
     setExpanded,
     toggleExpanded,
     orchPresence,
@@ -1636,13 +1657,13 @@ export function useWorkspaceAgent() {
     onDismissComposerTrigger,
     error: displayError,
     messages,
-    canSend,
     isPending: isStreaming,
     isStreaming,
     streamStopped,
     streamingMessageId,
     chatStatus: status,
     sendMessage,
+    sendCompactMessage,
     stopGeneration,
     retryLastTurn,
     onContinueStoppedTurn: continueStoppedTurn,

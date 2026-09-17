@@ -2,7 +2,13 @@ import { cn } from "@/lib/utils";
 
 import type { EclipseMood } from "@/features/workspace-agent/eclipse-mood";
 
-export function EclipseGlyph({ mood }: { mood: EclipseMood }) {
+export function EclipseGlyph({
+  mood,
+  maskId = "eclipse-pet-bite",
+}: {
+  mood: EclipseMood;
+  maskId?: string;
+}) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +18,7 @@ export function EclipseGlyph({ mood }: { mood: EclipseMood }) {
       className="pointer-events-none size-full"
     >
       <defs>
-        <mask id="eclipse-pet-bite">
+        <mask id={maskId}>
           <rect width="64" height="64" fill="#fff" />
           <circle cx="46" cy="20" r="9" fill="#000" />
         </mask>
@@ -23,7 +29,7 @@ export function EclipseGlyph({ mood }: { mood: EclipseMood }) {
         r="20"
         fill="currentColor"
         className="text-foreground"
-        mask="url(#eclipse-pet-bite)"
+        mask={`url(#${maskId})`}
       />
       <circle
         cx="46"

@@ -26,11 +26,13 @@ import {
   suggestionRowLabel,
 } from "@/features/workspace-agent/workspace-agent-composer-trigger-controls";
 import type { QueuedAgentMessage } from "@/features/workspace-agent/workspace-agent-message-queue";
+import { cn } from "@/lib/utils";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Separator } from "@/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 export type WorkspaceAgentThreadComposerViewProps = {
+  layout?: "command" | "thread";
   placeholder: string;
   scopeChips: AgentScopeRef[];
   onRemoveChip: (id: string) => void;
@@ -61,6 +63,7 @@ export type WorkspaceAgentThreadComposerViewProps = {
 };
 
 export function WorkspaceAgentThreadComposerView({
+  layout = "thread",
   placeholder,
   scopeChips,
   onRemoveChip,
@@ -88,6 +91,7 @@ export function WorkspaceAgentThreadComposerView({
 }: WorkspaceAgentThreadComposerViewProps) {
   const entityChips = scopeChips.filter((chip) => chip.kind !== "surface");
   const canSend = draft.trim().length > 0 || pendingAttachments.length > 0;
+  const commandLayout = layout === "command";
 
   function submitDraft() {
     if (composerTriggerOpen && composerTriggerSuggestions[0]) {
@@ -113,9 +117,84 @@ export function WorkspaceAgentThreadComposerView({
     submitDraft();
   }
 
+  const attachControl = (
+    <Popover open={toolsMenuOpen} onOpenChange={onToolsMenuOpenChange}>
+      <Tooltip open={toolsMenuOpen ? false : undefined}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <ComposerAttachButton
+              aria-label="Attach"
+              className={commandLayout ? "size-7" : undefined}
+            />
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={6}>
+          Attach
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        align="start"
+        side="top"
+        sideOffset={8}
+        className="w-auto border-0 bg-transparent p-0 shadow-none"
+        data-workspace-agent-overlay
+      >
+        <ComposerMenu open className="relative inset-auto mb-0 w-72 shrink-0">
+          <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">Attach</p>
+          <WorkspaceAgentComposerAttachItem
+            onAttachments={(files) => onPendingAttachmentsChange([...pendingAttachments, ...files])}
+            onClose={() => onToolsMenuOpenChange(false)}
+          />
+          {knowledgeCreateItems.length > 0 ? (
+            <>
+              <Separator className="my-1" />
+              <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
+                Knowledge
+              </p>
+              {knowledgeCreateItems.map((item) => (
+                <ComposerMenuItem
+                  key={item.kind}
+                  onClick={() => {
+                    onCreateKnowledgeKind(item.kind);
+                    onToolsMenuOpenChange(false);
+                  }}
+                >
+                  <Plus className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                  {item.label}
+                </ComposerMenuItem>
+              ))}
+            </>
+          ) : null}
+        </ComposerMenu>
+      </PopoverContent>
+    </Popover>
+  );
+
+  const submitControl = isStreaming ? (
+    <button
+      type="button"
+      aria-label="Stop"
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-foreground text-background",
+        commandLayout ? "size-7" : "size-8",
+      )}
+      onClick={onStop}
+    >
+      <Square className={cn("fill-current", commandLayout ? "size-3" : "size-3.5")} />
+    </button>
+  ) : (
+    <PromptInputSubmit
+      disabled={!canSend}
+      aria-label="Send message"
+      className={commandLayout ? "size-7 shrink-0" : undefined}
+    >
+      <ArrowUp className={commandLayout ? "size-3.5" : "size-4"} />
+    </PromptInputSubmit>
+  );
+
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-2">
+      <div className={cn("flex flex-col", commandLayout ? "gap-0" : "gap-2")}>
         {serverDraftOffer ? (
           <DraftRestore
             className="mb-2 max-w-none"
@@ -142,10 +221,17 @@ export function WorkspaceAgentThreadComposerView({
           }}
         >
           <PopoverAnchor asChild>
-            <div className="relative w-full">
-              <PromptInput onSubmit={onSubmit}>
+            <div className="relative w-full min-w-0">
+              <PromptInput
+                onSubmit={onSubmit}
+                className={
+                  commandLayout
+                    ? "w-full min-w-0 gap-0 rounded-[14.4px] border-border bg-muted p-1 shadow-none"
+                    : "rounded-[14.4px] border-border bg-muted shadow-none"
+                }
+              >
                 {pendingAttachments.length > 0 ? (
-                  <ul className="flex flex-wrap gap-1.5 px-2.5">
+                  <ul className="flex flex-wrap gap-1.5 px-1.5">
                     {pendingAttachments.map((file) => (
                       <li
                         key={`${file.filename}-${file.mediaType}`}
@@ -174,83 +260,35 @@ export function WorkspaceAgentThreadComposerView({
                   onPickComposerTrigger={onPickComposerTrigger}
                   onDismissComposerTrigger={onDismissComposerTrigger}
                 />
-                <PromptInputTextarea
-                  placeholder={placeholder}
-                  value={draft}
-                  onChange={(event) => onDraftChange(event.target.value)}
-                  onKeyDown={onKeyDown}
-                  aria-label="Message input"
-                />
-                <PromptInputToolbar>
-                  <PromptInputTools>
-                    <Popover open={toolsMenuOpen} onOpenChange={onToolsMenuOpenChange}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <PopoverTrigger asChild>
-                            <ComposerAttachButton aria-label="Attach" />
-                          </PopoverTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">Attach</TooltipContent>
-                      </Tooltip>
-                      <PopoverContent
-                        align="start"
-                        side="top"
-                        sideOffset={8}
-                        className="w-auto border-0 bg-transparent p-0 shadow-none"
-                        data-workspace-agent-overlay
-                      >
-                        <ComposerMenu open className="relative inset-auto mb-0 w-72 shrink-0">
-                          <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
-                            Attach
-                          </p>
-                          <WorkspaceAgentComposerAttachItem
-                            onAttachments={(files) =>
-                              onPendingAttachmentsChange([...pendingAttachments, ...files])
-                            }
-                            onClose={() => onToolsMenuOpenChange(false)}
-                          />
-                          {knowledgeCreateItems.length > 0 ? (
-                            <>
-                              <Separator className="my-1" />
-                              <p className="px-2.5 pt-1 pb-0.5 text-[11px] font-medium text-muted-foreground">
-                                Knowledge
-                              </p>
-                              {knowledgeCreateItems.map((item) => (
-                                <ComposerMenuItem
-                                  key={item.kind}
-                                  onClick={() => {
-                                    onCreateKnowledgeKind(item.kind);
-                                    onToolsMenuOpenChange(false);
-                                  }}
-                                >
-                                  <Plus
-                                    className="size-3.5 shrink-0 text-muted-foreground"
-                                    aria-hidden
-                                  />
-                                  {item.label}
-                                </ComposerMenuItem>
-                              ))}
-                            </>
-                          ) : null}
-                        </ComposerMenu>
-                      </PopoverContent>
-                    </Popover>
-                  </PromptInputTools>
-                  {isStreaming ? (
-                    <button
-                      type="button"
-                      aria-label="Stop"
-                      className="inline-flex size-8 items-center justify-center rounded-full bg-foreground text-background"
-                      onClick={onStop}
-                    >
-                      <Square className="size-3.5 fill-current" />
-                    </button>
-                  ) : (
-                    <PromptInputSubmit disabled={!canSend} aria-label="Send message">
-                      <ArrowUp className="size-4" />
-                    </PromptInputSubmit>
-                  )}
-                </PromptInputToolbar>
+                {commandLayout ? (
+                  <div className="flex h-9 w-full min-w-0 items-center gap-1">
+                    <div className="shrink-0">{attachControl}</div>
+                    <PromptInputTextarea
+                      placeholder={placeholder}
+                      value={draft}
+                      onChange={(event) => onDraftChange(event.target.value)}
+                      onKeyDown={onKeyDown}
+                      aria-label="Message input"
+                      className="h-9 min-h-0 w-0 min-w-0 flex-1 resize-none overflow-x-hidden px-1.5 py-0 text-sm leading-9"
+                    />
+                    {submitControl}
+                  </div>
+                ) : (
+                  <>
+                    <PromptInputTextarea
+                      placeholder={placeholder}
+                      value={draft}
+                      onChange={(event) => onDraftChange(event.target.value)}
+                      onKeyDown={onKeyDown}
+                      aria-label="Message input"
+                      className="min-h-11 text-sm"
+                    />
+                    <PromptInputToolbar>
+                      <PromptInputTools>{attachControl}</PromptInputTools>
+                      {submitControl}
+                    </PromptInputToolbar>
+                  </>
+                )}
               </PromptInput>
 
               {composerTriggerOpen && composerTriggerSuggestions.length > 0 ? (

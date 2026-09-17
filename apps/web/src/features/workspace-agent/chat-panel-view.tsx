@@ -306,7 +306,7 @@ export function WorkspaceAgentChatPanelView({
               {threadToolbar}
               {threadSearchBar}
               <OrchMessageList />
-              <div className="shrink-0 px-3 pb-3">{threadComposer}</div>
+              <div className="shrink-0 px-4 pb-4">{threadComposer}</div>
             </CanvasSplitThread>
             <CanvasSplitDocument className="min-h-0 min-w-0 flex-1 border-s border-border">
               <AgentArtifactPaneView
@@ -322,7 +322,7 @@ export function WorkspaceAgentChatPanelView({
             {threadToolbar}
             {threadSearchBar}
             <OrchMessageList />
-            <div className="shrink-0 px-3 pb-3">{threadComposer}</div>
+            <div className="shrink-0 px-4 pb-4">{threadComposer}</div>
           </div>
         )}
       </WorkspaceAgentThreadMessageProvider>

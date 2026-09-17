@@ -30,17 +30,7 @@ type OrchTopbarTriggerViewProps = {
 
 export const OrchTopbarTriggerView = forwardRef<HTMLButtonElement, OrchTopbarTriggerViewProps>(
   function OrchTopbarTriggerView(
-    {
-      mood,
-      compactOpen,
-      expanded,
-      badgeCount,
-      hidden,
-      onToggle,
-      className,
-      onClick,
-      ...rest
-    },
+    { mood, compactOpen, expanded, badgeCount, hidden, onToggle, className, onClick, ...rest },
     ref,
   ) {
     if (hidden) return null;

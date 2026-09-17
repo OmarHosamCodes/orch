@@ -10,20 +10,22 @@ type OrchCitationsViewProps = {
 export function OrchCitationsView({ citations }: OrchCitationsViewProps) {
   if (citations.length === 0) return null;
   return (
-    <ul className="flex flex-wrap gap-1.5">
-      {citations.map((citation) => (
-        <li key={citation.url}>
+    <p className="text-[11px] text-muted-foreground">
+      Sources:{" "}
+      {citations.map((citation, index) => (
+        <span key={citation.url}>
+          {index > 0 ? " · " : null}
           <a
             href={citation.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex max-w-48 truncate rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground"
+            className="text-foreground underline decoration-border underline-offset-2 hover:decoration-foreground"
           >
             {citation.title}
           </a>
-        </li>
+        </span>
       ))}
-    </ul>
+    </p>
   );
 }
 
