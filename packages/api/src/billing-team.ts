@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 
 import { db } from "@orch/db";
-import { workspaceTeamBilling } from "@orch/db/schema";
+import { user, workspaceTeam, workspaceTeamBilling } from "@orch/db/schema";
 import {
   AGENCY_PLAN_LIMITS,
   agencyEnabled,
@@ -60,17 +60,27 @@ export async function getTeamBilling(
     throw notEntitledError();
   }
 
-  const plan = resolvePlanAt({
+  const resolvedPlan = resolvePlanAt({
     storedPlan: billing.plan,
     trialEndsAt: billing.trialEndsAt,
     now,
   });
+  const [owner] =
+    billing.plan === "trial" || billing.plan === "leftover"
+      ? await db
+          .select({ lifetimePro: user.lifetimePro })
+          .from(workspaceTeam)
+          .innerJoin(user, eq(workspaceTeam.createdByUserId, user.id))
+          .where(eq(workspaceTeam.id, teamId))
+          .limit(1)
+      : [];
+  const plan = owner?.lifetimePro ? "agency_unlimited" : resolvedPlan;
   const limits = AGENCY_PLAN_LIMITS[plan];
 
   return {
     teamId: billing.teamId,
     plan,
-    seats: billing.seats,
+    seats: plan === "agency_unlimited" && owner?.lifetimePro ? 1 : billing.seats,
     trialEndsAt: billing.trialEndsAt.toISOString(),
     polarSubscriptionId: billing.polarSubscriptionId,
     polarProductId: billing.polarProductId,

@@ -3,15 +3,23 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { workspaceTeamBilling }, { user }, teamService, billingTeam, clientsService] =
-  await Promise.all([
-    import("@orch/db"),
-    import("@orch/db/schema"),
-    import("@orch/db/schema/auth"),
-    import("./routers/team/service"),
-    import("./billing-team"),
-    import("./routers/agency-ops/clients/service"),
-  ]);
+const [
+  { db },
+  { workspaceTeamBilling },
+  { user },
+  teamService,
+  ensurePersonalAgencyModule,
+  billingTeam,
+  clientsService,
+] = await Promise.all([
+  import("@orch/db"),
+  import("@orch/db/schema"),
+  import("@orch/db/schema/auth"),
+  import("./routers/team/service"),
+  import("./routers/team/ensure-personal-agency"),
+  import("./billing-team"),
+  import("./routers/agency-ops/clients/service"),
+]);
 
 const fixtureUsers: string[] = [];
 
@@ -21,18 +29,60 @@ afterEach(async () => {
   }
 });
 
-async function createFixtureUser() {
+async function createFixtureUser(input: { lifetimePro?: boolean } = {}) {
   const id = `integration-billing-${crypto.randomUUID()}`;
   await db.insert(user).values({
     id,
     name: "Billing Integration User",
     email: `${id}@example.test`,
+    lifetimePro: input.lifetimePro ?? false,
   });
   fixtureUsers.push(id);
   return id;
 }
 
 describe("team billing snapshot", () => {
+  test("Lifetime Pro maps the owned personal Agency to Unlimited after the trial clock", async () => {
+    const ownerId = await createFixtureUser({ lifetimePro: true });
+    const memberId = await createFixtureUser();
+    const team = await ensurePersonalAgencyModule.ensurePersonalAgency(ownerId, {
+      name: "Lifetime Pro",
+    });
+
+    // Seat enforcement is Slice 3: a second member remains allowed in this slice.
+    await teamService.addTeamMember(ownerId, {
+      teamId: team.id,
+      userEmail: `${memberId}@example.test`,
+      role: "viewer",
+    });
+
+    const initial = await billingTeam.getTeamBilling(team.id, new Date("2026-09-17T00:00:00.000Z"));
+    expect(initial).toMatchObject({
+      plan: "agency_unlimited",
+      seats: 1,
+      limits: { orchMessagesIncluded: 200 },
+    });
+
+    const afterTrial = new Date(new Date(initial.trialEndsAt).getTime() + 1000);
+    await expect(billingTeam.assertAgencyEntitled(team.id, afterTrial)).resolves.toMatchObject({
+      plan: "agency_unlimited",
+      seats: 1,
+    });
+  });
+
+  test("a non-Lifetime Pro personal Agency becomes leftover after the trial clock", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await ensurePersonalAgencyModule.ensurePersonalAgency(ownerId, {
+      name: "Regular",
+    });
+    const initial = await billingTeam.getTeamBilling(team.id, new Date("2026-09-17T00:00:00.000Z"));
+    const afterTrial = new Date(new Date(initial.trialEndsAt).getTime() + 1000);
+
+    await expect(billingTeam.getTeamBilling(team.id, afterTrial)).resolves.toMatchObject({
+      plan: "leftover",
+    });
+  });
+
   test("createTeam starts a trial that enables Agency", async () => {
     const ownerId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Trial Agency" });
