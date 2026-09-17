@@ -13,6 +13,8 @@ import {
   type MoneyLedgerParentRow,
   type MoneyLedgerPartyKind,
   type MoneyLedgerStatusTone,
+  moneyLedgerTableIdentityHeading,
+  moneyLedgerTableShowsHours,
 } from "@/features/money/money-ledger-rows";
 import { Button } from "@/ui/button";
 import { DropdownMenuItem } from "@/ui/dropdown-menu";
@@ -42,13 +44,28 @@ const tableWrapperClass = "min-h-0 flex-1 overflow-auto";
 const shrinkNumericClass = "w-[1%] whitespace-nowrap";
 const numericCellClass = cn(shrinkNumericClass, "text-right font-mono tabular-nums");
 const desktopOnlyCellClass = "hidden md:table-cell";
-const identityStickyClass =
-  "sticky left-0 z-[1] w-72 min-w-56 bg-default group-hover/row:bg-elevated/35 group-focus-visible/row:bg-elevated/35";
-const remainingStickyClass =
-  "sticky right-24 z-[1] bg-default group-hover/row:bg-elevated/35 group-focus-visible/row:bg-elevated/35 md:right-28";
-const actionsStickyClass =
-  "sticky right-0 z-[1] w-[1%] whitespace-nowrap bg-default group-hover/row:bg-elevated/35 group-focus-visible/row:bg-elevated/35";
 const spacerCellClass = "w-full p-0";
+const stickySurfaceClass =
+  "bg-default group-hover/row:bg-muted group-focus-visible/row:bg-muted group-data-[state=selected]/row:bg-muted";
+const identityStickyHeadClass = "sticky left-0 z-[2] w-72 min-w-56 bg-elevated px-4";
+const identityStickyBodyClass = cn(
+  "sticky left-0 z-[1] w-72 min-w-56",
+  stickySurfaceClass,
+);
+const remainingStickyHeadClass = cn(
+  "sticky right-24 z-[2] bg-elevated md:right-28",
+  shrinkNumericClass,
+  "text-right",
+);
+const remainingStickyBodyClass = cn(
+  "sticky right-24 z-[1] md:right-28",
+  stickySurfaceClass,
+);
+const actionsStickyHeadClass = cn(
+  "sticky right-0 z-[2] w-[1%] whitespace-nowrap bg-elevated text-right",
+);
+const actionsStickyBodyClass = cn("sticky right-0 z-[1] w-[1%] whitespace-nowrap", stickySurfaceClass);
+const headerClass = "border-b border-default bg-elevated backdrop-blur-none";
 
 const overflowLabels: Record<MoneyLedgerOverflowId, string> = {
   preview: "Preview",
@@ -197,12 +214,12 @@ function InteractiveBillRow({
   return (
     <TableRow
       tabIndex={0}
+      data-state={selected ? "selected" : undefined}
       aria-haspopup="dialog"
       aria-label={label}
       aria-selected={selected}
       className={cn(
-        "cursor-pointer border-b border-default transition-colors last:border-b-0 hover:bg-elevated/35 focus-visible:bg-elevated/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
-        selected && "bg-elevated/40",
+        "group/row cursor-pointer border-b border-default last:border-b-0 hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset data-[state=selected]:bg-muted",
         className,
       )}
       onClick={onOpen}
@@ -267,14 +284,17 @@ export function AgencyMoneyLedgerTableView({
   hideParentRow = false,
 }: AgencyMoneyLedgerTableViewProps) {
   const reserveExpandGutter = rows.some((row) => row.expandable) && !alwaysShowChildren;
+  const showHours = moneyLedgerTableShowsHours(rows);
+  const identityHeading = moneyLedgerTableIdentityHeading(rows);
+  const tableMinWidth = showHours ? "min-w-[42rem]" : "min-w-[34rem]";
 
   return (
     <div className={tableWrapperClass}>
-      <Table className="min-w-[42rem]" aria-label={ariaLabel}>
-        <TableHeader className="border-b border-default/50">
+      <Table className={tableMinWidth} aria-label={ariaLabel}>
+        <TableHeader className={headerClass}>
           <TableRow>
-            <TableHead scope="col" className={cn(identityStickyClass, "px-4")}>
-              Party
+            <TableHead scope="col" className={identityStickyHeadClass}>
+              {identityHeading}
             </TableHead>
             <TableHead aria-hidden className={spacerCellClass} />
             <TableHead
@@ -283,9 +303,11 @@ export function AgencyMoneyLedgerTableView({
             >
               Status
             </TableHead>
-            <TableHead scope="col" className={cn(shrinkNumericClass, "text-right")}>
-              Hours
-            </TableHead>
+            {showHours ? (
+              <TableHead scope="col" className={cn(shrinkNumericClass, "text-right")}>
+                Hours
+              </TableHead>
+            ) : null}
             <TableHead
               scope="col"
               className={cn(desktopOnlyCellClass, shrinkNumericClass, "text-right")}
@@ -298,13 +320,10 @@ export function AgencyMoneyLedgerTableView({
             >
               {receivedHeading}
             </TableHead>
-            <TableHead
-              scope="col"
-              className={cn(remainingStickyClass, shrinkNumericClass, "text-right")}
-            >
+            <TableHead scope="col" className={remainingStickyHeadClass}>
               Remaining
             </TableHead>
-            <TableHead scope="col" className={cn(actionsStickyClass, "text-right")}>
+            <TableHead scope="col" className={actionsStickyHeadClass}>
               Actions
             </TableHead>
           </TableRow>
@@ -332,6 +351,7 @@ export function AgencyMoneyLedgerTableView({
                 reserveExpandGutter={reserveExpandGutter}
                 hideParentRow={hideParentRow}
                 visibleChildren={visibleChildren}
+                showHours={showHours}
                 onToggleExpand={() => onToggleExpand(row.id)}
                 onOpen={() => onOpenRow(row.id)}
                 onSettle={onSettle}
@@ -356,6 +376,7 @@ function LedgerParentBlock({
   reserveExpandGutter,
   hideParentRow,
   visibleChildren,
+  showHours,
   onToggleExpand,
   onOpen,
   onSettle,
@@ -371,6 +392,7 @@ function LedgerParentBlock({
   reserveExpandGutter: boolean;
   hideParentRow: boolean;
   visibleChildren: readonly MoneyLedgerChildRow[];
+  showHours: boolean;
   onToggleExpand: () => void;
   onOpen: () => void;
   onSettle: (rowId: string, childId?: string) => void;
@@ -384,7 +406,7 @@ function LedgerParentBlock({
           onOpen={onOpen}
           selected={selected}
         >
-          <TableCell className={identityStickyClass}>
+          <TableCell className={identityStickyBodyClass}>
             <div className="flex min-w-0 items-center gap-2.5">
               {showExpandControl ? (
                 <Button
@@ -426,18 +448,20 @@ function LedgerParentBlock({
               {row.statusLabel}
             </span>
           </TableCell>
-          <TableCell className={cn(numericCellClass, "text-muted")}>
-            {row.hoursLabel || "—"}
-          </TableCell>
+          {showHours ? (
+            <TableCell className={cn(numericCellClass, "text-muted")}>
+              {row.hoursLabel || "—"}
+            </TableCell>
+          ) : null}
           <MoneyCell label={row.totalLabel} highlighted className={desktopOnlyCellClass} />
           <MoneyCell label={row.receivedLabel} className={desktopOnlyCellClass} />
           <MoneyCell
             label={row.remainingLabel}
             remainingAmount={row.remainingAmount}
-            className={remainingStickyClass}
+            className={remainingStickyBodyClass}
           />
           <MoneyTableActionsCell
-            className={actionsStickyClass}
+            className={actionsStickyBodyClass}
             settleLabel={row.settleLabel}
             settleDisabled={isMutationPending}
             onSettle={() => onSettle(row.id)}
@@ -458,9 +482,9 @@ function LedgerParentBlock({
           key={child.id}
           label={`${row.title}, ${child.periodLabel}. Remaining ${child.remainingLabel}.`}
           onOpen={onOpen}
-          className="bg-elevated/15 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+          className="border-t border-default/60"
         >
-          <TableCell className={identityStickyClass}>
+          <TableCell className={identityStickyBodyClass}>
             <ChildIdentity child={child} />
           </TableCell>
           <TableCell aria-hidden className={spacerCellClass} />
@@ -469,18 +493,20 @@ function LedgerParentBlock({
               {child.statusLabel}
             </span>
           </TableCell>
-          <TableCell className={cn(numericCellClass, "text-muted")}>
-            {child.hoursLabel || "—"}
-          </TableCell>
+          {showHours ? (
+            <TableCell className={cn(numericCellClass, "text-muted")}>
+              {child.hoursLabel || "—"}
+            </TableCell>
+          ) : null}
           <MoneyCell label={child.totalLabel} highlighted className={desktopOnlyCellClass} />
           <MoneyCell label={child.receivedLabel} className={desktopOnlyCellClass} />
           <MoneyCell
             label={child.remainingLabel}
             remainingAmount={child.remainingAmount}
-            className={remainingStickyClass}
+            className={remainingStickyBodyClass}
           />
           <MoneyTableActionsCell
-            className={actionsStickyClass}
+            className={actionsStickyBodyClass}
             settleLabel={child.settleLabel}
             settleDisabled={isMutationPending}
             onSettle={() => onSettle(row.id, child.id)}

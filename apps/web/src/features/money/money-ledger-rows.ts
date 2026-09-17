@@ -276,4 +276,30 @@ export function moneyLedgerTableReceivedHeading(input: {
   });
 }
 
+function rowHasHours(row: MoneyLedgerParentRow): boolean {
+  if (row.hoursLabel.trim().length > 0) return true;
+  return row.children.some((child) => child.hoursLabel.trim().length > 0);
+}
+
+export function moneyLedgerTableShowsHours(rows: readonly MoneyLedgerParentRow[]): boolean {
+  return rows.some(rowHasHours);
+}
+
+export function moneyLedgerTableIdentityHeading(rows: readonly MoneyLedgerParentRow[]): string {
+  const kinds = new Set(rows.map((row) => row.partyKind));
+  if (kinds.size === 1) {
+    switch ([...kinds][0]) {
+      case "expense":
+        return "Expense";
+      case "adjustment":
+        return "Adjustment";
+      case "salary-pool":
+        return "Pool";
+      default:
+        break;
+    }
+  }
+  return "Party";
+}
+
 export type { MoneyLedgerStatusTone };

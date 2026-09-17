@@ -6,7 +6,9 @@ import { moneyLedgerParentStatusLabel } from "@/features/billing/money-bills-tab
 import {
   buildMoneyLedgerExpenseParents,
   buildMoneyLedgerParents,
+  moneyLedgerTableIdentityHeading,
   moneyLedgerTableReceivedHeading,
+  moneyLedgerTableShowsHours,
 } from "./money-ledger-rows";
 
 function personGroupFromClients(
@@ -176,5 +178,58 @@ describe("buildMoneyLedgerExpenseParents", () => {
     expect(parents[0]?.expandable).toBe(false);
     expect(parents[0]?.settleLabel).toBe("Pay");
     expect(parents[0]?.statusTone).toBe("warning");
+  });
+});
+
+describe("moneyLedgerTableShowsHours", () => {
+  test("is false for expense-only rows", () => {
+    const parents = buildMoneyLedgerExpenseParents([
+      {
+        id: "exp-1",
+        expenseId: "e1",
+        name: "Figma",
+        kind: "subscription",
+        status: "due",
+        statusLabel: "Due",
+        remainingAmount: 1200,
+        remainingLabel: "EGP 12",
+        amountLabel: "EGP 12",
+        canRecordPayment: true,
+        note: null,
+      },
+    ]);
+    expect(moneyLedgerTableShowsHours(parents)).toBe(false);
+  });
+
+  test("is true when a client group has tracked hours", () => {
+    const group = personGroupFromClients([readyClient]);
+    const parents = buildMoneyLedgerParents({
+      clientGroups: [group],
+      teamGroups: [],
+      adjustments: [],
+      salaryPool: { pool: null, canPay: false },
+    });
+    expect(moneyLedgerTableShowsHours(parents)).toBe(true);
+  });
+});
+
+describe("moneyLedgerTableIdentityHeading", () => {
+  test("reads Expense for expense-only tables", () => {
+    const parents = buildMoneyLedgerExpenseParents([
+      {
+        id: "exp-1",
+        expenseId: "e1",
+        name: "Figma",
+        kind: "one_time",
+        status: "paid",
+        statusLabel: "Paid",
+        remainingAmount: 0,
+        remainingLabel: "EGP 0",
+        amountLabel: "EGP 12",
+        canRecordPayment: false,
+        note: null,
+      },
+    ]);
+    expect(moneyLedgerTableIdentityHeading(parents)).toBe("Expense");
   });
 });
