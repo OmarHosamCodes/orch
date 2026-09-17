@@ -1,4 +1,5 @@
-import { auth } from "@orch/auth";
+import { ensurePersonalAgency } from "@orch/api/routers/team/ensure-personal-agency";
+import { auth, registerPersonalAgencyOnUserCreate } from "@orch/auth";
 import { db } from "@orch/db";
 import { dashboardWorkspace, user, workspaceMarketplaceItem } from "@orch/db/schema";
 import { env, primaryCorsOrigin } from "@orch/env/server";
@@ -74,6 +75,8 @@ import {
 import { eq, inArray } from "drizzle-orm";
 
 const DEFAULT_SEED_PASSWORD = "orch1234";
+
+registerPersonalAgencyOnUserCreate(ensurePersonalAgency);
 
 type SeedUserKey = "founder" | "ops" | "analyst";
 

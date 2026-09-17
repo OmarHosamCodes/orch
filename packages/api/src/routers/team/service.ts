@@ -15,6 +15,8 @@ import { getBillingStateForUser } from "../../billing-guard";
 import { insertTrialBilling } from "../../billing-team";
 import { formatAvatarUrl } from "../agency-ops/shared/avatar-helpers";
 
+type TeamDbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 export async function assertCanCreateTeam(actorUserId: string, _input: Record<string, never>) {
   const billing = await getBillingStateForUser(actorUserId);
   const existing = await listUserTeams(actorUserId, {});
@@ -36,6 +38,43 @@ async function touchTeam(teamId: string, now: Date) {
     .where(eq(workspaceTeam.id, teamId));
 }
 
+function mapUserTeams(
+  memberships: Array<{
+    teamId: string;
+    role: WorkspaceTeamRole;
+    teamName: string;
+    teamImage: string | null;
+    createdByUserId: string;
+    updatedAt: Date;
+  }>,
+) {
+  return memberships.map((membership) => ({
+    id: membership.teamId,
+    name: membership.teamName,
+    image: membership.teamImage,
+    role: membership.role,
+    createdByUserId: membership.createdByUserId,
+    updatedAt: membership.updatedAt.toISOString(),
+  }));
+}
+
+async function listUserTeamsInTransaction(tx: TeamDbTransaction, actorUserId: string) {
+  const memberships = await tx
+    .select({
+      teamId: workspaceTeamMember.teamId,
+      role: workspaceTeamMember.role,
+      teamName: workspaceTeam.name,
+      teamImage: workspaceTeam.image,
+      createdByUserId: workspaceTeam.createdByUserId,
+      updatedAt: workspaceTeam.updatedAt,
+    })
+    .from(workspaceTeamMember)
+    .innerJoin(workspaceTeam, eq(workspaceTeam.id, workspaceTeamMember.teamId))
+    .where(eq(workspaceTeamMember.userId, actorUserId));
+
+  return mapUserTeams(memberships);
+}
+
 export async function listUserTeams(actorUserId: string, _input: Record<string, never>) {
   const memberships = await db
     .select({
@@ -50,14 +89,7 @@ export async function listUserTeams(actorUserId: string, _input: Record<string, 
     .innerJoin(workspaceTeam, eq(workspaceTeam.id, workspaceTeamMember.teamId))
     .where(eq(workspaceTeamMember.userId, actorUserId));
 
-  return memberships.map((membership) => ({
-    id: membership.teamId,
-    name: membership.teamName,
-    image: membership.teamImage ?? null,
-    role: membership.role,
-    createdByUserId: membership.createdByUserId,
-    updatedAt: membership.updatedAt.toISOString(),
-  }));
+  return mapUserTeams(memberships);
 }
 
 export async function getTeam(actorUserId: string, input: { teamId: string }) {
@@ -98,31 +130,33 @@ export async function getTeam(actorUserId: string, input: { teamId: string }) {
   };
 }
 
-export async function createTeam(actorUserId: string, input: { name: string }) {
+async function createTeamInTransaction(
+  tx: TeamDbTransaction,
+  actorUserId: string,
+  input: { name: string },
+) {
   const now = new Date();
   const teamId = createWorkspaceId("team");
   const name = input.name.trim();
 
-  await db.transaction(async (tx) => {
-    await tx.insert(workspaceTeam).values({
-      id: teamId,
-      name,
-      createdByUserId: actorUserId,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await tx.insert(workspaceTeamMember).values({
-      id: createWorkspaceId("team-member"),
-      teamId,
-      userId: actorUserId,
-      role: "owner",
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await insertTrialBilling(tx, teamId, now);
+  await tx.insert(workspaceTeam).values({
+    id: teamId,
+    name,
+    createdByUserId: actorUserId,
+    createdAt: now,
+    updatedAt: now,
   });
+
+  await tx.insert(workspaceTeamMember).values({
+    id: createWorkspaceId("team-member"),
+    teamId,
+    userId: actorUserId,
+    role: "owner",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await insertTrialBilling(tx, teamId, now);
 
   return {
     id: teamId,
@@ -132,6 +166,31 @@ export async function createTeam(actorUserId: string, input: { name: string }) {
     createdByUserId: actorUserId,
     updatedAt: now.toISOString(),
   };
+}
+
+export async function findOrCreatePersonalTeam(actorUserId: string, input: { name: string }) {
+  return db.transaction(async (tx) => {
+    const [lockedUser] = await tx
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.id, actorUserId))
+      .for("update");
+
+    if (!lockedUser) {
+      throw new ORPCError("NOT_FOUND", { message: "User not found." });
+    }
+
+    const existingTeam = (await listUserTeamsInTransaction(tx, actorUserId))[0];
+    if (existingTeam) {
+      return existingTeam;
+    }
+
+    return createTeamInTransaction(tx, actorUserId, input);
+  });
+}
+
+export async function createTeam(actorUserId: string, input: { name: string }) {
+  return db.transaction((tx) => createTeamInTransaction(tx, actorUserId, input));
 }
 
 export async function updateTeam(

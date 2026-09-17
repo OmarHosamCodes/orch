@@ -1,12 +1,6 @@
-import { createTeam, listUserTeams } from "./service";
+import { findOrCreatePersonalTeam } from "./service";
 
 export async function ensurePersonalAgency(actorUserId: string, input: { name: string }) {
-  const existingTeams = await listUserTeams(actorUserId, {});
-  const existingTeam = existingTeams[0];
-  if (existingTeam) {
-    return existingTeam;
-  }
-
   const trimmedName = input.name.trim();
   const agencyName =
     trimmedName.length === 0
@@ -15,5 +9,5 @@ export async function ensurePersonalAgency(actorUserId: string, input: { name: s
         ? trimmedName
         : `${trimmedName}'s agency`;
 
-  return createTeam(actorUserId, { name: agencyName });
+  return findOrCreatePersonalTeam(actorUserId, { name: agencyName });
 }

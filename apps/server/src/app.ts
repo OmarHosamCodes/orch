@@ -15,7 +15,8 @@ import { createContext } from "@orch/api/context";
 import { recoverStaleRuns } from "@orch/api/routers/agent/run-service";
 import { bootstrapAgencyLiveRedisSubscriber } from "@orch/api/routers/agency-ops/live/live";
 import { registerNotificationPushHandler } from "@orch/api/routers/notifications/delivery";
-import { auth } from "@orch/auth";
+import { ensurePersonalAgency } from "@orch/api/routers/team/ensure-personal-agency";
+import { auth, registerPersonalAgencyOnUserCreate } from "@orch/auth";
 import { corsOrigins, env, primaryCorsOrigin, resolveSentryRelease } from "@orch/env/server";
 import { sentry } from "@sentry/hono/bun";
 import { Hono } from "hono";
@@ -167,6 +168,7 @@ function createApp() {
 const app = createApp();
 const port = env.PORT ?? 7000;
 
+registerPersonalAgencyOnUserCreate(ensurePersonalAgency);
 await bootstrapAgencyLiveRedisSubscriber();
 registerNotificationPushHandler(sendWebPushForNotification);
 startNotificationDigestScheduler();

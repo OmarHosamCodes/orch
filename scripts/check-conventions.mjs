@@ -15,7 +15,6 @@ const SKIP_DIRS = new Set(["node_modules", "dist", ".turbo", ".nuxt", ".output"]
 
 const DYNAMIC_IMPORT_ALLOWLIST = [
   /railway-ssr-server\.mjs$/,
-  /packages\/auth\/src\/index\.ts$/,
   /workspace-block-registry\.ts$/,
   /lazy-infinite-canvas\.tsx$/,
   /workspace-agent-host\.tsx$/,

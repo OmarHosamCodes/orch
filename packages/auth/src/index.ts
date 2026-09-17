@@ -19,7 +19,17 @@ const isSplitDeployment = new URL(primaryCorsOrigin).origin !== new URL(env.BETT
 const shouldShareSchoolOfMarketingCookies = new URL(env.BETTER_AUTH_URL).hostname.endsWith(
   ".school-of-marketing.com",
 );
-const ensurePersonalAgencyModulePath = "../../api/src/routers/team/ensure-personal-agency";
+
+type PersonalAgencyOnUserCreate = (
+  actorUserId: string,
+  input: { name: string },
+) => Promise<unknown>;
+
+let personalAgencyOnUserCreate: PersonalAgencyOnUserCreate | null = null;
+
+export function registerPersonalAgencyOnUserCreate(callback: PersonalAgencyOnUserCreate) {
+  personalAgencyOnUserCreate = callback;
+}
 
 function schedulePolarCustomerSetup(user: { id: string; email: string; name: string }) {
   void (async () => {
@@ -83,14 +93,11 @@ export const auth = betterAuth({
         after: async (user) => {
           schedulePolarCustomerSetup(user);
           try {
-            // Keep auth from statically depending on API: API already depends on auth.
-            const { ensurePersonalAgency } = (await import(ensurePersonalAgencyModulePath)) as {
-              ensurePersonalAgency: (
-                actorUserId: string,
-                input: { name: string },
-              ) => Promise<unknown>;
-            };
-            await ensurePersonalAgency(user.id, { name: user.name });
+            if (!personalAgencyOnUserCreate) {
+              throw new Error("Personal Agency user-create handler is not registered.");
+            }
+
+            await personalAgencyOnUserCreate(user.id, { name: user.name });
           } catch (error) {
             console.error("Personal Agency setup failed:", error);
             throw error;
