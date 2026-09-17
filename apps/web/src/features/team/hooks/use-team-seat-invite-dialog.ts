@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { agencySeatInviteCopy } from "@/features/billing/agency-paywall-copy";
-import { checkoutSeats } from "@/features/billing/billing-queries";
+import { checkoutSeats, useBilling } from "@/features/billing/billing-queries";
 import { resolveNextSeatCount } from "@/features/billing/billing-seat-checkout";
 import { useTeamStore } from "@/features/team/team-store";
 import { getQueryClient } from "@/lib/query-client";
@@ -12,6 +12,11 @@ export function useTeamSeatInviteDialog() {
   const seatInviteTeamId = useTeamStore((state) => state.seatInviteTeamId);
   const clearSeatInvite = useTeamStore((state) => state.clearSeatInvite);
   const [continuing, setContinuing] = useState(false);
+  const { billingQuery } = useBilling(seatInviteTeamId);
+
+  const copyPending = Boolean(seatInviteTeamId) && billingQuery.data === undefined && !billingQuery.isError;
+  const invitePlan = billingQuery.data?.plan ?? (billingQuery.isError ? "agency" : undefined);
+  const copy = invitePlan ? agencySeatInviteCopy(invitePlan) : null;
 
   async function onContinue() {
     if (!seatInviteTeamId) {
@@ -37,7 +42,8 @@ export function useTeamSeatInviteDialog() {
 
   return {
     open: Boolean(seatInviteTeamId),
-    copy: agencySeatInviteCopy(),
+    copy,
+    copyPending,
     continuing,
     onContinue: () => void onContinue(),
     onCancel,

@@ -7,9 +7,37 @@ export type BillingSuccessStatus =
 
 export type CheckoutKind = "agency" | "credits";
 
-/** `useShellBootGate` expects dataReady — false while confirmation is in flight. */
-export function isBillingSuccessDataReady(status: BillingSuccessStatus): boolean {
-  return status !== "confirming";
+export type BillingSnapshotLoadState = "pending" | "loaded" | "error";
+
+export function resolveBillingSnapshotLoadState(input: {
+  teamId?: string;
+  hasBillingData: boolean;
+  queryStatus: "pending" | "error" | "success";
+}): BillingSnapshotLoadState {
+  if (!input.teamId) {
+    return "error";
+  }
+  if (input.hasBillingData) {
+    return "loaded";
+  }
+  if (input.queryStatus === "error") {
+    return "error";
+  }
+  return "pending";
+}
+
+/** `useShellBootGate` expects dataReady — false while confirmation or billing.state is pending. */
+export function isBillingSuccessDataReady(
+  status: BillingSuccessStatus,
+  billingSnapshot: BillingSnapshotLoadState = "loaded",
+): boolean {
+  if (status === "confirming") {
+    return false;
+  }
+  if (status === "idle") {
+    return billingSnapshot === "loaded" || billingSnapshot === "error";
+  }
+  return true;
 }
 
 export function initialBillingSuccessStatus(

@@ -23,11 +23,22 @@ export type AgencySeatInviteCopy = {
   secondary: string;
 };
 
-export function agencySeatInviteCopy(): AgencySeatInviteCopy {
-  return {
+export const AGENCY_SEAT_REQUIRED_INVITE_BODY =
+  "Every member needs a seat. Add a seat to invite them.";
+
+const TRIAL_SEAT_INVITE_BODY =
+  "Trial is solo. Adding someone starts Agency billing for this team.";
+
+export function agencySeatInviteCopy(plan: "trial" | "leftover" | "agency" | "agency_unlimited"): AgencySeatInviteCopy {
+  const shared = {
     title: "Add a seat",
-    body: "Trial is solo. Adding someone starts Agency billing for this team.",
     primary: "Continue to checkout",
     secondary: "Cancel",
   };
+
+  if (plan === "trial" || plan === "leftover") {
+    return { ...shared, body: TRIAL_SEAT_INVITE_BODY };
+  }
+
+  return { ...shared, body: AGENCY_SEAT_REQUIRED_INVITE_BODY };
 }

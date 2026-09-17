@@ -10,6 +10,7 @@ import {
   type BillingSuccessStatus,
   initialBillingSuccessStatus,
   isBillingSuccessDataReady,
+  resolveBillingSnapshotLoadState,
   resolveCheckoutConfirmationStatus,
 } from "@/features/billing/billing-success-readiness";
 import { useTeamStore } from "@/features/team/team-store";
@@ -23,7 +24,12 @@ export function useBillingSuccess() {
   const teamId = useTeamStore((state) => state.selectedTeamId) || undefined;
 
   const queryClient = useQueryClient();
-  const { openPortal, plan } = useBilling(teamId);
+  const { openPortal, plan, billingQuery } = useBilling(teamId);
+  const billingSnapshotLoad = resolveBillingSnapshotLoadState({
+    teamId,
+    hasBillingData: billingQuery.data !== undefined,
+    queryStatus: billingQuery.status,
+  });
   const confirmedCheckoutIdRef = useRef<string | null>(null);
   const [status, setStatus] = useState<BillingSuccessStatus>(() =>
     initialBillingSuccessStatus(checkoutId),
@@ -71,7 +77,9 @@ export function useBillingSuccess() {
     })();
   }, [checkoutId, queryClient, teamId]);
 
-  const { isBooting } = useShellBootGate(isBillingSuccessDataReady(status));
+  const { isBooting } = useShellBootGate(
+    isBillingSuccessDataReady(status, billingSnapshotLoad),
+  );
 
   return {
     status,

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export type BillingSuccessViewProps = {
   status: BillingSuccessStatus;
   errorMessage: string;
-  plan: AgencyPlan;
+  plan?: AgencyPlan;
   creditsPlan?: AgencyPlan;
   onOpenPortal: () => void;
 };
@@ -32,8 +32,8 @@ export function BillingSuccessView({
   const isIdle = status === "idle";
   const isConfirming = status === "confirming";
 
-  const idleCopy = billingSuccessWithoutCheckoutCopy(plan);
-  const creditsCopy = billingCreditsAddedCopy(creditsPlan ?? plan);
+  const idleCopy = plan ? billingSuccessWithoutCheckoutCopy(plan) : null;
+  const creditsCopy = billingCreditsAddedCopy(creditsPlan ?? plan ?? "leftover");
 
   const title = isError
     ? "Billing confirmation failed"
@@ -42,7 +42,7 @@ export function BillingSuccessView({
       : isAgencyActive
         ? "Agency is active"
         : isIdle
-          ? idleCopy.title
+          ? (idleCopy?.title ?? "Team billing")
           : "Confirming billing";
 
   const body = isError
@@ -52,12 +52,12 @@ export function BillingSuccessView({
       : isAgencyActive
         ? "This team can use Tracker, projects, money, and people."
         : isIdle
-          ? idleCopy.body
+          ? (idleCopy?.body ?? "")
           : isConfirming
             ? "Hang on while we apply your checkout to this team."
             : "";
 
-  const actionCopy = isCreditsAdded ? creditsCopy : isIdle ? idleCopy : null;
+  const actionCopy = isCreditsAdded ? creditsCopy : isIdle && idleCopy ? idleCopy : null;
 
   return (
     <div className="flex h-full items-start justify-center overflow-y-auto bg-default px-4 pt-12 sm:px-6 lg:px-8">

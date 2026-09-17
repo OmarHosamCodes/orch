@@ -32,8 +32,8 @@ function billingStateQueryKey(teamId: string | null | undefined) {
   return orpc.billing.state.queryOptions({ input: { teamId: teamId ?? "" } }).queryKey;
 }
 
-function deriveBillingState(data: BillingState | undefined) {
-  const plan = data?.plan ?? "leftover";
+export function deriveBillingState(data: BillingState | undefined) {
+  const plan = data?.plan;
   const tier = data?.tier ?? "free";
   return {
     plan,

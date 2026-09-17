@@ -4,19 +4,56 @@ import {
   billingSuccessStatusWithoutCheckoutConfirm,
   initialBillingSuccessStatus,
   isBillingSuccessDataReady,
+  resolveBillingSnapshotLoadState,
   resolveCheckoutConfirmationStatus,
 } from "./billing-success-readiness";
+
+describe("resolveBillingSnapshotLoadState", () => {
+  test("pending without team or billing data", () => {
+    expect(
+      resolveBillingSnapshotLoadState({
+        teamId: "team_1",
+        hasBillingData: false,
+        queryStatus: "pending",
+      }),
+    ).toBe("pending");
+  });
+
+  test("loaded when billing.state data exists", () => {
+    expect(
+      resolveBillingSnapshotLoadState({
+        teamId: "team_1",
+        hasBillingData: true,
+        queryStatus: "pending",
+      }),
+    ).toBe("loaded");
+  });
+
+  test("error without team id", () => {
+    expect(
+      resolveBillingSnapshotLoadState({
+        hasBillingData: false,
+        queryStatus: "pending",
+      }),
+    ).toBe("error");
+  });
+});
 
 describe("isBillingSuccessDataReady", () => {
   test("is not ready while confirming", () => {
     expect(isBillingSuccessDataReady("confirming")).toBe(false);
   });
 
+  test("idle waits for billing.state", () => {
+    expect(isBillingSuccessDataReady("idle", "pending")).toBe(false);
+    expect(isBillingSuccessDataReady("idle", "loaded")).toBe(true);
+    expect(isBillingSuccessDataReady("idle", "error")).toBe(true);
+  });
+
   test("is ready after confirmation finishes", () => {
     expect(isBillingSuccessDataReady("agency_active")).toBe(true);
     expect(isBillingSuccessDataReady("credits_added")).toBe(true);
     expect(isBillingSuccessDataReady("error")).toBe(true);
-    expect(isBillingSuccessDataReady("idle")).toBe(true);
   });
 });
 
