@@ -3,10 +3,11 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { user }, service] = await Promise.all([
+const [{ db }, { user }, service, billingTeam] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema/auth"),
   import("./service"),
+  import("../../billing-team"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -106,6 +107,7 @@ describe("team service persistence", () => {
     const otherTeam = await service.createTeam(otherTeamOwnerUserId, {
       name: "Attacker-owned Team",
     });
+    await billingTeam.applyPaidPlan(targetTeam.id, "agency", { seats: 4 });
 
     await service.addTeamMember(ownerUserId, {
       teamId: targetTeam.id,

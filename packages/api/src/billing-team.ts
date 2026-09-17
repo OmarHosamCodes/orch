@@ -10,6 +10,7 @@ import {
   user,
   workspaceTeam,
   workspaceTeamBilling,
+  workspaceTeamMember,
 } from "@orch/db/schema";
 import {
   AGENCY_PLAN_LIMITS,
@@ -236,7 +237,8 @@ export type VolumeCounter =
   | "tasksPerProject"
   | "nodes"
   | "blocks"
-  | "tabs";
+  | "tabs"
+  | "members";
 
 function planPhrase(plan: AgencyPlan): string {
   switch (plan) {
@@ -269,6 +271,8 @@ function volumeNoun(counter: VolumeCounter, limit: number): string {
       return limit === 1 ? "block per tab" : "blocks per tab";
     case "tabs":
       return limit === 1 ? "tab per node" : "tabs per node";
+    case "members":
+      return limit === 1 ? "member" : "members";
     default: {
       const _exhaustive: never = counter;
       return _exhaustive;
@@ -280,6 +284,13 @@ function limitReachedError(plan: AgencyPlan, counter: VolumeCounter, n: number) 
   return new ORPCError("FORBIDDEN", {
     message: `This agency can have ${n} ${volumeNoun(counter, n)} on ${planPhrase(plan)}. Subscribe to add more.`,
     data: { code: "limit_reached", plan, counter, limit: n },
+  });
+}
+
+function seatRequiredError(seats: number) {
+  return new ORPCError("FORBIDDEN", {
+    message: "Every member needs a seat. Add a seat to invite them.",
+    data: { code: "seat_required", seats },
   });
 }
 
@@ -482,6 +493,18 @@ export async function assertWithinLimit(
       used = extra.count;
       break;
     }
+    case "members": {
+      const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
+      limit = snapshot.seats;
+      used = (
+        await executor
+          .select({ value: count() })
+          .from(workspaceTeamMember)
+          .where(eq(workspaceTeamMember.teamId, teamId))
+      )[0]!.value;
+      break;
+    }
     default: {
       const _exhaustive: never = counter;
       throw new ORPCError("BAD_REQUEST", { message: String(_exhaustive) });
@@ -493,6 +516,9 @@ export async function assertWithinLimit(
   const projected =
     counter === "nodes" || counter === "blocks" || counter === "tabs" ? used : used + adding;
   if (projected > limit) {
+    if (counter === "members") {
+      throw seatRequiredError(snapshot.seats);
+    }
     throw limitReachedError(snapshot.plan, counter, limit);
   }
 }

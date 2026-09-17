@@ -183,16 +183,8 @@ describe("team billing snapshot", () => {
 
   test("Lifetime Pro maps the owned personal Agency to Unlimited after the trial clock", async () => {
     const ownerId = await createFixtureUser({ lifetimePro: true });
-    const memberId = await createFixtureUser();
     const team = await ensurePersonalAgencyModule.ensurePersonalAgency(ownerId, {
       name: "Lifetime Pro",
-    });
-
-    // Seat enforcement is Slice 3: a second member remains allowed in this slice.
-    await teamService.addTeamMember(ownerId, {
-      teamId: team.id,
-      userEmail: `${memberId}@example.test`,
-      role: "viewer",
     });
 
     const initial = await billingTeam.getTeamBilling(team.id, new Date("2026-09-17T00:00:00.000Z"));
@@ -370,10 +362,46 @@ describe("team billing snapshot", () => {
     });
   });
 
+  test("trial invite does not insert a second member", async () => {
+    const ownerId = await createFixtureUser();
+    const memberId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Solo" });
+    await expect(
+      teamService.addTeamMember(ownerId, {
+        teamId: team.id,
+        userEmail: `${memberId}@example.test`,
+        role: "viewer",
+      }),
+    ).rejects.toMatchObject({
+      data: { code: "seat_required" },
+      message: "Every member needs a seat. Add a seat to invite them.",
+    });
+    const members = await db
+      .select()
+      .from(workspaceTeamMember)
+      .where(eq(workspaceTeamMember.teamId, team.id));
+    expect(members).toHaveLength(1);
+  });
+
+  test("paid seats=2 allows a second member", async () => {
+    const ownerId = await createFixtureUser();
+    const memberId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Paid" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+    await expect(
+      teamService.addTeamMember(ownerId, {
+        teamId: team.id,
+        userEmail: `${memberId}@example.test`,
+        role: "viewer",
+      }),
+    ).resolves.toMatchObject({ userId: memberId });
+  });
+
   test("a member inherits the team snapshot without lifetimePro", async () => {
     const ownerId = await createFixtureUser();
     const memberId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Shared Agency" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
     await teamService.addTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${memberId}@example.test`,
@@ -391,6 +419,10 @@ describe("team billing snapshot", () => {
     const ownerId = await createFixtureUser();
     const memberId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Member Trial Agency" });
+    await db
+      .update(workspaceTeamBilling)
+      .set({ seats: 2 })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
     await teamService.addTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${memberId}@example.test`,

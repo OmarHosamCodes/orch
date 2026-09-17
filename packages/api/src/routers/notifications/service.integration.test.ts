@@ -95,6 +95,7 @@ describe("notification service authorization", () => {
     const teammate = await createFixtureUser();
     const nonMember = await createFixtureUser();
     const team = await teamService.createTeam(owner.id, { name: "Notification Team" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 3 });
     await teamService.addTeamMember(owner.id, {
       teamId: team.id,
       userEmail: recipient.email,

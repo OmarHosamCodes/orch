@@ -11,7 +11,7 @@ import { db } from "@orch/db";
 import { dashboardWorkspace, user, workspaceTeam, workspaceTeamMember } from "@orch/db/schema";
 
 import { requireTeamMembership } from "../../lib/team-membership";
-import { insertTrialBilling } from "../../billing-team";
+import { assertWithinLimit, insertTrialBilling } from "../../billing-team";
 import { formatAvatarUrl } from "../agency-ops/shared/avatar-helpers";
 
 type TeamDbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -366,25 +366,50 @@ export async function addTeamMember(
 
   const now = new Date();
 
-  await db
-    .insert(workspaceTeamMember)
-    .values({
-      id: createWorkspaceId("team-member"),
-      teamId: input.teamId,
-      userId: targetUser.id,
-      role: input.role,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: [workspaceTeamMember.teamId, workspaceTeamMember.userId],
-      set: {
-        role: input.role,
-        updatedAt: now,
-      },
-    });
+  await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ userId: workspaceTeamMember.userId })
+      .from(workspaceTeamMember)
+      .where(
+        and(
+          eq(workspaceTeamMember.teamId, input.teamId),
+          eq(workspaceTeamMember.userId, targetUser.id),
+        ),
+      )
+      .limit(1);
 
-  await touchTeam(input.teamId, now);
+    if (existing) {
+      await tx
+        .update(workspaceTeamMember)
+        .set({
+          role: input.role,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(workspaceTeamMember.teamId, input.teamId),
+            eq(workspaceTeamMember.userId, targetUser.id),
+          ),
+        );
+    } else {
+      await assertWithinLimit(input.teamId, "members", { tx });
+      await tx.insert(workspaceTeamMember).values({
+        id: createWorkspaceId("team-member"),
+        teamId: input.teamId,
+        userId: targetUser.id,
+        role: input.role,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    await tx
+      .update(workspaceTeam)
+      .set({
+        updatedAt: now,
+      })
+      .where(eq(workspaceTeam.id, input.teamId));
+  });
 
   const members = await listTeamMembers(actorUserId, { teamId: input.teamId });
   const member = members.find((item) => item.userId === targetUser.id);
