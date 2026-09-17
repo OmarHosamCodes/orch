@@ -801,4 +801,69 @@ describe("create service volume caps", () => {
       }),
     ).resolves.toMatchObject({ title: "Alpha" });
   });
+
+  test("concurrent createAgencyProjectTask same title at cap merges without limit_reached", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    const [project] = await db
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: "P",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsProject.id });
+    await db.insert(agencyOpsProjectTask).values({
+      id: createWorkspaceId("agency-project-task"),
+      teamId: team.id,
+      projectId: project!.id,
+      title: "Beta",
+      createdByUserId: ownerId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const results = await Promise.allSettled([
+      tasksService.createAgencyProjectTask(ownerId, {
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Alpha",
+      }),
+      tasksService.createAgencyProjectTask(ownerId, {
+        teamId: team.id,
+        projectId: project!.id,
+        title: "Alpha",
+      }),
+    ]);
+
+    for (const result of results) {
+      if (result.status === "rejected") {
+        expect(result.reason).not.toMatchObject({ data: { code: "limit_reached" } });
+      }
+    }
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(2);
+
+    const rows = await db
+      .select()
+      .from(agencyOpsProjectTask)
+      .where(eq(agencyOpsProjectTask.projectId, project!.id));
+    expect(rows).toHaveLength(2);
+    expect(rows.some((row) => row.title === "Alpha")).toBe(true);
+  });
 });

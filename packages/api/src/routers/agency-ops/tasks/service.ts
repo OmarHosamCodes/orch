@@ -104,6 +104,18 @@ function isUniqueViolation(error: unknown): boolean {
   return false;
 }
 
+function isLimitReachedError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "data" in error &&
+    typeof error.data === "object" &&
+    error.data !== null &&
+    "code" in error.data &&
+    error.data.code === "limit_reached"
+  );
+}
+
 /** SQL expression matching normalizeTaskTitle() / unique index. */
 function taskTitleKeySql() {
   return sql`lower(trim(regexp_replace(${agencyOpsProjectTask.title}, '\\s+', ' ', 'g')))`;
@@ -113,8 +125,9 @@ async function findProjectTaskByTitleKey(
   teamId: string,
   projectId: string,
   titleKey: string,
+  executor: typeof db | DbTransaction = db,
 ): Promise<ProjectTaskRow | null> {
-  const [task] = await db
+  const [task] = await executor
     .select(projectTaskColumns)
     .from(agencyOpsProjectTask)
     .where(
@@ -135,8 +148,10 @@ async function mergeAssigneesIntoExistingTask(
     assignedToTeam: boolean;
     assigneeUserIds: string[];
   },
+  tx?: DbTransaction,
 ): Promise<ProjectTaskRow> {
-  const existingAssigneeRows = await db
+  const executor = tx ?? db;
+  const existingAssigneeRows = await executor
     .select({ userId: agencyOpsProjectTaskAssignee.userId })
     .from(agencyOpsProjectTaskAssignee)
     .where(eq(agencyOpsProjectTaskAssignee.taskId, task.id));
@@ -151,26 +166,32 @@ async function mergeAssigneesIntoExistingTask(
   if (plan.kind === "noop") return task;
 
   const now = new Date();
-  const [updated] = await db.transaction(async (tx) => {
+  const applyMerge = async (runner: DbTransaction): Promise<ProjectTaskRow | undefined> => {
     if (plan.kind === "team") {
-      await setTaskAssignees(tx, task.id, []);
-      const [row] = await tx
+      await setTaskAssignees(runner, task.id, []);
+      const [row] = await runner
         .update(agencyOpsProjectTask)
         .set({ assignedToTeam: true, updatedAt: now })
         .where(eq(agencyOpsProjectTask.id, task.id))
         .returning(projectTaskColumns);
-      return [row];
+      return row;
     }
 
-    await addTaskAssignees(tx, task.id, plan.userIds);
-    const [row] = await tx
+    await addTaskAssignees(runner, task.id, plan.userIds);
+    const [row] = await runner
       .update(agencyOpsProjectTask)
       .set({ updatedAt: now })
       .where(eq(agencyOpsProjectTask.id, task.id))
       .returning(projectTaskColumns);
-    return [row];
-  });
+    return row;
+  };
 
+  if (tx) {
+    const updated = await applyMerge(tx);
+    return updated ?? task;
+  }
+
+  const [updated] = await db.transaction(async (runner) => [await applyMerge(runner)]);
   return updated ?? task;
 }
 
@@ -574,11 +595,43 @@ export async function createAgencyProjectTask(
   const dueDate = input.dueDate ? parseIsoDateTime(input.dueDate, "dueDate") : null;
 
   try {
-    const [created] = await db.transaction(async (tx) => {
-      await assertWithinLimit(input.teamId, "tasksPerProject", {
-        projectId: input.projectId,
-        tx,
-      });
+    const txOutcome = await db.transaction(async (tx) => {
+      const mergeIfTitleExists = async (): Promise<ProjectTaskRow | null> => {
+        const existingInTx = await findProjectTaskByTitleKey(
+          input.teamId,
+          input.projectId,
+          titleKey,
+          tx,
+        );
+        if (!existingInTx) return null;
+        return mergeAssigneesIntoExistingTask(
+          existingInTx,
+          {
+            assignedToTeam,
+            assigneeUserIds,
+          },
+          tx,
+        );
+      };
+
+      const mergedBeforeAssert = await mergeIfTitleExists();
+      if (mergedBeforeAssert) {
+        return { kind: "merged" as const, task: mergedBeforeAssert };
+      }
+
+      try {
+        await assertWithinLimit(input.teamId, "tasksPerProject", {
+          projectId: input.projectId,
+          tx,
+        });
+      } catch (error) {
+        if (!isLimitReachedError(error)) throw error;
+        const mergedAfterCap = await mergeIfTitleExists();
+        if (mergedAfterCap) {
+          return { kind: "merged" as const, task: mergedAfterCap };
+        }
+        throw error;
+      }
       const [task] = await tx
         .insert(agencyOpsProjectTask)
         .values({
@@ -607,9 +660,20 @@ export async function createAgencyProjectTask(
         }
       }
 
-      return [task];
+      return { kind: "inserted" as const, task };
     });
 
+    if (txOutcome.kind === "merged") {
+      await createTaskBlueprintForViewer(
+        input.teamId,
+        txOutcome.task.id,
+        actorUserId,
+        input.description ?? "",
+      );
+      return buildTaskRecordForActor(txOutcome.task, actorUserId);
+    }
+
+    const created = txOutcome.task;
     if (!created) {
       throw new ORPCError("INTERNAL_SERVER_ERROR");
     }
