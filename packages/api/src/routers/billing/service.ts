@@ -18,9 +18,21 @@ function isPolarProProduct(productId: string): boolean {
   return polarProProductIds().includes(productId);
 }
 
-function assertPositiveIntegerSeats(seats: number) {
-  if (!Number.isInteger(seats) || seats < 1) {
-    throw new ORPCError("BAD_REQUEST", { message: "Seats must be a positive integer." });
+function primaryPolarProProductId(): string {
+  const [productId] = polarProProductIds();
+  if (!productId) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "Agency seat checkout is not configured for this environment.",
+    });
+  }
+  return productId;
+}
+
+function assertInviteSeatCount(seats: number) {
+  if (!Number.isInteger(seats) || seats < 2) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "Seat checkout requires at least 2 seats for a team invite.",
+    });
   }
 }
 
@@ -49,10 +61,10 @@ export async function createSeatCheckout(
   input: { teamId: string; seats: number },
 ): Promise<{ url: string }> {
   await requireTeamMembership(actorUserId, input.teamId, "owner");
-  assertPositiveIntegerSeats(input.seats);
+  assertInviteSeatCount(input.seats);
 
   return createPolarCheckout({
-    productId: env.POLAR_PRODUCT_PRO,
+    productId: primaryPolarProProductId(),
     seats: input.seats,
     teamId: input.teamId,
     actorUserId,
@@ -96,11 +108,10 @@ export async function confirmCheckout(
 
   if (env.POLAR_PRODUCT_ORCH_CREDITS && checkout.productId === env.POLAR_PRODUCT_ORCH_CREDITS) {
     await applyCreditPack(input.teamId, { checkoutId: input.checkoutId, credits: 100 });
-  } else if (isPolarProProduct(checkout.productId)) {
-    const subscriptionId = checkout.subscriptionId ?? checkout.checkoutId;
+  } else if (isPolarProProduct(checkout.productId) && checkout.subscriptionId) {
     await applyPolarSnapshot(input.teamId, {
       teamId: input.teamId,
-      subscriptionId,
+      subscriptionId: checkout.subscriptionId,
       productId: checkout.productId,
       seats: checkout.seats,
       status: "active",

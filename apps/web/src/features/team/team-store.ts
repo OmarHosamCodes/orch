@@ -3,7 +3,6 @@ import type { z } from "zod";
 import { create } from "zustand";
 import { toast } from "sonner";
 
-import { billingStateQueryKey, checkoutSeats } from "@/features/billing/billing-queries";
 import { getQueryClient } from "@/lib/query-client";
 import { teamDetailQueryKey, teamListQueryKey } from "@/features/team/team-queries";
 import { orpcClient } from "@/lib/orpc";
@@ -61,6 +60,8 @@ type TeamStoreState = {
     userId: string,
     workspaceRefetch: () => Promise<unknown>,
   ) => Promise<void>;
+  seatInviteTeamId: string | null;
+  clearSeatInvite: () => void;
 };
 
 const SEAT_REQUIRED_MESSAGE = "Every member needs a seat. Add a seat to invite them.";
@@ -103,8 +104,10 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   memberEmail: "",
   memberRole: "viewer",
   createTeamPending: false,
+  seatInviteTeamId: null,
 
   setSelectedTeamId: (teamId) => set({ selectedTeamId: teamId }),
+  clearSeatInvite: () => set({ seatInviteTeamId: null }),
   setIsTeamAsideCompact: (compact) => set({ isTeamAsideCompact: compact }),
   setTeamNameDraft: (name) => set({ teamNameDraft: name }),
   setMemberEmail: (email) => set({ memberEmail: email }),
@@ -342,18 +345,8 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
       }
 
       if (getOrpcErrorCode(error) === "seat_required") {
-        const billingState = queryClient.getQueryData<{ seats?: number }>(
-          billingStateQueryKey(teamId),
-        );
-        const nextSeats = (billingState?.seats ?? 1) + 1;
         toast.error("Add a seat", { description: SEAT_REQUIRED_MESSAGE });
-        try {
-          await checkoutSeats(teamId, nextSeats);
-        } catch (checkoutError) {
-          toast.error("Checkout unavailable", {
-            description: getErrorMessage(checkoutError, "Please try again."),
-          });
-        }
+        set({ seatInviteTeamId: teamId });
         return;
       }
 

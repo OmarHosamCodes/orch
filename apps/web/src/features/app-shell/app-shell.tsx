@@ -15,6 +15,7 @@ import { WorkspaceAgentHost } from "@/features/workspace-agent/workspace-agent-h
 import { scheduleIdle } from "@/lib/schedule-idle";
 import { cn } from "@/lib/utils";
 import { useCurrentAgencyTeamStore } from "@/features/time-tracking/stores/agency-timer";
+import { TeamSeatInviteDialog } from "@/features/team/team-seat-invite-dialog";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const agencyTeamId = useCurrentAgencyTeamStore((s) => s.currentAgencyTeamId) ?? "";
@@ -70,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
       <AppShellRailOverlays />
       {agentReady ? <WorkspaceAgentHost /> : null}
+      <TeamSeatInviteDialog />
     </div>
   );
 }

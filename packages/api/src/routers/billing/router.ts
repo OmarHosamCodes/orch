@@ -23,7 +23,7 @@ export const billingRouter = {
     .input(
       z.object({
         teamId: z.string().min(1),
-        seats: z.number().int().positive(),
+        seats: z.number().int().min(2),
       }),
     )
     .handler(async ({ context, input }) =>

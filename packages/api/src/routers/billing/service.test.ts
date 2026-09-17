@@ -11,7 +11,7 @@ const fetchPolarCheckout = mock(async (checkoutId: string) => ({
   checkoutId,
   productId: "polar-pro",
   seats: 2,
-  subscriptionId: "sub_test",
+  subscriptionId: "sub_test" as string | null,
   status: "succeeded",
 }));
 
@@ -104,6 +104,15 @@ describe("createSeatCheckout", () => {
     });
   });
 
+  test("rejects a single-seat checkout quantity", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Seat Checkout" });
+
+    await expect(
+      billingService.createSeatCheckout(ownerId, { teamId: team.id, seats: 1 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   test("rejects non-owners", async () => {
     const ownerId = await createFixtureUser();
     const outsiderId = await createFixtureUser();
@@ -157,5 +166,52 @@ describe("confirmCheckout", () => {
       seats: 2,
       polarSubscriptionId: "sub_confirm",
     });
+  });
+
+  test("does not apply Agency when Polar omits a subscription id", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Confirm Checkout" });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: polarProProductId,
+      seats: 2,
+      subscriptionId: null,
+      status: "succeeded",
+    }));
+
+    const snapshot = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId: "chk_no_sub",
+    });
+
+    expect(snapshot).toMatchObject({
+      teamId: team.id,
+      plan: "trial",
+      seats: 1,
+      polarSubscriptionId: null,
+    });
+  });
+
+  test("applies Orch credits for the configured credit product", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Confirm Credits" });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: "polar-credits",
+      seats: 1,
+      subscriptionId: null,
+      status: "succeeded",
+    }));
+
+    const snapshot = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId: "chk_credits",
+    });
+
+    expect(snapshot.orchCreditsRemaining).toBe(100);
   });
 });
