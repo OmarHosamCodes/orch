@@ -356,6 +356,32 @@ describe("assertWithinLimit", () => {
     await expect(billingTeam.assertWithinLimit(team.id, "clients")).resolves.toBeUndefined();
   });
 
+  test("applyPaidPlan persists on the locked billing transaction without self-deadlock", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Locked Billing Agency" });
+
+    await db.transaction(async (tx) => {
+      await tx
+        .select()
+        .from(workspaceTeamBilling)
+        .where(eq(workspaceTeamBilling.teamId, team.id))
+        .for("update");
+
+      await Promise.race([
+        billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 }, tx),
+        new Promise((_resolve, reject) => {
+          setTimeout(() => reject(new Error("applyPaidPlan blocked on billing row lock")), 500);
+        }),
+      ]);
+    });
+
+    const [billing] = await db
+      .select()
+      .from(workspaceTeamBilling)
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+    expect(billing?.plan).toBe("agency");
+  });
+
   test("concurrent client creates cannot exceed the trial cap", async () => {
     const ownerId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });

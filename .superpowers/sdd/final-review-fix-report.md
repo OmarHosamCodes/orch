@@ -53,3 +53,21 @@ bun test packages/api/src/billing-uploads.test.ts packages/api/src/billing-team.
 ```
 
 **GREEN:** 37 pass, 0 fail (66 expect() calls). 2 files, ~17s.
+
+---
+
+## Slice 2 re-review fix (branch `from-brainiac-to-orch`)
+
+Worktree: `/home/omar/Projects/brainiac` (main repo)
+
+### Fixes
+
+3. **Paid overlay on locked billing row.** `assertWithinLimit` holds `workspace_team_billing` `FOR UPDATE` on the caller transaction; `resolveTeamBillingSnapshot` → `applyPaidPlan` now receives the same `VolumeCapDbExecutor` (extended with `update`) so Polar-pro agency persistence does not block on the outer lock.
+
+### Tests
+
+```
+bun test packages/api/src/billing-team.test.ts
+```
+
+**GREEN:** 33 pass, 0 fail (59 expect() calls). 1 file, ~12s.

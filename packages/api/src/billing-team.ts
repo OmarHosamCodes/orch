@@ -39,6 +39,7 @@ type BillingInsertTarget = {
 
 export type VolumeCapDbExecutor = {
   select: typeof db.select;
+  update: typeof db.update;
 };
 
 function notEntitledError() {
@@ -111,7 +112,7 @@ export async function getTeamBilling(
     }
   }
 
-  return resolveTeamBillingSnapshot(teamId, billing, now);
+  return resolveTeamBillingSnapshot(teamId, billing, now, db);
 }
 
 function mapTeamBillingSnapshot(
@@ -156,8 +157,9 @@ export async function applyPaidPlan(
   teamId: string,
   plan: Extract<AgencyPlan, "agency" | "agency_unlimited">,
   input: { seats: number },
+  executor: VolumeCapDbExecutor = db,
 ) {
-  const [updated] = await db
+  const [updated] = await executor
     .update(workspaceTeamBilling)
     .set({
       plan,
@@ -261,6 +263,7 @@ async function resolveTeamBillingSnapshot(
   teamId: string,
   billing: TeamBillingRow,
   now: Date,
+  executor: VolumeCapDbExecutor = db,
 ): Promise<TeamBillingSnapshot> {
   const resolvedPlan = resolvePlanAt({
     storedPlan: billing.plan,
@@ -294,7 +297,7 @@ async function resolveTeamBillingSnapshot(
     ownerTier: ownerBilling?.tier ?? "free",
   });
   if (plan === "agency") {
-    await applyPaidPlan(teamId, plan, { seats: 1 });
+    await applyPaidPlan(teamId, plan, { seats: 1 }, executor);
   }
 
   return mapTeamBillingSnapshot(billing, plan);
@@ -321,7 +324,7 @@ export async function assertWithinLimit(
   switch (counter) {
     case "clients": {
       const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
-      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
       limit = numericLimit(snapshot.limits.clients);
       used = (
         await executor
@@ -333,7 +336,7 @@ export async function assertWithinLimit(
     }
     case "projects": {
       const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
-      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
       limit = numericLimit(snapshot.limits.projects);
       used = (
         await executor
@@ -348,7 +351,7 @@ export async function assertWithinLimit(
         throw new ORPCError("BAD_REQUEST", { message: "projectId is required." });
       }
       const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
-      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now);
+      snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
       limit = numericLimit(snapshot.limits.tasksPerProject);
       used = (
         await executor
