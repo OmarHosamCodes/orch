@@ -105,7 +105,7 @@ function FilterCheckbox({
 }) {
   return (
     <div className="flex w-full min-w-0 items-center gap-1">
-      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-default/80">
+      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent">
         <Checkbox
           checked={indeterminate ? "indeterminate" : checked}
           onCheckedChange={(value) => onChange(value === true)}
@@ -155,10 +155,11 @@ function FilterSingleOption({
       role="option"
       aria-selected={selected}
       aria-label={accessibleName}
-      className={cn(
-        "flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-default/80",
-        agencyFocusRingClass,
-      )}
+    className={cn(
+      "flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent",
+      selected && "bg-accent",
+      agencyFocusRingClass,
+    )}
     >
       <Check
         className={cn("size-3.5 shrink-0", selected ? "text-highlighted" : "text-transparent")}

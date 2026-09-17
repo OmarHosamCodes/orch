@@ -314,17 +314,17 @@ export const agencyTaskChooserSearchInputClass = cn(
 );
 
 export const agencyTaskChooserRowClass = cn(
-  "group flex w-full items-center gap-0.5 rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted motion-reduce:transition-none",
+  "group flex w-full items-center gap-0.5 rounded-lg transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent motion-reduce:transition-none",
 );
 
-export const agencyTaskChooserRowSelectedClass = "bg-primary/10 hover:bg-primary/10";
+export const agencyTaskChooserRowSelectedClass = "bg-accent hover:bg-accent";
 
 export const agencyTaskChooserRowBestMatchClass = "bg-accent/40 hover:bg-accent/50";
 
 export const agencyTaskChooserRowActiveClass = "bg-accent hover:bg-accent";
 
 export const agencyTaskChooserSectionHoverClass = cn(
-  "rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted",
+  "rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent",
   "motion-reduce:transition-none",
 );
 

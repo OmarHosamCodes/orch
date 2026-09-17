@@ -103,7 +103,7 @@ export function AgencyTaskChooserTaskRow({
         selected && agencyTaskChooserRowSelectedClass,
         !selected && bestMatch && agencyTaskChooserRowBestMatchClass,
         !selected && active && agencyTaskChooserRowActiveClass,
-        selecting && "bg-primary/15 hover:bg-primary/15",
+        selecting && "bg-accent hover:bg-accent",
       )}
     >
       <motion.button
@@ -116,7 +116,7 @@ export function AgencyTaskChooserTaskRow({
         data-best-match-task={!selected && bestMatch ? "true" : undefined}
         data-task-id={taskId}
         className={cn(
-          "flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-start",
+          "flex min-w-0 flex-1 items-center rounded-lg px-2.5 py-2 text-start",
           agencyFocusRingClass,
         )}
         whileTap={chooserTapScale}
