@@ -13,6 +13,7 @@ import { getClientByIdForTeam } from "../shared/lookup-helpers";
 import { type AgencyClientArchiveFilter } from "../shared/report-helpers";
 import { requireAgencyRole } from "../shared/membership";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
+import { assertWithinLimit } from "../../../billing-team";
 
 type AgencyClientRecord = {
   id: string;
@@ -516,23 +517,26 @@ export async function createAgencyClient(
     fxAsOf = new Date(money.fxAsOf);
   }
 
-  const [created] = await db
-    .insert(agencyOpsClient)
-    .values({
-      id: createWorkspaceId("agency-client"),
-      teamId: input.teamId,
-      name: input.name.trim(),
-      category: input.category ?? "external",
-      billableRateAmount,
-      currency,
-      sourceBillableRateAmount,
-      fxRate,
-      fxAsOf,
-      createdByUserId: actorUserId,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning(clientSelect);
+  const [created] = await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "clients", { tx });
+    return tx
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: input.teamId,
+        name: input.name.trim(),
+        category: input.category ?? "external",
+        billableRateAmount,
+        currency,
+        sourceBillableRateAmount,
+        fxRate,
+        fxAsOf,
+        createdByUserId: actorUserId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning(clientSelect);
+  });
 
   if (!created) {
     throw new ORPCError("INTERNAL_SERVER_ERROR");

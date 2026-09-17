@@ -45,6 +45,7 @@ import {
   readStoredEntityIcon,
   type AgencyEntityIconKey,
 } from "../shared/entity-icon-catalog";
+import { assertWithinLimit } from "../../../billing-team";
 
 type AgencyProjectRecord = {
   id: string;
@@ -248,32 +249,35 @@ export async function createAgencyProject(
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   const now = new Date();
-  const [created] = await db
-    .insert(agencyOpsProject)
-    .values({
-      id: createWorkspaceId("agency-project"),
-      teamId: input.teamId,
-      clientId: input.clientId,
-      name: input.name.trim(),
-      colorHueId,
-      iconKey: icon.iconKey,
-      iconSource: icon.iconSource,
-      createdByUserId: actorUserId,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning({
-      id: agencyOpsProject.id,
-      teamId: agencyOpsProject.teamId,
-      clientId: agencyOpsProject.clientId,
-      name: agencyOpsProject.name,
-      colorHueId: agencyOpsProject.colorHueId,
-      iconKey: agencyOpsProject.iconKey,
-      iconSource: agencyOpsProject.iconSource,
-      deletedAt: agencyOpsProject.deletedAt,
-      createdAt: agencyOpsProject.createdAt,
-      updatedAt: agencyOpsProject.updatedAt,
-    });
+  const [created] = await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "projects", { tx });
+    return tx
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: input.teamId,
+        clientId: input.clientId,
+        name: input.name.trim(),
+        colorHueId,
+        iconKey: icon.iconKey,
+        iconSource: icon.iconSource,
+        createdByUserId: actorUserId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({
+        id: agencyOpsProject.id,
+        teamId: agencyOpsProject.teamId,
+        clientId: agencyOpsProject.clientId,
+        name: agencyOpsProject.name,
+        colorHueId: agencyOpsProject.colorHueId,
+        iconKey: agencyOpsProject.iconKey,
+        iconSource: agencyOpsProject.iconSource,
+        deletedAt: agencyOpsProject.deletedAt,
+        createdAt: agencyOpsProject.createdAt,
+        updatedAt: agencyOpsProject.updatedAt,
+      });
+  });
 
   if (!created) {
     throw new ORPCError("INTERNAL_SERVER_ERROR");
@@ -508,6 +512,12 @@ export async function createAgencyProjectWithJourney(
   }
 
   await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "projects", { tx });
+    await assertWithinLimit(input.teamId, "tasksPerProject", {
+      projectId,
+      adding: input.milestones.length + 1,
+      tx,
+    });
     await tx.insert(agencyOpsProject).values({
       id: projectId,
       teamId: input.teamId,

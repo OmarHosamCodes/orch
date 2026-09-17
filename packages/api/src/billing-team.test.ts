@@ -17,6 +17,7 @@ const [
   ensurePersonalAgencyModule,
   billingTeam,
   clientsService,
+  projectsService,
 ] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema"),
@@ -25,6 +26,7 @@ const [
   import("./routers/team/ensure-personal-agency"),
   import("./billing-team"),
   import("./routers/agency-ops/clients/service"),
+  import("./routers/agency-ops/projects/service"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -388,11 +390,11 @@ describe("assertWithinLimit", () => {
       reason: { data: { code: "limit_reached" } },
     });
 
-    const [{ value: clientCount }] = await db
+    const [countRow] = await db
       .select({ value: count() })
       .from(agencyOpsClient)
       .where(and(eq(agencyOpsClient.teamId, team.id), isNull(agencyOpsClient.archivedAt)));
-    expect(clientCount).toBe(10);
+    expect(countRow?.value).toBe(10);
   });
 
   test("archived clients do not consume the cap", async () => {
@@ -586,5 +588,107 @@ describe("assertWithinLimit", () => {
     });
     await billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 });
     await expect(billingTeam.assertTaskAndKnowledgeUploadsAllowed(team.id)).resolves.toBeUndefined();
+  });
+});
+
+async function seedLiveProjects(
+  teamId: string,
+  ownerId: string,
+  clientId: string,
+  n: number,
+) {
+  const now = new Date("2026-09-17T00:00:00.000Z");
+  if (n === 0) return;
+  await db.insert(agencyOpsProject).values(
+    Array.from({ length: n }, (_, i) => ({
+      id: createWorkspaceId("agency-project"),
+      teamId,
+      clientId,
+      name: `Seed P${i}`,
+      createdByUserId: ownerId,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+}
+
+describe("create service volume caps", () => {
+  test("createAgencyClient rejects the 11th trial client and does not insert it", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    await seedClients(team.id, ownerId, 10);
+    await expect(
+      clientsService.createAgencyClient(ownerId, { teamId: team.id, name: "Overflow" }),
+    ).rejects.toMatchObject({ data: { code: "limit_reached" } });
+    const rows = await db.select().from(agencyOpsClient).where(eq(agencyOpsClient.teamId, team.id));
+    expect(rows).toHaveLength(10);
+    expect(rows.some((row) => row.name === "Overflow")).toBe(false);
+  });
+
+  test("createAgencyProject rejects the 31st trial project and does not insert it", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    await seedLiveProjects(team.id, ownerId, client!.id, 30);
+    await expect(
+      projectsService.createAgencyProject(ownerId, {
+        teamId: team.id,
+        clientId: client!.id,
+        name: "Overflow",
+      }),
+    ).rejects.toMatchObject({ data: { code: "limit_reached" } });
+    const rows = await db
+      .select()
+      .from(agencyOpsProject)
+      .where(and(eq(agencyOpsProject.teamId, team.id), isNull(agencyOpsProject.deletedAt)));
+    expect(rows).toHaveLength(30);
+    expect(rows.some((row) => row.name === "Overflow")).toBe(false);
+  });
+
+  test("createAgencyProjectWithJourney with 2 milestones on trial is limit_reached with zero projects for that name", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    const journeyName = "Journey Overflow";
+    await expect(
+      projectsService.createAgencyProjectWithJourney(ownerId, {
+        teamId: team.id,
+        clientId: client!.id,
+        name: journeyName,
+        milestones: [
+          { title: "M1", assigneeUserIds: [] },
+          { title: "M2", assigneeUserIds: [] },
+        ],
+      }),
+    ).rejects.toMatchObject({ data: { code: "limit_reached" } });
+    const rows = await db
+      .select()
+      .from(agencyOpsProject)
+      .where(
+        and(eq(agencyOpsProject.teamId, team.id), eq(agencyOpsProject.name, journeyName)),
+      );
+    expect(rows).toHaveLength(0);
   });
 });
