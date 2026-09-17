@@ -47,8 +47,8 @@ export function AppShellRailOverlays() {
   const mobileNavOpen = useAppShellStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useAppShellStore((s) => s.setMobileNavOpen);
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const { isPro, checkout, billingQuery } = useBilling(selectedTeamId);
-  const showUpgrade = !isPro && !billingQuery.isPending;
+  const { plan, checkout, billingQuery } = useBilling(selectedTeamId);
+  const showUpgrade = plan === "leftover" && !billingQuery.isPending;
   const activeNavId = resolveShellRailNavItemId(location.pathname);
 
   return (
@@ -80,7 +80,7 @@ export function AppShellRailOverlays() {
                   void checkout("agency");
                 }}
               >
-                Get Pro
+                Subscribe — 1 seat
               </Button>
             ) : null}
           </div>

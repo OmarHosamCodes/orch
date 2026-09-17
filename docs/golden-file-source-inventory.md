@@ -19,7 +19,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1063 |
+| golden-feature | 1065 |
 | server-operation | 13 |
 | shared-infrastructure | 430 |
 | static-presentation | 18 |
@@ -33,7 +33,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | api-platform | 13 |
 | architecture | 4 |
 | auth | 18 |
-| billing | 173 |
+| billing | 175 |
 | ci | 3 |
 | clients | 17 |
 | configuration | 3 |
@@ -211,6 +211,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/billing/agency-paywall-copy.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/agency-paywall-view.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/billing/agency-paywall.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/billing/agency-plan-label.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/billing/agency-plan-label.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/billing-checkout-confirm.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/billing/billing-checkout-confirm.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/billing-queries.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations, feature query orchestration; structure: test filename |

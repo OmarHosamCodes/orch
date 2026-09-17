@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useNavigate } from "@/lib/navigation";
 import { toast } from "sonner";
 
+import { isPaidAgencyPlan } from "@/features/billing/agency-plan-label";
 import { useBilling } from "@/features/billing/billing-queries";
 import {
   useAgencyNotificationPreferencesQuery,
@@ -33,7 +34,7 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
   const router = useRouter();
   const session = authClient.useSession();
   const teamId = useTeamStore((s) => s.selectedTeamId) ?? "";
-  const { tier, isPro, checkout, openPortal } = useBilling(teamId);
+  const { plan, checkout, openPortal } = useBilling(teamId);
   const preferencesQuery = useAgencyNotificationPreferencesQuery(
     teamId,
     input.open && Boolean(teamId),
@@ -172,7 +173,7 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
   }
 
   function handleBillingAction() {
-    void (isPro ? openPortal() : checkout("agency"));
+    void (isPaidAgencyPlan(plan) ? openPortal() : checkout("agency"));
   }
 
   function togglePreferenceChannel(pref: NotificationPreferenceItem, channel: "inApp" | "push") {
@@ -192,8 +193,7 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
     savingName: state.savingName,
     uploadingImage: state.uploadingImage,
     signingOut: state.signingOut,
-    tier,
-    isPro,
+    plan,
     hasTeam: Boolean(teamId),
     notificationPreferences: (preferencesQuery.data?.items ?? []) as NotificationPreferenceItem[],
     notificationPreferencesLoading: preferencesQuery.isPending && !preferencesQuery.data,

@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { CreditCard, Loader2, LogOut, Settings2 } from "lucide-react";
 
+import { agencyPlanLabel, isPaidAgencyPlan } from "@/features/billing/agency-plan-label";
 import { AgencySettingsDialogShell } from "@/features/shared/agency-settings-dialog-shell";
 import type {
   NotificationPreferenceItem,
@@ -71,8 +72,7 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
     userId,
     pane,
     signingOut,
-    tier,
-    isPro,
+    plan,
     hasTeam,
     notificationPreferences,
     notificationPreferencesLoading,
@@ -178,22 +178,22 @@ export function UserSettingsModalView({ viewModel }: UserSettingsModalViewProps)
       {activePane === "billing" ? (
         <div className="mt-6 flex flex-col">
           <SettingsRow label="Plan">
-            <Badge variant={isPro ? "default" : "secondary"}>
-              {tier === "pro" ? "Pro" : "Free"}
+            <Badge variant={isPaidAgencyPlan(plan) ? "default" : "secondary"}>
+              {agencyPlanLabel(plan)}
             </Badge>
           </SettingsRow>
 
           <SettingsRow
             label="Subscription"
             description={
-              isPro
-                ? "Manage billing, invoices, and plan changes."
-                : "Unlock Agency Ops and higher workspace limits."
+              isPaidAgencyPlan(plan)
+                ? "Manage billing, invoices, and seats."
+                : "Subscribe to keep Tracker, projects, money, and people for this agency."
             }
           >
             <Button type="button" size="sm" onClick={onBillingAction}>
               <CreditCard className="size-4" />
-              {isPro ? "Manage subscription" : "Upgrade to Pro"}
+              {isPaidAgencyPlan(plan) ? "Manage billing" : "Subscribe — 1 seat"}
             </Button>
           </SettingsRow>
         </div>

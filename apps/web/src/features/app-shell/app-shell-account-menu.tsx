@@ -4,6 +4,7 @@ import { Link } from "@/lib/navigation";
 
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { shellFocusRingClass } from "@/features/app-shell/app-shell-ui";
+import { agencyPlanLabel } from "@/features/billing/agency-plan-label";
 import { useBilling } from "@/features/billing/billing-queries";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { useTeamStore } from "@/features/team/team-store";
@@ -26,7 +27,7 @@ type AppShellAccountMenuProps = {
 export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuProps) {
   const { user, isPending } = useAuthSession();
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const { isPro } = useBilling(selectedTeamId);
+  const { plan, isPro } = useBilling(selectedTeamId);
   const updateAvailable = useAppUpdateStore((s) => s.updateAvailable);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -111,7 +112,7 @@ export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuPro
                 {userName}
               </span>
               <span className="truncate text-[11px] font-medium text-muted">
-                {isPro ? "Pro plan" : "Free plan"}
+                {agencyPlanLabel(plan)}
               </span>
             </span>
           </Link>
