@@ -11,20 +11,18 @@ import { db } from "@orch/db";
 import { dashboardWorkspace, user, workspaceTeam, workspaceTeamMember } from "@orch/db/schema";
 
 import { requireTeamMembership } from "../../lib/team-membership";
-import { getBillingStateForUser } from "../../billing-guard";
 import { insertTrialBilling } from "../../billing-team";
 import { formatAvatarUrl } from "../agency-ops/shared/avatar-helpers";
 
 type TeamDbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function assertCanCreateTeam(actorUserId: string, _input: Record<string, never>) {
-  const billing = await getBillingStateForUser(actorUserId);
   const existing = await listUserTeams(actorUserId, {});
 
-  if (existing.length >= billing.limits.teams) {
+  if (existing.length >= 1) {
     throw new ORPCError("FORBIDDEN", {
-      message: `Your ${billing.tier} plan allows up to ${billing.limits.teams} team(s)`,
-      data: { limit: billing.limits.teams, current: existing.length },
+      message: "This account already has an Agency.",
+      data: { limit: 1, current: existing.length },
     });
   }
 }
@@ -190,6 +188,8 @@ export async function findOrCreatePersonalTeam(actorUserId: string, input: { nam
 }
 
 export async function createTeam(actorUserId: string, input: { name: string }) {
+  await assertCanCreateTeam(actorUserId, {});
+
   return db.transaction((tx) => createTeamInTransaction(tx, actorUserId, input));
 }
 

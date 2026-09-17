@@ -17,7 +17,6 @@ import {
 import { ensurePersonalAgency } from "./ensure-personal-agency";
 import {
   addTeamMember,
-  assertCanCreateTeam,
   createTeam,
   deleteTeam,
   getTeam,
@@ -45,8 +44,6 @@ export const teamRouter = {
     return teamDetailSchema.parse(await getTeam(context.session.user.id, input));
   }),
   create: protectedProcedure.input(teamCreateInputSchema).handler(async ({ context, input }) => {
-    await assertCanCreateTeam(context.session.user.id, {});
-
     return teamSummarySchema.parse(await createTeam(context.session.user.id, input));
   }),
   update: protectedProcedure.input(teamUpdateInputSchema).handler(async ({ context, input }) => {

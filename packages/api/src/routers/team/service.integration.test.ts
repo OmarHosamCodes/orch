@@ -33,6 +33,17 @@ function getFixtureUserEmail(userId: string) {
 }
 
 describe("team service persistence", () => {
+  test("rejects creating a second Agency for an account", async () => {
+    const userId = await createFixtureUser();
+
+    await service.createTeam(userId, { name: "First Agency" });
+
+    await expect(service.createTeam(userId, { name: "Second Agency" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "This account already has an Agency.",
+    });
+  });
+
   test("creates, reads, updates, lists, and deletes a team", async () => {
     const userId = await createFixtureUser();
     const created = await service.createTeam(userId, { name: "  Integration Team  " });
