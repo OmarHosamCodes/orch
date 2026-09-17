@@ -37,6 +37,10 @@ type BillingInsertTarget = {
   insert: typeof db.insert;
 };
 
+export type VolumeCapDbExecutor = {
+  select: typeof db.select;
+};
+
 function notEntitledError() {
   return new ORPCError("FORBIDDEN", {
     message: "This agency is not subscribed.",
@@ -268,6 +272,19 @@ function numericLimit(value: number | null | undefined): number | null {
   return value;
 }
 
+async function lockTeamBillingRowForVolumeCap(executor: VolumeCapDbExecutor, teamId: string) {
+  const [row] = await executor
+    .select({ teamId: workspaceTeamBilling.teamId })
+    .from(workspaceTeamBilling)
+    .where(eq(workspaceTeamBilling.teamId, teamId))
+    .for("update")
+    .limit(1);
+
+  if (!row) {
+    throw notEntitledError();
+  }
+}
+
 export async function assertWithinLimit(
   teamId: string,
   counter: VolumeCounter,
@@ -276,27 +293,31 @@ export async function assertWithinLimit(
     adding?: number;
     count?: number;
     now?: Date;
+    tx?: VolumeCapDbExecutor;
   },
 ) {
   const snapshot = await getTeamBilling(teamId, extra?.now);
   const adding = extra?.adding ?? 1;
   let limit: number | null;
   let used: number;
+  const executor = extra?.tx ?? db;
 
   switch (counter) {
     case "clients":
+      await lockTeamBillingRowForVolumeCap(executor, teamId);
       limit = numericLimit(snapshot.limits.clients);
       used = (
-        await db
+        await executor
           .select({ value: count() })
           .from(agencyOpsClient)
           .where(and(eq(agencyOpsClient.teamId, teamId), isNull(agencyOpsClient.archivedAt)))
       )[0]!.value;
       break;
     case "projects":
+      await lockTeamBillingRowForVolumeCap(executor, teamId);
       limit = numericLimit(snapshot.limits.projects);
       used = (
-        await db
+        await executor
           .select({ value: count() })
           .from(agencyOpsProject)
           .where(and(eq(agencyOpsProject.teamId, teamId), isNull(agencyOpsProject.deletedAt)))
@@ -306,9 +327,10 @@ export async function assertWithinLimit(
       if (!extra?.projectId) {
         throw new ORPCError("BAD_REQUEST", { message: "projectId is required." });
       }
+      await lockTeamBillingRowForVolumeCap(executor, teamId);
       limit = numericLimit(snapshot.limits.tasksPerProject);
       used = (
-        await db
+        await executor
           .select({ value: count() })
           .from(agencyOpsProjectTask)
           .where(

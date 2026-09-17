@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import {
   agencyOpsClient,
   agencyOpsProject,
@@ -350,6 +350,49 @@ describe("assertWithinLimit", () => {
     const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
     await seedClients(team.id, ownerId, 9);
     await expect(billingTeam.assertWithinLimit(team.id, "clients")).resolves.toBeUndefined();
+  });
+
+  test("concurrent client creates cannot exceed the trial cap", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    await seedClients(team.id, ownerId, 9);
+    const now = new Date("2026-09-17T00:00:00.000Z");
+
+    const results = await Promise.allSettled([
+      db.transaction(async (tx) => {
+        await billingTeam.assertWithinLimit(team.id, "clients", { tx });
+        await tx.insert(agencyOpsClient).values({
+          id: createWorkspaceId("agency-client"),
+          teamId: team.id,
+          name: "Concurrent A",
+          createdByUserId: ownerId,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }),
+      db.transaction(async (tx) => {
+        await billingTeam.assertWithinLimit(team.id, "clients", { tx });
+        await tx.insert(agencyOpsClient).values({
+          id: createWorkspaceId("agency-client"),
+          teamId: team.id,
+          name: "Concurrent B",
+          createdByUserId: ownerId,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.find((result) => result.status === "rejected")).toMatchObject({
+      reason: { data: { code: "limit_reached" } },
+    });
+
+    const [{ value: clientCount }] = await db
+      .select({ value: count() })
+      .from(agencyOpsClient)
+      .where(and(eq(agencyOpsClient.teamId, team.id), isNull(agencyOpsClient.archivedAt)));
+    expect(clientCount).toBe(10);
   });
 
   test("archived clients do not consume the cap", async () => {
