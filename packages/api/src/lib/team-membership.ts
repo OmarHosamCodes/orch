@@ -4,6 +4,8 @@ import type { WorkspaceTeamRole } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 
+import { assertAgencyEntitled } from "../billing-team";
+
 const TEAM_ROLE_WEIGHT: Record<WorkspaceTeamRole, number> = {
   viewer: 1,
   editor: 2,
@@ -34,4 +36,15 @@ export async function requireTeamMembership(
   }
 
   return membership.role;
+}
+
+export async function requireAgencyRole(
+  actorUserId: string,
+  teamId: string,
+  requiredRole: WorkspaceTeamRole,
+  now?: Date,
+) {
+  const role = await requireTeamMembership(actorUserId, teamId, requiredRole);
+  await assertAgencyEntitled(teamId, now);
+  return role;
 }

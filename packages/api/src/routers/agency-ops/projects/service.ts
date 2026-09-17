@@ -37,7 +37,7 @@ import {
   syncJourneyStepStatuses,
   applyJourneySyncNotifications,
 } from "../shared/journey-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { getAgencyProjectTemplateForTeam } from "../project-templates/service";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
 import {
@@ -146,7 +146,7 @@ export async function listAgencyProjects(
     trashFilter?: AgencyProjectTrashFilter;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const archiveFilter = input.archiveFilter ?? "nonarchived";
   const trashFilter = input.trashFilter ?? "active";
@@ -244,7 +244,7 @@ export async function createAgencyProject(
     return created.project;
   }
 
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   const now = new Date();
@@ -473,7 +473,7 @@ export async function createAgencyProjectWithJourney(
     }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   if (input.milestones.length === 0) {
@@ -644,7 +644,7 @@ export async function getAgencyProjectJourney(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   await getProjectByIdForTeam(input.teamId, input.projectId, { includeDeleted: true });
   return buildAgencyProjectJourneyRecord(input.teamId, input.projectId, actorUserId);
 }
@@ -661,7 +661,7 @@ export async function updateAgencyProjectJourneySteps(
     }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -735,7 +735,7 @@ export async function addAgencyProjectJourneyStep(
     stepKind?: "milestone" | "checkpoint";
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -825,7 +825,7 @@ export async function previewRemoveAgencyProjectJourneyStep(
     stepId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -878,7 +878,7 @@ export async function removeAgencyProjectJourneyStep(
     stepId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -949,7 +949,7 @@ export async function updateAgencyProject(
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId);
 
   if (input.clientId) {
@@ -1092,7 +1092,7 @@ export async function deleteAgencyProject(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const project = await getProjectByIdForTeam(input.teamId, input.projectId, {
     includeDeleted: true,
   });
@@ -1136,7 +1136,7 @@ export async function restoreAgencyProject(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId, { includeDeleted: true });
 
   const now = new Date();

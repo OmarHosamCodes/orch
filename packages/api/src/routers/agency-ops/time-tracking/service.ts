@@ -24,7 +24,7 @@ import { formatAvatarUrl } from "../shared/avatar-helpers";
 import { getProjectByIdForTeam } from "../shared/lookup-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
 import { type ReportEntityFilterInput, applyReportEntityFilters } from "../shared/report-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { groupTimeEntryTagRows } from "./group-time-entry-tag-rows";
 import { normalizeTimeEntryLinkUrls } from "./normalize-time-entry-links";
 import { loadTeamWorkSchedule } from "../resourcing/load-team-work-schedule";
@@ -447,7 +447,7 @@ export async function getAgencyActiveTimer(actorUserId: string, input: { teamId?
     };
   }
 
-  await requireTeamMembership(actorUserId, timer.teamId, "viewer");
+  await requireAgencyRole(actorUserId, timer.teamId, "viewer");
 
   if (input.teamId && timer.teamId !== input.teamId) {
     return {
@@ -466,7 +466,7 @@ export async function listAgencyActiveMembers(
     teamId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const rows = await db
     .select({
@@ -510,7 +510,7 @@ export async function startAgencyTimer(
     isBillable?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = normalizeTimeEntryLinkUrls(input.links);
 
@@ -780,7 +780,7 @@ export async function stopAgencyTimer(
     };
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (input.teamId && active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -954,7 +954,7 @@ export async function updateAgencyActiveTimerDescription(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -997,7 +997,7 @@ export async function updateAgencyActiveTimerLinks(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1045,7 +1045,7 @@ export async function updateAgencyActiveTimerTask(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1113,7 +1113,7 @@ export async function updateAgencyActiveTimerStart(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1150,7 +1150,7 @@ export async function getMyAgencyTimeEntry(
   actorUserId: string,
   input: { teamId: string; entryId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const [row] = await db
     .select({ id: agencyOpsTimeEntry.id })
     .from(agencyOpsTimeEntry)
@@ -1181,7 +1181,7 @@ export async function listMyAgencyTimeEntries(
     utcOffsetMinutes?: number;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const page = Math.max(1, input.page ?? 1);
   const pageSize = Math.min(500, Math.max(1, input.pageSize ?? 25));
@@ -1356,7 +1356,7 @@ export async function listMyAgencyTimeEntriesInRange(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const from = parseAgencyDateRangeBound(input.from, "from", "start");
   const to = parseAgencyDateRangeBound(input.to, "to", "end");
@@ -1433,7 +1433,7 @@ export async function createManualAgencyTimeEntry(
     isBillable?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = normalizeTimeEntryLinkUrls(input.links);
 
@@ -1552,7 +1552,7 @@ export async function updateMyAgencyTimeEntry(
     isWaste?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
@@ -1707,7 +1707,7 @@ export async function updateMyAgencyTimeEntriesBulk(
     };
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const entryIds = [...new Set(input.entryIds)];
   if (entryIds.length === 0) {
@@ -1802,7 +1802,7 @@ export async function deleteMyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const now = new Date();
   const [deleted] = await db
@@ -1838,7 +1838,7 @@ export async function getAgencyTimeSummary(
     memberUserId?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -1953,7 +1953,7 @@ export async function listAllAgencyTimeEntries(
     pageSize?: number;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "editor");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -2053,7 +2053,7 @@ export async function updateAnyAgencyTimeEntry(
     isWaste?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
@@ -2197,7 +2197,7 @@ export async function deleteAnyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const now = new Date();
   const [deleted] = await db
@@ -2232,7 +2232,7 @@ export async function duplicateAnyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [source] = await db
     .select({

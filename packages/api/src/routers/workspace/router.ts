@@ -6,7 +6,7 @@ import {
 } from "@orch/workspace";
 import { z } from "zod";
 
-import { protectedProcedure, protectedProProcedure } from "../../procedures";
+import { protectedProcedure } from "../../procedures";
 import { captureKnowledgeAction } from "./knowledge-capture";
 import { getKnowledgeObject, listKnowledgeBoard, queryKnowledgeObjects } from "./knowledge-service";
 import {
@@ -123,7 +123,7 @@ export const workspaceRouter = {
           await getWorkspaceMarketplaceItems(context.session.user.id, input),
         ),
       ),
-    save: protectedProProcedure
+    save: protectedProcedure
       .input(workspaceMarketplaceSaveInputSchema)
       .handler(async ({ input, context }) =>
         workspaceMarketplaceItemSchema.parse(

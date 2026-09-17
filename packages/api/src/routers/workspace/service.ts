@@ -15,7 +15,8 @@ import {
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, ilike, inArray, lt, or } from "drizzle-orm";
 
-import { requireTeamMembership } from "../../lib/team-membership";
+import { getTeamBilling } from "../../billing-team";
+import { requireAgencyRole, requireTeamMembership } from "../../lib/team-membership";
 import { getBillingStateForUser } from "../../billing-guard";
 import { deleteKnowledgeForNode, syncKnowledgeFromNodes } from "./knowledge-service";
 
@@ -611,6 +612,22 @@ export async function saveWorkspaceMarketplaceItem(
 ) {
   const userId = actorUserId;
   const { actorUserName: userName, item } = input;
+  const teamId = item.payload.kind === "node" ? item.payload.node.teamId : null;
+  if (!teamId) {
+    throw new ORPCError("FORBIDDEN", {
+      message: "Choose an agency to publish this item.",
+      data: { code: "not_entitled" },
+    });
+  }
+  await requireAgencyRole(userId, teamId, "viewer");
+  const snapshot = await getTeamBilling(teamId);
+  if (!snapshot.limits.marketplacePublish) {
+    throw new ORPCError("FORBIDDEN", {
+      message: "Your agency plan does not include marketplace publishing.",
+      data: { code: "not_entitled", plan: snapshot.plan },
+    });
+  }
+
   const now = new Date();
   const itemId = createWorkspaceId("market");
 

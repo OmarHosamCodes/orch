@@ -3,12 +3,15 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { user }, teamService, billingTeam] = await Promise.all([
-  import("@orch/db"),
-  import("@orch/db/schema/auth"),
-  import("./routers/team/service"),
-  import("./billing-team"),
-]);
+const [{ db }, { workspaceTeamBilling }, { user }, teamService, billingTeam, clientsService] =
+  await Promise.all([
+    import("@orch/db"),
+    import("@orch/db/schema"),
+    import("@orch/db/schema/auth"),
+    import("./routers/team/service"),
+    import("./billing-team"),
+    import("./routers/agency-ops/clients/service"),
+  ]);
 
 const fixtureUsers: string[] = [];
 
@@ -71,5 +74,34 @@ describe("team billing snapshot", () => {
       plan: "agency",
     });
     expect((await db.select().from(user).where(eq(user.id, memberId)))[0]?.lifetimePro).toBe(false);
+  });
+
+  test("a trial team member can read Agency clients until the trial ends", async () => {
+    const ownerId = await createFixtureUser();
+    const memberId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Member Trial Agency" });
+    await teamService.addTeamMember(ownerId, {
+      teamId: team.id,
+      userEmail: `${memberId}@example.test`,
+      role: "viewer",
+    });
+
+    await expect(
+      clientsService.listAgencyClients(memberId, { teamId: team.id }),
+    ).resolves.toMatchObject({
+      items: [],
+    });
+
+    await db
+      .update(workspaceTeamBilling)
+      .set({ trialEndsAt: new Date("2026-01-01T00:00:00.000Z") })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    await expect(
+      clientsService.listAgencyClients(memberId, { teamId: team.id }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      data: { code: "trial_ended" },
+    });
   });
 });

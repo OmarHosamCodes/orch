@@ -17,7 +17,7 @@ import {
 } from "../shared/report-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
 import { formatAvatarUrl } from "../shared/avatar-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { isAgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import {
   buildReportEntryFilters,
@@ -134,7 +134,7 @@ async function getReportRows(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -230,7 +230,7 @@ export async function getAgencyReportsSummary(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -309,7 +309,7 @@ export async function getAgencyDashboardSummary(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");

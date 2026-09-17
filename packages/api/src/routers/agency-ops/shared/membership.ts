@@ -1,1 +1,1 @@
-export { requireTeamMembership } from "../../../lib/team-membership";
+export { requireAgencyRole, requireTeamMembership } from "../../../lib/team-membership";

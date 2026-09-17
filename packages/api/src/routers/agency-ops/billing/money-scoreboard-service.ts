@@ -1,6 +1,6 @@
 import type { AgencyOpsMoneyFormulaDef } from "@orch/db/schema";
 
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { applyFormulasToScoreboard } from "./money-formula-context";
 import { syncFormulaPayoutLines } from "./money-formula-payout-sync";
 import { getMoneySettings } from "./money-settings-service";
@@ -25,7 +25,7 @@ export async function getPeriodScoreboard(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ) {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   if (role === "owner") {
     await syncFormulaPayoutLines(actorUserId, {
       ...input,

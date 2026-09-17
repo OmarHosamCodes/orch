@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyTimeEntrySchema,
@@ -34,40 +34,36 @@ import {
 
 export const reportsRouter = {
   reports: {
-    dashboard: protectedProProcedure
-      .input(reportsInputSchema)
-      .handler(async ({ context, input }) => {
-        return z
-          .object({
-            summary: reportsDashboardSummarySchema,
-          })
-          .parse(await getAgencyDashboardSummary(context.session.user.id, input));
-      }),
-    summary: protectedProProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+    dashboard: protectedProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+      return z
+        .object({
+          summary: reportsDashboardSummarySchema,
+        })
+        .parse(await getAgencyDashboardSummary(context.session.user.id, input));
+    }),
+    summary: protectedProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
       return z
         .object({
           summary: reportsSummarySchema,
         })
         .parse(await getAgencyReportsSummary(context.session.user.id, input));
     }),
-    preview: protectedProProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+    preview: protectedProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
       return reportsPreviewSchema.parse(
         await getAgencyReportPreview(context.session.user.id, input),
       );
     }),
-    exportCsv: protectedProProcedure
-      .input(reportsInputSchema)
-      .handler(async ({ context, input }) => {
-        return z
-          .object({
-            contentType: z.literal("text/csv"),
-            fileName: z.string().min(1),
-            csv: z.string(),
-            totalRows: z.number().int().nonnegative(),
-          })
-          .parse(await exportAgencyReportsCsv(context.session.user.id, input));
-      }),
-    listEntries: protectedProProcedure
+    exportCsv: protectedProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+      return z
+        .object({
+          contentType: z.literal("text/csv"),
+          fileName: z.string().min(1),
+          csv: z.string(),
+          totalRows: z.number().int().nonnegative(),
+        })
+        .parse(await exportAgencyReportsCsv(context.session.user.id, input));
+    }),
+    listEntries: protectedProcedure
       .input(
         reportsInputSchema.extend({
           page: z.number().int().min(1).optional(),
@@ -85,7 +81,7 @@ export const reportsRouter = {
           })
           .parse(await listAllAgencyTimeEntries(context.session.user.id, input));
       }),
-    updateEntry: protectedProProcedure
+    updateEntry: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           entryId: z.string().min(1),
@@ -106,7 +102,7 @@ export const reportsRouter = {
         );
         return entry;
       }),
-    deleteEntry: protectedProProcedure
+    deleteEntry: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           entryId: z.string().min(1),
@@ -120,7 +116,7 @@ export const reportsRouter = {
           })
           .parse(await deleteAnyAgencyTimeEntry(context.session.user.id, input));
       }),
-    duplicateEntry: protectedProProcedure
+    duplicateEntry: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           entryId: z.string().min(1),
@@ -132,28 +128,26 @@ export const reportsRouter = {
         );
       }),
     saved: {
-      create: protectedProProcedure
+      create: protectedProcedure
         .input(savedReportSnapshotInputSchema)
         .handler(async ({ context, input }) => {
           return savedReportRecordSchema.parse(
             await createSavedReport(context.session.user.id, input),
           );
         }),
-      list: protectedProProcedure
-        .input(teamScopedInputSchema)
-        .handler(async ({ context, input }) => {
-          return z
-            .object({ items: z.array(savedReportListItemSchema) })
-            .parse(await listSavedReports(context.session.user.id, input));
-        }),
-      get: protectedProProcedure
+      list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+        return z
+          .object({ items: z.array(savedReportListItemSchema) })
+          .parse(await listSavedReports(context.session.user.id, input));
+      }),
+      get: protectedProcedure
         .input(teamScopedInputSchema.extend({ reportId: z.string().min(1) }))
         .handler(async ({ context, input }) => {
           return savedReportRecordSchema.parse(
             await getSavedReport(context.session.user.id, input),
           );
         }),
-      update: protectedProProcedure
+      update: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             reportId: z.string().min(1),
@@ -174,14 +168,14 @@ export const reportsRouter = {
             await updateSavedReport(context.session.user.id, input),
           );
         }),
-      delete: protectedProProcedure
+      delete: protectedProcedure
         .input(teamScopedInputSchema.extend({ reportId: z.string().min(1) }))
         .handler(async ({ context, input }) => {
           return z
             .object({ reportId: z.string().min(1), deleted: z.boolean() })
             .parse(await deleteSavedReport(context.session.user.id, input));
         }),
-      listActivity: protectedProProcedure
+      listActivity: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             reportId: z.string().min(1),

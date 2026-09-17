@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyTimeEntrySchema,
@@ -40,14 +40,14 @@ const agencyWeekSummarySchema = z.object({
 
 export const timeTrackingRouter = {
   timer: {
-    getActive: protectedProProcedure
+    getActive: protectedProcedure
       .input(z.object({ teamId: z.string().min(1).optional() }))
       .handler(async ({ context, input }) => {
         return z
           .object({ timer: agencyActiveTimerSchema.nullable() })
           .parse(await getAgencyActiveTimer(context.session.user.id, input));
       }),
-    listActiveMembers: protectedProProcedure
+    listActiveMembers: protectedProcedure
       .input(teamScopedInputSchema)
       .handler(async ({ context, input }) => {
         return z
@@ -66,7 +66,7 @@ export const timeTrackingRouter = {
           })
           .parse(await listAgencyActiveMembers(context.session.user.id, input));
       }),
-    start: protectedProProcedure
+    start: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1).optional(),
@@ -86,7 +86,7 @@ export const timeTrackingRouter = {
           .parse(await startAgencyTimer(context.session.user.id, input));
         return result;
       }),
-    stop: protectedProProcedure
+    stop: protectedProcedure
       .input(
         z.object({
           teamId: z.string().min(1).optional(),
@@ -112,7 +112,7 @@ export const timeTrackingRouter = {
         }
         return result;
       }),
-    updateStart: protectedProProcedure
+    updateStart: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           startedAt: z.string().datetime(),
@@ -123,7 +123,7 @@ export const timeTrackingRouter = {
           .object({ timer: agencyActiveTimerSchema })
           .parse(await updateAgencyActiveTimerStart(context.session.user.id, input));
       }),
-    updateDescription: protectedProProcedure
+    updateDescription: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           description: z.string().max(2_000),
@@ -134,7 +134,7 @@ export const timeTrackingRouter = {
           .object({ timer: agencyActiveTimerSchema })
           .parse(await updateAgencyActiveTimerDescription(context.session.user.id, input));
       }),
-    updateLinks: protectedProProcedure
+    updateLinks: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           links: agencyTimeEntryLinksInputSchema,
@@ -145,7 +145,7 @@ export const timeTrackingRouter = {
           .object({ timer: agencyActiveTimerSchema })
           .parse(await updateAgencyActiveTimerLinks(context.session.user.id, input));
       }),
-    updateTask: protectedProProcedure
+    updateTask: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1).nullable(),
@@ -160,7 +160,7 @@ export const timeTrackingRouter = {
   },
 
   timeEntries: {
-    listMine: protectedProProcedure
+    listMine: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           page: z.number().int().min(1).optional(),
@@ -181,7 +181,7 @@ export const timeTrackingRouter = {
           })
           .parse(await listMyAgencyTimeEntries(context.session.user.id, input));
       }),
-    createManual: protectedProProcedure
+    createManual: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1).optional(),
@@ -200,7 +200,7 @@ export const timeTrackingRouter = {
         );
         return entry;
       }),
-    updateMine: protectedProProcedure
+    updateMine: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           entryId: z.string().min(1),
@@ -221,7 +221,7 @@ export const timeTrackingRouter = {
         );
         return entry;
       }),
-    updateMineBulk: protectedProProcedure
+    updateMineBulk: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           entryIds: z.array(z.string().min(1)).min(1),
@@ -241,7 +241,7 @@ export const timeTrackingRouter = {
           .object({ items: z.array(agencyTimeEntrySchema) })
           .parse(await updateMyAgencyTimeEntriesBulk(context.session.user.id, input));
       }),
-    deleteMine: protectedProProcedure
+    deleteMine: protectedProcedure
       .input(teamScopedInputSchema.extend({ entryId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         const result = z
@@ -255,7 +255,7 @@ export const timeTrackingRouter = {
   },
 
   summary: {
-    list: protectedProProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(reportsInputSchema).handler(async ({ context, input }) => {
       return z
         .object({ summary: timeSummarySchema })
         .parse(await getAgencyTimeSummary(context.session.user.id, input));

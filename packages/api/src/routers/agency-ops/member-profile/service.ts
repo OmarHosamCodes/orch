@@ -19,7 +19,7 @@ import type { z } from "zod";
 
 import { loadTeamWorkSchedule } from "../resourcing/load-team-work-schedule";
 import { resolveProfilePeriodMonth, toFiscalCalendar } from "../resourcing/tenure-engine";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { isAgencyEntityIconKey, type AgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import { resolveEntryWaste } from "../shared/waste-helpers";
 import {
@@ -174,7 +174,7 @@ export async function getMemberProfile(
     periodMonthStart?: string;
   },
 ): Promise<MemberProfile> {
-  const actorRole = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const actorRole = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const subject = await requireSubjectMembership(input.teamId, input.userId);
 
   const rangeStart = new Date(input.from);
@@ -522,7 +522,7 @@ export async function upsertMemberHrProfile(
     patch: Partial<MemberHrProfile>;
   },
 ): Promise<MemberHrProfile> {
-  await requireTeamMembership(actorUserId, input.teamId, "editor");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await requireSubjectMembership(input.teamId, input.userId);
 
   if (input.patch.dateOfBirth) assertDateKey(input.patch.dateOfBirth, "dateOfBirth");
@@ -634,7 +634,7 @@ export async function createMemberLeave(
     throw new ORPCError("BAD_REQUEST", { message: "endDate must be on or after startDate" });
   }
 
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const isManager = isManagerRole(role);
   if (input.userId === null || input.type === "team_holiday") {
     if (!isManager) {
@@ -670,7 +670,7 @@ export async function deleteMemberLeave(
   actorUserId: string,
   input: { teamId: string; leaveId: string },
 ): Promise<{ id: string }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const [existing] = await db
     .select()
     .from(agencyOpsMemberLeave)
@@ -703,7 +703,7 @@ export async function createMemberReview(
   const body = input.body.trim();
   if (!body) throw new ORPCError("BAD_REQUEST", { message: "Review body is required" });
 
-  await requireTeamMembership(actorUserId, input.teamId, "editor");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await requireSubjectMembership(input.teamId, input.subjectUserId);
 
   const [row] = await db
@@ -744,7 +744,7 @@ export async function deleteMemberReview(
   actorUserId: string,
   input: { teamId: string; reviewId: string },
 ): Promise<{ id: string }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const [existing] = await db
     .select()
     .from(agencyOpsMemberReview)

@@ -15,7 +15,7 @@ import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   MoneyCurrencyError,
   normalizeCurrencyCode,
@@ -249,7 +249,7 @@ export async function getAgencyCurrency(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ currency: string; currencyLockedAt: string | null }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   return loadAgencyCurrency(input.teamId);
 }
 
@@ -305,7 +305,7 @@ export async function resolveMoneyForTeam(
   actorUserId: string,
   input: { teamId: string; sourceAmount: number; sourceCurrency: string },
 ): Promise<ResolvedMoneyValue & { agencyCurrency: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const ctx = await loadMoneyResolveContext(actorUserId, { teamId: input.teamId });
   const resolved = ctx.resolve(input.sourceAmount, input.sourceCurrency);
   await ctx.lock();
@@ -320,7 +320,7 @@ export async function listFxRates(
   agencyCurrency: string;
   currencyLockedAt: string | null;
 }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const agency = await loadAgencyCurrency(input.teamId);
   const rows = await db
     .select()
@@ -343,7 +343,7 @@ export async function upsertFxRate(
     id?: string;
   },
 ): Promise<AgencyFxRateRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const fromCurrency = normalizeCurrencyCode(input.fromCurrency);
   const toCurrency = normalizeCurrencyCode(input.toCurrency);
@@ -388,7 +388,7 @@ export async function deleteFxRate(
   actorUserId: string,
   input: { teamId: string; id: string },
 ): Promise<{ ok: true }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const deleted = await db
     .delete(agencyOpsFxRate)
     .where(and(eq(agencyOpsFxRate.teamId, input.teamId), eq(agencyOpsFxRate.id, input.id)))
@@ -403,7 +403,7 @@ export async function ensurePeriodFx(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<MoneyFxRateRow[]> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
   if (periodStart >= periodEnd) {
@@ -416,7 +416,7 @@ export async function listPeriodFx(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<{ items: AgencyPeriodFxRecord[]; canApplyCurrent: boolean }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
   if (periodStart >= periodEnd) {
@@ -434,7 +434,7 @@ export async function applyCurrentFxToPeriod(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<{ items: AgencyPeriodFxRecord[]; canApplyCurrent: boolean }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
   if (periodStart >= periodEnd) {
@@ -485,7 +485,7 @@ export async function setAgencyCurrency(
   actorUserId: string,
   input: { teamId: string; currency: string },
 ): Promise<{ currency: string; currencyLockedAt: string | null }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const currency = normalizeCurrencyCode(input.currency);
   if (!ISO_CURRENCY.test(currency)) {
@@ -531,7 +531,7 @@ export async function suggestFxRate(
   actorUserId: string,
   input: { teamId: string; fromCurrency: string; toCurrency: string },
 ): Promise<{ rate: string; asOf: string; provider: "frankfurter" }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = normalizeCurrencyCode(input.fromCurrency);
   const to = normalizeCurrencyCode(input.toCurrency);

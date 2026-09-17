@@ -1,4 +1,4 @@
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   agencyTaskMessageSchema,
   listTaskMessagesInputSchema,
@@ -9,14 +9,14 @@ import { listAgencyTaskMessages, sendAgencyTaskMessage } from "./service";
 
 export const taskMessagesRouter = {
   taskMessages: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(listTaskMessagesInputSchema)
       .handler(async ({ context, input }) => {
         return listTaskMessagesOutputSchema.parse(
           await listAgencyTaskMessages(context.session.user.id, input),
         );
       }),
-    send: protectedProProcedure
+    send: protectedProcedure
       .input(sendTaskMessageInputSchema)
       .handler(async ({ context, input }) => {
         return agencyTaskMessageSchema.parse(

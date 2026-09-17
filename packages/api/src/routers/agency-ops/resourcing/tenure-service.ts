@@ -28,7 +28,7 @@ import {
   type TenurePolicyInput,
   type TenureQuarterStatus,
 } from "./tenure-engine";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { invalidateTeamWorkScheduleCache } from "./load-team-work-schedule";
 
 type TenurePolicyRecord = {
@@ -429,7 +429,7 @@ export async function getTenurePolicy(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ policy: TenurePolicyRecord | null }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const row = await loadPolicyRow(input.teamId);
   if (!row) {
@@ -460,7 +460,7 @@ export async function upsertTenurePolicy(
     enabled: boolean;
   },
 ): Promise<{ policy: TenurePolicyRecord }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.fiscalYearStartMonth < 1 || input.fiscalYearStartMonth > 12) {
     throw new ORPCError("BAD_REQUEST", { message: "fiscalYearStartMonth must be 1–12." });
@@ -556,7 +556,7 @@ export async function listTenureProfiles(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ items: TenureProfileRecord[] }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const members = await loadTeamMembers(input.teamId);
   const userIds = members.map((member) => member.userId);
   const profileRows = await loadProfileRows(input.teamId, userIds);
@@ -610,7 +610,7 @@ export async function upsertTenureProfile(
     notes?: string | null;
   },
 ): Promise<{ profile: TenureProfileRecord }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [member] = await db
     .select({
@@ -722,7 +722,7 @@ export async function listTenureExemptions(
   actorUserId: string,
   input: { teamId: string; fiscalYear?: number },
 ): Promise<{ items: TenureExemptionRecord[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const rows = await db
     .select({
@@ -774,7 +774,7 @@ export async function upsertTenureExemption(
     reason?: string | null;
   },
 ): Promise<{ exemption: TenureExemptionRecord }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.type === "team_holiday" && input.userId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -918,7 +918,7 @@ export async function deleteTenureExemption(
   actorUserId: string,
   input: { teamId: string; exemptionId: string },
 ): Promise<{ ok: true }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   await db
     .delete(agencyOpsTenureQuarterExemption)
@@ -936,7 +936,7 @@ export async function listTenureSummary(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ items: MemberTenureSummaryRecord[]; policyEnabled: boolean }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const members = await loadTeamMembers(input.teamId);
   const policyRow = await loadPolicyRow(input.teamId);
   const policy = policyRow ? toPolicyInput(policyRow) : defaultPolicyInput();
@@ -980,7 +980,7 @@ export async function getTenureMember(
   actorUserId: string,
   input: { teamId: string; userId: string },
 ): Promise<{ member: MemberTenureDetailRecord; policy: TenurePolicyRecord | null }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   if (role !== "owner" && actorUserId !== input.userId) {
     throw new ORPCError("UNAUTHORIZED");

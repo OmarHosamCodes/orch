@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyClientCategorySchema,
@@ -55,7 +55,7 @@ const clientCommercialSummarySchema = z.object({
 
 export const clientsRouter = {
   clients: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           includeArchived: z.boolean().optional(),
@@ -67,7 +67,7 @@ export const clientsRouter = {
           .object({ items: z.array(agencyClientSchema) })
           .parse(await listAgencyClients(context.session.user.id, input));
       }),
-    bookIndex: protectedProProcedure
+    bookIndex: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           includeArchived: z.boolean().optional(),
@@ -93,19 +93,19 @@ export const clientsRouter = {
           })
           .parse(await listAgencyClientsBookIndex(context.session.user.id, input));
       }),
-    get: protectedProProcedure
+    get: protectedProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         return agencyClientSchema.parse(await getAgencyClient(context.session.user.id, input));
       }),
-    commercialSummary: protectedProProcedure
+    commercialSummary: protectedProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         return clientCommercialSummarySchema.parse(
           await getAgencyClientCommercialSummary(context.session.user.id, input),
         );
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           name: z.string().trim().min(1).max(120),
@@ -120,7 +120,7 @@ export const clientsRouter = {
         );
         return client;
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1),
@@ -136,7 +136,7 @@ export const clientsRouter = {
         );
         return client;
       }),
-    archive: protectedProProcedure
+    archive: protectedProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         const result = z
@@ -144,7 +144,7 @@ export const clientsRouter = {
           .parse(await archiveAgencyClient(context.session.user.id, input));
         return result;
       }),
-    unarchive: protectedProProcedure
+    unarchive: protectedProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         const result = z
@@ -155,7 +155,7 @@ export const clientsRouter = {
   },
 
   contacts: {
-    get: protectedProProcedure
+    get: protectedProcedure
       .input(teamScopedInputSchema.extend({ clientId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         const contactSchema = z
@@ -172,7 +172,7 @@ export const clientsRouter = {
           .nullable();
         return contactSchema.parse(await getClientContact(context.session.user.id, input));
       }),
-    upsert: protectedProProcedure
+    upsert: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1),

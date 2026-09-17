@@ -10,7 +10,7 @@ import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   applyInvoiceClientAdjustment,
   isInvoiceObligationId,
@@ -71,7 +71,7 @@ export async function listPendingAdjustments(
     partyId?: string;
   },
 ): Promise<{ items: MoneyPendingAdjustmentRecord[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const filters = [eq(agencyOpsMoneyPendingAdjustment.teamId, input.teamId)];
   if (input.partyType) {
@@ -105,7 +105,7 @@ export async function upsertPendingAdjustment(
     obligationId?: string;
   },
 ): Promise<MoneyPendingAdjustmentRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (!Number.isInteger(input.amount) || input.amount <= 0) {
     throw new ORPCError("BAD_REQUEST", {
@@ -255,7 +255,7 @@ export async function deletePendingAdjustment(
   actorUserId: string,
   input: { teamId: string; id: string },
 ): Promise<{ id: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   return db.transaction(async (tx) => {
     const [existing] = await tx
@@ -306,7 +306,7 @@ export async function markClientReadyAdjustmentsApplied(
     exported: ReadonlyArray<{ obligationId: string; periodStart: string; periodEnd: string }>;
   },
 ): Promise<void> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   if (input.exported.length === 0) return;
 
   const rows = await db
@@ -356,7 +356,7 @@ export async function sumExternalClientPeriodAdjustments(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<number> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
 

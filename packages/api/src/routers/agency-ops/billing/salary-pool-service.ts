@@ -10,7 +10,7 @@ import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { loadMoneyResolveContext } from "./money-fx-service";
 import { ensurePayoutPeriod } from "./payout-service";
 import {
@@ -95,7 +95,7 @@ export async function loadSalaryPoolPeriodTotals(
   remainingAmount: number;
   currency: string;
 } | null> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -149,7 +149,7 @@ export async function getSalaryPool(
     periodEnd: string;
   },
 ): Promise<AgencySalaryPoolDetail> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -174,7 +174,7 @@ export async function upsertSalaryPoolTotal(
     currency?: string;
   },
 ): Promise<AgencySalaryPoolRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -275,7 +275,7 @@ export async function recordSalaryPoolPayment(
     amount: number;
   },
 ): Promise<AgencySalaryPoolRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -341,7 +341,7 @@ export async function assertNoSalaryPoolForRateDerivedExport(
     periodEnd: string;
   },
 ): Promise<void> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");

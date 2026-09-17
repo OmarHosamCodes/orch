@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { requireTeamMembership } from "../../../lib/team-membership";
+import { requireAgencyRole } from "../../../lib/team-membership";
 import { getRedisPublisher, getRedisSubscriber } from "../../../lib/redis";
 import {
   registerAgencyLiveUserConnection,
@@ -276,7 +276,7 @@ export async function* subscribeAgencyLive(
   actorUserId: string,
   input: { teamId: string; signal?: AbortSignal },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   registerAgencyLiveUserConnection(actorUserId, input.teamId);
   try {
     for await (const event of agencyLivePublisher.subscribe(input.teamId, input.signal)) {

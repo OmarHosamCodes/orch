@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import { listIntegrationsStub } from "./stubs-service";
 
 export const integrationsRouter = {
   integrations: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return z
         .object({
           items: z.array(

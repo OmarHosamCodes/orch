@@ -11,7 +11,7 @@ import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { getClientByIdForTeam } from "../shared/lookup-helpers";
 import { type AgencyClientArchiveFilter } from "../shared/report-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
 
 type AgencyClientRecord = {
@@ -74,7 +74,7 @@ export async function listAgencyClients(
     archiveFilter?: AgencyClientArchiveFilter;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const archiveFilter = input.archiveFilter ?? (input.includeArchived ? "all" : "nonarchived");
 
@@ -120,7 +120,7 @@ export async function listAgencyClientsBookIndex(
     archiveFilter?: AgencyClientArchiveFilter;
   },
 ): Promise<AgencyClientBookIndex> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const listed = await listAgencyClients(actorUserId, input);
   const canViewBilling = role === "owner";
   const clientIds = listed.items.map((client) => client.id);
@@ -258,7 +258,7 @@ export async function getAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [row] = await db
     .select(clientSelect)
@@ -320,7 +320,7 @@ export async function getAgencyClientCommercialSummary(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ): Promise<AgencyClientCommercialSummary> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const client = await getAgencyClient(actorUserId, input);
 
   const [contactRow] = await db
@@ -495,7 +495,7 @@ export async function createAgencyClient(
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const now = new Date();
   let billableRateAmount = input.billableRateAmount ?? null;
@@ -552,7 +552,7 @@ export async function updateAgencyClient(
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [current] = await db
     .select({
@@ -644,7 +644,7 @@ export async function archiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [client] = await db
     .select({ id: agencyOpsClient.id, archivedAt: agencyOpsClient.archivedAt })
@@ -673,7 +673,7 @@ export async function unarchiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const now = new Date();
   await db
@@ -699,7 +699,7 @@ export async function getClientContact(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ): Promise<AgencyClientContactRecord | null> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [row] = await db
     .select()
@@ -736,7 +736,7 @@ export async function upsertClientContact(
     phone?: string;
   },
 ): Promise<AgencyClientContactRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   await getClientByIdForTeam(input.teamId, input.clientId);
 

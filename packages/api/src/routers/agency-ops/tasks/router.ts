@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyProjectTaskBlueprintSchema,
@@ -17,7 +17,7 @@ import {
 
 export const tasksRouter = {
   projectTasks: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1).optional(),
@@ -42,7 +42,7 @@ export const tasksRouter = {
           })
           .parse(await listAgencyProjectTasks(context.session.user.id, input));
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),
@@ -62,7 +62,7 @@ export const tasksRouter = {
         );
         return task;
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
@@ -84,7 +84,7 @@ export const tasksRouter = {
         );
         return task;
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
@@ -99,7 +99,7 @@ export const tasksRouter = {
           .parse(await deleteAgencyProjectTask(context.session.user.id, input));
         return result;
       }),
-    completeForMember: protectedProProcedure
+    completeForMember: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
@@ -111,7 +111,7 @@ export const tasksRouter = {
         );
         return task;
       }),
-    updateBlueprint: protectedProProcedure
+    updateBlueprint: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           blueprintId: z.string().min(1),

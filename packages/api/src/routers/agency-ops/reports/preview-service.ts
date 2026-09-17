@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 
 import type { ReportEntityFilterInput } from "../shared/report-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   buildReportEntryFilters,
   queryClientPreviewStats,
@@ -20,7 +20,7 @@ export async function getAgencyReportPreview(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "editor");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");

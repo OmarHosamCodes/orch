@@ -1,4 +1,4 @@
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 
 const INTEGRATION_STUB_ITEMS = [
   {
@@ -32,6 +32,6 @@ const INTEGRATION_STUB_ITEMS = [
 ];
 
 export async function listIntegrationsStub(actorUserId: string, input: { teamId: string }) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   return { items: INTEGRATION_STUB_ITEMS };
 }

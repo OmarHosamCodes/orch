@@ -4,7 +4,7 @@ import { agencyOpsDepartment, agencyOpsMemberHrProfile } from "@orch/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { createWorkspaceId } from "@orch/workspace";
 
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 
 type AgencyDepartmentRecord = {
   id: string;
@@ -35,7 +35,7 @@ function normalizeDepartmentName(name: string) {
 }
 
 export async function listAgencyDepartments(actorUserId: string, input: { teamId: string }) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const rows = await db
     .select({
@@ -56,7 +56,7 @@ export async function createAgencyDepartment(
   actorUserId: string,
   input: { teamId: string; name: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const name = normalizeDepartmentName(input.name);
   if (!name) {
@@ -97,7 +97,7 @@ export async function updateAgencyDepartment(
   actorUserId: string,
   input: { teamId: string; departmentId: string; name: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const name = normalizeDepartmentName(input.name);
   if (!name) {
@@ -146,7 +146,7 @@ export async function deleteAgencyDepartment(
   actorUserId: string,
   input: { teamId: string; departmentId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [department] = await db
     .select({ id: agencyOpsDepartment.id })

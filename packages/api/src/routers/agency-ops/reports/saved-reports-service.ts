@@ -9,7 +9,7 @@ import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 
 export type SavedReportSnapshotInput = {
   teamId: string;
@@ -111,7 +111,7 @@ export async function createSavedReport(
   actorUserId: string,
   input: SavedReportSnapshotInput,
 ): Promise<SavedReportRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const now = new Date();
   const reportId = createWorkspaceId("agency-report");
@@ -156,7 +156,7 @@ export async function listSavedReports(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ items: SavedReportListItem[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const rows = await db
     .select({
@@ -187,7 +187,7 @@ export async function getSavedReport(
   actorUserId: string,
   input: { teamId: string; reportId: string },
 ): Promise<SavedReportRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const row = await getReportForTeam(input.teamId, input.reportId);
   return mapReportRow(row.report, row.createdByUserName);
 }
@@ -202,7 +202,7 @@ export async function updateSavedReport(
     actions?: SavedReportActivityInput[];
   },
 ): Promise<SavedReportRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const existing = await getReportForTeam(input.teamId, input.reportId);
   const now = new Date();
@@ -258,7 +258,7 @@ export async function deleteSavedReport(
   actorUserId: string,
   input: { teamId: string; reportId: string },
 ): Promise<{ reportId: string; deleted: boolean }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [deleted] = await db
     .delete(agencyOpsReport)
@@ -276,7 +276,7 @@ export async function listSavedReportActivity(
   actorUserId: string,
   input: { teamId: string; reportId: string; limit?: number },
 ): Promise<{ items: SavedReportActivityRecord[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getReportForTeam(input.teamId, input.reportId);
 
   const limit = Math.min(input.limit ?? 50, 50);

@@ -13,7 +13,7 @@ import { and, desc, eq, inArray, lt, or } from "drizzle-orm";
 
 import { notifyTaskMessage } from "../../notifications/fanout";
 import { listTeamMemberUserIds } from "../../notifications/service";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { formatAvatarUrl } from "../shared/avatar-helpers";
 import { loadTaskAssignees } from "../shared/task-helpers";
 import { publishAgencyTaskMessageCreated } from "../live/live";
@@ -99,7 +99,7 @@ async function toMessageRecords(
 }
 
 export async function listAgencyTaskMessages(actorUserId: string, input: ListTaskMessagesInput) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [task] = await db
     .select({
@@ -170,7 +170,7 @@ export async function listAgencyTaskMessages(actorUserId: string, input: ListTas
 }
 
 export async function sendAgencyTaskMessage(actorUserId: string, input: SendTaskMessageInput) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [task] = await db
     .select({

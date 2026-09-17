@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import {
   createMemberProfileAlert,
@@ -43,7 +43,7 @@ const optionalDateKey = z
 
 export const memberProfileRouter = {
   memberProfile: {
-    get: protectedProProcedure
+    get: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           userId: z.string().min(1),
@@ -68,7 +68,7 @@ export const memberProfileRouter = {
         return memberProfileSchema.parse(await getMemberProfile(context.session.user.id, input));
       }),
     hrProfile: {
-      upsert: protectedProProcedure
+      upsert: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -99,7 +99,7 @@ export const memberProfileRouter = {
         }),
     },
     leave: {
-      create: protectedProProcedure
+      create: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1).nullable(),
@@ -114,7 +114,7 @@ export const memberProfileRouter = {
             .object({ leave: memberLeaveSchema })
             .parse({ leave: await createMemberLeave(context.session.user.id, input) });
         }),
-      delete: protectedProProcedure
+      delete: protectedProcedure
         .input(teamScopedInputSchema.extend({ leaveId: z.string().min(1) }))
         .handler(async ({ context, input }) => {
           return z
@@ -123,7 +123,7 @@ export const memberProfileRouter = {
         }),
     },
     review: {
-      create: protectedProProcedure
+      create: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             subjectUserId: z.string().min(1),
@@ -136,7 +136,7 @@ export const memberProfileRouter = {
             .object({ review: memberReviewSchema })
             .parse({ review: await createMemberReview(context.session.user.id, input) });
         }),
-      delete: protectedProProcedure
+      delete: protectedProcedure
         .input(teamScopedInputSchema.extend({ reviewId: z.string().min(1) }))
         .handler(async ({ context, input }) => {
           return z
@@ -145,7 +145,7 @@ export const memberProfileRouter = {
         }),
     },
     alerts: {
-      list: protectedProProcedure
+      list: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -165,7 +165,7 @@ export const memberProfileRouter = {
             })
             .parse(await listMemberProfileAlerts(context.session.user.id, input));
         }),
-      create: protectedProProcedure
+      create: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -179,7 +179,7 @@ export const memberProfileRouter = {
             .object({ alert: memberProfileAlertSchema })
             .parse(await createMemberProfileAlert(context.session.user.id, input));
         }),
-      setNote: protectedProProcedure
+      setNote: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -192,7 +192,7 @@ export const memberProfileRouter = {
             .object({ alert: memberProfileAlertSchema })
             .parse(await setMemberProfileAlertNote(context.session.user.id, input));
         }),
-      send: protectedProProcedure
+      send: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -205,7 +205,7 @@ export const memberProfileRouter = {
             .object({ alert: memberProfileAlertSchema })
             .parse(await sendMemberProfileAlert(context.session.user.id, input));
         }),
-      remove: protectedProProcedure
+      remove: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -217,7 +217,7 @@ export const memberProfileRouter = {
             .object({ id: z.string().min(1) })
             .parse(await removeMemberProfileAlert(context.session.user.id, input));
         }),
-      snooze: protectedProProcedure
+      snooze: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -232,14 +232,12 @@ export const memberProfileRouter = {
         }),
     },
     alertPolicy: {
-      get: protectedProProcedure
-        .input(teamScopedInputSchema)
-        .handler(async ({ context, input }) => {
-          return z
-            .object({ policy: memberProfileAlertPolicySchema })
-            .parse(await getMemberProfileAlertPolicy(context.session.user.id, input));
-        }),
-      upsert: protectedProProcedure
+      get: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+        return z
+          .object({ policy: memberProfileAlertPolicySchema })
+          .parse(await getMemberProfileAlertPolicy(context.session.user.id, input));
+      }),
+      upsert: protectedProcedure
         .input(teamScopedInputSchema.extend(memberProfileAlertPolicySchema.shape))
         .handler(async ({ context, input }) => {
           return z

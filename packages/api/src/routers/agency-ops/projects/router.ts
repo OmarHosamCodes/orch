@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyProjectSchema,
@@ -24,7 +24,7 @@ import {
 
 export const projectsRouter = {
   projects: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1).optional(),
@@ -37,7 +37,7 @@ export const projectsRouter = {
           .object({ items: z.array(agencyProjectSchema) })
           .parse(await listAgencyProjects(context.session.user.id, input));
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1),
@@ -53,7 +53,7 @@ export const projectsRouter = {
         );
         return project;
       }),
-    createWithJourney: protectedProProcedure
+    createWithJourney: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1),
@@ -79,7 +79,7 @@ export const projectsRouter = {
           .parse(await createAgencyProjectWithJourney(context.session.user.id, input));
       }),
     journey: {
-      get: protectedProProcedure
+      get: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             projectId: z.string().min(1),
@@ -90,7 +90,7 @@ export const projectsRouter = {
             await getAgencyProjectJourney(context.session.user.id, input),
           );
         }),
-      updateSteps: protectedProProcedure
+      updateSteps: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             projectId: z.string().min(1),
@@ -108,7 +108,7 @@ export const projectsRouter = {
             await updateAgencyProjectJourneySteps(context.session.user.id, input),
           );
         }),
-      addStep: protectedProProcedure
+      addStep: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             projectId: z.string().min(1),
@@ -123,7 +123,7 @@ export const projectsRouter = {
             await addAgencyProjectJourneyStep(context.session.user.id, input),
           );
         }),
-      removeStep: protectedProProcedure
+      removeStep: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             projectId: z.string().min(1),
@@ -135,7 +135,7 @@ export const projectsRouter = {
             await removeAgencyProjectJourneyStep(context.session.user.id, input),
           );
         }),
-      previewRemoveStep: protectedProProcedure
+      previewRemoveStep: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             projectId: z.string().min(1),
@@ -152,7 +152,7 @@ export const projectsRouter = {
             .parse(await previewRemoveAgencyProjectJourneyStep(context.session.user.id, input));
         }),
     },
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),
@@ -170,7 +170,7 @@ export const projectsRouter = {
         );
         return project;
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),
@@ -181,7 +181,7 @@ export const projectsRouter = {
           .object({ projectId: z.string().min(1), deleted: z.literal(true) })
           .parse(await deleteAgencyProject(context.session.user.id, input));
       }),
-    restore: protectedProProcedure
+    restore: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),

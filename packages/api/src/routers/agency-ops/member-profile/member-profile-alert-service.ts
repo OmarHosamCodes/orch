@@ -21,7 +21,7 @@ import {
   resolveProfilePeriodMonth,
 } from "../resourcing/tenure-engine";
 import { resolveWorkSchedule } from "../resourcing/work-schedule";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { resolveEntryWaste } from "../shared/waste-helpers";
 import { addDaysToDateKey, localDateKeyFromInstant } from "../time-tracking/local-week-bounds";
 import { expandLeaveDays } from "./member-profile-heat";
@@ -258,7 +258,7 @@ export async function listMemberProfileAlerts(
   actorUserId: string,
   input: { teamId: string; userId: string; utcOffsetMinutes?: number },
 ): Promise<{ items: MemberProfileAlertRecord[]; canManageAlerts: boolean }> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const canManageAlerts = role === "owner" || role === "editor";
 
   const [subject] = await db
@@ -398,7 +398,7 @@ export async function listMemberProfileAlerts(
 }
 
 async function requireManageAlerts(actorUserId: string, teamId: string) {
-  await requireTeamMembership(actorUserId, teamId, "editor");
+  await requireAgencyRole(actorUserId, teamId, "editor");
 }
 
 async function loadAlertRow(
@@ -576,7 +576,7 @@ export async function getMemberProfileAlertPolicy(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ policy: MemberProfileAlertPolicy }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   return { policy: await loadAlertPolicy(input.teamId) };
 }
 
@@ -584,7 +584,7 @@ export async function upsertMemberProfileAlertPolicy(
   actorUserId: string,
   input: { teamId: string } & MemberProfileAlertPolicy,
 ): Promise<{ policy: MemberProfileAlertPolicy }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const now = new Date();
   const values = {
     teamId: input.teamId,

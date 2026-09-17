@@ -8,7 +8,7 @@ import {
 import { and, eq, gte, isNull, lte, sum } from "drizzle-orm";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   buildMoneyFormulaContext,
   evaluateFormulaValue,
@@ -43,7 +43,7 @@ export async function previewMoneyFormula(
     sectionKey?: string | null;
   },
 ): Promise<{ value: number | null; error: string | null }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const structure = validateMoneyFormulaTokens(input.tokens);
   if (!structure.ok) {

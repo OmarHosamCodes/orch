@@ -32,7 +32,7 @@ import {
 import { getProjectByIdForTeam, requireTeamMember } from "../shared/lookup-helpers";
 import { syncJourneyStepStatuses, applyJourneySyncNotifications } from "../shared/journey-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { normalizeTaskTitle, planAssigneeMerge } from "./task-title";
 import { buildTaskListSearchPredicate, tokenizeTaskListSearch } from "./task-list-search";
 import { publishAgencyTaskUpdated } from "../live/live";
@@ -267,7 +267,7 @@ export async function listAgencyProjectTasks(
     detail?: "full" | "chooser";
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   if (input.projectId) {
     await getProjectByIdForTeam(input.teamId, input.projectId);
@@ -531,7 +531,7 @@ export async function createAgencyProjectTask(
     description?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   await getProjectByIdForTeam(input.teamId, input.projectId);
 
   const title = input.title.trim();
@@ -648,7 +648,7 @@ export async function completeAgencyProjectTaskForMember(
     taskId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const current = await getTaskByIdForTeam(input.teamId, input.taskId);
   if (current.status === "archived") {
@@ -728,7 +728,7 @@ export async function updateAgencyProjectTaskBlueprint(
     description: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [existing] = await db
     .select({
@@ -790,7 +790,7 @@ export async function updateAgencyProjectTask(
     currency?: string;
   },
 ) {
-  const actorRole = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const actorRole = await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const current = await getTaskByIdForTeam(input.teamId, input.taskId);
   const assignees = (await loadTaskAssignees([input.taskId])).get(input.taskId) ?? [];
@@ -1014,7 +1014,7 @@ export async function deleteAgencyProjectTask(
     taskId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [deleted] = await db
     .delete(agencyOpsProjectTask)

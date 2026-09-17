@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import {
   createAgencyProjectTemplate,
@@ -25,12 +25,12 @@ const agencyProjectTemplateSchema = z.object({
 
 export const projectTemplatesRouter = {
   projectTemplates: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return z
         .object({ items: z.array(agencyProjectTemplateSchema) })
         .parse(await listAgencyProjectTemplates(context.session.user.id, input));
     }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           name: z.string().trim().min(1).max(160),
@@ -42,7 +42,7 @@ export const projectTemplatesRouter = {
           await createAgencyProjectTemplate(context.session.user.id, input),
         );
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           templateId: z.string().min(1),
@@ -55,7 +55,7 @@ export const projectTemplatesRouter = {
           await updateAgencyProjectTemplate(context.session.user.id, input),
         );
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(teamScopedInputSchema.extend({ templateId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         return z
