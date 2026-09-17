@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
+import {
+  agencyOpsClient,
+  agencyOpsProject,
+  agencyOpsProjectTask,
+} from "@orch/db/schema";
+import { createWorkspaceId } from "@orch/workspace";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
@@ -309,5 +315,233 @@ describe("team billing snapshot", () => {
       code: "FORBIDDEN",
       data: { code: "trial_ended" },
     });
+  });
+});
+
+async function seedClients(teamId: string, ownerId: string, n: number) {
+  const now = new Date("2026-09-17T00:00:00.000Z");
+  if (n === 0) return;
+  await db.insert(agencyOpsClient).values(
+    Array.from({ length: n }, (_, i) => ({
+      id: createWorkspaceId("agency-client"),
+      teamId,
+      name: `Seed ${i}`,
+      createdByUserId: ownerId,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+}
+
+describe("assertWithinLimit", () => {
+  test("the 11th trial client is limit_reached with locked copy", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    await seedClients(team.id, ownerId, 10);
+    await expect(billingTeam.assertWithinLimit(team.id, "clients")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "This agency can have 10 clients on the trial. Subscribe to add more.",
+      data: { code: "limit_reached" },
+    });
+  });
+
+  test("the 10th trial client is allowed", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    await seedClients(team.id, ownerId, 9);
+    await expect(billingTeam.assertWithinLimit(team.id, "clients")).resolves.toBeUndefined();
+  });
+
+  test("archived clients do not consume the cap", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    await seedClients(team.id, ownerId, 10);
+    await db
+      .update(agencyOpsClient)
+      .set({ archivedAt: new Date("2026-09-17T00:00:00.000Z") })
+      .where(eq(agencyOpsClient.teamId, team.id));
+    await expect(billingTeam.assertWithinLimit(team.id, "clients")).resolves.toBeUndefined();
+  });
+
+  test("Agency fails the 101st client; Unlimited does not", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Paid Agency" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 });
+    await seedClients(team.id, ownerId, 100);
+    await expect(billingTeam.assertWithinLimit(team.id, "clients")).rejects.toMatchObject({
+      data: { code: "limit_reached" },
+      message: "This agency can have 100 clients on Agency. Subscribe to add more.",
+    });
+    await billingTeam.applyPaidPlan(team.id, "agency_unlimited", { seats: 1 });
+    await expect(billingTeam.assertWithinLimit(team.id, "clients")).resolves.toBeUndefined();
+  });
+
+  test("the 31st trial project is limit_reached", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    await db.insert(agencyOpsProject).values(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: `P${i}`,
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    );
+    await expect(billingTeam.assertWithinLimit(team.id, "projects")).rejects.toMatchObject({
+      message: "This agency can have 30 projects on the trial. Subscribe to add more.",
+      data: { code: "limit_reached" },
+    });
+  });
+
+  test("soft-deleted projects do not consume the cap", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    await db.insert(agencyOpsProject).values(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: `P${i}`,
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: now,
+      })),
+    );
+    await expect(billingTeam.assertWithinLimit(team.id, "projects")).resolves.toBeUndefined();
+  });
+
+  test("the 3rd trial task on a project is limit_reached", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    const [client] = await db
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: team.id,
+        name: "Client",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsClient.id });
+    const [project] = await db
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: team.id,
+        clientId: client!.id,
+        name: "P",
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({ id: agencyOpsProject.id });
+    await db.insert(agencyOpsProjectTask).values(
+      Array.from({ length: 2 }, (_, i) => ({
+        id: createWorkspaceId("agency-project-task"),
+        teamId: team.id,
+        projectId: project!.id,
+        title: `T${i}`,
+        createdByUserId: ownerId,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    );
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "tasksPerProject", { projectId: project!.id }),
+    ).rejects.toMatchObject({
+      message: "This agency can have 2 tasks per project on the trial. Subscribe to add more.",
+      data: { code: "limit_reached" },
+    });
+  });
+
+  test("journey adding 3 tasks on an empty trial project is limit_reached", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cap Agency" });
+    const projectId = createWorkspaceId("agency-project");
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "tasksPerProject", { projectId, adding: 3 }),
+    ).rejects.toMatchObject({
+      data: { code: "limit_reached" },
+    });
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "tasksPerProject", { projectId, adding: 2 }),
+    ).resolves.toBeUndefined();
+  });
+
+  test("leftover canvas 4 nodes is limit_reached; 3 nodes is allowed", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Leftover Agency" });
+    const after = new Date("2026-12-01T00:00:00.000Z");
+    await db
+      .update(workspaceTeamBilling)
+      .set({ trialEndsAt: new Date("2026-01-01T00:00:00.000Z") })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "nodes", { count: 4, now: after }),
+    ).rejects.toMatchObject({
+      message: "This agency can have 3 workspace nodes on leftover. Subscribe to add more.",
+      data: { code: "limit_reached" },
+    });
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "nodes", { count: 3, now: after }),
+    ).resolves.toBeUndefined();
+  });
+
+  test("leftover 3 blocks per tab is limit_reached", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Leftover Agency" });
+    const after = new Date("2026-12-01T00:00:00.000Z");
+    await db
+      .update(workspaceTeamBilling)
+      .set({ trialEndsAt: new Date("2026-01-01T00:00:00.000Z") })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+    await expect(
+      billingTeam.assertWithinLimit(team.id, "blocks", { count: 3, now: after }),
+    ).rejects.toMatchObject({
+      message: "This agency can have 2 blocks per tab on leftover. Subscribe to add more.",
+      data: { code: "limit_reached" },
+    });
+  });
+
+  test("trial uploads are blocked; paid Agency uploads are allowed", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Upload Agency" });
+    await expect(billingTeam.assertTaskAndKnowledgeUploadsAllowed(team.id)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "File uploads are included with Agency. Subscribe to attach files.",
+      data: { code: "upload_blocked" },
+    });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 });
+    await expect(billingTeam.assertTaskAndKnowledgeUploadsAllowed(team.id)).resolves.toBeUndefined();
   });
 });

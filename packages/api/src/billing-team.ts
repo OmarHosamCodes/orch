@@ -1,8 +1,15 @@
 import { ORPCError } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@orch/db";
-import { user, workspaceTeam, workspaceTeamBilling } from "@orch/db/schema";
+import {
+  agencyOpsClient,
+  agencyOpsProject,
+  agencyOpsProjectTask,
+  user,
+  workspaceTeam,
+  workspaceTeamBilling,
+} from "@orch/db/schema";
 import {
   AGENCY_PLAN_LIMITS,
   agencyEnabled,
@@ -193,5 +200,165 @@ export async function applyPaidPlan(
 
   if (!updated) {
     throw notEntitledError();
+  }
+}
+
+export type VolumeCounter =
+  | "clients"
+  | "projects"
+  | "tasksPerProject"
+  | "nodes"
+  | "blocks"
+  | "tabs";
+
+function planPhrase(plan: AgencyPlan): string {
+  switch (plan) {
+    case "trial":
+      return "the trial";
+    case "leftover":
+      return "leftover";
+    case "agency":
+      return "Agency";
+    case "agency_unlimited":
+      return "Agency Unlimited";
+    default: {
+      const _exhaustive: never = plan;
+      return _exhaustive;
+    }
+  }
+}
+
+function volumeNoun(counter: VolumeCounter): string {
+  switch (counter) {
+    case "clients":
+      return "clients";
+    case "projects":
+      return "projects";
+    case "tasksPerProject":
+      return "tasks per project";
+    case "nodes":
+      return "workspace nodes";
+    case "blocks":
+      return "blocks per tab";
+    case "tabs":
+      return "tabs per node";
+    default: {
+      const _exhaustive: never = counter;
+      return _exhaustive;
+    }
+  }
+}
+
+function limitReachedError(plan: AgencyPlan, counter: VolumeCounter, n: number) {
+  return new ORPCError("FORBIDDEN", {
+    message: `This agency can have ${n} ${volumeNoun(counter)} on ${planPhrase(plan)}. Subscribe to add more.`,
+    data: { code: "limit_reached", plan, counter, limit: n },
+  });
+}
+
+function uploadBlockedError() {
+  return new ORPCError("FORBIDDEN", {
+    message: "File uploads are included with Agency. Subscribe to attach files.",
+    data: { code: "upload_blocked" },
+  });
+}
+
+function numericLimit(value: number | null | undefined): number | null {
+  if (value == null) return null;
+  return value;
+}
+
+export async function assertWithinLimit(
+  teamId: string,
+  counter: VolumeCounter,
+  extra?: {
+    projectId?: string;
+    adding?: number;
+    count?: number;
+    now?: Date;
+  },
+) {
+  const snapshot = await getTeamBilling(teamId, extra?.now);
+  const adding = extra?.adding ?? 1;
+  let limit: number | null;
+  let used: number;
+
+  switch (counter) {
+    case "clients":
+      limit = numericLimit(snapshot.limits.clients);
+      used = (
+        await db
+          .select({ value: count() })
+          .from(agencyOpsClient)
+          .where(and(eq(agencyOpsClient.teamId, teamId), isNull(agencyOpsClient.archivedAt)))
+      )[0]!.value;
+      break;
+    case "projects":
+      limit = numericLimit(snapshot.limits.projects);
+      used = (
+        await db
+          .select({ value: count() })
+          .from(agencyOpsProject)
+          .where(and(eq(agencyOpsProject.teamId, teamId), isNull(agencyOpsProject.deletedAt)))
+      )[0]!.value;
+      break;
+    case "tasksPerProject": {
+      if (!extra?.projectId) {
+        throw new ORPCError("BAD_REQUEST", { message: "projectId is required." });
+      }
+      limit = numericLimit(snapshot.limits.tasksPerProject);
+      used = (
+        await db
+          .select({ value: count() })
+          .from(agencyOpsProjectTask)
+          .where(
+            and(
+              eq(agencyOpsProjectTask.teamId, teamId),
+              eq(agencyOpsProjectTask.projectId, extra.projectId),
+            ),
+          )
+      )[0]!.value;
+      break;
+    }
+    case "nodes":
+      if (extra?.count == null) {
+        throw new ORPCError("BAD_REQUEST", { message: "count is required." });
+      }
+      limit = snapshot.limits.workspaceNodes;
+      used = extra.count;
+      break;
+    case "blocks":
+      if (extra?.count == null) {
+        throw new ORPCError("BAD_REQUEST", { message: "count is required." });
+      }
+      limit = snapshot.limits.blocksPerTab;
+      used = extra.count;
+      break;
+    case "tabs":
+      if (extra?.count == null) {
+        throw new ORPCError("BAD_REQUEST", { message: "count is required." });
+      }
+      limit = snapshot.limits.tabsPerNode;
+      used = extra.count;
+      break;
+    default: {
+      const _exhaustive: never = counter;
+      throw new ORPCError("BAD_REQUEST", { message: String(_exhaustive) });
+    }
+  }
+
+  if (limit == null) return;
+
+  const projected =
+    counter === "nodes" || counter === "blocks" || counter === "tabs" ? used : used + adding;
+  if (projected > limit) {
+    throw limitReachedError(snapshot.plan, counter, limit);
+  }
+}
+
+export async function assertTaskAndKnowledgeUploadsAllowed(teamId: string, now = new Date()) {
+  const snapshot = await getTeamBilling(teamId, now);
+  if (!snapshot.limits.taskAndKnowledgeUploads) {
+    throw uploadBlockedError();
   }
 }
