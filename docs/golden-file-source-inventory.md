@@ -19,10 +19,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1062 |
+| golden-feature | 1063 |
 | server-operation | 13 |
-| shared-infrastructure | 428 |
-| static-presentation | 17 |
+| shared-infrastructure | 430 |
+| static-presentation | 18 |
 
 ## Counts by domain
 
@@ -40,9 +40,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | dashboard | 13 |
 | database-platform | 48 |
 | deployment | 6 |
-| environment | 5 |
+| environment | 7 |
 | integrations | 2 |
-| marketing | 19 |
+| marketing | 21 |
 | member-profile | 55 |
 | notifications | 48 |
 | performance | 9 |
@@ -153,6 +153,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/components/marketing/landing-hero.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/landing-index.test.ts` | marketing | test | golden-feature | web-experience | Feature-owned marketing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/components/marketing/landing-index.ts` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/components/marketing/landing-pricing-copy.test.ts` | marketing | test | golden-feature | web-experience | Feature-owned marketing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/components/marketing/landing-pricing-copy.ts` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/landing-pricing.tsx` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/landing-workspace-vignette.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/marketing-brand-lockup.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
@@ -523,7 +525,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/shared/agency-search-select.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/agency-segment-boot.test.ts` | agency-shared | test | shared-infrastructure | agency-platform | Cross-cutting agency-shared test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/shared/agency-segment-boot.ts` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: source role and exported behavior |
-| `apps/web/src/features/shared/agency-segment-filters.tsx` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: oRPC procedures or clients, React component or hook code, exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/shared/agency-segment-filters.tsx` | agency-shared | web-query | shared-infrastructure | agency-platform | Cross-cutting agency-shared web-query support rather than a feature-owned business workflow. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-segments.ts` | agency-shared | domain-logic | shared-infrastructure | agency-platform | Cross-cutting agency-shared domain-logic support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/shared/agency-settings-dialog-shell.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/shared/agency-subtitle-breadcrumb.tsx` | agency-shared | presentational-view | shared-infrastructure | agency-platform | Cross-cutting agency-shared presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -763,9 +765,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/time-tracking/hooks/use-agency-duration-input.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-elapsed-timer.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-mini-timer.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: hook naming |
-| `apps/web/src/features/time-tracking/hooks/use-agency-tags.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, exported declarations; structure: hook naming |
+| `apps/web/src/features/time-tracking/hooks/use-agency-tags.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-task-chooser-project-create-dialog.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
-| `apps/web/src/features/time-tracking/hooks/use-agency-task-chooser.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: hook naming |
+| `apps/web/src/features/time-tracking/hooks/use-agency-task-chooser.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: TanStack Query orchestration, feature query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-task-create-dialog.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-time-entries-log.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, feature query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/time-tracking/hooks/use-agency-time-entry-row.ts` | time-tracking | feature-hook | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical feature-hook layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: hook naming |
@@ -1541,6 +1543,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/schema/workspace.ts` | workspace | persistence-schema | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical persistence-schema layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `packages/db/tsconfig.json` | database-platform | build-config | shared-infrastructure | data-platform | Cross-cutting database-platform build-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
 | `packages/env/package.json` | environment | dependency-config | shared-infrastructure | platform-configuration | Cross-cutting environment dependency-config support rather than a feature-owned business workflow. | content: JSON configuration or metadata, package or task configuration; structure: recognized build, test, database, runtime, or package config |
+| `packages/env/src/polar-catalog.test.ts` | environment | test | shared-infrastructure | platform-configuration | Cross-cutting environment test support rather than a feature-owned business workflow. | content: Bun test declarations; structure: test filename |
+| `packages/env/src/polar-catalog.ts` | environment | domain-contract | shared-infrastructure | platform-configuration | Cross-cutting environment domain-contract support rather than a feature-owned business workflow. | content: exported declarations; structure: source role and exported behavior |
 | `packages/env/src/server.ts` | environment | domain-contract | shared-infrastructure | platform-configuration | Cross-cutting environment domain-contract support rather than a feature-owned business workflow. | content: Zod contracts, exported declarations, environment contract; structure: source role and exported behavior |
 | `packages/env/src/vite.ts` | environment | domain-contract | shared-infrastructure | platform-configuration | Cross-cutting environment domain-contract support rather than a feature-owned business workflow. | content: exported declarations, environment contract; structure: source role and exported behavior |
 | `packages/env/src/web.ts` | environment | domain-contract | shared-infrastructure | platform-configuration | Cross-cutting environment domain-contract support rather than a feature-owned business workflow. | content: exported declarations, environment contract; structure: source role and exported behavior |

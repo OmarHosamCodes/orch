@@ -417,7 +417,7 @@ function inferWebDomain(path, contents) {
   if (path === "apps/web/public/sw.js" || /(?:notification|push)/i.test(path)) {
     return "notifications";
   }
-  if (/landing-pricing/.test(path) && /useBilling|checkout|billing-queries/.test(contents)) {
+  if (/landing-pricing/.test(path) && /useBilling|billing-queries/.test(contents)) {
     return "billing";
   }
   if (

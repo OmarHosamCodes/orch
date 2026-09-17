@@ -1,50 +1,17 @@
-import { Check, Minus } from "lucide-react";
 import { Link, useNavigate } from "@/lib/navigation";
 
 import { Button } from "@/ui/button";
 import { useBilling } from "@/features/billing/billing-queries";
 import { useTeamStore } from "@/features/team/team-store";
 
-type LimitFeature = {
-  kind: "limit";
-  label: string;
-  free: string;
-  pro: string;
-};
-
-type FlagFeature = {
-  kind: "flag";
-  label: string;
-  free: boolean;
-  pro: boolean;
-};
-
-type PricingFeature = LimitFeature | FlagFeature;
-
-const features: PricingFeature[] = [
-  { kind: "limit", label: "Workspace nodes", free: "10", pro: "200" },
-  { kind: "limit", label: "Blocks per tab", free: "6", pro: "24" },
-  { kind: "limit", label: "Tabs per node", free: "3", pro: "12" },
-  { kind: "limit", label: "Teams", free: "1", pro: "5" },
-  { kind: "limit", label: "Team members", free: "3", pro: "20" },
-  { kind: "limit", label: "Agent conversations", free: "5", pro: "Unlimited" },
-  { kind: "flag", label: "Agency ops", free: false, pro: true },
-  { kind: "flag", label: "Marketplace publishing", free: false, pro: true },
-];
-
-function PlanCell({ included, value }: { included?: boolean; value?: string }) {
-  if (value !== undefined) {
-    return (
-      <span className="font-mono text-sm font-semibold tabular-nums text-foreground">{value}</span>
-    );
-  }
-
-  return included ? (
-    <Check className="mx-auto size-4 text-primary" aria-hidden="true" />
-  ) : (
-    <Minus className="mx-auto size-4 text-muted-foreground" aria-hidden="true" />
-  );
-}
+import {
+  LANDING_PRICING_BODY,
+  LANDING_PRICING_COLUMNS,
+  LANDING_PRICING_FEATURES,
+  LANDING_PRICING_HEADLINE,
+  landingAgencyCta,
+  landingUnlimitedCta,
+} from "./landing-pricing-copy";
 
 type LandingPricingProps = {
   isAuthenticated: boolean;
@@ -53,30 +20,55 @@ type LandingPricingProps = {
 export function LandingPricing({ isAuthenticated }: LandingPricingProps) {
   const navigate = useNavigate();
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const { checkout, isPro, openPortal } = useBilling(selectedTeamId, isAuthenticated);
+  const { checkout, openPortal, plan } = useBilling(selectedTeamId, isAuthenticated);
+  const agencyCta = landingAgencyCta({ isAuthenticated, plan });
+  const unlimitedCta = landingUnlimitedCta({ isAuthenticated, plan });
 
-  async function handleCheckout() {
-    if (!isAuthenticated) {
-      await navigate("/login");
-      return;
+  async function handleAgencyCta() {
+    switch (agencyCta.kind) {
+      case "login":
+        await navigate("/login");
+        return;
+      case "portal":
+        await openPortal();
+        return;
+      case "checkout-agency":
+        await checkout("agency");
+        return;
+      default: {
+        const _exhaustive: never = agencyCta.kind;
+        return _exhaustive;
+      }
     }
-    if (isPro) {
-      await openPortal();
-      return;
+  }
+
+  async function handleUnlimitedCta() {
+    switch (unlimitedCta.kind) {
+      case "login":
+        await navigate("/login");
+        return;
+      case "portal":
+        await openPortal();
+        return;
+      case "checkout-unlimited":
+        await checkout("agency-unlimited");
+        return;
+      default: {
+        const _exhaustive: never = unlimitedCta.kind;
+        return _exhaustive;
+      }
     }
-    await checkout("agency");
   }
 
   return (
     <section id="pricing" className="w-full scroll-mt-8 border-t border-border bg-background">
-      <div className="mx-auto max-w-4xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
+      <div className="mx-auto max-w-5xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
         <div className="max-w-2xl">
           <h2 className="text-3xl leading-[1.1] font-semibold tracking-[-0.025em] md:text-5xl">
-            Free to start. Pro when 10 nodes is not enough.
+            {LANDING_PRICING_HEADLINE}
           </h2>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
-            Free includes 10 nodes, 6 blocks per tab, and the agent. Pro adds 200 nodes, Agency, and
-            marketplace publishing.
+            {LANDING_PRICING_BODY}
           </p>
         </div>
 
@@ -87,69 +79,91 @@ export function LandingPricing({ isAuthenticated }: LandingPricingProps) {
               <tr className="border-b border-border bg-muted/60">
                 <th
                   scope="col"
-                  className="w-[44%] px-5 py-4 text-sm font-semibold text-muted-foreground"
+                  className="w-[28%] px-4 py-4 text-sm font-semibold text-muted-foreground"
                 >
                   Plan
                 </th>
-                <th
-                  scope="col"
-                  className="w-[28%] px-5 py-4 text-center text-sm font-semibold text-muted-foreground"
-                >
-                  Free
-                </th>
-                <th
-                  scope="col"
-                  className="w-[28%] bg-primary/5 px-5 py-4 text-center text-sm font-semibold text-primary"
-                >
-                  Pro
-                </th>
+                {LANDING_PRICING_COLUMNS.map((column) => (
+                  <th
+                    key={column.id}
+                    scope="col"
+                    className={
+                      column.id === "agency"
+                        ? "w-[24%] bg-primary/5 px-4 py-4 text-center text-sm font-semibold text-primary"
+                        : "w-[24%] px-4 py-4 text-center text-sm font-semibold text-muted-foreground"
+                    }
+                  >
+                    {column.title}
+                  </th>
+                ))}
               </tr>
               <tr className="border-b border-border">
-                <td className="px-5 py-6 align-top">
+                <td className="px-4 py-6 align-top">
                   <p className="text-sm text-muted-foreground">Monthly price</p>
                 </td>
-                <td className="px-5 py-6 text-center align-top">
-                  <p className="text-3xl font-bold tabular-nums">$0</p>
-                  <p className="mt-1 text-xs text-muted-foreground">10 nodes, single user</p>
-                  <Button asChild variant="outline" size="sm" className="mt-4 w-full max-w-[10rem]">
-                    <Link to={isAuthenticated ? "/canvas" : "/login"}>
-                      {isAuthenticated ? "Open workspace" : "Get started"}
-                    </Link>
-                  </Button>
-                </td>
-                <td className="bg-primary/5 px-5 py-6 text-center align-top">
-                  <p className="text-3xl font-bold tabular-nums">$19</p>
-                  <p className="mt-1 text-xs text-muted-foreground">200 nodes, teams, Agency</p>
-                  <Button
-                    size="sm"
-                    variant={isAuthenticated && isPro ? "outline" : "default"}
-                    className="mt-4 w-full max-w-[10rem]"
-                    onClick={() => void handleCheckout()}
+                {LANDING_PRICING_COLUMNS.map((column) => (
+                  <td
+                    key={column.id}
+                    className={
+                      column.id === "agency"
+                        ? "bg-primary/5 px-4 py-6 text-center align-top"
+                        : "px-4 py-6 text-center align-top"
+                    }
                   >
-                    {isAuthenticated && isPro ? "Manage billing" : "Upgrade to Pro"}
-                  </Button>
-                </td>
+                    <p className="text-3xl font-bold tabular-nums">{column.price}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{column.hint}</p>
+                    {column.id === "trial" ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 w-full max-w-[11rem]"
+                      >
+                        <Link to={isAuthenticated ? "/canvas" : "/login"}>
+                          {isAuthenticated ? "Open Canvas" : "Get started"}
+                        </Link>
+                      </Button>
+                    ) : null}
+                    {column.id === "agency" ? (
+                      <Button
+                        size="sm"
+                        variant={agencyCta.kind === "portal" ? "outline" : "default"}
+                        className="mt-4 w-full max-w-[11rem]"
+                        onClick={() => void handleAgencyCta()}
+                      >
+                        {agencyCta.label}
+                      </Button>
+                    ) : null}
+                    {column.id === "unlimited" ? (
+                      <Button
+                        size="sm"
+                        variant={unlimitedCta.kind === "portal" ? "outline" : "default"}
+                        className="mt-4 w-full max-w-[11rem]"
+                        onClick={() => void handleUnlimitedCta()}
+                      >
+                        {unlimitedCta.label}
+                      </Button>
+                    ) : null}
+                  </td>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {features.map((feature) => (
+              {LANDING_PRICING_FEATURES.map((feature) => (
                 <tr key={feature.label} className="border-b border-border last:border-b-0">
-                  <th scope="row" className="px-5 py-4 text-sm font-medium text-muted-foreground">
+                  <th scope="row" className="px-4 py-4 text-sm font-medium text-muted-foreground">
                     {feature.label}
                   </th>
-                  <td className="px-5 py-4 text-center">
-                    {feature.kind === "limit" ? (
-                      <PlanCell value={feature.free} />
-                    ) : (
-                      <PlanCell included={feature.free} />
-                    )}
+                  <td className="px-4 py-4 text-center">
+                    <span className="text-sm font-semibold text-foreground">{feature.trial}</span>
                   </td>
-                  <td className="bg-primary/5 px-5 py-4 text-center">
-                    {feature.kind === "limit" ? (
-                      <PlanCell value={feature.pro} />
-                    ) : (
-                      <PlanCell included={feature.pro} />
-                    )}
+                  <td className="bg-primary/5 px-4 py-4 text-center">
+                    <span className="text-sm font-semibold text-foreground">{feature.agency}</span>
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <span className="text-sm font-semibold text-foreground">
+                      {feature.unlimited}
+                    </span>
                   </td>
                 </tr>
               ))}
