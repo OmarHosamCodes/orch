@@ -42,26 +42,29 @@ export function resolveTeamBillingPlanOverlay(input: {
   lifetimePro: boolean;
   ownerTier: "free" | "pro";
 }): AgencyPlan {
-  if (input.snapshotPlan === "agency" || input.snapshotPlan === "agency_unlimited") {
-    return input.snapshotPlan;
-  }
-
   if (input.lifetimePro) {
     return "agency_unlimited";
+  }
+
+  if (input.snapshotPlan === "agency" || input.snapshotPlan === "agency_unlimited") {
+    return input.snapshotPlan;
   }
 
   return input.ownerTier === "pro" ? "agency" : input.snapshotPlan;
 }
 
 export async function insertTrialBilling(target: BillingInsertTarget, teamId: string, now: Date) {
-  await target.insert(workspaceTeamBilling).values({
-    teamId,
-    plan: "trial",
-    seats: 1,
-    trialEndsAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
-    createdAt: now,
-    updatedAt: now,
-  }).onConflictDoNothing();
+  await target
+    .insert(workspaceTeamBilling)
+    .values({
+      teamId,
+      plan: "trial",
+      seats: 1,
+      trialEndsAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing();
 }
 
 export async function getTeamBilling(
@@ -103,10 +106,6 @@ export async function getTeamBilling(
     now,
   });
 
-  if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
-    return mapTeamBillingSnapshot(billing, resolvedPlan);
-  }
-
   const [owner] = await db
     .select({ id: user.id, lifetimePro: user.lifetimePro })
     .from(workspaceTeam)
@@ -120,6 +119,10 @@ export async function getTeamBilling(
   });
   if (lifetimePlan === "agency_unlimited") {
     return mapTeamBillingSnapshot(billing, lifetimePlan, 1);
+  }
+
+  if (resolvedPlan === "agency" || resolvedPlan === "agency_unlimited") {
+    return mapTeamBillingSnapshot(billing, resolvedPlan);
   }
 
   const ownerBilling = owner ? await getBillingStateForUser(owner.id) : null;

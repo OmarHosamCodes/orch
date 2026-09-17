@@ -16,17 +16,6 @@ import { formatAvatarUrl } from "../agency-ops/shared/avatar-helpers";
 
 type TeamDbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export async function assertCanCreateTeam(actorUserId: string, _input: Record<string, never>) {
-  const existing = await listUserTeams(actorUserId, {});
-
-  if (existing.length >= 1) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "This account already has an Agency.",
-      data: { limit: 1, current: existing.length },
-    });
-  }
-}
-
 async function touchTeam(teamId: string, now: Date) {
   await db
     .update(workspaceTeam)
@@ -188,9 +177,27 @@ export async function findOrCreatePersonalTeam(actorUserId: string, input: { nam
 }
 
 export async function createTeam(actorUserId: string, input: { name: string }) {
-  await assertCanCreateTeam(actorUserId, {});
+  return db.transaction(async (tx) => {
+    const [lockedUser] = await tx
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.id, actorUserId))
+      .for("update");
 
-  return db.transaction((tx) => createTeamInTransaction(tx, actorUserId, input));
+    if (!lockedUser) {
+      throw new ORPCError("NOT_FOUND", { message: "User not found." });
+    }
+
+    const existing = await listUserTeamsInTransaction(tx, actorUserId);
+    if (existing.length >= 1) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "This account already has an Agency.",
+        data: { limit: 1, current: existing.length },
+      });
+    }
+
+    return createTeamInTransaction(tx, actorUserId, input);
+  });
 }
 
 export async function updateTeam(

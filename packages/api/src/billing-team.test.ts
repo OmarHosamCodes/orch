@@ -63,7 +63,14 @@ async function createUnbilledTeam(ownerId: string) {
 }
 
 describe("team billing snapshot", () => {
-  test("prioritizes the lifetime and Polar overlays above a leftover snapshot", () => {
+  test("prioritizes the lifetime overlay above stored and leftover snapshots", () => {
+    expect(
+      billingTeam.resolveTeamBillingPlanOverlay({
+        snapshotPlan: "agency",
+        lifetimePro: true,
+        ownerTier: "free",
+      }),
+    ).toBe("agency_unlimited");
     expect(
       billingTeam.resolveTeamBillingPlanOverlay({
         snapshotPlan: "leftover",
@@ -85,6 +92,20 @@ describe("team billing snapshot", () => {
         ownerTier: "free",
       }),
     ).toBe("leftover");
+  });
+
+  test("maps a stored Agency plan owned by Lifetime Pro to Unlimited with one seat", async () => {
+    const ownerId = await createFixtureUser({ lifetimePro: true });
+    const teamId = await createUnbilledTeam(ownerId);
+    await billingTeam.insertTrialBilling(db, teamId, new Date("2026-09-17T00:00:00.000Z"));
+    await billingTeam.applyPaidPlan(teamId, "agency", { seats: 9 });
+
+    await expect(
+      billingTeam.getTeamBilling(teamId, new Date("2026-09-17T00:00:00.000Z")),
+    ).resolves.toMatchObject({
+      plan: "agency_unlimited",
+      seats: 1,
+    });
   });
 
   test("repairs an unbilled Lifetime Pro Agency as Unlimited", async () => {
@@ -199,6 +220,34 @@ describe("team billing snapshot", () => {
     expect(snapshot.seats).toBe(1);
     await expect(billingTeam.assertAgencyEntitled(team.id, now)).resolves.toMatchObject({
       plan: "trial",
+    });
+  });
+
+  test("a sequential second createTeam call is forbidden", async () => {
+    const ownerId = await createFixtureUser();
+    await teamService.createTeam(ownerId, { name: "First Agency" });
+
+    await expect(teamService.createTeam(ownerId, { name: "Second Agency" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "This account already has an Agency.",
+    });
+  });
+
+  test("concurrent createTeam calls leave the account with one Agency", async () => {
+    const ownerId = await createFixtureUser();
+    const results = await Promise.allSettled([
+      teamService.createTeam(ownerId, { name: "Concurrent Agency A" }),
+      teamService.createTeam(ownerId, { name: "Concurrent Agency B" }),
+    ]);
+    const teams = await db
+      .select({ id: workspaceTeam.id })
+      .from(workspaceTeam)
+      .where(eq(workspaceTeam.createdByUserId, ownerId));
+
+    expect(teams).toHaveLength(1);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.find((result) => result.status === "rejected")).toMatchObject({
+      reason: { code: "FORBIDDEN" },
     });
   });
 
