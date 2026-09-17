@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 Bun.env.POLAR_PRODUCT_PRO = "polar-pro";
+Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited";
 Bun.env.POLAR_PRODUCT_ORCH_CREDITS = "polar-credits";
 
 const createPolarCheckout = mock(async () => ({ url: "https://polar.test/c" }));
@@ -148,6 +149,31 @@ describe("createSeatCheckout", () => {
       actorUserId: ownerId,
     });
   });
+
+  test("seat checkout for an Unlimited team uses the Unlimited product", async () => {
+    const previousUnlimited = Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED;
+    Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited";
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Unlimited Seats" });
+    await billingTeam.applyPaidPlan(team.id, "agency_unlimited", {
+      seats: 2,
+      polarSubscriptionId: "sub_unl_seats",
+    });
+
+    await billingService.createSeatCheckout(ownerId, { teamId: team.id, seats: 3 });
+
+    expect(createPolarCheckout).toHaveBeenCalledWith({
+      productId: "polar-unlimited",
+      seats: 3,
+      teamId: team.id,
+      actorUserId: ownerId,
+    });
+    if (previousUnlimited === undefined) {
+      delete Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED;
+    } else {
+      Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = previousUnlimited;
+    }
+  });
 });
 
 describe("createCreditCheckout", () => {
@@ -192,6 +218,33 @@ describe("confirmCheckout", () => {
       plan: "agency",
       seats: 2,
       polarSubscriptionId: "sub_confirm",
+    });
+  });
+
+  test("confirmCheckout of Unlimited activates agency_unlimited", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Confirm Unlimited" });
+
+    fetchPolarCheckout.mockImplementation(async (checkoutId) => ({
+      teamId: team.id,
+      checkoutId,
+      productId: "polar-unlimited",
+      seats: 1,
+      subscriptionId: "sub_unl",
+      status: "succeeded",
+    }));
+
+    const result = await billingService.confirmCheckout(ownerId, {
+      teamId: team.id,
+      checkoutId: "chk_unlimited",
+    });
+
+    expect(result.checkoutKind).toBe("agency");
+    expect(result.billing).toMatchObject({
+      teamId: team.id,
+      plan: "agency_unlimited",
+      seats: 1,
+      polarSubscriptionId: "sub_unl",
     });
   });
 

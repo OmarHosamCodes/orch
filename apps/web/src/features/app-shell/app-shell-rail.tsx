@@ -77,7 +77,7 @@ export function AppShellRailOverlays() {
                 className="w-full rounded-full"
                 onClick={() => {
                   setMobileNavOpen(false);
-                  void checkout("pro");
+                  void checkout("agency");
                 }}
               >
                 Get Pro

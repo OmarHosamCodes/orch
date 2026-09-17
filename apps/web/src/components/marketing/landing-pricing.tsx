@@ -64,7 +64,7 @@ export function LandingPricing({ isAuthenticated }: LandingPricingProps) {
       await openPortal();
       return;
     }
-    await checkout("pro");
+    await checkout("agency");
   }
 
   return (

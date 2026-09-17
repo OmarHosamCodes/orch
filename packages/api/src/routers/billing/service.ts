@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { env } from "@orch/env/server";
+import { env, planForPolarProductId, resolvePolarCatalog } from "@orch/env/server";
 
 import {
   applyCreditPack,
@@ -13,27 +13,6 @@ import { createPolarCheckout, fetchPolarCheckout } from "../../billing-polar-che
 import { requireTeamMembership } from "../../lib/team-membership";
 
 import { agencyEnabled, legacyTier } from "@orch/workspace/tiers";
-
-function polarProProductIds(): string[] {
-  return (env.POLAR_PRODUCT_PRO ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
-
-function isPolarProProduct(productId: string): boolean {
-  return polarProProductIds().includes(productId);
-}
-
-function primaryPolarProProductId(): string {
-  const [productId] = polarProProductIds();
-  if (!productId) {
-    throw new ORPCError("INTERNAL_SERVER_ERROR", {
-      message: "Agency seat checkout is not configured for this environment.",
-    });
-  }
-  return productId;
-}
 
 export async function getSubscriptionBillingState(actorUserId: string, input: { teamId: string }) {
   await requireTeamMembership(actorUserId, input.teamId);
@@ -61,12 +40,24 @@ export async function createSeatCheckout(
 ): Promise<{ url: string }> {
   await requireTeamMembership(actorUserId, input.teamId, "owner");
 
+  const snapshot = await getTeamBilling(input.teamId);
+  const catalog = resolvePolarCatalog(env);
+  const productId =
+    snapshot.plan === "agency_unlimited" && catalog.unlimitedProductId
+      ? catalog.unlimitedProductId
+      : catalog.agencyProductId;
+  if (!productId) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "Agency seat checkout is not configured for this environment.",
+    });
+  }
+
   const seats = await db.transaction(async (tx) =>
     deriveInviteSeatCheckoutQuantity(input.teamId, tx),
   );
 
   return createPolarCheckout({
-    productId: primaryPolarProProductId(),
+    productId,
     seats,
     teamId: input.teamId,
     actorUserId,
@@ -127,7 +118,7 @@ export async function confirmCheckout(
     return { billing: snapshot, checkoutKind: "credits" };
   }
 
-  if (isPolarProProduct(checkout.productId)) {
+  if (planForPolarProductId(resolvePolarCatalog(env), checkout.productId)) {
     if (!checkout.subscriptionId) {
       throw new ORPCError("BAD_REQUEST", {
         message: "This checkout did not include an active Agency subscription.",

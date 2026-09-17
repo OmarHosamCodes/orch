@@ -16,7 +16,7 @@ export function useAgencyPaywall() {
     setCheckoutError("");
 
     try {
-      await checkout("pro");
+      await checkout("agency");
     } catch {
       setCheckoutError("Checkout didn't finish. Try again.");
     } finally {

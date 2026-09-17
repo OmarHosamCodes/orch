@@ -1,6 +1,12 @@
 import { db } from "@orch/db";
 import * as schema from "@orch/db/schema/auth";
-import { corsOrigins, env, primaryCorsOrigin } from "@orch/env/server";
+import {
+  corsOrigins,
+  env,
+  polarCheckoutProducts,
+  primaryCorsOrigin,
+  resolvePolarCatalog,
+} from "@orch/env/server";
 import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
@@ -186,12 +192,7 @@ export const auth = betterAuth({
       createCustomerOnSignUp: false,
       use: [
         checkout({
-          products: [
-            {
-              productId: env.POLAR_PRODUCT_PRO,
-              slug: "pro",
-            },
-          ],
+          products: polarCheckoutProducts(resolvePolarCatalog(env)),
           successUrl: "/billing/success?checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
           returnUrl: new URL("/pricing", primaryCorsOrigin).toString(),

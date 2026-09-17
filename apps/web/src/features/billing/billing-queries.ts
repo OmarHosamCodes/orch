@@ -45,7 +45,7 @@ export function deriveBillingState(data: BillingState | undefined) {
   };
 }
 
-async function checkoutBilling(slug = "pro") {
+async function checkoutBilling(slug: "agency" | "agency-unlimited" = "agency") {
   await authClient.checkout({ slug });
 }
 

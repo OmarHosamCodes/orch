@@ -172,7 +172,7 @@ export function useUserSettingsModalActions(input: UserSettingsModalInput) {
   }
 
   function handleBillingAction() {
-    void (isPro ? openPortal() : checkout());
+    void (isPro ? openPortal() : checkout("agency"));
   }
 
   function togglePreferenceChannel(pref: NotificationPreferenceItem, channel: "inApp" | "push") {
