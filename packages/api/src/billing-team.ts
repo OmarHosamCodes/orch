@@ -222,35 +222,38 @@ export async function applyCreditPack(
   input: { checkoutId: string; credits: number },
 ): Promise<{ applied: boolean }> {
   const now = new Date();
-  const [inserted] = await db
-    .insert(workspaceTeamBillingCreditGrant)
-    .values({
-      checkoutId: input.checkoutId,
-      teamId,
-      credits: input.credits,
-      createdAt: now,
-    })
-    .onConflictDoNothing()
-    .returning({ checkoutId: workspaceTeamBillingCreditGrant.checkoutId });
 
-  if (!inserted) {
-    return { applied: false };
-  }
+  return db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(workspaceTeamBillingCreditGrant)
+      .values({
+        checkoutId: input.checkoutId,
+        teamId,
+        credits: input.credits,
+        createdAt: now,
+      })
+      .onConflictDoNothing({ target: workspaceTeamBillingCreditGrant.checkoutId })
+      .returning({ checkoutId: workspaceTeamBillingCreditGrant.checkoutId });
 
-  const [updated] = await db
-    .update(workspaceTeamBilling)
-    .set({
-      orchCreditsRemaining: sql`${workspaceTeamBilling.orchCreditsRemaining} + ${input.credits}`,
-      updatedAt: now,
-    })
-    .where(eq(workspaceTeamBilling.teamId, teamId))
-    .returning({ teamId: workspaceTeamBilling.teamId });
+    if (!inserted) {
+      return { applied: false };
+    }
 
-  if (!updated) {
-    throw notEntitledError();
-  }
+    const [updated] = await tx
+      .update(workspaceTeamBilling)
+      .set({
+        orchCreditsRemaining: sql`${workspaceTeamBilling.orchCreditsRemaining} + ${input.credits}`,
+        updatedAt: now,
+      })
+      .where(eq(workspaceTeamBilling.teamId, teamId))
+      .returning({ teamId: workspaceTeamBilling.teamId });
 
-  return { applied: true };
+    if (!updated) {
+      throw notEntitledError();
+    }
+
+    return { applied: true };
+  });
 }
 
 export async function applyPolarSnapshot(
