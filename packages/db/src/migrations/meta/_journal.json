@@ -484,6 +484,13 @@
       "when": 1787900000045,
       "tag": "0070_conversation_last_read",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1787900000046,
+      "tag": "0071_tracker_list_indexes",
+      "breakpoints": true
     }
   ]
 }
