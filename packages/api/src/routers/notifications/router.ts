@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { protectedProProcedure } from "../../procedures";
+import { protectedProcedure } from "../../procedures";
 import {
   notificationDeliverySettingsSchema,
   notificationDeliverySettingsSetInputSchema,
@@ -26,7 +26,7 @@ import {
 } from "./service";
 
 export const notificationsRouter = {
-  list: protectedProProcedure
+  list: protectedProcedure
     .input(notificationListInputSchema)
     .handler(async ({ context, input }) => {
       const result = await listNotifications(context.session.user.id, input);
@@ -37,7 +37,7 @@ export const notificationsRouter = {
         })
         .parse(result);
     }),
-  unreadCount: protectedProProcedure
+  unreadCount: protectedProcedure
     .input(teamScopedNotificationInputSchema)
     .handler(async ({ context, input }) => {
       return z
@@ -47,21 +47,21 @@ export const notificationsRouter = {
         })
         .parse(await getUnreadNotificationCount(context.session.user.id, input));
     }),
-  markSeen: protectedProProcedure
+  markSeen: protectedProcedure
     .input(teamScopedNotificationInputSchema)
     .handler(async ({ context, input }) => {
       return z
         .object({ updated: z.boolean() })
         .parse(await markNotificationsSeen(context.session.user.id, input));
     }),
-  markRead: protectedProProcedure
+  markRead: protectedProcedure
     .input(notificationMarkReadInputSchema)
     .handler(async ({ context, input }) => {
       return z
         .object({ notificationId: z.string().min(1), read: z.boolean() })
         .parse(await markNotificationRead(context.session.user.id, input));
     }),
-  markAllRead: protectedProProcedure
+  markAllRead: protectedProcedure
     .input(teamScopedNotificationInputSchema)
     .handler(async ({ context, input }) => {
       return z
@@ -69,7 +69,7 @@ export const notificationsRouter = {
         .parse(await markAllNotificationsRead(context.session.user.id, input));
     }),
   preferences: {
-    get: protectedProProcedure
+    get: protectedProcedure
       .input(teamScopedNotificationInputSchema)
       .handler(async ({ context, input }) => {
         const result = await getNotificationPreferences(context.session.user.id, input);
@@ -80,7 +80,7 @@ export const notificationsRouter = {
           })
           .parse(result);
       }),
-    set: protectedProProcedure
+    set: protectedProcedure
       .input(
         teamScopedNotificationInputSchema.extend({
           preferences: z.array(notificationPreferenceSchema).min(1),
@@ -95,7 +95,7 @@ export const notificationsRouter = {
           })
           .parse(result);
       }),
-    setDelivery: protectedProProcedure
+    setDelivery: protectedProcedure
       .input(notificationDeliverySettingsSetInputSchema)
       .handler(async ({ context, input }) => {
         const result = await setNotificationDeliverySettings(context.session.user.id, input);
@@ -108,14 +108,14 @@ export const notificationsRouter = {
       }),
   },
   push: {
-    subscribe: protectedProProcedure
+    subscribe: protectedProcedure
       .input(pushSubscribeInputSchema)
       .handler(async ({ context, input }) => {
         return z
           .object({ subscribed: z.boolean() })
           .parse(await subscribePush(context.session.user.id, input));
       }),
-    unsubscribe: protectedProProcedure
+    unsubscribe: protectedProcedure
       .input(pushUnsubscribeInputSchema)
       .handler(async ({ context, input }) => {
         return z

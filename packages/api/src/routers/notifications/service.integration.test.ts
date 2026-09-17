@@ -1,13 +1,25 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { call } from "@orpc/server";
 import { eq } from "drizzle-orm";
+
+import type { Context } from "../../context";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { notification, user }, teamService, service] = await Promise.all([
+const [
+  { db },
+  { notification, user, workspaceTeamBilling },
+  teamService,
+  billingTeam,
+  service,
+  { notificationsRouter },
+] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema"),
   import("../team/service"),
+  import("../../billing-team"),
   import("./service"),
+  import("./router"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -30,7 +42,53 @@ async function createFixtureUser() {
   return { id, email };
 }
 
+function createFixtureContext(fixtureUser: { id: string; email: string }): Context {
+  const now = new Date();
+  return {
+    session: {
+      user: {
+        id: fixtureUser.id,
+        name: "Notification Integration User",
+        email: fixtureUser.email,
+        emailVerified: false,
+        image: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: `session-${fixtureUser.id}`,
+        userId: fixtureUser.id,
+        token: `token-${fixtureUser.id}`,
+        expiresAt: new Date(now.getTime() + 60_000),
+        createdAt: now,
+        updatedAt: now,
+        ipAddress: null,
+        userAgent: null,
+      },
+    },
+  };
+}
+
 describe("notification service authorization", () => {
+  test("allows a leftover team member without lifetime Pro to list notifications", async () => {
+    const owner = await createFixtureUser();
+    const team = await teamService.createTeam(owner.id, { name: "Leftover Notification Team" });
+    const now = new Date("2026-09-17T00:00:00.000Z");
+    await db
+      .update(workspaceTeamBilling)
+      .set({ trialEndsAt: new Date("2026-01-01T00:00:00.000Z") })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    expect((await db.select().from(user).where(eq(user.id, owner.id)))[0]?.lifetimePro).toBe(false);
+    expect(await billingTeam.getTeamBilling(team.id, now)).toMatchObject({ plan: "leftover" });
+    const result = await call(
+      notificationsRouter.list,
+      { teamId: team.id },
+      { context: createFixtureContext(owner) },
+    );
+    expect(result).toEqual({ items: [], nextCursor: null });
+  });
+
   test("does not expose or mutate another recipient's notification", async () => {
     const owner = await createFixtureUser();
     const recipient = await createFixtureUser();
