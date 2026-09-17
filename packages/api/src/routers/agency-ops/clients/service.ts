@@ -15,6 +15,37 @@ import { requireAgencyRole } from "../shared/membership";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
 import { assertWithinLimit } from "../../../billing-team";
 
+type AgencyClientCommercialInput = {
+  category?: "internal" | "external";
+  billableRateAmount?: number | null;
+  currency?: string;
+};
+
+function clientInputTouchesCommercialFields(input: AgencyClientCommercialInput): boolean {
+  if ("category" in input && input.category !== undefined) {
+    return true;
+  }
+  if ("billableRateAmount" in input && input.billableRateAmount !== undefined) {
+    return true;
+  }
+  if ("currency" in input && input.currency !== undefined) {
+    return true;
+  }
+  return false;
+}
+
+async function requireAgencyClientWriteRole(
+  actorUserId: string,
+  teamId: string,
+  input: AgencyClientCommercialInput,
+) {
+  if (clientInputTouchesCommercialFields(input)) {
+    await requireAgencyRole(actorUserId, teamId, "owner");
+  } else {
+    await requireAgencyRole(actorUserId, teamId, "editor");
+  }
+}
+
 type AgencyClientRecord = {
   id: string;
   teamId: string;
@@ -496,7 +527,7 @@ export async function createAgencyClient(
     currency?: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyClientWriteRole(actorUserId, input.teamId, input);
 
   const now = new Date();
   let billableRateAmount = input.billableRateAmount ?? null;
@@ -556,7 +587,7 @@ export async function updateAgencyClient(
     currency?: string;
   },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyClientWriteRole(actorUserId, input.teamId, input);
 
   const [current] = await db
     .select({
@@ -648,7 +679,7 @@ export async function archiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const [client] = await db
     .select({ id: agencyOpsClient.id, archivedAt: agencyOpsClient.archivedAt })
@@ -677,7 +708,7 @@ export async function unarchiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const now = new Date();
   await db
@@ -740,7 +771,7 @@ export async function upsertClientContact(
     phone?: string;
   },
 ): Promise<AgencyClientContactRecord> {
-  await requireAgencyRole(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   await getClientByIdForTeam(input.teamId, input.clientId);
 
