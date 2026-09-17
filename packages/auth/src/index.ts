@@ -8,6 +8,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { AUTH_IP_ADDRESS_HEADERS, AUTH_TRUSTED_PROXY_CIDRS } from "./trusted-proxies";
 import { rememberedAccount } from "./remembered-account";
+import { createUserCreateAfterHandler } from "./user-create-after";
 
 const polarClient = new Polar({
   accessToken: env.POLAR_ACCESS_TOKEN,
@@ -19,17 +20,6 @@ const isSplitDeployment = new URL(primaryCorsOrigin).origin !== new URL(env.BETT
 const shouldShareSchoolOfMarketingCookies = new URL(env.BETTER_AUTH_URL).hostname.endsWith(
   ".school-of-marketing.com",
 );
-
-type PersonalAgencyOnUserCreate = (
-  actorUserId: string,
-  input: { name: string },
-) => Promise<unknown>;
-
-let personalAgencyOnUserCreate: PersonalAgencyOnUserCreate | null = null;
-
-export function registerPersonalAgencyOnUserCreate(callback: PersonalAgencyOnUserCreate) {
-  personalAgencyOnUserCreate = callback;
-}
 
 function schedulePolarCustomerSetup(user: { id: string; email: string; name: string }) {
   void (async () => {
@@ -57,6 +47,14 @@ function schedulePolarCustomerSetup(user: { id: string; email: string; name: str
     }
   })();
 }
+
+const userCreateAfterHandler = createUserCreateAfterHandler({
+  schedulePolarCustomerSetup,
+  logError: (message, error) => console.error(message, error),
+});
+
+export const registerPersonalAgencyOnUserCreate =
+  userCreateAfterHandler.registerPersonalAgencyOnUserCreate;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -90,19 +88,7 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        after: async (user) => {
-          schedulePolarCustomerSetup(user);
-          try {
-            if (!personalAgencyOnUserCreate) {
-              throw new Error("Personal Agency user-create handler is not registered.");
-            }
-
-            await personalAgencyOnUserCreate(user.id, { name: user.name });
-          } catch (error) {
-            console.error("Personal Agency setup failed:", error);
-            throw error;
-          }
-        },
+        after: userCreateAfterHandler.afterUserCreate,
       },
     },
   },
