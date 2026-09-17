@@ -293,6 +293,64 @@ describe("team billing snapshot", () => {
     });
   });
 
+  test("getTeamBilling rolls orch usage at UTC month boundary and scales included by seats", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Roll Agency" });
+    await billingTeam.applyPolarSnapshot(team.id, {
+      teamId: team.id,
+      subscriptionId: "sub_roll",
+      productId: Bun.env.POLAR_PRODUCT_PRO ?? "polar-pro",
+      seats: 3,
+      status: "active",
+    });
+    await db
+      .update(workspaceTeamBilling)
+      .set({
+        orchMessagesUsed: 42,
+        orchMessagesPeriodStart: new Date("2026-06-15T12:00:00.000Z"),
+      })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    const now = new Date("2026-07-01T00:00:00.000Z");
+    await expect(billingTeam.getTeamBilling(team.id, now)).resolves.toMatchObject({
+      orchMessagesUsed: 0,
+      orchMessagesIncluded: 150,
+      seats: 3,
+    });
+
+    const [row] = await db
+      .select()
+      .from(workspaceTeamBilling)
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+    expect(row?.orchMessagesPeriodStart).toEqual(new Date(Date.UTC(2026, 6, 1)));
+  });
+
+  test("applyPolarSnapshot canceled or revoked leaves stored agency and seats", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Cancel Agency" });
+    const polarBase = {
+      teamId: team.id,
+      subscriptionId: "sub_cancel",
+      productId: Bun.env.POLAR_PRODUCT_PRO ?? "polar-pro",
+      seats: 3,
+    };
+    await billingTeam.applyPolarSnapshot(team.id, { ...polarBase, status: "active" });
+
+    await billingTeam.applyPolarSnapshot(team.id, { ...polarBase, status: "canceled" });
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      plan: "agency",
+      seats: 3,
+      polarSubscriptionId: "sub_cancel",
+    });
+
+    await billingTeam.applyPolarSnapshot(team.id, { ...polarBase, status: "revoked" });
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      plan: "agency",
+      seats: 3,
+      polarSubscriptionId: "sub_cancel",
+    });
+  });
+
   test("lifetime Unlimited uses Polar seats when a subscription exists", async () => {
     const ownerId = await createFixtureUser({ lifetimePro: true });
     const team = await ensurePersonalAgencyModule.ensurePersonalAgency(ownerId, {
