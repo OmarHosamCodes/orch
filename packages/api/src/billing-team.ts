@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@orch/db";
 import { env } from "@orch/env/server";
@@ -10,6 +10,7 @@ import {
   user,
   workspaceTeam,
   workspaceTeamBilling,
+  workspaceTeamBillingCreditGrant,
   workspaceTeamMember,
 } from "@orch/db/schema";
 import {
@@ -214,6 +215,42 @@ export async function applyPaidPlan(
   if (!updated) {
     throw notEntitledError();
   }
+}
+
+export async function applyCreditPack(
+  teamId: string,
+  input: { checkoutId: string; credits: number },
+): Promise<{ applied: boolean }> {
+  const now = new Date();
+  const [inserted] = await db
+    .insert(workspaceTeamBillingCreditGrant)
+    .values({
+      checkoutId: input.checkoutId,
+      teamId,
+      credits: input.credits,
+      createdAt: now,
+    })
+    .onConflictDoNothing()
+    .returning({ checkoutId: workspaceTeamBillingCreditGrant.checkoutId });
+
+  if (!inserted) {
+    return { applied: false };
+  }
+
+  const [updated] = await db
+    .update(workspaceTeamBilling)
+    .set({
+      orchCreditsRemaining: sql`${workspaceTeamBilling.orchCreditsRemaining} + ${input.credits}`,
+      updatedAt: now,
+    })
+    .where(eq(workspaceTeamBilling.teamId, teamId))
+    .returning({ teamId: workspaceTeamBilling.teamId });
+
+  if (!updated) {
+    throw notEntitledError();
+  }
+
+  return { applied: true };
 }
 
 export async function applyPolarSnapshot(

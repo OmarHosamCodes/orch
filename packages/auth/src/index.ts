@@ -8,6 +8,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { AUTH_IP_ADDRESS_HEADERS, AUTH_TRUSTED_PROXY_CIDRS } from "./trusted-proxies";
 import { rememberedAccount } from "./remembered-account";
+import type { WebhookOrderPaidPayload } from "@polar-sh/sdk/models/components/webhookorderpaidpayload";
+import type { WebhookSubscriptionActivePayload } from "@polar-sh/sdk/models/components/webhooksubscriptionactivepayload";
+
+import {
+  createPolarBillingAfterHandler,
+  type PolarOrderPaidView,
+  type PolarSubscriptionActiveView,
+} from "./polar-billing-after";
 import { createUserCreateAfterHandler } from "./user-create-after";
 
 const polarClient = new Polar({
@@ -53,8 +61,58 @@ const userCreateAfterHandler = createUserCreateAfterHandler({
   logError: (message, error) => console.error(message, error),
 });
 
+const polarBillingAfterHandler = createPolarBillingAfterHandler({
+  logError: (message, error) => console.error(message, error),
+});
+
+function metadataTeamId(metadata: Record<string, string | number | boolean>): string | null {
+  const raw = metadata.teamId;
+  if (typeof raw === "string" && raw.length > 0) {
+    return raw;
+  }
+  return null;
+}
+
+function mapOrderPaidPayload(payload: WebhookOrderPaidPayload): PolarOrderPaidView | null {
+  const order = payload.data;
+  const teamId = metadataTeamId(order.metadata);
+  const productId = order.productId;
+  if (!teamId || !productId) {
+    return null;
+  }
+
+  return {
+    teamId,
+    checkoutId: order.checkoutId ?? "",
+    productId,
+    seats: Math.max(1, order.seats ?? 1),
+    subscriptionId: order.subscriptionId,
+  };
+}
+
+function mapSubscriptionActivePayload(
+  payload: WebhookSubscriptionActivePayload,
+): PolarSubscriptionActiveView | null {
+  const subscription = payload.data;
+  const teamId = metadataTeamId(subscription.metadata);
+  if (!teamId) {
+    return null;
+  }
+
+  return {
+    teamId,
+    subscriptionId: subscription.id,
+    productId: subscription.productId,
+    seats: Math.max(1, subscription.seats ?? 1),
+  };
+}
+
 export const registerPersonalAgencyOnUserCreate =
   userCreateAfterHandler.registerPersonalAgencyOnUserCreate;
+
+export const registerPolarOrderPaid = polarBillingAfterHandler.registerPolarOrderPaid;
+export const registerPolarSubscriptionActive =
+  polarBillingAfterHandler.registerPolarSubscriptionActive;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -143,6 +201,18 @@ export const auth = betterAuth({
         }),
         webhooks({
           secret: env.POLAR_WEBHOOK_SECRET,
+          onOrderPaid: async (payload) => {
+            const order = mapOrderPaidPayload(payload);
+            if (order) {
+              await polarBillingAfterHandler.handleOrderPaid(order);
+            }
+          },
+          onSubscriptionActive: async (payload) => {
+            const subscription = mapSubscriptionActivePayload(payload);
+            if (subscription) {
+              await polarBillingAfterHandler.handleSubscriptionActive(subscription);
+            }
+          },
         }),
       ],
     }),

@@ -1021,6 +1021,44 @@ describe("create service volume caps", () => {
   });
 });
 
+describe("applyCreditPack", () => {
+  test("first apply grants credits; duplicate checkout is idempotent", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Credit Pack" });
+    const checkoutId = `chk_${crypto.randomUUID()}`;
+
+    await expect(
+      billingTeam.applyCreditPack(team.id, { checkoutId, credits: 100 }),
+    ).resolves.toEqual({ applied: true });
+
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      orchCreditsRemaining: 100,
+    });
+
+    await expect(
+      billingTeam.applyCreditPack(team.id, { checkoutId, credits: 100 }),
+    ).resolves.toEqual({ applied: false });
+
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      orchCreditsRemaining: 100,
+    });
+  });
+
+  test("applyCreditPack honors the credits argument for a new checkout", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Credit Pack 200" });
+    const checkoutId = `chk_${crypto.randomUUID()}`;
+
+    await expect(
+      billingTeam.applyCreditPack(team.id, { checkoutId, credits: 200 }),
+    ).resolves.toEqual({ applied: true });
+
+    await expect(billingTeam.getTeamBilling(team.id)).resolves.toMatchObject({
+      orchCreditsRemaining: 200,
+    });
+  });
+});
+
 describe("consumeOrchMessage", () => {
   test("trial allows 5 included messages then rejects the 6th with orch_credits", async () => {
     const ownerId = await createFixtureUser();

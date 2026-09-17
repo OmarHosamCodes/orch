@@ -16,7 +16,12 @@ import { recoverStaleRuns } from "@orch/api/routers/agent/run-service";
 import { bootstrapAgencyLiveRedisSubscriber } from "@orch/api/routers/agency-ops/live/live";
 import { registerNotificationPushHandler } from "@orch/api/routers/notifications/delivery";
 import { ensurePersonalAgency } from "@orch/api/routers/team/ensure-personal-agency";
-import { auth, registerPersonalAgencyOnUserCreate } from "@orch/auth";
+import {
+  auth,
+  registerPersonalAgencyOnUserCreate,
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+} from "@orch/auth";
 import { corsOrigins, env, primaryCorsOrigin, resolveSentryRelease } from "@orch/env/server";
 import { sentry } from "@sentry/hono/bun";
 import { Hono } from "hono";
@@ -37,6 +42,7 @@ import {
 } from "./lib/ws-handler";
 import { startAgentDetectionScheduler } from "./lib/agent-detection";
 import { startNotificationDigestScheduler } from "./lib/notification-digest";
+import { registerTeamPolarBillingHandlers } from "./lib/register-team-polar-billing";
 import { sendWebPushForNotification } from "./lib/web-push";
 
 function getRpcDebugResponse(error: unknown, path: string) {
@@ -169,6 +175,10 @@ const app = createApp();
 const port = env.PORT ?? 7000;
 
 registerPersonalAgencyOnUserCreate(ensurePersonalAgency);
+registerTeamPolarBillingHandlers({
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+});
 await bootstrapAgencyLiveRedisSubscriber();
 registerNotificationPushHandler(sendWebPushForNotification);
 startNotificationDigestScheduler();

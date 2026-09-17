@@ -37,6 +37,7 @@ export const env = createEnv({
       .min(1, "POLAR_WEBHOOK_SECRET is required for payment features"),
     POLAR_SERVER: z.enum(["sandbox", "production"]).default("sandbox"),
     POLAR_PRODUCT_PRO: z.string().min(1, "POLAR_PRODUCT_PRO is required for Pro tier billing"),
+    POLAR_PRODUCT_ORCH_CREDITS: z.string().optional(),
     S3_ENDPOINT: z.string().min(1, "S3_ENDPOINT is required for file storage"),
     S3_REGION: z.string().min(1, "S3_REGION is required for file storage"),
     S3_BUCKET: z.string().min(1, "S3_BUCKET is required for file storage"),
