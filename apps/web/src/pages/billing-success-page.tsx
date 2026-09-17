@@ -37,9 +37,9 @@ export function BillingSuccessPage() {
               <CheckCircle className="size-8 text-primary" />
             </div>
 
-            <h1 className="mb-2 text-2xl font-bold text-highlighted">Pro is active</h1>
+            <h1 className="mb-2 text-2xl font-bold text-highlighted">Agency is active</h1>
             <p className="mb-8 text-muted">
-              Your subscription is active and billing has been updated.
+              This team can use Tracker, projects, money, and people.
             </p>
 
             {checkoutId ? (
@@ -50,7 +50,7 @@ export function BillingSuccessPage() {
 
             <div className="flex flex-col gap-3">
               <Button asChild size="lg">
-                <Link to="/canvas">Go to Canvas</Link>
+                <Link to="/agency">Open Tracker</Link>
               </Button>
               <Button
                 size="lg"
@@ -59,7 +59,7 @@ export function BillingSuccessPage() {
                 style={{ "--stagger-i": 1 } as React.CSSProperties}
                 onClick={() => void openPortal()}
               >
-                Manage subscription
+                Manage billing
               </Button>
             </div>
           </div>

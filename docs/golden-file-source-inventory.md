@@ -19,7 +19,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1029 |
+| golden-feature | 1034 |
 | server-operation | 13 |
 | shared-infrastructure | 423 |
 | static-presentation | 17 |
@@ -33,7 +33,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | api-platform | 13 |
 | architecture | 4 |
 | auth | 16 |
-| billing | 151 |
+| billing | 156 |
 | ci | 3 |
 | clients | 15 |
 | configuration | 3 |
@@ -204,8 +204,13 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/app-shell/shell/use-shell-boot-gate.ts` | web-platform | feature-hook | shared-infrastructure | web-platform | Cross-cutting web-platform feature-hook support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/auth/hooks/use-login-page.ts` | auth | feature-hook | golden-feature | identity-domain | Feature-owned auth artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/auth/login-page.tsx` | auth | feature-entry | golden-feature | identity-domain | Feature-owned auth artifact in the canonical feature-entry layer. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
-| `apps/web/src/features/billing/agency-pro-upsell.tsx` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/billing/agency-paywall-copy.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/billing/agency-paywall-copy.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
+| `apps/web/src/features/billing/agency-paywall-view.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/billing/agency-paywall.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/billing/billing-queries.ts` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: oRPC procedures or clients, TanStack Query orchestration, feature query orchestration; structure: source role and exported behavior |
+| `apps/web/src/features/billing/containers/agency-paywall-container.tsx` | billing | container | golden-feature | billing-domain | Feature-owned billing artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
+| `apps/web/src/features/billing/hooks/use-agency-paywall.ts` | billing | feature-hook | golden-feature | billing-domain | Feature-owned billing artifact in the canonical feature-hook layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/billing/money-bill-allocation.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/billing/money-bill-allocation.ts` | billing | domain-logic | golden-feature | billing-domain | Feature-owned billing artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/billing/money-bill-merged-rows.test.ts` | billing | test | golden-feature | billing-domain | Feature-owned billing artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |

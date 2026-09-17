@@ -33,10 +33,13 @@ function billingStateQueryKey(teamId: string | null | undefined) {
 }
 
 function deriveBillingState(data: BillingState | undefined) {
+  const plan = data?.plan ?? "leftover";
   const tier = data?.tier ?? "free";
   return {
+    plan,
     tier,
     isPro: tier === "pro",
+    agencyEnabled: data?.agencyEnabled ?? false,
     limits: data?.limits ?? DEFAULT_BILLING_LIMITS,
     subscription: data?.subscription ?? null,
   };
