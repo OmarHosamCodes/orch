@@ -2,7 +2,7 @@
 version: 1
 slug: "apps-web-src-features-app-shell"
 primary_target: "apps/web/src/features/app-shell"
-related_targets: ["apps/web/src/ui","apps/web/src/pages","apps/web/src/features/shared/agency-ui.ts"]
+related_targets: ["apps/web/src/ui","apps/web/src/pages","apps/web/src/features/shared/agency-ui.ts","apps/web/src/features/notifications"]
 ---
 
 # Authenticated surface system
@@ -38,20 +38,39 @@ Shape brief compared four location-chrome jobs in Open Design project orch-shell
 
 Constraints: no create-from-picker; no team switcher in the bar; overlay names from existing caches only; `g`+letter shortcuts stay; WCAG AA and `prefers-reduced-motion`.
 
+## Rail notification stack (2026-09-17)
+
+Approved composition A: Wallet peek + Revolut front. Comp: `.impeccable/mocks/orch-rail-notify-comp-a-wallet-peek.png`.
+
+Memorable moment: hover fans identity strips from the bottom-left; click a strip and it becomes the only readable card with a monochrome Read/View pill.
+
+Do not ship: inbox lists, tinted plates, colored CTAs, two-column footers.
+
+| Ingredient | Medium |
+|---|---|
+| Peek strip (kind · title, 32px) | CSS overflow clip on zinc 16px card |
+| Front card | CSS zinc surface, 16px radius, offset shadow |
+| Actor mark | AgencyMemberAvatar |
+| Update / alert mark | Lucide in circular zinc well |
+| Title / body | Poppins, 14px semibold / 12px muted |
+| Read / View / Update now | shadcn Button full-width white pill |
+| Corner fan | motion/react rotate+x, origin 0% 100% |
+| Overflow caption | 11px muted text |
+
 ## Direction contract
 
-THESIS: One continuous workspace, with grain confined to its connected outer shell and instant content inside it. Location chrome is one current place, not a nested trail.
+THESIS: One continuous workspace, with grain confined to its connected outer shell and instant content inside it. Location chrome is one current place, not a nested trail. Featured notifications are a Wallet peek deck, not a second inbox.
 
 OWN-WORLD: Existing Orch dark zinc surface ladder with monochrome primary CTAs and Operator Violet accents. Shared 16px surface corners, 20px desktop interior gutters, 12px mobile gutters; the existing 12px shell inset remains. One neutral background across pages, panels, and dialogs. Semantic controls retain their shapes.
 
-STORY: Operators read where they are, open grouped destinations, or take one quiet back step on nested pages — without relearning panel hierarchy.
+STORY: Operators read where they are, open grouped destinations, or take one quiet back step on nested pages — without relearning panel hierarchy. The rail footer shows one actionable card; the rest wait as identity strips.
 
-FIRST VIEWPORT: Full-height expanded 248px left sidebar, connected 44px context bar with Current Title (hamburger on small screens, optional parent back, leaf title + chevron; bell and CloudOff on the right), rounded inset page well, then a single interior gutter.
+FIRST VIEWPORT: Full-height expanded 248px left sidebar, connected 44px context bar with Current Title (hamburger on small screens, optional parent back, leaf title + chevron; bell and CloudOff on the right), rounded inset page well, then a single interior gutter. Rail footer: peek strips above a Revolut card, profile below.
 
-FORM: User-selected Continuous surface, option 01, plus Traveling blob liquid chrome and Current Title location chrome. Reference: Linear project overview https://mobbin.com/screens/267d16a1-982b-4479-85b5-22294fdab01a.
+FORM: User-selected Continuous surface, option 01, plus Traveling blob liquid chrome and Current Title location chrome. Notification stack: composition A Wallet peek, seed `user-approved-2026-09-17`. Comp: `.impeccable/mocks/orch-rail-notify-comp-a-wallet-peek.png`. References: Linear https://mobbin.com/screens/267d16a1-982b-4479-85b5-22294fdab01a · Revolut Business https://mobbin.com/screens/edb54f3a-aa75-4aa4-a6d1-189780851ff9 · Apple Wallet https://mobbin.com/screens/5b49ae4b-f03b-4e28-b662-eb5cf9cc83f6.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Verification
 
-Actual authenticated routes at desktop and mobile: Dashboard, nested People/member, Canvas/node, notifications, sync error, Arabic overflow, collapsed-width mobile drawer. Check grain ownership, Current Title, parent back, destination menu, traveling blob on the title, focus, reduced motion, and overflow. TypeScript and shell tests must pass. No new raster assets.
+Actual authenticated routes at desktop and mobile: Dashboard, nested People/member, Canvas/node, notifications, sync error, Arabic overflow, collapsed-width mobile drawer. Check grain ownership, Current Title, parent back, destination menu, traveling blob on the title, focus, reduced motion, overflow, Wallet peek stack hover/promote, and Read/View CTAs. TypeScript and shell tests must pass. No new raster assets in product UI.

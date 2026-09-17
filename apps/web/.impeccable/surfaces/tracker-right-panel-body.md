@@ -28,10 +28,10 @@ Agency operators tracking time who want quick surfaces beside the log without pe
 ## Direction (locked)
 
 - Topology: T3 Code panel grammar — closeable surface tabs, add (+) beside the last tab, collapse to slim dock, pending tick, tab context menu (close / close others / close to right).
-- Surfaces v1: **My Tasks** (singleton), **Break** (multiple tabs; 10/15/30/60 + custom countdown), **Agent** (singleton placeholder).
+- Surfaces v1: **My Tasks** (singleton), **Break** (multiple tabs; 10/15/30/60 + custom countdown). Agent surface is deferred — not in the open-surface menu yet.
 - Empty open: `isOpen` with zero tabs shows **Open a surface** menu (same as **+** dropdown). Closing the last tab stays open on the picker; collapse is explicit.
 - Layout: collapsed slim rail or compact inline dock at `lg+`; Sheet below `lg`. No full-screen expanded overlay.
-- Collapsed rail: slim icon-only dock — expand control plus one icon per open surface kind (My Tasks / Break / Agent). Count badges for open tasks / multiple break tabs; live pulse when a break is running or My Tasks is pending. No vertical “Panel” label. Clicking a kind icon reopens that surface.
+- Collapsed rail: slim icon-only dock — expand control plus one icon per open surface kind (My Tasks / Break). Count badges for open tasks / multiple break tabs; live pulse when a break is running or My Tasks is pending. No vertical “Panel” label. Clicking a kind icon reopens that surface.
 - Chrome: tab strip is identity (no duplicate page title). Break tab title shows `Break · MM:SS` while running.
 
 ## Memorable moment
@@ -40,4 +40,4 @@ Open panel → pick a surface from the menu → Break countdown with animated di
 
 ## Constraints
 
-Clockify-adjacent task/play patterns; shadcn tokens; golden-file layers; `MotionConfig reducedMotion="user"`; break timer state in panel localStorage only (v2 persist key); no height tween on virtualized log; keyboard shortcuts **T** / **B** / **A** when panel focused.
+Clockify-adjacent task/play patterns; shadcn tokens; golden-file layers; `MotionConfig reducedMotion="user"`; break timer state in panel localStorage only (v2 persist key); no height tween on virtualized log; keyboard shortcuts **T** / **B** when panel focused.
