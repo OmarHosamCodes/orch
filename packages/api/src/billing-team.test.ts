@@ -1097,6 +1097,32 @@ describe("consumeOrchMessage", () => {
     });
   });
 
+  test("concurrent month rollover and consume does not clobber usage to zero", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Orch Roll Race" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 1 });
+    await db
+      .update(workspaceTeamBilling)
+      .set({
+        orchMessagesUsed: 42,
+        orchMessagesPeriodStart: new Date("2026-06-15T12:00:00.000Z"),
+      })
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+
+    const now = new Date("2026-07-01T00:00:00.000Z");
+    await Promise.all([
+      billingTeam.consumeOrchMessage(team.id, now),
+      billingTeam.getTeamBilling(team.id, now),
+    ]);
+
+    const [row] = await db
+      .select()
+      .from(workspaceTeamBilling)
+      .where(eq(workspaceTeamBilling.teamId, team.id));
+    expect(row?.orchMessagesPeriodStart).toEqual(new Date(Date.UTC(2026, 6, 1)));
+    expect(row?.orchMessagesUsed).toBe(1);
+  });
+
   test("orch credits are consumed after included messages are exhausted", async () => {
     const ownerId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Orch Credits" });

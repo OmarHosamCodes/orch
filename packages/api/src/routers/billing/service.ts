@@ -4,9 +4,11 @@ import { env } from "@orch/env/server";
 import {
   applyCreditPack,
   applyPolarSnapshot,
+  deriveInviteSeatCheckoutQuantity,
   getTeamBilling,
   hasCreditGrantForCheckout,
 } from "../../billing-team";
+import { db } from "@orch/db";
 import { createPolarCheckout, fetchPolarCheckout } from "../../billing-polar-checkout";
 import { requireTeamMembership } from "../../lib/team-membership";
 
@@ -31,14 +33,6 @@ function primaryPolarProProductId(): string {
     });
   }
   return productId;
-}
-
-function assertInviteSeatCount(seats: number) {
-  if (!Number.isInteger(seats) || seats < 2) {
-    throw new ORPCError("BAD_REQUEST", {
-      message: "Seat checkout requires at least 2 seats for a team invite.",
-    });
-  }
 }
 
 export async function getSubscriptionBillingState(actorUserId: string, input: { teamId: string }) {
@@ -66,11 +60,14 @@ export async function createSeatCheckout(
   input: { teamId: string; seats: number },
 ): Promise<{ url: string }> {
   await requireTeamMembership(actorUserId, input.teamId, "owner");
-  assertInviteSeatCount(input.seats);
+
+  const seats = await db.transaction(async (tx) =>
+    deriveInviteSeatCheckoutQuantity(input.teamId, tx),
+  );
 
   return createPolarCheckout({
     productId: primaryPolarProProductId(),
-    seats: input.seats,
+    seats,
     teamId: input.teamId,
     actorUserId,
   });

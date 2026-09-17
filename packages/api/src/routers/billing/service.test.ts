@@ -106,13 +106,20 @@ describe("createSeatCheckout", () => {
     });
   });
 
-  test("rejects a single-seat checkout quantity", async () => {
+  test("ignores a single-seat client quantity and derives checkout seats", async () => {
     const ownerId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Seat Checkout" });
 
     await expect(
       billingService.createSeatCheckout(ownerId, { teamId: team.id, seats: 1 }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    ).resolves.toEqual({ url: "https://polar.test/c" });
+
+    expect(createPolarCheckout).toHaveBeenCalledWith({
+      productId: polarProProductId,
+      seats: 2,
+      teamId: team.id,
+      actorUserId: ownerId,
+    });
   });
 
   test("rejects non-owners", async () => {
@@ -123,6 +130,23 @@ describe("createSeatCheckout", () => {
     await expect(
       billingService.createSeatCheckout(outsiderId, { teamId: team.id, seats: 2 }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  test("derives checkout seats from billing and ignores a lower client quantity", async () => {
+    const ownerId = await createFixtureUser();
+    const team = await teamService.createTeam(ownerId, { name: "Seat Checkout Paid" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 3 });
+
+    await expect(
+      billingService.createSeatCheckout(ownerId, { teamId: team.id, seats: 2 }),
+    ).resolves.toEqual({ url: "https://polar.test/c" });
+
+    expect(createPolarCheckout).toHaveBeenCalledWith({
+      productId: polarProProductId,
+      seats: 4,
+      teamId: team.id,
+      actorUserId: ownerId,
+    });
   });
 });
 

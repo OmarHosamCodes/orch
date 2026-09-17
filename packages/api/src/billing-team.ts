@@ -384,6 +384,7 @@ async function maybeRollOrchMessagesPeriod(
   }
 
   const periodStart = startOfUtcMonth(now);
+  const priorPeriodStart = billing.orchMessagesPeriodStart;
   const [updated] = await executor
     .update(workspaceTeamBilling)
     .set({
@@ -391,10 +392,25 @@ async function maybeRollOrchMessagesPeriod(
       orchMessagesPeriodStart: periodStart,
       updatedAt: now,
     })
-    .where(eq(workspaceTeamBilling.teamId, billing.teamId))
+    .where(
+      and(
+        eq(workspaceTeamBilling.teamId, billing.teamId),
+        eq(workspaceTeamBilling.orchMessagesPeriodStart, priorPeriodStart),
+      ),
+    )
     .returning();
 
-  return updated ?? billing;
+  if (updated) {
+    return updated;
+  }
+
+  const [current] = await executor
+    .select()
+    .from(workspaceTeamBilling)
+    .where(eq(workspaceTeamBilling.teamId, billing.teamId))
+    .limit(1);
+
+  return current ?? billing;
 }
 
 async function lockTeamBillingRowForVolumeCap(
@@ -640,4 +656,31 @@ export async function assertTaskAndKnowledgeUploadsAllowed(teamId: string, now =
   if (!snapshot.limits.taskAndKnowledgeUploads) {
     throw uploadBlockedError();
   }
+}
+
+export async function deriveInviteSeatCheckoutQuantity(
+  teamId: string,
+  executor: VolumeCapDbExecutor = db,
+): Promise<number> {
+  const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
+  const now = new Date();
+  const snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
+  const memberCount = (
+    await executor
+      .select({ value: count() })
+      .from(workspaceTeamMember)
+      .where(eq(workspaceTeamMember.teamId, teamId))
+  )[0]!.value;
+
+  const checkoutSeats = Math.max(snapshot.seats + 1, memberCount);
+  if (checkoutSeats < memberCount) {
+    throw seatRequiredError(snapshot.seats);
+  }
+  if (!Number.isInteger(checkoutSeats) || checkoutSeats < 2) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "Seat checkout requires at least 2 seats for a team invite.",
+    });
+  }
+
+  return checkoutSeats;
 }
