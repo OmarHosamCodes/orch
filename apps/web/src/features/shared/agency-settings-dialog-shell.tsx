@@ -21,6 +21,7 @@ type AgencySettingsDialogShellProps<TPane extends string> = {
   onPaneChange: (pane: TPane) => void;
   navItems: readonly AgencySettingsNavItem<TPane>[];
   paneTitle: string;
+  paneDescription?: string;
   children: ReactNode;
   /** Optional footer under the nav (e.g. Sign out). */
   navFooter?: ReactNode;
@@ -40,6 +41,7 @@ export function AgencySettingsDialogShell<TPane extends string>({
   onPaneChange,
   navItems,
   paneTitle,
+  paneDescription,
   children,
   navFooter,
   contentClassName,
@@ -60,7 +62,7 @@ export function AgencySettingsDialogShell<TPane extends string>({
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
 
-        <div className={cn("flex h-[min(32rem,85vh)] overflow-hidden", bodyClassName)}>
+        <div className={cn("flex h-[min(36rem,88vh)] overflow-hidden", bodyClassName)}>
           {hideNav ? null : (
             <nav
               className="flex w-48 shrink-0 flex-col border-r border-border bg-muted/30"
@@ -97,10 +99,15 @@ export function AgencySettingsDialogShell<TPane extends string>({
           )}
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain p-6 pr-14">
-            <h2 className="text-xl font-semibold tracking-tight text-balance text-foreground">
-              {paneTitle}
-            </h2>
-            {children}
+            <header className="border-b border-border pb-5">
+              <h2 className="text-lg font-semibold tracking-tight text-balance text-foreground">
+                {paneTitle}
+              </h2>
+              {paneDescription ? (
+                <p className="mt-1 max-w-prose text-sm text-muted-foreground">{paneDescription}</p>
+              ) : null}
+            </header>
+            <div className="min-h-0 flex-1 pt-6">{children}</div>
           </div>
         </div>
       </DialogContent>

@@ -20,6 +20,11 @@ import { RangePresetChooser } from "@/features/shared/command-bar/range-preset-c
 import { AgencyMultiSelectFilter } from "@/features/shared/filters/agency-multi-select-filter";
 import { MemberProfileLeaveRangePicker } from "@/features/shared/date/member-profile-leave-range-picker";
 import { AgencyProjectCreateDialog } from "@/features/projects/agency-project-create-dialog";
+import { AgencyClientCreateDialog } from "@/features/clients/agency-client-create-dialog";
+import {
+  ensureInternalClientId,
+  pickDefaultProjectClientId,
+} from "@/features/clients/internal-client";
 import { AgencyReportHistoryMenu } from "@/features/reports/creator/agency-report-history-menu";
 import {
   allAgencyReportFieldIds,
@@ -686,8 +691,12 @@ function ClientsFiltersRoot({
   );
 }
 
-const AgencyProjectsActionsContext = createContext<{ openNewProject: () => void }>({
+const AgencyProjectsActionsContext = createContext<{
+  openNewProject: () => void;
+  openNewClient: () => void;
+}>({
   openNewProject: () => {},
+  openNewClient: () => {},
 });
 
 export function useAgencyProjectsActions() {
@@ -708,15 +717,52 @@ function ProjectsFiltersRoot({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId),
   });
-  const { canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
+  const { canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
+  const createClient = useAgencyOpsStore((state) => state.createClient);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [defaultClientId, setDefaultClientId] = useState<string | undefined>(undefined);
+  const [ensuringClient, setEnsuringClient] = useState(false);
+  const projectClients = listFilters.clients.map((client) => ({
+    id: client.id,
+    name: client.name,
+    category: client.category,
+  }));
+
+  async function handleOpenNewProject() {
+    if (!canEditRecords || !teamId || ensuringClient) return;
+    const existingId = pickDefaultProjectClientId(projectClients);
+    if (existingId) {
+      setDefaultClientId(existingId);
+      setNewProjectOpen(true);
+      return;
+    }
+
+    setEnsuringClient(true);
+    try {
+      const clientId = await ensureInternalClientId({
+        teamId,
+        clients: projectClients,
+        createClient,
+        asInternalCategory: canEditRates,
+      });
+      if (!clientId) return;
+      setDefaultClientId(clientId);
+      setNewProjectOpen(true);
+    } finally {
+      setEnsuringClient(false);
+    }
+  }
 
   return (
     <AgencySegmentFiltersContext.Provider value={{ kind: "list", applied: listFilters.applied }}>
       <AgencyProjectsActionsContext.Provider
         value={{
           openNewProject: () => {
-            if (canEditRecords) setNewProjectOpen(true);
+            void handleOpenNewProject();
+          },
+          openNewClient: () => {
+            if (canEditRecords) setNewClientOpen(true);
           },
         }}
       >
@@ -734,8 +780,8 @@ function ProjectsFiltersRoot({
                 {canEditRecords ? (
                   <Button
                     size="sm"
-                    disabled={!teamId || listFilters.clients.length === 0}
-                    onClick={() => setNewProjectOpen(true)}
+                    disabled={!teamId || ensuringClient}
+                    onClick={() => void handleOpenNewProject()}
                   >
                     <Plus />
                     New project
@@ -745,12 +791,24 @@ function ProjectsFiltersRoot({
             )
           ) : null}
           {canEditRecords ? (
-            <AgencyProjectCreateDialog
-              open={newProjectOpen}
-              onOpenChange={setNewProjectOpen}
-              teamId={teamId}
-              clients={listFilters.clients}
-            />
+            <>
+              <AgencyClientCreateDialog
+                open={newClientOpen}
+                onOpenChange={setNewClientOpen}
+                teamId={teamId}
+                onCreated={(clientId) => {
+                  setDefaultClientId(clientId);
+                  setNewProjectOpen(true);
+                }}
+              />
+              <AgencyProjectCreateDialog
+                open={newProjectOpen}
+                onOpenChange={setNewProjectOpen}
+                teamId={teamId}
+                clients={listFilters.clients}
+                defaultClientId={defaultClientId}
+              />
+            </>
           ) : null}
           {children}
         </div>
