@@ -266,7 +266,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
   }
 
   const isEmpty = favorites.length === 0 && clientGroups.length === 0;
-  const emptyLabel = searchTerm.trim() ? "No matches" : "No projects yet.";
+  const emptyLabel = searchTerm.trim() ? "No matches" : "Create a project to choose a task.";
   const hasFavorites = favorites.length > 0;
 
   return (
@@ -332,16 +332,26 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 ) : (
                   <AnimatePresence mode="wait" initial={false}>
                     {isEmpty ? (
-                      <motion.p
+                      <motion.div
                         key={`empty-${emptyLabel}`}
                         variants={chooserEmptyVariants}
                         initial="hidden"
                         animate="show"
                         exit="exit"
-                        className="px-3 py-8 text-center text-sm text-muted-foreground"
+                        className="px-3 py-8 text-center"
                       >
-                        {emptyLabel}
-                      </motion.p>
+                        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+                        {canEditRecords && !searchTerm.trim() ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="mt-3"
+                            onClick={onOpenCreateProject}
+                          >
+                            New project
+                          </Button>
+                        ) : null}
+                      </motion.div>
                     ) : (
                       <motion.div
                         key="chooser-list"
@@ -383,7 +393,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 )}
               </div>
 
-              {canEditRecords ? (
+              {canEditRecords && !(isEmpty && !searchTerm.trim()) ? (
                 <div className="shrink-0 border-t border-border px-3 py-2.5">
                   <motion.button
                     type="button"
@@ -398,7 +408,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                     onClick={onOpenCreateProject}
                   >
                     <Plus className="size-4" aria-hidden />
-                    Create project
+                    New project
                   </motion.button>
                 </div>
               ) : null}

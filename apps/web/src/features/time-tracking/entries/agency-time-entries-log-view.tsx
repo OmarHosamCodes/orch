@@ -10,7 +10,6 @@ import { Skeleton } from "@/ui/skeleton";
 import type { AgencyTimeEntriesLogViewModel } from "@/features/time-tracking/hooks/use-agency-time-entries-log";
 import type { AgencyTimeEntryGroupRowRenderer } from "@/features/time-tracking/entries/agency-time-entry-row-renderer";
 import {
-  agencyMetricClass,
   agencyTimeEntryDayGroupClass,
   agencyTimeEntryDayHeadClass,
   agencyWorkTableBodyScrollClass,
@@ -143,29 +142,10 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
           <div className="border-b border-dashed border-default bg-elevated/25 px-4 py-10 text-center">
             <p className="text-sm font-semibold text-highlighted">No time logged yet</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
-              Start the tracker, write a short description, and choose a task before stopping.
+              Start a timer above to capture your first entry.
             </p>
-            <ol className="mx-auto mt-4 max-w-xs space-y-2 text-left text-sm text-muted">
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>1.</span>
-                <span>Press Start</span>
-              </li>
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>2.</span>
-                <span>Describe your work</span>
-              </li>
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>3.</span>
-                <span>Choose a task</span>
-              </li>
-            </ol>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-5"
-              onClick={view.onRequestOpenTaskChooser}
-            >
-              Choose task
+            <Button type="button" size="sm" className="mt-4" onClick={view.onStartTimer}>
+              Start timer
             </Button>
           </div>
         ) : view.virtualize ? (

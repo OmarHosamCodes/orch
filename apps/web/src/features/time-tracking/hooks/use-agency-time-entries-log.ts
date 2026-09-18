@@ -108,6 +108,7 @@ export type AgencyTimeEntriesLogViewModel = {
   onApplyBulk: () => void;
   onCreateTag?: (name: string) => void;
   onRequestOpenTaskChooser: () => void;
+  onStartTimer: () => void;
   pinnedWeekOverlay: {
     weekStartKey: string;
     label: string;
@@ -501,6 +502,14 @@ export function useAgencyTimeEntriesLog({
     setBulkEditDayKey(null);
   }
 
+  function focusTrackerDescription() {
+    const root = document.querySelector("[data-agency-time-tracker]");
+    if (!(root instanceof HTMLElement)) return;
+    root.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const input = root.querySelector("input");
+    if (input instanceof HTMLInputElement) input.focus();
+  }
+
   function createTag(name: string) {
     if (!teamId || !tagsQuery.canEditRecords || tagCreatePending) return;
     setTagCreatePending(true);
@@ -559,6 +568,7 @@ export function useAgencyTimeEntriesLog({
     onApplyBulk: () => void applyBulkPatch(),
     onCreateTag: tagsQuery.canEditRecords ? createTag : undefined,
     onRequestOpenTaskChooser: requestOpenTaskChooser,
+    onStartTimer: focusTrackerDescription,
     pinnedWeekOverlay,
     scrollContainerRef,
     showPagination: totalEntries > pageSize,
