@@ -5,6 +5,7 @@ import {
   useState,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
 } from "react";
 
 import { setTrackingFavicon } from "@/lib/favicon";
@@ -67,6 +68,13 @@ import {
 } from "@/features/time-tracking/hooks/use-agency-tags";
 import type { AgencyTagOption } from "@/features/time-tracking/choosers/agency-tag-chooser";
 import { shouldBlockTrackerChrome } from "@/features/time-tracking/tracker-chrome-ready";
+import {
+  fireTrackerStopCelebration,
+  isTrackerStopCelebrationEnabled,
+  originFromStopButtonElement,
+  resolveStopCelebrationBurst,
+  type TrackerStopConfettiOrigin,
+} from "@/features/time-tracking/tracker-stop-celebration";
 
 const emptyElapsedDraft = "";
 
@@ -161,7 +169,7 @@ export type AgencyTimeTrackerViewModel = {
   onManualTimeKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   onManualDateChange: (date: string) => void;
   onStartTimer: () => void;
-  onStopTimer: () => void;
+  onStopTimer: (event?: MouseEvent<HTMLButtonElement>) => void;
   onDiscardTimer: () => void;
   onAddManual: () => void;
 };
@@ -547,8 +555,10 @@ export function useAgencyTimeTracker({
     setDescriptionFocused(false);
   }
 
-  async function stopTimer(discard = false) {
+  async function stopTimer(discard = false, origin?: TrackerStopConfettiOrigin) {
     if (!teamId || !activeTimer) return;
+
+    const startedAtMs = new Date(activeTimer.startedAt).getTime();
 
     await flushActiveTimerDescription(teamId);
 
@@ -561,6 +571,18 @@ export function useAgencyTimeTracker({
       tagIds: trackerDraft?.tagIds,
       isBillable: trackerDraft?.isBillable,
     });
+
+    if (!discard && isTrackerStopCelebrationEnabled()) {
+      const stopTaskId = resolvedTimerTask?.id ?? activeTimer.taskId;
+      const stopTask = stopTaskId ? tasks.find((task) => task.id === stopTaskId) : undefined;
+      const burst = resolveStopCelebrationBurst({
+        durationSeconds: (Date.now() - startedAtMs) / 1000,
+        taskIsWaste: stopTask?.isWaste,
+        taskTitle: resolvedTimerTask?.title ?? activeTimer.taskTitle,
+        projectName: trackerProject?.name ?? activeTimer.projectName,
+      });
+      if (burst) fireTrackerStopCelebration(origin, burst);
+    }
   }
 
   const taskChooserLabel =
@@ -873,7 +895,8 @@ export function useAgencyTimeTracker({
     onManualTimeKeyDown,
     onManualDateChange,
     onStartTimer: () => void startTimer(),
-    onStopTimer: () => void stopTimer(),
+    onStopTimer: (event?: MouseEvent<HTMLButtonElement>) =>
+      void stopTimer(false, originFromStopButtonElement(event?.currentTarget)),
     onDiscardTimer: () => void stopTimer(true),
     onAddManual: () => void addManual(),
   };
