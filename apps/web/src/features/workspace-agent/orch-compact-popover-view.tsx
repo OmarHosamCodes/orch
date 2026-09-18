@@ -32,6 +32,10 @@ export function OrchCompactPopoverView({
   const liveCount = threads.length;
   const hint =
     liveCount === 0 ? "Enter to send" : `${liveCount} live · Enter to send · Open Orch for threads`;
+  // Staged entrance cascade (ms): composer → hint/body → CTA. Capped so a
+  // long thread list still settles with the panel.
+  const bodyDelay = (index: number) => 140 + Math.min(index, 4) * 45;
+  const ctaDelay = 200 + Math.min(liveCount, 3) * 45;
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -40,27 +44,29 @@ export function OrchCompactPopoverView({
         align="end"
         side="bottom"
         sideOffset={8}
-        className="w-[min(calc(100vw-1rem),22.5rem)] overflow-hidden rounded-[20.8px] p-0"
+        className="orch-compact-morph w-[min(calc(100vw-1rem),22.5rem)] overflow-hidden rounded-[20.8px] p-0"
         data-workspace-agent-overlay
       >
-        <div className="border-b border-border px-3 py-2">{composer}</div>
-        <p className="px-3 py-1.5 font-mono text-[11px] leading-4 text-muted-foreground">{hint}</p>
+        <div className="orch-compact-rise border-b border-border px-3 py-2" style={{ animationDelay: "30ms" }}>{composer}</div>
+        <p className="orch-compact-rise px-3 py-1.5 font-mono text-[11px] leading-4 text-muted-foreground" style={{ animationDelay: "90ms" }}>{hint}</p>
 
         <div className="max-h-64 overflow-y-auto px-1.5 pb-1">
           {threads.length === 0 ? (
-            <p className="px-2 py-2.5 text-sm text-muted-foreground">Send to start a thread.</p>
+            <p className="orch-compact-rise px-2 py-2.5 text-sm text-muted-foreground" style={{ animationDelay: "140ms" }}>Send to start a thread.</p>
           ) : (
-            threads.map((thread) => (
-              <OrchThreadRowView
+            threads.map((thread, index) => (
+              <div
                 key={thread.id}
-                thread={thread}
-                onSelect={() => onSelectThread(thread.id)}
-              />
+                className="orch-compact-rise"
+                style={{ animationDelay: `${bodyDelay(index)}ms` }}
+              >
+                <OrchThreadRowView thread={thread} onSelect={() => onSelectThread(thread.id)} />
+              </div>
             ))
           )}
         </div>
 
-        <div className="border-t border-border p-2.5">
+        <div className="orch-compact-rise border-t border-border p-2.5" style={{ animationDelay: `${ctaDelay}ms` }}>
           <motion.button
             type="button"
             layoutId={ORCH_COMPANION_SCREEN_LAYOUT_ID}

@@ -11,7 +11,7 @@ import { OrchThreadRowView } from "@/features/workspace-agent/orch-thread-row-vi
 import { Button } from "@/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/ui/collapsible";
 import { Input } from "@/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 export type OrchSettleThreadRow = OrchThreadRow;
 
@@ -57,21 +57,23 @@ export function OrchSettleListView({
             aria-label="Search threads"
             className="h-8 min-w-0 flex-1 rounded-[14.4px]"
           />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="size-8 shrink-0 rounded-[14.4px]"
-                aria-label="New thread"
-                onClick={onNewThread}
-              >
-                <Plus className="size-3.5" aria-hidden />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">New thread</TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="size-8 shrink-0 rounded-[14.4px]"
+                  aria-label="New thread"
+                  onClick={onNewThread}
+                >
+                  <Plus className="size-3.5" aria-hidden />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">New thread</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5">

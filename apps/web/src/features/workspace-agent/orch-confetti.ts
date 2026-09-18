@@ -1,4 +1,5 @@
 import confetti from "canvas-confetti";
+import type { Options as ConfettiOptions } from "canvas-confetti";
 
 const ORCH_CONFETTI_COLORS = ["#5b5bd6", "#e8e4dc", "#1c1917"];
 
@@ -7,7 +8,9 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function fireOrchConfetti(origin?: { x: number; y: number }) {
+export type OrchConfettiBurst = Pick<ConfettiOptions, "particleCount" | "ticks">;
+
+export function fireOrchConfetti(origin?: { x: number; y: number }, burst?: OrchConfettiBurst) {
   if (prefersReducedMotion()) return;
   void confetti({
     particleCount: 48,
@@ -18,5 +21,6 @@ export function fireOrchConfetti(origin?: { x: number; y: number }) {
     origin: origin ?? { x: 0.72, y: 0.22 },
     colors: ORCH_CONFETTI_COLORS,
     disableForReducedMotion: true,
+    ...burst,
   });
 }

@@ -1592,7 +1592,7 @@ export function useWorkspaceAgent() {
 
   const emptyHint =
     surface === "agency"
-      ? "See hours, waste, or who is tracking. Pick a starter or type below."
+      ? "Check hours, waste, or who's tracking. Pick a starter or ask below."
       : "Explain this board, find a node, or propose a layout.";
   const bottomOffsetClass = surface === "agency" ? "bottom-8" : "bottom-4";
   const streamingMessageId =

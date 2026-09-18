@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -55,7 +56,7 @@ export function OrchExpandableScreenView({
       className={cn(
         "pointer-events-none fixed z-50",
         "inset-0 max-md:pt-[env(safe-area-inset-top)]",
-        "md:inset-x-0 md:bottom-0 md:top-[var(--app-shell-context-bar-height)] md:ps-[var(--app-shell-rail-width)]",
+        "md:inset-x-0 md:bottom-0 md:top-0 md:ps-[var(--app-shell-rail-width)]",
       )}
       data-workspace-agent-root
     >
@@ -97,13 +98,14 @@ export function OrchExpandableScreenView({
               <p className="min-w-0 truncate text-sm font-semibold">{title}</p>
               <Button
                 type="button"
-                size="sm"
+                size="icon"
                 variant="ghost"
-                className="h-8 shrink-0 text-muted-foreground"
+                className="shrink-0 text-muted-foreground"
                 aria-label="Collapse"
+                title="Collapse"
                 onClick={onCollapse}
               >
-                Collapse
+                <ChevronDown className="size-4" aria-hidden />
               </Button>
             </div>
             <div className="flex min-h-0 flex-1 flex-col">{children}</div>
