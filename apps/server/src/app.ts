@@ -15,10 +15,8 @@ import { createContext } from "@orch/api/context";
 import { recoverStaleRuns } from "@orch/api/routers/agent/run-service";
 import { bootstrapAgencyLiveRedisSubscriber } from "@orch/api/routers/agency-ops/live/live";
 import { registerNotificationPushHandler } from "@orch/api/routers/notifications/delivery";
-import { ensurePersonalAgency } from "@orch/api/routers/team/ensure-personal-agency";
 import {
   auth,
-  registerPersonalAgencyOnUserCreate,
   registerPolarOrderPaid,
   registerPolarSubscriptionActive,
 } from "@orch/auth";
@@ -174,7 +172,6 @@ function createApp() {
 const app = createApp();
 const port = env.PORT ?? 7000;
 
-registerPersonalAgencyOnUserCreate(ensurePersonalAgency);
 registerTeamPolarBillingHandlers({
   registerPolarOrderPaid,
   registerPolarSubscriptionActive,
