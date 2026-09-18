@@ -1282,6 +1282,9 @@ body:has(.app-shell) {
   .agency-entry-controls {
     min-height: 2.75rem;
     justify-content: flex-end;
+    /* Column mode leaves the rail height indefinite, so stretch collapses and
+       cells top-align at ragged content heights. Center instead. */
+    align-items: center;
   }
 
   .agency-entry-controls::before {
@@ -1613,10 +1616,61 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   animation: eclipse-pet-done 0.6s var(--motion-ease-out, ease-out) both;
 }
 
+/* metal-fx hides its root until the first WebGL frame lands. Never let the
+   Orch trigger depend on that: the button stays usable instantly and the
+   ring fades in over it when the shared loop delivers. */
+.metal-fx-root {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@keyframes orch-compact-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.orch-compact-rise {
+  animation: orch-compact-rise var(--motion-duration-panel) var(--motion-ease-emphasized)
+    both;
+}
+
+@keyframes orch-compact-morph {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.72);
+    border-radius: 999px;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    border-radius: 20.8px;
+  }
+}
+
+/* Scoped to the Orch compact: the panel grows out of the Eclipse trigger
+   (origin-aware via Radix transform-origin) instead of fading in place.
+   Unlayered so it wins over the base popover enter utilities on open only;
+   exit keeps the shared fast fade. */
+.orch-compact-morph[data-state="open"] {
+  animation: orch-compact-morph 380ms var(--motion-ease-emphasized) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .project-share-panel-in,
   .project-share-legend-in,
   .orch-presence-land,
+  .orch-compact-rise,
+  .orch-compact-morph[data-state="open"],
   .eclipse-pet--working,
   .eclipse-pet--done {
     animation: none;
