@@ -41,6 +41,7 @@
         "src/operations/imports/import-clockify.ts",
         "src/operations/backfills/import-clockify-backfill.ts",
         "src/operations/backfills/verify-clockify-backfill.ts",
+        "src/operations/backfills/verify-agency-clone.ts",
         "src/operations/maintenance/clear-team-data.ts",
         "src/operations/maintenance/cleanup-agency-operator-nodes.ts",
         "src/operations/maintenance/grant-lifetime-pro.ts",

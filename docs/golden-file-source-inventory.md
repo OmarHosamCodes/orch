@@ -19,16 +19,16 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1098 |
-| server-operation | 13 |
-| shared-infrastructure | 443 |
-| static-presentation | 18 |
+| golden-feature | 1101 |
+| server-operation | 16 |
+| shared-infrastructure | 446 |
+| static-presentation | 19 |
 
 ## Counts by domain
 
 | Domain | Artifacts |
 | --- | ---: |
-| agency-shared | 169 |
+| agency-shared | 172 |
 | agent | 167 |
 | api-platform | 13 |
 | architecture | 4 |
@@ -42,7 +42,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | deployment | 6 |
 | environment | 7 |
 | integrations | 2 |
-| marketing | 21 |
+| marketing | 22 |
 | member-profile | 55 |
 | notifications | 48 |
 | performance | 9 |
@@ -50,11 +50,11 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | reports | 55 |
 | repository | 13 |
 | resourcing | 46 |
-| server-platform | 26 |
+| server-platform | 27 |
 | task-management | 121 |
-| team | 52 |
+| team | 55 |
 | time-tracking | 130 |
-| web-platform | 174 |
+| web-platform | 176 |
 | workspace | 140 |
 
 ## Artifacts
@@ -97,6 +97,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/server/src/lib/ws-handler.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: server runtime wiring, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/backfill-entity-icons.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/import-clockify-backfill.ts` | time-tracking | server-operation | server-operation | time-tracking-domain | Deliberate time-tracking operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
+| `apps/server/src/operations/backfills/verify-agency-clone.ts` | agency-shared | server-operation | server-operation | agency-platform | Deliberate agency-shared operation with isolated runtime side effects. | content: database access, process or filesystem tooling, environment contract; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/verify-clockify-backfill.ts` | time-tracking | server-operation | server-operation | time-tracking-domain | Deliberate time-tracking operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/imports/import-clockify.ts` | time-tracking | server-operation | server-operation | time-tracking-domain | Deliberate time-tracking operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/local-reset-team-passwords.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling, environment contract; structure: source role and exported behavior |
@@ -104,7 +105,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/server/src/operations/maintenance/cleanup-agency-operator-nodes.ts` | agency-shared | server-operation | server-operation | agency-platform | Deliberate agency-shared operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/maintenance/clear-team-data.ts` | team | server-operation | server-operation | team-domain | Deliberate team operation with isolated runtime side effects. | content: database access, process or filesystem tooling, package or task configuration; structure: source role and exported behavior |
 | `apps/server/src/operations/maintenance/grant-lifetime-pro.ts` | billing | server-operation | server-operation | billing-domain | Deliberate billing operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
+| `apps/server/src/operations/seeds/record-film-clips.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/seeds/seed-agency.ts` | agency-shared | server-operation | server-operation | agency-platform | Deliberate agency-shared operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
+| `apps/server/src/operations/seeds/seed-film-agency.ts` | agency-shared | server-operation | server-operation | agency-platform | Deliberate agency-shared operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/seeds/seed-massive.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/seeds/seed.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/types/web-push.d.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: ambient TypeScript declarations; structure: source role and exported behavior |
@@ -156,6 +159,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/components/marketing/landing-pricing-copy.test.ts` | marketing | test | golden-feature | web-experience | Feature-owned marketing artifact in the canonical test layer. | content: Bun test declarations, process or filesystem tooling; structure: test filename |
 | `apps/web/src/components/marketing/landing-pricing-copy.ts` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/landing-pricing.tsx` | billing | web-query | golden-feature | billing-domain | Feature-owned billing artifact in the canonical web-query layer. | content: feature query orchestration, React component or hook code, exported declarations; structure: source role and exported behavior |
+| `apps/web/src/components/marketing/landing-release.ts` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/landing-workspace-vignette.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/marketing-brand-lockup.tsx` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/components/marketing/marketing-demo-data.ts` | marketing | static-presentation | static-presentation | web-experience | Marketing or legal presentation with no server query or mutation orchestration. | content: exported declarations; structure: source role and exported behavior |
@@ -734,10 +738,10 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/team/views/team-invite-card-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/team/views/team-invite-dialog-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/team/views/team-seat-invite-dialog-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/team/views/team-settings-modal-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/team/views/team-settings-billing-pane-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/team/views/team-settings-general-pane-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/team/views/team-settings-members-pane-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/team/views/team-settings-modal-view.tsx` | team | presentational-view | golden-feature | team-domain | Feature-owned team artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/time-tracking/active-timer-task-update.test.ts` | time-tracking | test | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `apps/web/src/features/time-tracking/active-timer-task-update.ts` | time-tracking | domain-logic | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/time-tracking/agency-description-datalist-field.tsx` | time-tracking | presentational-view | golden-feature | time-tracking-domain | Feature-owned time-tracking artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -842,7 +846,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/user-settings/hooks/use-user-settings-modal-state.ts` | web-platform | feature-hook | shared-infrastructure | web-platform | Cross-cutting web-platform feature-hook support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/user-settings/user-settings-modal.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/user-settings/views/user-settings-modal-view.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
-| `apps/web/src/features/user-settings/views/user-settings-notifications-pane-view.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Notifications pane for account settings modal. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/user-settings/views/user-settings-notifications-pane-view.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace-agent/agency-plan-card-view.tsx` | agent | presentational-view | golden-feature | agent-domain | Feature-owned agent artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace-agent/agency-proposal-card-view.tsx` | agent | presentational-view | golden-feature | agent-domain | Feature-owned agent artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace-agent/agency-question-card-view.tsx` | agent | presentational-view | golden-feature | agent-domain | Feature-owned agent artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -1168,6 +1172,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/ui/sidebar.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/ui/skeleton.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/ui/sonner.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
+| `apps/web/src/ui/switch.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/ui/table.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/ui/tabs.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/ui/textarea.tsx` | web-platform | shared-ui | shared-infrastructure | web-platform | Cross-cutting web-platform shared-ui support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: source role and exported behavior |
