@@ -66,16 +66,17 @@ describe("createUserCreateAfterHandler", () => {
     expect(logged).toEqual([["Personal Agency setup failed:", failure]]);
   });
 
-  test("throws when the Agency callback was not registered", async () => {
-    const logged: Array<[string, unknown]> = [];
+  test("skips Agency creation when the callback was not registered", async () => {
+    const events: string[] = [];
     const handler = createUserCreateAfterHandler({
-      schedulePolarCustomerSetup: () => {},
-      logError: (message, error) => logged.push([message, error]),
+      schedulePolarCustomerSetup: () => {
+        events.push("polar-scheduled");
+      },
+      logError: () => {},
     });
 
-    const result = handler.afterUserCreate(user);
+    await handler.afterUserCreate(user);
 
-    await expect(result).rejects.toThrow("Personal Agency user-create handler is not registered.");
-    expect(logged).toHaveLength(1);
+    expect(events).toEqual(["polar-scheduled"]);
   });
 });

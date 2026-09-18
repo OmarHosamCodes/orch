@@ -28,11 +28,11 @@ export function createUserCreateAfterHandler({
     async afterUserCreate(user: AuthCreatedUser) {
       schedulePolarCustomerSetup(user);
 
-      try {
-        if (!personalAgencyOnUserCreate) {
-          throw new Error("Personal Agency user-create handler is not registered.");
-        }
+      if (!personalAgencyOnUserCreate) {
+        return;
+      }
 
+      try {
         await personalAgencyOnUserCreate(user.id, { name: user.name });
       } catch (error) {
         logError("Personal Agency setup failed:", error);
