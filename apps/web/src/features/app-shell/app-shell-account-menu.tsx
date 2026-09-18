@@ -4,10 +4,7 @@ import { Link } from "@/lib/navigation";
 
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { shellFocusRingClass } from "@/features/app-shell/app-shell-ui";
-import { agencyPlanLabel } from "@/features/billing/agency-plan-label";
-import { useBilling } from "@/features/billing/billing-queries";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
-import { useTeamStore } from "@/features/team/team-store";
 import { UserSettingsModal } from "@/features/user-settings/user-settings-modal";
 import { useAuthSession } from "@/lib/auth-session";
 import { getServerUrl } from "@/lib/env";
@@ -26,12 +23,11 @@ type AppShellAccountMenuProps = {
 
 export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuProps) {
   const { user, isPending } = useAuthSession();
-  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const { plan, isPro } = useBilling(selectedTeamId);
   const updateAvailable = useAppUpdateStore((s) => s.updateAvailable);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const userName = user?.name?.trim() || "Workspace";
+  const userEmail = user?.email?.trim() ?? "";
   const serverUrl = getServerUrl();
   const avatarUrl =
     user?.image && user.id && serverUrl
@@ -111,9 +107,9 @@ export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuPro
               <span className="truncate text-[13px] font-semibold text-highlighted">
                 {userName}
               </span>
-              <span className="truncate text-[11px] font-medium text-muted">
-                {agencyPlanLabel(plan)}
-              </span>
+              {userEmail ? (
+                <span className="truncate text-[11px] font-medium text-muted">{userEmail}</span>
+              ) : null}
             </span>
           </Link>
           <span className={cn("app-shell__rail-shortcuts", shellRailShortcutColumnClass)}>
@@ -157,11 +153,6 @@ export function AppShellAccountMenu({ variant = "icon" }: AppShellAccountMenuPro
           className="size-full rounded-full"
         />
         {updateAvailable ? (
-          <span
-            className="absolute right-[0.35rem] top-[0.35rem] size-[0.3rem] rounded-full bg-primary shadow-[0_0_0_2px_var(--background)]"
-            aria-hidden="true"
-          />
-        ) : isPro ? (
           <span
             className="absolute right-[0.35rem] top-[0.35rem] size-[0.3rem] rounded-full bg-primary shadow-[0_0_0_2px_var(--background)]"
             aria-hidden="true"

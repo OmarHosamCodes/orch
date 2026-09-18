@@ -1,8 +1,10 @@
+import { AlertTriangle } from "lucide-react";
+
 import { Link } from "@/lib/navigation";
 
 import { Dithered404 } from "@/components/ui/dithered-404";
 import { LogoLoader } from "@/features/app-shell/components/logo-loader";
-import { agencyErrorPanelClass } from "@/features/shared/agency-ui";
+import { Button } from "@/ui/button";
 import { SurfaceShimmer } from "@/ui/skeleton";
 
 type RoutePendingProps = {
@@ -19,11 +21,52 @@ export function RoutePending({ label = "Loading", variant = "surface" }: RoutePe
   return <SurfaceShimmer className="h-full min-h-0 rounded-[inherit]" label={label} />;
 }
 
-export function RouteError({ message = "Something went wrong." }: { message?: string }) {
+type RouteErrorProps = {
+  message?: string;
+  error?: unknown;
+  reset?: () => void;
+};
+
+function routeErrorDetail(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.length > 0) return error;
+  return null;
+}
+
+export function RouteError({ message = "Something went wrong.", error, reset }: RouteErrorProps) {
+  const detail = routeErrorDetail(error);
   return (
     <div className="flex h-full min-h-0 items-center justify-center p-6">
-      <div className={agencyErrorPanelClass} role="alert">
-        {message}
+      <div className="flex w-full max-w-sm flex-col items-center text-center" role="alert">
+        <span
+          aria-hidden="true"
+          className="flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive"
+        >
+          <AlertTriangle className="size-5" />
+        </span>
+        <h2 className="mt-4 text-xl font-semibold tracking-tight text-highlighted">{message}</h2>
+        <p className="mt-2 text-sm text-muted">Trying again usually fixes it.</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={reset ?? (() => window.location.reload())}
+          >
+            Try again
+          </Button>
+          <Button type="button" size="sm" variant="outline" asChild>
+            <Link to="/canvas">Back to Canvas</Link>
+          </Button>
+        </div>
+        {detail && import.meta.env.DEV ? (
+          <details className="mt-4 w-full rounded-xl border border-default bg-elevated/40 px-3 py-2 text-left">
+            <summary className="cursor-pointer text-xs font-medium text-muted hover:text-highlighted">
+              Error details
+            </summary>
+            <p className="mt-2 font-mono text-xs break-all text-muted">{detail}</p>
+          </details>
+        ) : null}
       </div>
     </div>
   );
