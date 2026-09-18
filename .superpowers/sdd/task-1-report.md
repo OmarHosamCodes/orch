@@ -1,48 +1,40 @@
-# Task 1 Report
+# Task 1 Report: Polar product ids map to Agency vs Unlimited
 
-## What I implemented
+## Status
 
-- Added `AgencyPlan`, `AgencyPlanLimits`, `AGENCY_PLANS`, and `AGENCY_PLAN_LIMITS`.
-- Added `agencyEnabled`, `legacyTier`, and `resolvePlanAt`.
-- Preserved the existing `TIERS`, `TIER_LIMITS`, and legacy helpers.
-- Added focused tests covering Agency enablement, trial expiry, legacy tier mapping, and trial/client limits.
+DONE
 
-## What I tested
+## TDD
 
-- `bun test packages/workspace/src/tiers.test.ts` — 4 pass, 0 fail.
-- `bun run --cwd packages/workspace check-types` — passed.
-- `bunx oxfmt packages/workspace/src/tiers.test.ts` — passed.
+| Phase | Command | Result |
+|-------|---------|--------|
+| RED | Reverted production files to HEAD (`isPolarProProduct` / comma-split `POLAR_PRODUCT_PRO` only); removed `polar-catalog.ts`. Ran `bun test packages/env/src/polar-catalog.test.ts packages/api/src/billing.test.ts` | Catalog: `Cannot find module './polar-catalog'`. Billing: Unlimited overlay expected `"pro"`, received `"free"`. |
+| RED | `bun test packages/api/src/billing-team.test.ts --test-name-pattern "writes agency_unlimited"` | Snapshot stayed `trial` / `seats: 1` / `orchMessagesIncluded: 5` (Unlimited product ignored). |
+| GREEN | Restored catalog + `applyPolarSnapshot` / `normalizeBillingState`. Same three files. | `polar-catalog.test.ts` + `billing.test.ts`: 8 pass. `billing-team.test.ts`: 46 pass (including Unlimited snapshot). |
 
-## TDD Evidence
+## Changes
 
-### RED
+- `packages/env/src/polar-catalog.ts`: `resolvePolarCatalog`, `planForPolarProductId`, `polarCheckoutProducts`. Agency id = `POLAR_PRODUCT_AGENCY` else first `POLAR_PRODUCT_PRO` id; Unlimited = `POLAR_PRODUCT_AGENCY_UNLIMITED`. Credit-pack ids do not map.
+- `packages/env/src/polar-catalog.test.ts`: Agency override vs PRO fallback (verbatim brief cases).
+- `packages/env/src/server.ts`: optional `POLAR_PRODUCT_AGENCY` / `POLAR_PRODUCT_AGENCY_UNLIMITED`; keep `POLAR_PRODUCT_PRO` required; re-export catalog helpers.
+- `.env.example`: production Polar SKUs (Agency fallback `ee8722e7-…`, Unlimited `a72406dd-…`, credits `db04a245-…`). Did not recreate products via Polar MCP.
+- `packages/api/src/billing-team.ts`: deleted `isPolarProProduct`; `applyPolarSnapshot` writes `agency` or `agency_unlimited` from `planForPolarProductId`.
+- `packages/api/src/billing.ts`: Polar overlay when catalog plan is non-null (Agency **or** Unlimited still `tier: "pro"`).
+- Tests set `Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited"` at file top (`billing.test.ts` / `billing-team.test.ts`) because env is cached at import.
 
-Command:
+Out of scope (later tasks): landing, checkout slugs in auth, chrome copy. Did not rename Orch model-preset Pro. Did not commit `apps/web/src/pages/privacy-page.tsx` or `.superpowers/sdd/*`.
 
-```text
-bun test packages/workspace/src/tiers.test.ts
-```
+## Commit
 
-Result: failed before implementation with `SyntaxError: Export named 'AGENCY_PLAN_LIMITS' not found in module .../packages/workspace/src/tiers.ts`. This was expected because the new exports did not yet exist.
+`2b158058 feat(billing): map Polar Agency and Unlimited product ids`
 
-### GREEN
+## Self-review
 
-Command:
+- Layering: catalog lives in env; API services consume `resolvePolarCatalog(env)` — no Polar MCP / no SKU recreation.
+- Fallback: without `POLAR_PRODUCT_AGENCY`, first comma-separated `POLAR_PRODUCT_PRO` id is Agency; Unlimited stays null until env is set.
+- Inactive Polar (`canceled` / `revoked`) still no-ops via `plan === null`.
+- Pre-existing golden-view-no-hooks failures not touched.
 
-```text
-bun test packages/workspace/src/tiers.test.ts
-```
+## Concerns
 
-Result: 4 tests passed, 0 failed, with 12 expectations.
-
-## Files changed
-
-- `packages/workspace/src/tiers.ts`
-- `packages/workspace/src/tiers.test.ts`
-
-## Self-review findings
-
-- Implementation is pure and has no I/O, database, Polar, API, or later-slice behavior.
-- Existing legacy tier exports remain unchanged.
-- Trial expiry uses strict `now > trialEndsAt`, so the exact expiry instant remains trial as specified by the provided behavior.
-- No unresolved concerns.
+None.

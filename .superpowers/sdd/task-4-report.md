@@ -1,102 +1,77 @@
-# Task 4 report: Bills chrome restack
+# Task 4 Report: Drop Pro billing copy in chrome
 
-**Branch:** `feat/bills-tables`
-**Commit:** `e7817511` (`feat: restack bills chrome with tabs and status select`)
+## Status
 
-## Summary
-
-- Replaced party filter pills with controlled shadcn Tabs for All, Clients, Team, Adjustments, and Expenses, with horizontal overflow on narrow screens.
-- Replaced bill status pills with an accessible shadcn Select beside search. Selecting a status now sets it; All statuses clears it.
-- Compacted Remaining / Period spend and insight into one quiet summary row while preserving the insight live region.
-- Preserved search, count / All expenses, Add menu, FX line, the scoped External chip, and the existing expense Due / Paid / All pills.
-- Left bill tables, bill detail sheet internals, and the expense strip body unchanged.
-
-## Verification
-
-- `bunx oxfmt --write` on both touched files: pass
-- `bunx oxlint` on both touched files: pass
-- `bun test apps/web/src/features/billing/money-bills-filters.test.ts`: 20 pass, 0 fail
-- `bun run check-types`: pass
-- Browser: verified named party tabs, labeled status combobox, Expenses hiding status, All expenses remaining available, and expense strip pills remaining intact.
-- `bun run check:conventions`: blocked by 8 pre-existing violations in task-management, workspace-agent, and workspace-knowledge files; no violation references either touched file.
-
-## Concerns
-
-No Task 4 blocker. The unrelated `.superpowers/sdd/progress.md` and `docs/superpowers/plans/2026-08-29-bills-tables.md` worktree changes were not committed.
-
----
-
-# Task 4 report — DraftRestore chip in the composer
-
-**Branch:** `omarhosamcodes/cloud-agent-1786657271032-f0r08`  
-**Commit:** `a5711e7d` — `feat: restore unsent Orch drafts from the server`  
-**Plan:** `docs/superpowers/plans/2026-08-14-orch-composer-reliability.md`
-
-## Summary
-
-Implemented server-backed composer draft restore UX for Orch:
-
-- **`composer-draft-display.ts`** — pure helpers `shouldOfferComposerDraftRestore` and `formatComposerDraftSavedAt`
-- **`use-workspace-agent-data.ts`** — `draft.get` query plus `draft.upsert` / `draft.discard` mutations
-- **`use-workspace-agent.ts`** — debounced upsert (500ms), discard after successful `"send"`, restore/discard handlers, `serverDraftOffer` computed in hook
-- **`workspace-agent-thread-composer-view.tsx`** — `DraftRestore` chip above `MessageQueue` (props-only)
-- **`workspace-agent-view.tsx`** — passes new composer props from view model
+DONE_WITH_CONCERNS
 
 ## TDD
 
-1. Added failing `composer-draft-display.test.ts` (module not found)
-2. Implemented `composer-draft-display.ts`
-3. Wired hook + view
-4. Tests pass
+| Phase | Result |
+|-------|--------|
+| RED | `bun test apps/web/src/features/billing/agency-plan-label.test.ts` — 0 pass, 1 fail (`Cannot find module './agency-plan-label'`) |
+| GREEN | Same command — 2 pass (`leftover` → `Leftover`, `agency_unlimited` → `Agency Unlimited`; also `trial` → `Trial`, `agency` → `Agency`) |
 
-## Behavior
+## Changes
 
-| Scenario                          | Behavior                                            |
-| --------------------------------- | --------------------------------------------------- |
-| Live draft non-empty              | Debounced upsert to server (500ms); no restore chip |
-| Live draft empty, server has text | `DraftRestore` chip shown                           |
-| User clicks Restore               | `setDraft(serverDraft.text)`; chip hides            |
-| User clicks Discard on chip       | `draft.discard` + invalidate query                  |
-| Successful send (`"send"`)        | `draft.discard` + invalidate query                  |
-| Queue while streaming (`"queue"`) | No discard; server draft can remain                 |
-| Send fails                        | Draft restored locally; no discard                  |
-| Empty live draft debounce         | **No** discard — preserves restore offer            |
+- `apps/web/src/features/billing/agency-plan-label.ts`: `agencyPlanLabel` (`Trial` \| `Leftover` \| `Agency` \| `Agency Unlimited`) and `isPaidAgencyPlan`. Undefined plan labels as `Trial` (never Pro/Free).
+- `apps/web/src/features/billing/agency-plan-label.test.ts`: brief leftover/Unlimited test plus trial/agency mapping.
+- `apps/web/src/features/app-shell/app-shell-rail.tsx`: leftover-only CTA `Subscribe — 1 seat`, still `checkout("agency")`. No `!isPro`.
+- `apps/web/src/features/app-shell/app-shell-account-menu.tsx`: sidebar subtitle `{agencyPlanLabel(plan)}` instead of `Pro plan` / `Free plan`. Icon-dot still uses `isPro` (no displayed word Pro). No Polar.
+- `apps/web/src/features/user-settings/hooks/use-user-settings-modal-actions.ts`: pass `plan`; `onBillingAction` uses `isPaidAgencyPlan(plan)` (portal vs `checkout("agency")`). Dropped `isPro`/`tier` from the view model.
+- `apps/web/src/features/user-settings/views/user-settings-modal-view.tsx`: badge `agencyPlanLabel(plan)`; unpaid `Subscribe — 1 seat` + `Subscribe to keep Tracker, projects, money, and people for this agency.`; paid `Manage billing` + `Manage billing, invoices, and seats.`
+- `docs/golden-file-source-inventory.md`: inventory rows for the new label module.
 
-## Files changed
+Did not rename Orch model-preset Pro. Did not touch workspace pros/cons. `deriveBillingState.isPro` unchanged.
 
-| File                                       | Change                                |
-| ------------------------------------------ | ------------------------------------- |
-| `composer-draft-display.ts`                | **Created**                           |
-| `composer-draft-display.test.ts`           | **Created**                           |
-| `hooks/use-workspace-agent-data.ts`        | Draft query + mutations               |
-| `hooks/use-workspace-agent.ts`             | Autosave, restore offer, send discard |
-| `workspace-agent-thread-composer-view.tsx` | `DraftRestore` UI                     |
-| `workspace-agent-view.tsx`                 | Prop wiring                           |
+## Checks
 
-## Tests run
+- `bun test apps/web/src/features/billing/agency-plan-label.test.ts` — 2 pass
+- `bun run check-types` — pass
+- `bun run check:golden` — pass
+- oxlint on the changed chrome/billing files — pass
+- `bun run check` / `check:conventions` — same four pre-existing `golden-view-no-hooks` failures (out of scope)
+- No browser verification of rail/settings copy (auth chrome)
 
-```bash
-bun test apps/web/src/features/workspace-agent/composer-draft-display.test.ts
-# 2 pass, 0 fail
+## Commit
 
-bun run check-types   # pass
-bun run check         # pass
-bun run check:conventions  # pass
-```
-
-## Golden layer compliance
-
-- Composer view remains props-only (no oRPC/query/store imports)
-- Draft logic lives in hook + data hook
-- `DraftRestore` component unchanged (no restyle)
-
-## Out of scope (per brief)
-
-- Task 5 (`@` / `/` triggers)
-- API/DB changes
-- Attachment restore UI
-- `chat-panel-view.tsx` mount
+`016cc3f4` `fix(billing): drop Pro from rail and settings copy`
 
 ## Concerns
 
-None blocking. Manual browser verification of end-to-end draft save/restore was not performed in this run (no authenticated dev session in agent environment); logic follows Task 3 API contracts and brief exactly.
+- Rail Subscribe CTA remains only on the mobile drawer overlay, not the desktop rail footer (that was the existing Get Pro slot).
+- Account icon variant still uses `isPro` for a status dot; the word Pro is not shown.
+- `agencyPlanLabel(undefined)` returns `Trial` while billing.state is loading.
+- Settings unpaid CTA is `Subscribe — 1 seat` for trial as well as leftover (`isPaidAgencyPlan`, not leftover-only).
+- Pre-existing `golden-view-no-hooks` and knip unused-export noise unchanged.
+- Did not commit `privacy-page.tsx` or `.superpowers/sdd/*`.
+
+
+## Follow-up: undefined plan label (Important)
+
+`agencyPlanLabel(undefined)` now returns `Leftover` (plan/brief default) so rail/settings do not flash Trial while `deriveBillingState` still has plan undefined. No other chrome behavior changed.
+
+### Command + output
+
+```
+bun test apps/web/src/features/billing/agency-plan-label.test.ts
+```
+
+```
+bun test v1.4.0 (34cbb9a40)
+
+apps/web/src/features/billing/agency-plan-label.test.ts:
+(pass) agencyPlanLabel > leftover is Leftover, not Free or Pro [2.01ms]
+(pass) agencyPlanLabel > maps trial and agency without Pro or Free [0.07ms]
+(pass) agencyPlanLabel > undefined plan is Leftover while billing is loading [0.02ms]
+
+ 3 pass
+ 0 fail
+ 5 expect() calls
+Ran 3 tests across 1 file. [126.00ms]
+```
+
+### Commit
+
+`9c5dd062` `fix(billing): keep Leftover label while billing plan is loading`
+
+Did not commit `privacy-page.tsx` or `.superpowers/sdd/*`.

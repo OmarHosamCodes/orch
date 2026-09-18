@@ -1,5 +1,62 @@
 # SDD Progress
 
+Plan: docs/superpowers/plans/2026-09-17-orch-saas-agency-slice-5-catalog.md
+Branch: from-brainiac-to-orch (in place; no worktree)
+Base: 8aace507 (plan committed)
+
+Task 1: complete (commits 8aace507..2b158058, review Approved). Minors: leftover proSubscription names; apps/server/.env.example still old Pro id.
+Task 2: complete (commits 2b158058..9820b8dc, review Approved). Minors: env restore not try/finally; no billing-queries slug test; landing/rail still say Pro (Tasks 3–4).
+Task 3: complete (commits 9820b8dc..aee8b790, review Approved). Minors: inventory extra rows; landingUnlimitedCta untested; no visual check in implementer pass.
+Task 4: complete (commits aee8b790..9c5dd062, review Approved after undefined→Leftover). Minors: mobile-only rail CTA; icon isPro status dot.
+Task 5: complete (commits 9c5dd062..0abbde27, review Approved after mounting LandingPricing on / and Polar returnUrl /#pricing). Minors: hero owns main landmark; hash-scroll inner rAF; source-string mount test.
+Whole-branch: Approved at 0abbde27. Minors wait: proSubscription names, mobile-only leftover CTA, hero main landmark, Railway POLAR_PRODUCT_AGENCY_UNLIMITED. Ready on from-brainiac-to-orch.
+
+---
+
+Plan: docs/superpowers/plans/2026-09-17-orch-saas-agency-slice-4-rbac.md
+Branch: from-brainiac-to-orch (in place; no worktree)
+Base: d04ec19e (plan committed)
+
+Task 1: complete (commits d04ec19e..447f188f, review Approved). Minors: fixture orphan teams; unused lifetimePro flag.
+Task 2: complete (commits 447f188f..b8ea7d91, review Approved). Important follow-ups: editor update/archive/contact untested; web must omit commercial keys on name-only update. Minors: unused polar stub in test.
+Task 3: complete (commits b8ea7d91..2036011a, review Approved). Minors: tags/templates/journey untested; no editor-negative project rate test.
+Task 4: complete (commits 2036011a..c4a6f76e, review Approved). Minors: no editor-positive summary test.
+Task 5: complete (commits c4a6f76e..4c7a04ac, review Approved). Minors: weak TDD RED; Polar stub in test.
+Task 6: complete (commits 4c7a04ac..9697b933, review Approved after canEditRecords consumed in my-tasks dialog). Minors: none.
+Task 7: complete (commits 9697b933..29a5e3cd, review Approved). Type fix fad32edf; inventory 29a5e3cd. Pre-existing convention failures out of scope.
+Whole-branch: Approved after 7f0c0159 (editor chrome, dashboard 403, tags/journey) and 4d2e18c1 (project-page Add task; viewer Orch self-summary). Minors wait: orphan fixtures, Polar stubs, task rate miss without insufficient_role, duplicate canEditRecords prop, viewer agent isTiming/filter/500-cap polish. Ready on from-brainiac-to-orch at 4d2e18c1.
+
+---
+
+Plan: docs/superpowers/plans/2026-09-17-orch-saas-agency-slice-3-seats-credits.md
+Branch: from-brainiac-to-orch (in place; no worktree)
+Base: e46c522a (plan committed)
+
+Task 1: complete (commits e46c522a..ec8ab72c, review Approved). Minors: env isolation in billing.test.ts; TDD RED excerpt slightly misleading.
+Task 2: complete (commits ec8ab72c..35fc42f5, review Approved after cancel/rollover tests). Minors: polar.teamId not validated; resolveTeamBillingSnapshot owner via global db.
+Task 3: complete (commits 35fc42f5..34f5f0ea, review Approved). Minors: no existing-member role-only test; trial fixture raw seats=2; concurrent duplicate invite unique constraint.
+Task 4: complete (commits 34f5f0ea..c995ecf7, review Approved). Important plan-mandated: multi-team billing uses first membership not turn.teamId (brief: canvas-style). Minors: orchMessages batch adding; no paid 51st orch_credits test; assertWithinLimit orchMessages untested. Polar conversation gate confirmed removed; only append+stream turn paths.
+Task 5: complete (commits c995ecf7..fdd15bc3, review Approved after tx+conflict-target fix). Minors: no server product-routing test; empty checkoutId silent skip.
+Task 6: complete (commits fdd15bc3..04eadad5, review Approved after confirm loop, dialog, checkoutKind, idempotency, plan-aware copy). Minors: none.
+Task 7: complete (commits 04eadad5..610c6e7b, review Approved). Minors: checkout-success refresh not a Confirmed row; inventory regen churn.
+Whole-branch: Approved after 08cdfd30 (server-derived seat quantity; Orch month rollover CAS). Plan-mandated leftover: canceled/revoked Polar snapshots keep stored paid plan (no downgrade). Ready on from-brainiac-to-orch at 08cdfd30.
+
+---
+
+Plan: docs/superpowers/plans/2026-09-17-orch-saas-agency-slice-2-volume-caps.md
+Branch: from-brainiac-to-orch (in place; no worktree)
+Base: e8d6256c (plan committed)
+
+Task 1: complete (commits e8d6256c..51bd352f, review Approved after FOR UPDATE tx lock). Minors: none.
+Task 2: complete (commits 51bd352f..083783d7, review Approved). Minors: none.
+Task 3: complete (commits 083783d7..76267482, review Approved after title-merge race fix). Minors: none.
+Task 4: complete (commits 76267482..442b2b53, review Approved). Minors: none.
+Task 5: complete (commits 442b2b53..04282268, review Approved). Minors: none.
+Task 6: complete (commits 04282268..69dbd4ce, review Approved). Minors: paid 50MB+1 upload not in slice test files (existing MAX_UPLOAD_BYTES 400).
+Whole-branch: Approved after fixes 543e9777 (upload 403 before size; locked snapshot), 15260537 (applyPaidPlan on same tx), d0879502 (inventory billing-upload-route-order). Ready on from-brainiac-to-orch at d0879502.
+
+---
+
 Plan: docs/superpowers/plans/2026-08-14-orch-composer-reliability.md (then search, agency, canvas)
 
 Task 1: complete (commits 17688e06..756f185c, review clean). Minors: enqueue-at-cap untested; cancel missing-id untested.
