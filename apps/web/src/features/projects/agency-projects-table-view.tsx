@@ -5,13 +5,12 @@ import {
   FolderKanban,
   Loader2,
   MoreHorizontal,
-  Plus,
   Trash2,
 } from "lucide-react";
 
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -211,7 +210,9 @@ function ProjectBookRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
-              <DropdownMenuItem onSelect={() => onSelect(project.id)}>Open project</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onSelect(project.id)}>
+                Open project
+              </DropdownMenuItem>
               {isTrashed ? (
                 <DropdownMenuItem
                   disabled={isProjectMutationPending}
@@ -244,6 +245,7 @@ export function AgencyProjectsTableView({
 }: AgencyProjectsTableViewProps) {
   const {
     openNewProject,
+    openNewClient,
     canEditRecords,
     corridors,
     clients,
@@ -277,31 +279,33 @@ export function AgencyProjectsTableView({
 
   if (clients.length === 0) {
     return (
-      <div className={agencyEmptyPanelClass}>
-        <Building2 className="mx-auto size-6 text-muted" />
-        <p className="mt-3 text-sm font-bold text-highlighted">No clients yet.</p>
-        <p className="mt-1 text-xs text-muted">
-          Add a client first, then their projects show up here.
-        </p>
-      </div>
+      <AgencyFirstRunEmptyView
+        icon={Building2}
+        title={canEditRecords ? "Add a client to create projects" : "Nothing here yet"}
+        body={
+          canEditRecords
+            ? "Create a client here, then we'll open New project with it selected."
+            : "This agency has no clients yet."
+        }
+        primaryLabel={canEditRecords ? "Add client" : undefined}
+        onPrimary={canEditRecords ? openNewClient : undefined}
+      />
     );
   }
 
   if (projects.length === 0) {
     return (
-      <div className={agencyEmptyPanelClass}>
-        <FolderKanban className="mx-auto size-6 text-muted" />
-        <p className="mt-3 text-sm font-bold text-highlighted">No projects yet.</p>
-        <p className="mt-1 text-xs text-muted">
-          Create your first project to start tracking time and budgets.
-        </p>
-        {canEditRecords ? (
-          <Button variant="secondary" size="sm" className="mt-4" onClick={openNewProject}>
-            <Plus />
-            New project
-          </Button>
-        ) : null}
-      </div>
+      <AgencyFirstRunEmptyView
+        icon={FolderKanban}
+        title={canEditRecords ? "Create a project to start tracking" : "Nothing here yet"}
+        body={
+          canEditRecords
+            ? "Projects hold the tasks and time you track."
+            : "This agency has no projects yet."
+        }
+        primaryLabel={canEditRecords ? "New project" : undefined}
+        onPrimary={canEditRecords ? openNewProject : undefined}
+      />
     );
   }
 
@@ -341,7 +345,9 @@ export function AgencyProjectsTableView({
                   className={cn(
                     "font-mono text-[11px] tabular-nums",
                     projectBookCorridorAccentClass(corridor.id),
-                    corridor.id === "trash" || corridor.id === "quiet" ? "opacity-70" : "opacity-90",
+                    corridor.id === "trash" || corridor.id === "quiet"
+                      ? "opacity-70"
+                      : "opacity-90",
                   )}
                 >
                   {corridor.items.length}
@@ -371,7 +377,9 @@ export function AgencyProjectsTableView({
       >
         <DialogContent className="max-w-md" showCloseButton={!isProjectMutationPending}>
           <DialogHeader>
-            <DialogTitle>Delete &quot;{pendingDeleteProject?.name ?? "this project"}&quot;?</DialogTitle>
+            <DialogTitle>
+              Delete &quot;{pendingDeleteProject?.name ?? "this project"}&quot;?
+            </DialogTitle>
             <DialogDescription>
               Moves the project to trash for 30 days. It disappears from Agency listings and
               choosers. Time entries stay; you can restore anytime until permanent delete.

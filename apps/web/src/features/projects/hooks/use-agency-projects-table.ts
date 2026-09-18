@@ -67,6 +67,7 @@ type AgencyProjectsBookCorridor = {
 
 export type AgencyProjectsTableViewModel = {
   openNewProject: () => void;
+  openNewClient: () => void;
   isOwner: boolean;
   canEditRecords: boolean;
   canEditRates: boolean;
@@ -99,7 +100,7 @@ export function useAgencyProjectsTable({
   teamId,
   filters,
 }: UseAgencyProjectsTableOptions): AgencyProjectsTableViewModel {
-  const { openNewProject } = useAgencyProjectsActions();
+  const { openNewProject, openNewClient } = useAgencyProjectsActions();
   const agencyOps = useAgencyOpsStore();
   const isProjectMutationPending = useAgencyOpsStore(selectIsProjectMutationPending);
   const workSchedule = useTeamWorkSchedule(teamId);
@@ -278,8 +279,7 @@ export function useAgencyProjectsTable({
 
   const corridors = useMemo(() => groupProjectsByCorridor(filteredProjects), [filteredProjects]);
 
-  const isLoading =
-    projectsQuery.isPending || clientsQuery.isPending || budgetsQuery.isPending;
+  const isLoading = projectsQuery.isPending || clientsQuery.isPending || budgetsQuery.isPending;
   const isError = projectsQuery.isError || clientsQuery.isError || budgetsQuery.isError;
   const errorMessage = getErrorMessage(
     projectsQuery.error ?? clientsQuery.error ?? budgetsQuery.error,
@@ -323,6 +323,7 @@ export function useAgencyProjectsTable({
 
   return {
     openNewProject,
+    openNewClient,
     isOwner,
     canEditRecords,
     canEditRates,
