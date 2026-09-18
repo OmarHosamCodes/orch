@@ -14,7 +14,8 @@ export function useTeamSeatInviteDialog() {
   const [continuing, setContinuing] = useState(false);
   const { billingQuery } = useBilling(seatInviteTeamId);
 
-  const copyPending = Boolean(seatInviteTeamId) && billingQuery.data === undefined && !billingQuery.isError;
+  const copyPending =
+    Boolean(seatInviteTeamId) && billingQuery.data === undefined && !billingQuery.isError;
   const invitePlan = billingQuery.data?.plan ?? (billingQuery.isError ? "agency" : undefined);
   const copy = invitePlan ? agencySeatInviteCopy(invitePlan) : null;
 

@@ -1,7 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
+import { isPaidAgencyPlan } from "@/features/billing/agency-plan-label";
+import { useBilling } from "@/features/billing/billing-queries";
 import { getServerUrl } from "@/lib/env";
+import { getQueryClient } from "@/lib/query-client";
+import { orpcClient } from "@/lib/orpc";
+import { teamDetailQueryKey, teamListQueryKey } from "@/features/team/team-queries";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 
 import { useTeamSettingsModal } from "./use-team-settings-modal";
@@ -20,6 +25,16 @@ type TeamSettingsMember = {
   updatedAt: string;
 };
 
+type TeamSettingsPendingInvite = {
+  id: string;
+  invitedUserId: string;
+  invitedEmail: string;
+  invitedName: string;
+  invitedAvatar: string | null;
+  role: TeamSettingsRole;
+  createdAt: string;
+};
+
 type TeamSettingsTeam = {
   id: string;
   name: string;
@@ -28,6 +43,7 @@ type TeamSettingsTeam = {
   createdByUserId: string;
   updatedAt: string;
   members: TeamSettingsMember[];
+  pendingInvites?: TeamSettingsPendingInvite[];
 };
 
 export type TeamSettingsModalInput = {
@@ -35,6 +51,8 @@ export type TeamSettingsModalInput = {
   onOpenChange: (open: boolean) => void;
   team: TeamSettingsTeam | null;
   onRefetchWorkspace: () => Promise<unknown>;
+  initialPane?: TeamSettingsPane;
+  membersInviteAutofocus?: boolean;
 };
 
 const TEAM_ROLE_RANK: Record<TeamSettingsRole, number> = {
@@ -43,9 +61,20 @@ const TEAM_ROLE_RANK: Record<TeamSettingsRole, number> = {
   viewer: 2,
 };
 
+function getOrpcErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const direct = (error as { data?: { code?: string } }).data?.code;
+  if (direct) return direct;
+  return (error as { error?: { data?: { code?: string } } }).error?.data?.code;
+}
+
 export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
   const actions = useTeamSettingsModal(input.team?.role ?? null);
   const state = useTeamSettingsModalState();
+  const inviteEmailRef = useRef<HTMLInputElement>(null);
+  const inviteInputId = useId();
+  const teamId = input.team?.id ?? null;
+  const { plan, checkout, openPortal } = useBilling(teamId, input.open && Boolean(teamId));
   const sortedMembers = useMemo(
     () =>
       input.team
@@ -59,13 +88,25 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
   );
 
   useEffect(() => {
-    if (input.open && input.team) {
-      state.setNameDraft(input.team.name);
-      state.setNameDirty(false);
-    }
+    if (!input.open || !input.team) return;
+    state.setNameDraft(input.team.name);
+    state.setNameDirty(false);
+    state.setPane(input.initialPane ?? "general");
     // Sync draft when the modal opens for a team; ignore setter identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional open/team sync
-  }, [input.open, input.team?.id, input.team?.name]);
+  }, [input.open, input.team?.id, input.team?.name, input.initialPane]);
+
+  function handleBillingAction() {
+    void (isPaidAgencyPlan(plan) ? openPortal() : checkout("agency"));
+  }
+
+  useEffect(() => {
+    if (!input.open || state.pane !== "members" || !input.membersInviteAutofocus) return;
+    if (!actions.permissions.canInvite) return;
+    const timer = window.setTimeout(() => inviteEmailRef.current?.focus(), 50);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- focus when members invite opens
+  }, [input.open, state.pane, input.membersInviteAutofocus, actions.permissions.canInvite]);
 
   async function saveName() {
     if (!input.team || !state.nameDraft.trim() || !state.nameDirty) return;
@@ -127,13 +168,70 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
   }
 
   async function addMember() {
-    if (!input.team || !state.inviteEmail.trim()) return;
-    actions.setMemberEmail(state.inviteEmail.trim());
-    actions.setMemberRole(state.inviteRole);
+    const email = state.inviteEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      state.setInviteFormError("Enter a valid email address");
+      return;
+    }
+    if (state.stagedInvites.some((staged) => staged.email.toLowerCase() === email.toLowerCase())) {
+      return;
+    }
+    if (sortedMembers.some((member) => member.userEmail.toLowerCase() === email.toLowerCase())) {
+      state.setInviteFormError("They're already in this agency");
+      return;
+    }
+    state.setStagedInvites((previous) => [...previous, { email, error: null }]);
+    state.setInviteEmail("");
+    state.setInviteFormError(null);
+  }
+
+  function removeStagedInvite(email: string) {
+    state.setStagedInvites((previous) =>
+      previous.filter((staged) => staged.email.toLowerCase() !== email.toLowerCase()),
+    );
+  }
+
+  function inviteErrorForCode(code: string | undefined): string {
+    if (code === "NOT_FOUND") return "No Orch account for this email yet";
+    if (code === "seat_required") return "Needs a seat — add one to invite them";
+    if (code === "CONFLICT") return "They're already on this agency";
+    return "Couldn't invite this email. Try sending again.";
+  }
+
+  async function sendInvites() {
+    if (!input.team || state.stagedInvites.length === 0 || state.addingMember) return;
     state.setAddingMember(true);
     try {
-      await actions.addTeamMember(input.team.id);
-      state.setInviteEmail("");
+      const failed = new Map<string, string | undefined>();
+      let sent = 0;
+      for (const staged of state.stagedInvites) {
+        try {
+          await orpcClient.team.members.add({
+            teamId: input.team.id,
+            userEmail: staged.email,
+            role: state.inviteRole,
+          });
+          sent += 1;
+        } catch (error) {
+          failed.set(staged.email.toLowerCase(), getOrpcErrorCode(error));
+        }
+      }
+      state.setStagedInvites((previous) =>
+        previous
+          .filter((staged) => failed.has(staged.email.toLowerCase()))
+          .map((staged) => ({
+            ...staged,
+            error: inviteErrorForCode(failed.get(staged.email.toLowerCase())),
+          })),
+      );
+      if (sent > 0) {
+        toast.success(sent === 1 ? "Invite sent" : `${sent} invites sent`);
+        const queryClient = getQueryClient();
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: teamDetailQueryKey(input.team.id) }),
+          queryClient.invalidateQueries({ queryKey: teamListQueryKey() }),
+        ]);
+      }
     } finally {
       state.setAddingMember(false);
     }
@@ -168,6 +266,8 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
       state.setNameDirty(false);
       state.setInviteEmail("");
       state.setInviteRole("viewer");
+      state.setStagedInvites([]);
+      state.setInviteFormError(null);
       state.setConfirmDelete(false);
       state.setConfirmRemoveUserId(null);
     }
@@ -185,12 +285,15 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
     state.setPane(pane);
   }
 
+  const inviteYouMember = sortedMembers.find((member) => member.userId === actions.currentUserId);
+
   return {
     open: input.open,
     team: input.team,
     teamRole: input.team?.role ?? null,
     displayMemberCount: input.team?.members.length ?? 0,
     sortedMembers,
+    pendingInvites: input.team?.pendingInvites ?? [],
     currentUserId: actions.currentUserId,
     permissions: actions.permissions,
     pane: state.pane,
@@ -201,10 +304,19 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
     inviteEmail: state.inviteEmail,
     inviteRole: state.inviteRole,
     addingMember: state.addingMember,
+    stagedInvites: state.stagedInvites,
+    inviteFormError: state.inviteFormError,
+    inviteYou: inviteYouMember
+      ? {
+          key: inviteYouMember.userId,
+          name: inviteYouMember.userName || inviteYouMember.userEmail,
+          avatarUrl: inviteYouMember.userAvatar,
+          userId: inviteYouMember.userId,
+        }
+      : null,
     confirmDelete: state.confirmDelete,
     confirmRemoveUserId: state.confirmRemoveUserId,
     deletingTeam: state.deletingTeam,
-    actionButtonDisabled: state.addingMember || !state.inviteEmail.trim(),
     removeTargetName:
       sortedMembers.find((member) => member.userId === state.confirmRemoveUserId)?.userName ||
       "member",
@@ -215,7 +327,9 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
     onPickImage: pickImage,
     onInviteEmailChange: state.setInviteEmail,
     onInviteRoleChange: state.setInviteRole,
-    onAddMember: () => void addMember(),
+    onStageInvite: () => addMember(),
+    onRemoveStagedInvite: removeStagedInvite,
+    onSendInvites: () => void sendInvites(),
     onUpdateMemberRole: (userId: string, role: TeamSettingsRole) =>
       void updateMemberRole(userId, role),
     onRequestRemoveMember: state.setConfirmRemoveUserId,
@@ -224,6 +338,11 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
     onRequestDeleteTeam: () => state.setConfirmDelete(true),
     onCancelDeleteTeam: () => state.setConfirmDelete(false),
     onDeleteTeam: () => void deleteTeam(),
+    plan,
+    membersInviteAutofocus: input.membersInviteAutofocus ?? false,
+    inviteEmailRef,
+    inviteInputId,
+    onBillingAction: handleBillingAction,
   };
 }
 
