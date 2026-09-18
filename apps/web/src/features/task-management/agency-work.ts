@@ -41,7 +41,9 @@ export type AgencyWorkSurfaceView =
   | { status: "error"; message: string; onRetry: () => void }
   | {
       status: "empty";
-      onGoToClients: () => void;
-      onGoToProjects: () => void;
+      canEditRecords: boolean;
+      onNewProject: () => void;
+      onAddClient: () => void;
+      isEnsuringClient: boolean;
     }
   | AgencyWorkSurfaceReadyProps;

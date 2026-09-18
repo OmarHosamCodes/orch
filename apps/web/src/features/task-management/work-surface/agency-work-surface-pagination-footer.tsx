@@ -1,13 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { agencyTimeWeekFooterClass } from "@/features/shared/agency-ui";
 
 type AgencyWorkSurfacePaginationFooterProps = {
@@ -67,15 +61,8 @@ export function AgencyWorkSurfacePaginationFooter({
 
       {pageSize !== undefined && pageSizeOptions && onPageSizeChange ? (
         <label className="flex items-center gap-2 text-xs text-muted">
-          <Select
-            value={String(pageSize)}
-            onValueChange={(next) => onPageSizeChange(Number(next))}
-          >
-            <SelectTrigger
-              size="sm"
-              aria-label="Items per page"
-              className="font-mono tabular-nums"
-            >
+          <Select value={String(pageSize)} onValueChange={(next) => onPageSizeChange(Number(next))}>
+            <SelectTrigger size="sm" aria-label="Items per page" className="font-mono tabular-nums">
               <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" align="end">

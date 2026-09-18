@@ -1,5 +1,5 @@
 import { AlertTriangle, ListChecks, ListPlus, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
@@ -33,6 +33,7 @@ export function AgencyProjectTasks({
   const deletingTaskIds = useAgencyOpsStore((s) => s.deletingTaskIds);
   const pendingTaskIds = useAgencyOpsStore((s) => s.pendingTaskIds);
   const [titleDraft, setTitleDraft] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [selectedTaskId, setSelectedTaskId] = useState(focusTaskId ?? "");
 
   const tasksQuery = useAgencyProjectTasksQuery(teamId, { projectId });
@@ -97,6 +98,7 @@ export function AgencyProjectTasks({
             <div className="relative min-w-0 flex-1">
               <ListPlus className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" />
               <Input
+                ref={titleInputRef}
                 value={titleDraft}
                 onChange={(e) => setTitleDraft(e.target.value)}
                 placeholder="Add a task"
@@ -136,7 +138,18 @@ export function AgencyProjectTasks({
       ) : tasks.length === 0 ? (
         <div className="px-4 py-8 text-center">
           <ListChecks className="mx-auto size-5 text-muted" />
-          <p className="mt-3 text-xs text-muted">No tasks yet.</p>
+          <p className="mt-3 text-sm font-semibold text-highlighted">No tasks yet</p>
+          <p className="mt-1 text-xs text-muted">Add a task to track work on this project.</p>
+          {canEditTasks ? (
+            <Button
+              type="button"
+              size="sm"
+              className="mt-4"
+              onClick={() => titleInputRef.current?.focus()}
+            >
+              Add task
+            </Button>
+          ) : null}
         </div>
       ) : (
         <ul className="divide-y divide-default">

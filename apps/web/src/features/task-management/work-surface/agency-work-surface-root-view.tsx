@@ -33,8 +33,10 @@ export function AgencyWorkSurfaceRootView({
     case "empty":
       surface = (
         <AgencyWorkSurfaceEmptyView
-          onGoToClients={view.onGoToClients}
-          onGoToProjects={view.onGoToProjects}
+          canEditRecords={view.canEditRecords}
+          onNewProject={view.onNewProject}
+          onAddClient={view.onAddClient}
+          isEnsuringClient={view.isEnsuringClient}
         />
       );
       break;
