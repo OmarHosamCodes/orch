@@ -22,6 +22,27 @@ const HIDE_ORCH = `
   }
 `;
 
+type BrowserEl = {
+  childElementCount: number;
+  textContent: string | null;
+  innerText: string;
+  style: { visibility: string };
+  scrollHeight: number;
+  clientHeight: number;
+  clientWidth: number;
+  scrollTop: number;
+};
+
+type BrowserWin = {
+  document: {
+    querySelectorAll: (selector: string) => Iterable<BrowserEl>;
+    scrollingElement: BrowserEl | null;
+  };
+  getComputedStyle: (el: BrowserEl) => { overflowY: string };
+  requestAnimationFrame: (cb: (time: number) => void) => number;
+  performance: { now: () => number };
+};
+
 type Clip = {
   name: string;
   path: string;
@@ -59,7 +80,8 @@ async function ensureSessionToken() {
 
 async function hideFilmChrome(page: Page) {
   await page.evaluate(() => {
-    for (const el of document.querySelectorAll<HTMLElement>("*")) {
+    const { document } = globalThis as unknown as BrowserWin;
+    for (const el of document.querySelectorAll("*")) {
       if (el.childElementCount === 0 && (el.textContent || "").includes("@")) {
         el.style.visibility = "hidden";
       }
@@ -68,7 +90,10 @@ async function hideFilmChrome(page: Page) {
 }
 
 async function rejectForbidden(page: Page, name: string) {
-  const text = await page.locator("body").innerText({ timeout: 5000 }).catch(() => "");
+  const text = await page
+    .locator("body")
+    .innerText({ timeout: 5000 })
+    .catch(() => "");
   if (FORBIDDEN.test(text)) {
     throw new Error(`${name} still shows forbidden seed names`);
   }
@@ -78,34 +103,38 @@ async function waitForText(page: Page, pattern: string | RegExp, timeout = 25_00
   await page.getByText(pattern).first().waitFor({ state: "visible", timeout });
 }
 
-async function animateScroll(page: Page, selectorHint: string, distance: number, durationMs: number) {
+async function animateScroll(
+  page: Page,
+  selectorHint: string,
+  distance: number,
+  durationMs: number,
+) {
   await page.evaluate(
     async ({ hint, distance, durationMs }) => {
-      const candidates = [...document.querySelectorAll<HTMLElement>("*")]
+      const win = globalThis as unknown as BrowserWin;
+      const candidates = [...win.document.querySelectorAll("*")]
         .filter((el) => {
-          const style = getComputedStyle(el);
+          const style = win.getComputedStyle(el);
           return (
             (style.overflowY === "auto" || style.overflowY === "scroll") &&
             el.scrollHeight > el.clientHeight + 80
           );
         })
         .sort((a, b) => b.clientHeight * b.clientWidth - a.clientHeight * a.clientWidth);
-      const hinted = hint
-        ? candidates.find((el) => el.innerText.includes(hint))
-        : undefined;
-      const el = hinted ?? candidates[0] ?? document.scrollingElement;
+      const hinted = hint ? candidates.find((el) => el.innerText.includes(hint)) : undefined;
+      const el = hinted ?? candidates[0] ?? win.document.scrollingElement;
       if (!el) return;
-      const start = performance.now();
+      const start = win.performance.now();
       const from = el.scrollTop;
       const to = Math.min(el.scrollHeight - el.clientHeight, from + distance);
       await new Promise<void>((resolve) => {
         const tick = (now: number) => {
           const t = Math.min(1, (now - start) / durationMs);
           el.scrollTop = from + (to - from) * t;
-          if (t < 1) requestAnimationFrame(tick);
+          if (t < 1) win.requestAnimationFrame(tick);
           else resolve();
         };
-        requestAnimationFrame(tick);
+        win.requestAnimationFrame(tick);
       });
     },
     { hint: selectorHint, distance, durationMs },
@@ -138,7 +167,11 @@ const CLIPS: Clip[] = [
     hideOrch: true,
     ready: async (page) => {
       await waitForText(page, /Map your thinking|Canvas for ideas|Agency for execution|Orch/);
-      await page.locator("canvas").first().waitFor({ timeout: 12_000 }).catch(() => undefined);
+      await page
+        .locator("canvas")
+        .first()
+        .waitFor({ timeout: 12_000 })
+        .catch(() => undefined);
       await sleep(600);
     },
     play: async () => {
@@ -157,7 +190,10 @@ const CLIPS: Clip[] = [
       if (nodeCount < 12) {
         throw new Error(`Canvas only has ${nodeCount} nodes`);
       }
-      await page.getByLabel("Fit all nodes").click({ timeout: 8000 }).catch(() => undefined);
+      await page
+        .getByLabel("Fit all nodes")
+        .click({ timeout: 8000 })
+        .catch(() => undefined);
       await sleep(400);
     },
     play: async (page) => {
@@ -174,7 +210,10 @@ const CLIPS: Clip[] = [
     durationMs: 3400,
     hideOrch: true,
     ready: async (page) => {
-      await page.getByRole("button", { name: /^Start$/ }).first().waitFor({ timeout: 25_000 });
+      await page
+        .getByRole("button", { name: /^Start$/ })
+        .first()
+        .waitFor({ timeout: 25_000 });
       await waitForText(page, /Today|Yesterday|Harbor Digital/);
     },
     play: async (page) => {
@@ -229,7 +268,9 @@ const CLIPS: Clip[] = [
       await waitForText(page, /members/);
     },
     play: async (page) => {
-      const gallery = page.locator('[data-testid="people-directory"] canvas, [data-testid="people-directory"]').first();
+      const gallery = page
+        .locator('[data-testid="people-directory"] canvas, [data-testid="people-directory"]')
+        .first();
       const box = await gallery.boundingBox();
       if (box) {
         await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.4);
@@ -250,7 +291,10 @@ const CLIPS: Clip[] = [
     ready: async (page) => {
       await page.waitForURL(/\/canvas/, { timeout: 20_000 });
       await page.locator(".react-flow__node").first().waitFor({ timeout: 25_000 });
-      await page.getByLabel("Fit all nodes").click({ timeout: 8000 }).catch(() => undefined);
+      await page
+        .getByLabel("Fit all nodes")
+        .click({ timeout: 8000 })
+        .catch(() => undefined);
       await sleep(300);
     },
     play: async (page) => {

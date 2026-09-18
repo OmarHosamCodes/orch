@@ -10,7 +10,7 @@ describe("buildCanvasScopedPatchNote", () => {
     expect(note).toContain("node-1");
     expect(note).toContain("Launch");
     expect(note).toContain("node.update");
-    expect(note).toContain("Do not propose node.create");
+    expect(note).toContain("Do not create a new node unless the user explicitly asks for one.");
   });
 
   test("is empty when nothing is scoped", () => {

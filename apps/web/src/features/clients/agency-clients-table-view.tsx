@@ -6,8 +6,6 @@ import {
   MoreHorizontal,
   Plus,
 } from "lucide-react";
-import { useRef } from "react";
-
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import {
@@ -155,10 +153,10 @@ function ClientBookRow({
     setCreateProjectClientId,
     archiveClient,
     unarchiveClient,
+    editAfterMenuCloseRef,
   } = viewModel;
 
   const isArchived = Boolean(client.archivedAt);
-  const editAfterMenuClose = useRef(false);
   const visibleProjects =
     searchQuery.trim() === ""
       ? client.projects.slice(0, 3)
@@ -281,9 +279,9 @@ function ClientBookRow({
                     align="end"
                     onClick={(event) => event.stopPropagation()}
                     onCloseAutoFocus={(event) => {
-                      if (!editAfterMenuClose.current) return;
+                      if (!editAfterMenuCloseRef.current) return;
                       event.preventDefault();
-                      editAfterMenuClose.current = false;
+                      editAfterMenuCloseRef.current = false;
                       setEditClientId(client.id);
                     }}
                   >
@@ -296,7 +294,7 @@ function ClientBookRow({
                     {!isArchived ? (
                       <DropdownMenuItem
                         onSelect={() => {
-                          editAfterMenuClose.current = true;
+                          editAfterMenuCloseRef.current = true;
                         }}
                       >
                         Edit commercial

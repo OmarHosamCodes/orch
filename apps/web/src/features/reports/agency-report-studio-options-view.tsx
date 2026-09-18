@@ -1,6 +1,5 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
 
 import { AgencyMultiSelectFilter } from "@/features/shared/filters/agency-multi-select-filter";
 import { agencyCommandBarCustomRangeTriggerClass } from "@/features/shared/command-bar/agency-command-bar";
@@ -105,16 +104,14 @@ function ShapeOptionGroup({
   onSelectAll: (enabled: boolean) => void;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
-
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible defaultOpen={defaultOpen}>
       <div className={shapeGroupClass}>
         <CollapsibleTrigger
           type="button"
           className={cn(
-            "flex w-full items-center justify-between gap-2 border-b border-default px-3 py-2.5 text-left transition-colors hover:bg-elevated/60",
-            !open && "border-b-0",
+            "group flex w-full items-center justify-between gap-2 border-b border-default px-3 py-2.5 text-left transition-colors hover:bg-elevated/60",
+            "data-[state=closed]:border-b-0",
             agencyFocusRingClass,
             "motion-reduce:transition-none",
           )}
@@ -123,7 +120,7 @@ function ShapeOptionGroup({
             <ChevronDown
               className={cn(
                 "size-3.5 shrink-0 text-muted transition-transform motion-reduce:transition-none",
-                open ? "" : "-rotate-90",
+                "group-data-[state=closed]:-rotate-90",
               )}
               aria-hidden
             />
@@ -244,7 +241,9 @@ export function AgencyReportStudioOptionsView({
 
   const shapeSummary = [
     `${fieldIds.length}/${AGENCY_REPORT_FIELDS.length} columns`,
-    wasteEnabledCount === 0 ? "waste hidden" : `${wasteEnabledCount} waste source${wasteEnabledCount === 1 ? "" : "s"}`,
+    wasteEnabledCount === 0
+      ? "waste hidden"
+      : `${wasteEnabledCount} waste source${wasteEnabledCount === 1 ? "" : "s"}`,
     mergeSameTaskNames ? "merged tasks" : "split tasks",
   ].join(" · ");
 
@@ -266,7 +265,13 @@ export function AgencyReportStudioOptionsView({
         meta={scopeSummary}
         action={
           scope.canReset ? (
-            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={scope.onReset}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={scope.onReset}
+            >
               Reset
             </Button>
           ) : null
@@ -349,7 +354,9 @@ export function AgencyReportStudioOptionsView({
           <ShapeOptionGroup
             title="Show waste"
             summary={
-              wasteEnabledCount === 0 ? "Off" : `${wasteEnabledCount}/${AGENCY_REPORT_SHOW_WASTE_SOURCES.length}`
+              wasteEnabledCount === 0
+                ? "Off"
+                : `${wasteEnabledCount}/${AGENCY_REPORT_SHOW_WASTE_SOURCES.length}`
             }
             defaultOpen={wasteEnabledCount > 0 || someWasteSelected}
             selectAllLabel="Select all waste sources"
@@ -389,10 +396,7 @@ export function AgencyReportStudioOptionsView({
         </div>
       </StudioOptionsSection>
 
-      <StudioOptionsSection
-        title="Recipes"
-        action={activityMenu}
-      >
+      <StudioOptionsSection title="Recipes" action={activityMenu}>
         <div className="space-y-2">
           <Label htmlFor="agency-report-recipe-name" className="sr-only">
             Recipe name
@@ -442,8 +446,13 @@ export function AgencyReportStudioOptionsView({
                 {exportPhase === "idle" ? "Export Excel" : "Exporting…"}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)]">
-              <DropdownMenuItem onClick={() => onExport("combined")}>Combined file</DropdownMenuItem>
+            <DropdownMenuContent
+              align="start"
+              className="w-[var(--radix-dropdown-menu-trigger-width)]"
+            >
+              <DropdownMenuItem onClick={() => onExport("combined")}>
+                Combined file
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onExport("per-client")}>
                 One file per client
               </DropdownMenuItem>

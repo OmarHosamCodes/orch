@@ -7,11 +7,9 @@
  */
 import { sql } from "drizzle-orm";
 import { db } from "@orch/db";
+import { env } from "@orch/env/server";
 
-const PROTECTED_HOSTS = new Set([
-  "caboose.proxy.rlwy.net",
-  "postgres-eea9.railway.internal",
-]);
+const PROTECTED_HOSTS = new Set(["caboose.proxy.rlwy.net", "postgres-eea9.railway.internal"]);
 
 type Expectation = {
   users: number;
@@ -56,10 +54,8 @@ function parseExpect(argv: string[]): Expectation {
 }
 
 function databaseHost(): string | null {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
   try {
-    return new URL(url).hostname;
+    return new URL(env.DATABASE_URL).hostname;
   } catch {
     return null;
   }

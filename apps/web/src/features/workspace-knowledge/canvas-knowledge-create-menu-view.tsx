@@ -10,7 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useRef } from "react";
+import type { RefObject } from "react";
 
 import {
   knowledgeCreateIconClass,
@@ -28,6 +28,7 @@ export type CanvasKnowledgeCreateMenuViewProps = {
   y: number;
   unplacedCount: number;
   motionState: MenuMotionState;
+  menuRef: RefObject<HTMLDivElement | null>;
   activeKind: KnowledgeCreateKind | null;
   onActiveKindChange: (kind: KnowledgeCreateKind | null) => void;
   onClose: () => void;
@@ -73,22 +74,13 @@ export function CanvasKnowledgeCreateMenuView({
   y,
   unplacedCount,
   motionState,
+  menuRef,
   activeKind,
   onActiveKindChange,
   onClose,
   onSelect,
   onOpenUnplaced,
 }: CanvasKnowledgeCreateMenuViewProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const visible = motionState !== "hidden";
-  useEffect(() => {
-    if (!visible) return;
-    const previous = document.activeElement;
-    menuRef.current?.querySelector<HTMLButtonElement>("[role=menuitem]")?.focus();
-    return () => {
-      if (previous instanceof HTMLElement) previous.focus();
-    };
-  }, [visible]);
   if (motionState === "hidden" || typeof document === "undefined") return null;
 
   const expanded = motionState === "open";

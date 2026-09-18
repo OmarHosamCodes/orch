@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type MutableRefObject } from "react";
 
 import { clientContactCompleteness } from "@/features/clients/client-contact-completeness";
 import {
@@ -96,6 +96,7 @@ export type AgencyClientsTableViewModel = {
   createProjectClients: AgencyClientsTableClient[];
   archiveClient: (clientId: string) => void;
   unarchiveClient: (clientId: string) => void;
+  editAfterMenuCloseRef: MutableRefObject<boolean>;
 };
 
 type UseAgencyClientsTableOptions = {
@@ -113,6 +114,7 @@ export function useAgencyClientsTable({
 
   const [editClientId, setEditClientId] = useState("");
   const [createProjectClientId, setCreateProjectClientId] = useState("");
+  const editAfterMenuCloseRef = useRef(false);
   const [editNameDraft, setEditNameDraft] = useState("");
   const [editCategoryDraft, setEditCategoryDraft] = useState<AgencyClientCategory>("external");
   const [editBillableRateDraft, setEditBillableRateDraft] = useState("");
@@ -378,5 +380,6 @@ export function useAgencyClientsTable({
     createProjectClients: clients,
     archiveClient,
     unarchiveClient,
+    editAfterMenuCloseRef,
   };
 }

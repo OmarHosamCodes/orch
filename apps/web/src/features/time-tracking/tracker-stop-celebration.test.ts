@@ -9,16 +9,23 @@ import {
 
 function installWindowStub() {
   const store = new Map<string, string>();
-  (globalThis as Record<string, unknown>).window = {
-    innerWidth: 1280,
-    innerHeight: 800,
-    localStorage: {
-      getItem: (key: string) => store.get(key) ?? null,
-      setItem: (key: string, value: string) => void store.set(key, value),
-      removeItem: (key: string) => void store.delete(key),
-      clear: () => store.clear(),
-    },
+  const localStorage = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => void store.set(key, value),
+    removeItem: (key: string) => void store.delete(key),
+    clear: () => store.clear(),
   };
+  const stub = { innerWidth: 1280, innerHeight: 800, localStorage };
+  const current = globalThis.window;
+  if (current) {
+    Object.defineProperties(current, {
+      innerWidth: { configurable: true, enumerable: true, writable: true, value: 1280 },
+      innerHeight: { configurable: true, enumerable: true, writable: true, value: 800 },
+      localStorage: { configurable: true, enumerable: true, value: localStorage },
+    });
+  } else {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: stub });
+  }
   return store;
 }
 

@@ -18,6 +18,7 @@ export type BillingState = {
 
 type BillingStateOptions = {
   lifetimePro?: boolean;
+  catalog?: ReturnType<typeof resolvePolarCatalog>;
 };
 
 type ActiveSubscription = NonNullable<CustomerState["activeSubscriptions"]>[number];
@@ -64,7 +65,7 @@ export function normalizeBillingState(
     return fallbackBilling;
   }
 
-  const catalog = resolvePolarCatalog(env);
+  const catalog = options.catalog ?? resolvePolarCatalog(env);
   const proSubscription = customerState.activeSubscriptions.find(
     (sub) => planForPolarProductId(catalog, sub.productId) !== null,
   );

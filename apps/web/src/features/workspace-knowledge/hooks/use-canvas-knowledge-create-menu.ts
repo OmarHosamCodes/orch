@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   CanvasKnowledgeCreateMenuViewProps,
@@ -56,6 +56,7 @@ export function useCanvasKnowledgeCreateMenu(input: {
     createMenuPoint ? "open" : "hidden",
   );
   const [activeKind, setActiveKind] = useState<KnowledgeCreateKind | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -78,6 +79,16 @@ export function useCanvasKnowledgeCreateMenu(input: {
     return () => window.removeEventListener("keydown", closeOnEscape, true);
   }, [open, openCreateMenuAt]);
 
+  const visible = motionState !== "hidden";
+  useEffect(() => {
+    if (!visible) return;
+    const previous = document.activeElement;
+    menuRef.current?.querySelector<HTMLButtonElement>("[role=menuitem]")?.focus();
+    return () => {
+      if (previous instanceof HTMLElement) previous.focus();
+    };
+  }, [visible]);
+
   return {
     open,
     x: createMenuPoint?.screenX ?? 0,
@@ -85,6 +96,7 @@ export function useCanvasKnowledgeCreateMenu(input: {
     unplacedCount: boardQuery.data?.unplaced.length ?? 0,
     motionState,
     activeKind,
+    menuRef,
     onActiveKindChange: setActiveKind,
     onClose: () => openCreateMenuAt(null),
     onSelect,
