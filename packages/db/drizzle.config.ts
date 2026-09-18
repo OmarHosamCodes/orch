@@ -6,6 +6,7 @@ import { defineConfig } from "drizzle-kit";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 for (const envPath of [
+  path.resolve(__dirname, "../../.env"),
   path.resolve(__dirname, "../../apps/server/.env"),
   path.resolve(__dirname, "../../apps/server/.env.local"),
   path.resolve(__dirname, ".env"),

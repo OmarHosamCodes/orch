@@ -505,6 +505,20 @@
       "when": 1787900000048,
       "tag": "0073_team_billing_credit_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1787900000049,
+      "tag": "0074_user_onboarding_completed_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1787900000050,
+      "tag": "0075_workspace_team_invite",
+      "breakpoints": true
     }
   ]
 }
