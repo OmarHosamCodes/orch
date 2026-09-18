@@ -9,7 +9,8 @@ import {
   AgencyReportStudioOptionsView,
   type AgencyReportStudioOptionsViewProps,
 } from "@/features/reports/agency-report-studio-options-view";
-import { agencyEmptyPanelClass, agencyErrorPanelClass } from "@/features/shared/agency-ui";
+import { agencyErrorPanelClass } from "@/features/shared/agency-ui";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import { Button } from "@/ui/button";
 import { SurfaceShimmer } from "@/ui/skeleton";
 
@@ -49,14 +50,13 @@ export function AgencyReportsStudioView({
             </Button>
           </div>
         ) : document.isEmpty ? (
-          <div className={agencyEmptyPanelClass}>
-            <BarChart2 className="mx-auto size-7 text-muted" />
-            <p className="mt-4 text-sm font-semibold text-highlighted">No time in this range.</p>
-            <p className="mt-1 text-xs text-muted">Start a timer, or widen the dates in Scope.</p>
-            <Button variant="secondary" size="sm" className="mt-3" onClick={document.onGoToTracker}>
-              Open Tracker
-            </Button>
-          </div>
+          <AgencyFirstRunEmptyView
+            icon={BarChart2}
+            title="No time in this range"
+            body="Start a timer, or widen the dates in Scope."
+            primaryLabel="Start tracking"
+            onPrimary={document.onGoToTracker}
+          />
         ) : (
           <AgencyReportDocumentPreview
             visibleFields={document.visibleFields}
