@@ -412,7 +412,7 @@ describe("team billing snapshot", () => {
         userEmail: `${memberId}@example.test`,
         role: "viewer",
       }),
-    ).resolves.toMatchObject({ userId: memberId });
+    ).resolves.toMatchObject({ invitedUserId: memberId, status: "pending" });
   });
 
   test("a member inherits the team snapshot without lifetimePro", async () => {
@@ -420,7 +420,7 @@ describe("team billing snapshot", () => {
     const memberId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Shared Agency" });
     await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerId, {
+    await teamService.addAcceptedTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${memberId}@example.test`,
       role: "viewer",
@@ -441,7 +441,7 @@ describe("team billing snapshot", () => {
       .update(workspaceTeamBilling)
       .set({ seats: 2 })
       .where(eq(workspaceTeamBilling.teamId, team.id));
-    await teamService.addTeamMember(ownerId, {
+    await teamService.addAcceptedTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${memberId}@example.test`,
       role: "viewer",

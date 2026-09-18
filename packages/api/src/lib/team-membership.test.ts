@@ -38,7 +38,7 @@ describe("requireTeamMembership", () => {
     const editorId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Roles" });
     await applyPaidPlan(team.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerId, {
+    await teamService.addAcceptedTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${editorId}@example.test`,
       role: "viewer",
@@ -64,7 +64,7 @@ describe("requireTeamMembership", () => {
     const editorId = await createFixtureUser();
     const team = await teamService.createTeam(ownerId, { name: "Roles" });
     await applyPaidPlan(team.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerId, {
+    await teamService.addAcceptedTeamMember(ownerId, {
       teamId: team.id,
       userEmail: `${editorId}@example.test`,
       role: "editor",

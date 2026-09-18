@@ -11,6 +11,7 @@ import {
   workspaceTeam,
   workspaceTeamBilling,
   workspaceTeamBillingCreditGrant,
+  workspaceTeamInvite,
   workspaceTeamMember,
 } from "@orch/db/schema";
 import {
@@ -141,8 +142,7 @@ function mapTeamBillingSnapshot(
 ): TeamBillingSnapshot {
   const limits = AGENCY_PLAN_LIMITS[plan];
   const floor = limits.orchMessagesIncluded;
-  const orchMessagesIncluded =
-    limits.orchMessagesPeriod === "month" ? floor * seats : floor;
+  const orchMessagesIncluded = limits.orchMessagesPeriod === "month" ? floor * seats : floor;
 
   return {
     teamId: billing.teamId,
@@ -260,8 +260,7 @@ export async function applyPolarSnapshot(
   polar: PolarSubscriptionView,
 ): Promise<void> {
   const catalog = resolvePolarCatalog(env);
-  const plan =
-    polar.status === "active" ? planForPolarProductId(catalog, polar.productId) : null;
+  const plan = polar.status === "active" ? planForPolarProductId(catalog, polar.productId) : null;
   if (!plan) {
     return;
   }
@@ -609,12 +608,21 @@ export async function assertWithinLimit(
       const billing = await lockTeamBillingRowForVolumeCap(executor, teamId);
       snapshot = await resolveTeamBillingSnapshot(teamId, billing, now, executor);
       limit = snapshot.seats;
-      used = (
+      const memberCount = (
         await executor
           .select({ value: count() })
           .from(workspaceTeamMember)
           .where(eq(workspaceTeamMember.teamId, teamId))
       )[0]!.value;
+      const pendingInviteCount = (
+        await executor
+          .select({ value: count() })
+          .from(workspaceTeamInvite)
+          .where(
+            and(eq(workspaceTeamInvite.teamId, teamId), eq(workspaceTeamInvite.status, "pending")),
+          )
+      )[0]!.value;
+      used = memberCount + pendingInviteCount;
       break;
     }
     case "orchMessages": {
@@ -663,9 +671,16 @@ export async function deriveInviteSeatCheckoutQuantity(
       .from(workspaceTeamMember)
       .where(eq(workspaceTeamMember.teamId, teamId))
   )[0]!.value;
+  const pendingInviteCount = (
+    await executor
+      .select({ value: count() })
+      .from(workspaceTeamInvite)
+      .where(and(eq(workspaceTeamInvite.teamId, teamId), eq(workspaceTeamInvite.status, "pending")))
+  )[0]!.value;
+  const occupiedSeats = memberCount + pendingInviteCount;
 
-  const checkoutSeats = Math.max(snapshot.seats + 1, memberCount);
-  if (checkoutSeats < memberCount) {
+  const checkoutSeats = Math.max(snapshot.seats + 1, occupiedSeats);
+  if (checkoutSeats < occupiedSeats) {
     throw seatRequiredError(snapshot.seats);
   }
   if (!Number.isInteger(checkoutSeats) || checkoutSeats < 2) {

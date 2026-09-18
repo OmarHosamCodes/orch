@@ -156,7 +156,7 @@ describe("workspace service authorization", () => {
     const editorUserId = await createFixtureUser();
     const ownerTeam = await teamService.createTeam(ownerUserId, { name: "Editor Team" });
     await billingTeam.applyPaidPlan(ownerTeam.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerUserId, {
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: ownerTeam.id,
       userEmail: `${editorUserId}@example.test`,
       role: "editor",
@@ -189,7 +189,7 @@ describe("workspace service authorization", () => {
     const teammateUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Visibility Team" });
     await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerUserId, {
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: team.id,
       userEmail: `${teammateUserId}@example.test`,
       role: "viewer",
@@ -223,7 +223,7 @@ describe("workspace service authorization", () => {
     const teammateUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Connection Team" });
     await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
-    await teamService.addTeamMember(ownerUserId, {
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: team.id,
       userEmail: `${teammateUserId}@example.test`,
       role: "viewer",

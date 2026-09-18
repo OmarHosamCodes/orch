@@ -8,6 +8,8 @@ import {
   teamDeleteInputSchema,
   teamDetailSchema,
   teamGetInputSchema,
+  teamInviteIdInputSchema,
+  teamInviteSchema,
   teamMemberSchema,
   teamRemoveMemberInputSchema,
   teamSummarySchema,
@@ -16,10 +18,13 @@ import {
 } from "./schemas";
 import { ensurePersonalAgency } from "./ensure-personal-agency";
 import {
+  acceptTeamInvite,
   addTeamMember,
   createTeam,
+  declineTeamInvite,
   deleteTeam,
   getTeam,
+  listMyTeamInvites,
   listUserTeams,
   listTeamMembers,
   removeTeamMember,
@@ -79,7 +84,7 @@ export const teamRouter = {
       });
     }),
     add: protectedProcedure.input(teamAddMemberInputSchema).handler(async ({ context, input }) => {
-      return teamMemberSchema.parse(await addTeamMember(context.session.user.id, input));
+      return teamInviteSchema.parse(await addTeamMember(context.session.user.id, input));
     }),
     updateRole: protectedProcedure
       .input(teamUpdateMemberRoleInputSchema)
@@ -102,6 +107,24 @@ export const teamRouter = {
             removed: z.boolean(),
           })
           .parse(await removeTeamMember(context.session.user.id, input));
+      }),
+  },
+  invites: {
+    listMine: protectedProcedure.handler(async ({ context }) => {
+      return z.object({ items: z.array(teamInviteSchema) }).parse({
+        items: await listMyTeamInvites(context.session.user.id, {}),
+      });
+    }),
+    accept: protectedProcedure
+      .input(teamInviteIdInputSchema)
+      .handler(async ({ context, input }) => {
+        const result = await acceptTeamInvite(context.session.user.id, input);
+        return z.object({ invite: teamInviteSchema, team: teamSummarySchema }).parse(result);
+      }),
+    decline: protectedProcedure
+      .input(teamInviteIdInputSchema)
+      .handler(async ({ context, input }) => {
+        return teamInviteSchema.parse(await declineTeamInvite(context.session.user.id, input));
       }),
   },
 };

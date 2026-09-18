@@ -43,7 +43,7 @@ async function addPaidMember(args: {
   seats?: number;
 }) {
   await billingTeam.applyPaidPlan(args.teamId, "agency", { seats: args.seats ?? 2 });
-  await teamService.addTeamMember(args.ownerId, {
+  await teamService.addAcceptedTeamMember(args.ownerId, {
     teamId: args.teamId,
     userEmail: `${args.memberId}@example.test`,
     role: args.role,

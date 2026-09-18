@@ -109,44 +109,65 @@ describe("team service persistence", () => {
     });
     await billingTeam.applyPaidPlan(targetTeam.id, "agency", { seats: 4 });
 
-    await service.addTeamMember(ownerUserId, {
+    await service.addAcceptedTeamMember(ownerUserId, {
       teamId: targetTeam.id,
       userEmail: getFixtureUserEmail(viewerUserId),
       role: "viewer",
     });
-    await service.addTeamMember(ownerUserId, {
+    await service.addAcceptedTeamMember(ownerUserId, {
       teamId: targetTeam.id,
       userEmail: getFixtureUserEmail(editorUserId),
       role: "editor",
     });
-    await service.addTeamMember(ownerUserId, {
+    await service.addAcceptedTeamMember(ownerUserId, {
       teamId: targetTeam.id,
       userEmail: getFixtureUserEmail(existingMemberUserId),
       role: "viewer",
     });
 
-    for (const actorUserId of [viewerUserId, editorUserId, otherTeamOwnerUserId]) {
+    for (const actorUserId of [viewerUserId, editorUserId]) {
       await expect(
         service.addTeamMember(actorUserId, {
           teamId: targetTeam.id,
           userEmail: getFixtureUserEmail(inviteeUserId),
           role: "viewer",
         }),
-      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
       await expect(
         service.updateTeamMemberRole(actorUserId, {
           teamId: targetTeam.id,
           userId: existingMemberUserId,
           role: "editor",
         }),
-      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
       await expect(
         service.removeTeamMember(actorUserId, {
           teamId: targetTeam.id,
           userId: existingMemberUserId,
         }),
-      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
     }
+
+    await expect(
+      service.addTeamMember(otherTeamOwnerUserId, {
+        teamId: targetTeam.id,
+        userEmail: getFixtureUserEmail(inviteeUserId),
+        role: "viewer",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(
+      service.updateTeamMemberRole(otherTeamOwnerUserId, {
+        teamId: targetTeam.id,
+        userId: existingMemberUserId,
+        role: "editor",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(
+      service.removeTeamMember(otherTeamOwnerUserId, {
+        teamId: targetTeam.id,
+        userId: existingMemberUserId,
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
 
     const members = await service.listTeamMembers(ownerUserId, { teamId: targetTeam.id });
     expect(members.find((member) => member.userId === existingMemberUserId)?.role).toBe("viewer");
@@ -157,5 +178,56 @@ describe("team service persistence", () => {
       otherTeamOwnerTeams.some((team) => team.id === otherTeam.id && team.role === "owner"),
     ).toBe(true);
     expect(otherTeamOwnerTeams.some((team) => team.id === targetTeam.id)).toBe(false);
+  });
+
+  test("invite stays pending until the invitee accepts", async () => {
+    const ownerUserId = await createFixtureUser();
+    const inviteeUserId = await createFixtureUser();
+    const team = await service.createTeam(ownerUserId, { name: "Invite Team" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+
+    const invite = await service.addTeamMember(ownerUserId, {
+      teamId: team.id,
+      userEmail: getFixtureUserEmail(inviteeUserId),
+      role: "editor",
+    });
+    expect(invite).toMatchObject({
+      invitedUserId: inviteeUserId,
+      status: "pending",
+      role: "editor",
+    });
+    expect(
+      (await service.listUserTeams(inviteeUserId, {})).some((item) => item.id === team.id),
+    ).toBe(false);
+    expect((await service.listMyTeamInvites(inviteeUserId, {})).map((item) => item.id)).toEqual([
+      invite.id,
+    ]);
+
+    const accepted = await service.acceptTeamInvite(inviteeUserId, { inviteId: invite.id });
+    expect(accepted.invite.status).toBe("accepted");
+    expect(accepted.team).toMatchObject({ id: team.id, role: "editor" });
+    expect(
+      (await service.listUserTeams(inviteeUserId, {})).some((item) => item.id === team.id),
+    ).toBe(true);
+    expect(await service.listMyTeamInvites(inviteeUserId, {})).toEqual([]);
+  });
+
+  test("declining an invite does not add membership", async () => {
+    const ownerUserId = await createFixtureUser();
+    const inviteeUserId = await createFixtureUser();
+    const team = await service.createTeam(ownerUserId, { name: "Decline Team" });
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+
+    const invite = await service.addTeamMember(ownerUserId, {
+      teamId: team.id,
+      userEmail: getFixtureUserEmail(inviteeUserId),
+      role: "viewer",
+    });
+    const declined = await service.declineTeamInvite(inviteeUserId, { inviteId: invite.id });
+    expect(declined.status).toBe("declined");
+    expect(
+      (await service.listUserTeams(inviteeUserId, {})).some((item) => item.id === team.id),
+    ).toBe(false);
+    expect(await service.listMyTeamInvites(inviteeUserId, {})).toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import {
   createWorkspaceId,
@@ -8,7 +9,13 @@ import {
   type WorkspaceTeamRole,
 } from "@orch/workspace";
 import { db } from "@orch/db";
-import { dashboardWorkspace, user, workspaceTeam, workspaceTeamMember } from "@orch/db/schema";
+import {
+  dashboardWorkspace,
+  user,
+  workspaceTeam,
+  workspaceTeamInvite,
+  workspaceTeamMember,
+} from "@orch/db/schema";
 
 import { requireTeamMembership } from "../../lib/team-membership";
 import { assertWithinLimit, insertTrialBilling } from "../../billing-team";
@@ -105,6 +112,7 @@ export async function getTeam(actorUserId: string, input: { teamId: string }) {
   }
 
   const members = await listTeamMembers(actorUserId, { teamId: input.teamId });
+  const pendingInvites = await listTeamPendingInvites(input.teamId);
 
   return {
     id: input.teamId,
@@ -114,6 +122,7 @@ export async function getTeam(actorUserId: string, input: { teamId: string }) {
     createdByUserId: membership.createdByUserId,
     updatedAt: membership.updatedAt.toISOString(),
     members,
+    pendingInvites,
   };
 }
 
@@ -344,6 +353,114 @@ export async function listTeamMembers(actorUserId: string, input: { teamId: stri
   }));
 }
 
+const invitedByUser = alias(user, "invited_by_user");
+
+function displayName(name: string | null | undefined, email: string) {
+  const trimmed = name?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : email;
+}
+
+function mapInviteRow(row: {
+  id: string;
+  teamId: string;
+  teamName: string;
+  teamImage: string | null;
+  invitedUserId: string;
+  invitedEmail: string;
+  invitedName: string;
+  invitedAvatar: string | null;
+  invitedByUserId: string;
+  invitedByName: string;
+  invitedByAvatar: string | null;
+  role: WorkspaceTeamRole;
+  status: "pending" | "accepted" | "declined";
+  createdAt: Date;
+  updatedAt: Date;
+  respondedAt: Date | null;
+}) {
+  return {
+    id: row.id,
+    teamId: row.teamId,
+    teamName: row.teamName,
+    teamImage: row.teamImage,
+    invitedUserId: row.invitedUserId,
+    invitedEmail: row.invitedEmail,
+    invitedName: displayName(row.invitedName, row.invitedEmail),
+    invitedAvatar: formatAvatarUrl(row.invitedAvatar),
+    invitedByUserId: row.invitedByUserId,
+    invitedByName: displayName(row.invitedByName, "Someone"),
+    invitedByAvatar: formatAvatarUrl(row.invitedByAvatar),
+    role: row.role,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    respondedAt: row.respondedAt ? row.respondedAt.toISOString() : null,
+  };
+}
+
+const inviteSelect = {
+  id: workspaceTeamInvite.id,
+  teamId: workspaceTeamInvite.teamId,
+  teamName: workspaceTeam.name,
+  teamImage: workspaceTeam.image,
+  invitedUserId: workspaceTeamInvite.invitedUserId,
+  invitedEmail: user.email,
+  invitedName: user.name,
+  invitedAvatar: user.image,
+  invitedByUserId: workspaceTeamInvite.invitedByUserId,
+  invitedByName: invitedByUser.name,
+  invitedByAvatar: invitedByUser.image,
+  role: workspaceTeamInvite.role,
+  status: workspaceTeamInvite.status,
+  createdAt: workspaceTeamInvite.createdAt,
+  updatedAt: workspaceTeamInvite.updatedAt,
+  respondedAt: workspaceTeamInvite.respondedAt,
+};
+
+async function loadInviteById(inviteId: string) {
+  const [row] = await db
+    .select(inviteSelect)
+    .from(workspaceTeamInvite)
+    .innerJoin(workspaceTeam, eq(workspaceTeam.id, workspaceTeamInvite.teamId))
+    .innerJoin(user, eq(user.id, workspaceTeamInvite.invitedUserId))
+    .innerJoin(invitedByUser, eq(invitedByUser.id, workspaceTeamInvite.invitedByUserId))
+    .where(eq(workspaceTeamInvite.id, inviteId))
+    .limit(1);
+
+  return row ? mapInviteRow(row) : null;
+}
+
+async function listTeamPendingInvites(teamId: string) {
+  const rows = await db
+    .select(inviteSelect)
+    .from(workspaceTeamInvite)
+    .innerJoin(workspaceTeam, eq(workspaceTeam.id, workspaceTeamInvite.teamId))
+    .innerJoin(user, eq(user.id, workspaceTeamInvite.invitedUserId))
+    .innerJoin(invitedByUser, eq(invitedByUser.id, workspaceTeamInvite.invitedByUserId))
+    .where(and(eq(workspaceTeamInvite.teamId, teamId), eq(workspaceTeamInvite.status, "pending")))
+    .orderBy(desc(workspaceTeamInvite.createdAt));
+
+  return rows.map(mapInviteRow);
+}
+
+export async function listMyTeamInvites(actorUserId: string, _input: Record<string, never>) {
+  const rows = await db
+    .select(inviteSelect)
+    .from(workspaceTeamInvite)
+    .innerJoin(workspaceTeam, eq(workspaceTeam.id, workspaceTeamInvite.teamId))
+    .innerJoin(user, eq(user.id, workspaceTeamInvite.invitedUserId))
+    .innerJoin(invitedByUser, eq(invitedByUser.id, workspaceTeamInvite.invitedByUserId))
+    .where(
+      and(
+        eq(workspaceTeamInvite.invitedUserId, actorUserId),
+        eq(workspaceTeamInvite.status, "pending"),
+      ),
+    )
+    .orderBy(desc(workspaceTeamInvite.createdAt));
+
+  return rows.map(mapInviteRow);
+}
+
 export async function addTeamMember(
   actorUserId: string,
   input: {
@@ -364,10 +481,15 @@ export async function addTeamMember(
     throw new ORPCError("NOT_FOUND");
   }
 
+  if (targetUser.id === actorUserId) {
+    throw new ORPCError("BAD_REQUEST", { message: "You can't invite yourself." });
+  }
+
   const now = new Date();
+  let inviteId = "";
 
   await db.transaction(async (tx) => {
-    const [existing] = await tx
+    const [existingMember] = await tx
       .select({ userId: workspaceTeamMember.userId })
       .from(workspaceTeamMember)
       .where(
@@ -378,29 +500,65 @@ export async function addTeamMember(
       )
       .limit(1);
 
-    if (existing) {
+    if (existingMember) {
+      throw new ORPCError("CONFLICT", { message: "They're already on this agency." });
+    }
+
+    const [existingInvite] = await tx
+      .select({
+        id: workspaceTeamInvite.id,
+        status: workspaceTeamInvite.status,
+      })
+      .from(workspaceTeamInvite)
+      .where(
+        and(
+          eq(workspaceTeamInvite.teamId, input.teamId),
+          eq(workspaceTeamInvite.invitedUserId, targetUser.id),
+        ),
+      )
+      .limit(1);
+
+    if (existingInvite?.status === "accepted") {
+      throw new ORPCError("CONFLICT", { message: "They're already on this agency." });
+    }
+
+    if (existingInvite?.status === "pending") {
       await tx
-        .update(workspaceTeamMember)
+        .update(workspaceTeamInvite)
         .set({
           role: input.role,
+          invitedByUserId: actorUserId,
           updatedAt: now,
         })
-        .where(
-          and(
-            eq(workspaceTeamMember.teamId, input.teamId),
-            eq(workspaceTeamMember.userId, targetUser.id),
-          ),
-        );
+        .where(eq(workspaceTeamInvite.id, existingInvite.id));
+      inviteId = existingInvite.id;
     } else {
       await assertWithinLimit(input.teamId, "members", { tx });
-      await tx.insert(workspaceTeamMember).values({
-        id: createWorkspaceId("team-member"),
-        teamId: input.teamId,
-        userId: targetUser.id,
-        role: input.role,
-        createdAt: now,
-        updatedAt: now,
-      });
+      if (existingInvite) {
+        await tx
+          .update(workspaceTeamInvite)
+          .set({
+            role: input.role,
+            invitedByUserId: actorUserId,
+            status: "pending",
+            respondedAt: null,
+            updatedAt: now,
+          })
+          .where(eq(workspaceTeamInvite.id, existingInvite.id));
+        inviteId = existingInvite.id;
+      } else {
+        inviteId = createWorkspaceId("team-invite");
+        await tx.insert(workspaceTeamInvite).values({
+          id: inviteId,
+          teamId: input.teamId,
+          invitedUserId: targetUser.id,
+          invitedByUserId: actorUserId,
+          role: input.role,
+          status: "pending",
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
     }
 
     await tx
@@ -411,14 +569,156 @@ export async function addTeamMember(
       .where(eq(workspaceTeam.id, input.teamId));
   });
 
-  const members = await listTeamMembers(actorUserId, { teamId: input.teamId });
-  const member = members.find((item) => item.userId === targetUser.id);
-  if (!member) {
+  const invite = await loadInviteById(inviteId);
+  if (!invite) {
     throw new ORPCError("INTERNAL_SERVER_ERROR", {
-      message: "The team member was added but could not be loaded.",
+      message: "The invite was created but could not be loaded.",
     });
   }
-  return member;
+  return invite;
+}
+
+export async function acceptTeamInvite(actorUserId: string, input: { inviteId: string }) {
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    const [invite] = await tx
+      .select({
+        id: workspaceTeamInvite.id,
+        teamId: workspaceTeamInvite.teamId,
+        invitedUserId: workspaceTeamInvite.invitedUserId,
+        role: workspaceTeamInvite.role,
+        status: workspaceTeamInvite.status,
+      })
+      .from(workspaceTeamInvite)
+      .where(eq(workspaceTeamInvite.id, input.inviteId))
+      .limit(1);
+
+    if (!invite || invite.invitedUserId !== actorUserId) {
+      throw new ORPCError("NOT_FOUND", { message: "Invite not found." });
+    }
+
+    if (invite.status === "declined") {
+      throw new ORPCError("BAD_REQUEST", { message: "This invite was declined." });
+    }
+
+    const [existingMember] = await tx
+      .select({ userId: workspaceTeamMember.userId })
+      .from(workspaceTeamMember)
+      .where(
+        and(
+          eq(workspaceTeamMember.teamId, invite.teamId),
+          eq(workspaceTeamMember.userId, actorUserId),
+        ),
+      )
+      .limit(1);
+
+    if (!existingMember) {
+      await assertWithinLimit(invite.teamId, "members", { tx, adding: 0 });
+      await tx.insert(workspaceTeamMember).values({
+        id: createWorkspaceId("team-member"),
+        teamId: invite.teamId,
+        userId: actorUserId,
+        role: invite.role,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    if (invite.status !== "accepted") {
+      await tx
+        .update(workspaceTeamInvite)
+        .set({
+          status: "accepted",
+          respondedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(workspaceTeamInvite.id, invite.id));
+    }
+
+    await tx
+      .update(user)
+      .set({ onboardingCompletedAt: now })
+      .where(and(eq(user.id, actorUserId), isNull(user.onboardingCompletedAt)));
+
+    await tx
+      .update(workspaceTeam)
+      .set({
+        updatedAt: now,
+      })
+      .where(eq(workspaceTeam.id, invite.teamId));
+  });
+
+  const invite = await loadInviteById(input.inviteId);
+  if (!invite) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "The invite was accepted but could not be loaded.",
+    });
+  }
+
+  const teams = await listUserTeams(actorUserId, {});
+  const team = teams.find((item) => item.id === invite.teamId);
+  if (!team) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "You joined the agency but it could not be loaded.",
+    });
+  }
+
+  return { invite, team };
+}
+
+export async function declineTeamInvite(actorUserId: string, input: { inviteId: string }) {
+  const now = new Date();
+
+  const [invite] = await db
+    .select({
+      id: workspaceTeamInvite.id,
+      invitedUserId: workspaceTeamInvite.invitedUserId,
+      status: workspaceTeamInvite.status,
+    })
+    .from(workspaceTeamInvite)
+    .where(eq(workspaceTeamInvite.id, input.inviteId))
+    .limit(1);
+
+  if (!invite || invite.invitedUserId !== actorUserId) {
+    throw new ORPCError("NOT_FOUND", { message: "Invite not found." });
+  }
+
+  if (invite.status === "accepted") {
+    throw new ORPCError("BAD_REQUEST", { message: "This invite was already accepted." });
+  }
+
+  if (invite.status !== "declined") {
+    await db
+      .update(workspaceTeamInvite)
+      .set({
+        status: "declined",
+        respondedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(workspaceTeamInvite.id, invite.id));
+  }
+
+  const declined = await loadInviteById(input.inviteId);
+  if (!declined) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "The invite was declined but could not be loaded.",
+    });
+  }
+  return declined;
+}
+
+/** Test helper: send an invite and accept it as the invitee. */
+export async function addAcceptedTeamMember(
+  actorUserId: string,
+  input: {
+    teamId: string;
+    userEmail: string;
+    role: WorkspaceTeamRole;
+  },
+) {
+  const invite = await addTeamMember(actorUserId, input);
+  return acceptTeamInvite(invite.invitedUserId, { inviteId: invite.id });
 }
 
 export async function updateTeamMemberRole(

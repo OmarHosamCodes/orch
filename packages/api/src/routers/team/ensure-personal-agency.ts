@@ -1,13 +1,16 @@
 import { findOrCreatePersonalTeam } from "./service";
 
-export async function ensurePersonalAgency(actorUserId: string, input: { name: string }) {
-  const trimmedName = input.name.trim();
-  const agencyName =
-    trimmedName.length === 0
-      ? "Agency"
-      : /agency$/i.test(trimmedName)
-        ? trimmedName
-        : `${trimmedName}'s agency`;
+export function personalAgencyName(userName: string): string {
+  const trimmedName = userName.trim();
+  if (trimmedName.length === 0) {
+    return "Agency";
+  }
+  if (/agency$/i.test(trimmedName)) {
+    return trimmedName;
+  }
+  return `${trimmedName}'s agency`;
+}
 
-  return findOrCreatePersonalTeam(actorUserId, { name: agencyName });
+export async function ensurePersonalAgency(actorUserId: string, input: { name: string }) {
+  return findOrCreatePersonalTeam(actorUserId, { name: personalAgencyName(input.name) });
 }

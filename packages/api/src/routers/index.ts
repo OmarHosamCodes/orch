@@ -4,6 +4,7 @@ import { agencyOpsRouter } from "./agency-ops";
 import { agentRouter } from "./agent/router";
 import { billingRouter } from "./billing/router";
 import { notificationsRouter } from "./notifications/router";
+import { onboardingRouter } from "./onboarding/router";
 import { systemRouter } from "./system";
 import { teamRouter } from "./team/router";
 import { workspaceRouter } from "./workspace/router";
@@ -13,6 +14,7 @@ type AppRouterShape = {
   agencyOps: typeof agencyOpsRouter;
   billing: typeof billingRouter;
   notifications: typeof notificationsRouter;
+  onboarding: typeof onboardingRouter;
   healthCheck: (typeof systemRouter)["healthCheck"];
   privateData: (typeof systemRouter)["privateData"];
   team: typeof teamRouter;
@@ -24,6 +26,7 @@ export const appRouter: AppRouterShape = {
   agencyOps: agencyOpsRouter,
   billing: billingRouter,
   notifications: notificationsRouter,
+  onboarding: onboardingRouter,
   ...systemRouter,
   team: teamRouter,
   workspace: workspaceRouter,
