@@ -34,6 +34,7 @@ export function useAppShellTeamHub() {
   const [settingsLaunch, setSettingsLaunch] = useState<AppShellTeamHubSettingsLaunch>({
     pane: "general",
   });
+  const settingsLaunchRequest = useTeamStore((s) => s.agencySettingsLaunch);
 
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
   const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
@@ -100,6 +101,12 @@ export function useAppShellTeamHub() {
     setSettingsOpen(open);
   }
 
+  useEffect(() => {
+    if (!settingsLaunchRequest) return;
+    openAgencySettings(settingsLaunchRequest);
+    useTeamStore.getState().clearAgencySettingsLaunch();
+  }, [settingsLaunchRequest]);
+
   function selectTeam(teamId: string) {
     setSelectedTeamId(teamId);
     setHubOpen(false);
@@ -163,7 +170,10 @@ export function useAppShellTeamHub() {
           failedInvites.length === 1
             ? `Couldn't invite ${failedInvites[0]}`
             : `Couldn't invite ${failedInvites.length} people`,
-          { description: "They may not have an Orch account yet. Try again from Agency settings later." },
+          {
+            description:
+              "They may not have an Orch account yet. Try again from Agency settings later.",
+          },
         );
       }
       resetCreateWizard();
