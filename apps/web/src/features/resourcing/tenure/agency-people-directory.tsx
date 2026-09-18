@@ -1,4 +1,4 @@
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Users } from "lucide-react";
 
 import {
   agencyPanelClass,
@@ -8,6 +8,7 @@ import {
   agencyWorkTitleClass,
 } from "@/features/shared/agency-ui";
 import { formatHoursMinutes } from "@/features/resourcing/tenure-utils";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
@@ -41,6 +42,8 @@ type AgencyPeopleDirectoryProps = {
   onReviewDefaults: () => void;
   onSelectMember: (userId: string) => void;
   onOpenProfile: (userId: string) => void;
+  canInvitePeople?: boolean;
+  onInvitePeople?: () => void;
   isLoadError?: boolean;
   loadErrorMessage?: string | null;
   onRetryLoad?: () => void;
@@ -192,6 +195,8 @@ export function AgencyPeopleDirectory({
   onReviewDefaults,
   onSelectMember,
   onOpenProfile,
+  canInvitePeople = false,
+  onInvitePeople,
   isLoadError = false,
   loadErrorMessage = null,
   onRetryLoad,
@@ -266,12 +271,13 @@ export function AgencyPeopleDirectory({
             </header>
 
             {cards.length === 0 ? (
-              <div className={cn(agencyPanelClass, "px-5 py-10 text-center")} role="status">
-                <p className="text-sm font-medium text-highlighted">No members yet</p>
-                <p className={cn(agencyWorkMetaClass, "mx-auto mt-1 max-w-sm text-pretty")}>
-                  Invite teammates from team settings, then configure their People record here.
-                </p>
-              </div>
+              <AgencyFirstRunEmptyView
+                icon={Users}
+                title="No members yet"
+                body="Invite teammates, then finish their People record here."
+                primaryLabel={canInvitePeople && onInvitePeople ? "Invite people" : undefined}
+                onPrimary={canInvitePeople ? onInvitePeople : undefined}
+              />
             ) : (
               <AgencyPeopleDirectoryGallery
                 cards={cards}

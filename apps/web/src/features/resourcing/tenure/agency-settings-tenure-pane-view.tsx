@@ -76,6 +76,8 @@ export function AgencySettingsTenurePaneView({
           onReviewDefaults={() => viewModel.setDefaultsOpen(true)}
           onSelectMember={viewModel.selectMember}
           onOpenProfile={viewModel.openProfile}
+          canInvitePeople={viewModel.canInvitePeople}
+          onInvitePeople={viewModel.onInvitePeople}
           isLoadError={viewModel.isSummaryError}
           isStaleLoadError={viewModel.isSummaryStaleError}
           loadErrorMessage={viewModel.summaryErrorMessage}

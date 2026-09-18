@@ -116,6 +116,7 @@ export function useAgencySettingsTenurePane({ teamId, active }: UseAgencySetting
   const upsertHrProfile = useAgencyMemberProfileStore((state) => state.upsertHrProfile);
   const hrPending = useAgencyMemberProfileStore((state) => state.hrPending);
   const updateMemberRole = useTeamStore((state) => state.updateMemberRole);
+  const requestAgencySettings = useTeamStore((state) => state.requestAgencySettings);
 
   const teamQuery = useQuery({
     ...orpc.team.get.queryOptions({ input: { teamId } }),
@@ -966,6 +967,10 @@ export function useAgencySettingsTenurePane({ teamId, active }: UseAgencySetting
       void teamQuery.refetch();
     },
     isOwner,
+    canInvitePeople: isOwner,
+    onInvitePeople: isOwner
+      ? () => requestAgencySettings({ pane: "members", membersInviteAutofocus: true })
+      : undefined,
     canEditHr,
     policyDraft,
     setPolicyDraft,
