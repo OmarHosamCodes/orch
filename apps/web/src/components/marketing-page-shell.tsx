@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import { Link } from "@/lib/navigation";
 
 import { MarketingBrandLockup } from "@/components/marketing/marketing-brand-lockup";
+import { LANDING_BELOW_HERO_VISIBLE } from "@/components/marketing/landing-release";
 import { cn } from "@/lib/utils";
 
 const footerLinks = [
   { label: "Canvas", to: "/canvas" },
   { label: "Agency", to: "/agency" },
-  { label: "Pricing", to: "/#pricing" },
+  ...(LANDING_BELOW_HERO_VISIBLE ? [{ label: "Pricing", to: "/#pricing" as const }] : []),
   { label: "Terms", to: "/terms" },
   { label: "Privacy", to: "/privacy" },
 ];
