@@ -16,6 +16,7 @@ export type UseAgencyDashboardSurfaceProps = {
   onSelectProject?: (projectId: string) => void;
   onSelectClient?: (clientId: string) => void;
   onSelectMember?: (userId: string) => void;
+  onGoToTracker: () => void;
 };
 
 export type AgencyDashboardSurfaceViewModel = ReturnType<typeof useAgencyDashboardSurface>;
@@ -27,6 +28,7 @@ export function useAgencyDashboardSurface({
   onSelectProject,
   onSelectClient,
   onSelectMember,
+  onGoToTracker,
 }: UseAgencyDashboardSurfaceProps) {
   const { range, projectId, memberUserId, clientId, clientIds, projectIds, memberUserIds } =
     filters;
@@ -141,6 +143,7 @@ export function useAgencyDashboardSurface({
     onSelectProject,
     onSelectClient,
     onSelectMember,
+    onGoToTracker,
     refetch: () => {
       void dashboardQuery.refetch();
     },

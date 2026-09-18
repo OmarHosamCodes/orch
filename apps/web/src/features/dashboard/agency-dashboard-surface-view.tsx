@@ -5,8 +5,8 @@ import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { AgencyDashboardHoursInstrument } from "@/features/dashboard/agency-dashboard-hours-instrument";
 import { DashboardTeamActivityCellView } from "@/features/dashboard/dashboard-team-activity-cell-view";
 import { DashboardTeamMemberActivitySheetView } from "@/features/dashboard/dashboard-team-member-activity-sheet-view";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -110,6 +110,7 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
     onSelectProject,
     onSelectClient,
     onSelectMember,
+    onGoToTracker,
     refetch,
   } = viewModel;
 
@@ -137,13 +138,13 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
   return (
     <div className="space-y-6 pb-6">
       {!summary || summary.totalEntries === 0 ? (
-        <div className={agencyEmptyPanelClass}>
-          <BarChart3 className="mx-auto size-7 text-muted" />
-          <p className="mt-4 text-sm font-bold text-highlighted">No time tracked in this range.</p>
-          <p className="mt-1 text-xs text-muted">
-            Track time on Tracker, then adjust filters if needed.
-          </p>
-        </div>
+        <AgencyFirstRunEmptyView
+          icon={BarChart3}
+          title="No time tracked in this range"
+          body="Start a timer, then hours land here."
+          primaryLabel="Start tracking"
+          onPrimary={onGoToTracker}
+        />
       ) : (
         <div className="space-y-6">
           <section className="[content-visibility:auto]">
