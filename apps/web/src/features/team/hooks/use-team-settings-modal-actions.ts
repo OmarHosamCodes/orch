@@ -74,7 +74,10 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
   const inviteEmailRef = useRef<HTMLInputElement>(null);
   const inviteInputId = useId();
   const teamId = input.team?.id ?? null;
-  const { plan, checkout, openPortal } = useBilling(teamId, input.open && Boolean(teamId));
+  const { plan, checkout, openPortal, billingQuery } = useBilling(
+    teamId,
+    input.open && Boolean(teamId),
+  );
   const sortedMembers = useMemo(
     () =>
       input.team
@@ -339,6 +342,8 @@ export function useTeamSettingsModalActions(input: TeamSettingsModalInput) {
     onCancelDeleteTeam: () => state.setConfirmDelete(false),
     onDeleteTeam: () => void deleteTeam(),
     plan,
+    billingLoading: billingQuery.isPending,
+    billingSeats: billingQuery.data?.seats ?? null,
     membersInviteAutofocus: input.membersInviteAutofocus ?? false,
     inviteEmailRef,
     inviteInputId,

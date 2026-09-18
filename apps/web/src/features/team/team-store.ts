@@ -82,9 +82,17 @@ type TeamStoreState = {
   ) => Promise<void>;
   seatInviteTeamId: string | null;
   clearSeatInvite: () => void;
+  agencySettingsLaunch: AgencySettingsLaunchRequest | null;
+  requestAgencySettings: (launch: AgencySettingsLaunchRequest) => void;
+  clearAgencySettingsLaunch: () => void;
 };
 
 const SEAT_REQUIRED_MESSAGE = "Every member needs a seat. Add a seat to invite them.";
+
+export type AgencySettingsLaunchRequest = {
+  pane: "general" | "members" | "billing";
+  membersInviteAutofocus?: boolean;
+};
 
 function getOrpcErrorCode(error: unknown): string | undefined {
   if (typeof error !== "object" || error === null) {
@@ -117,9 +125,12 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   memberRole: "viewer",
   createTeamPending: false,
   seatInviteTeamId: null,
+  agencySettingsLaunch: null,
 
   setSelectedTeamId: (teamId) => set({ selectedTeamId: teamId }),
   clearSeatInvite: () => set({ seatInviteTeamId: null }),
+  requestAgencySettings: (launch) => set({ agencySettingsLaunch: launch }),
+  clearAgencySettingsLaunch: () => set({ agencySettingsLaunch: null }),
   setIsTeamAsideCompact: (compact) => set({ isTeamAsideCompact: compact }),
   setTeamNameDraft: (name) => set({ teamNameDraft: name }),
   setMemberEmail: (email) => set({ memberEmail: email }),
