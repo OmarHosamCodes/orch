@@ -9,7 +9,7 @@ import appCss from "@/index.css?url";
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  errorComponent: () => <RouteError />,
+  errorComponent: RouteError,
   notFoundComponent: RouteNotFound,
   head: () => ({
     meta: [

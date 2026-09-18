@@ -85,32 +85,94 @@ describe("loadAuthenticatedShell", () => {
       fetchChrome,
     });
 
-    expect(result).toEqual({ session, teamCount: 2 });
+    expect(result).toEqual({ session, teamCount: 2, firstRun: null });
     expect(fetchChrome).toHaveBeenCalledWith("team-b");
     expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
   });
 
-  test("empty team boot ensures a personal agency and refetches chrome", async () => {
+  test("empty team boot does not auto-create an agency", async () => {
     const queryClient = createClient();
-    const ensurePersonal = mock(async () => ({ id: "team-a" }));
-    const fetchChrome = mock(async () =>
-      fetchChrome.mock.calls.length === 1
-        ? { ...chromeFor(""), teams: { items: [] }, teamId: "" }
-        : chromeFor("team-a"),
-    );
+    const fetchChrome = mock(async () => ({
+      ...chromeFor(""),
+      teams: { items: [] },
+      teamId: "",
+    }));
 
     const result = await loadAuthenticatedShell({
       queryClient,
       location: { pathname: "/canvas", searchStr: "" },
       fetchSession: async () => session,
       fetchChrome,
-      ensurePersonal,
     });
 
-    expect(ensurePersonal).toHaveBeenCalledTimes(1);
-    expect(fetchChrome).toHaveBeenCalledTimes(2);
-    expect(result).toEqual({ session, teamCount: 2 });
-    expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
+    expect(fetchChrome).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ session, teamCount: 0, firstRun: null });
+  });
+
+  test("incomplete first-run redirects to welcome", async () => {
+    try {
+      await loadAuthenticatedShell({
+        queryClient: createClient(),
+        location: { pathname: "/canvas", searchStr: "" },
+        fetchSession: async () => session,
+        fetchChrome: async () => ({ ...chromeFor(""), teams: { items: [] }, teamId: "" }),
+        fetchFirstRun: async () => ({
+          status: "create",
+          completedAt: null,
+          membershipCount: 0,
+          joinTeam: null,
+          defaultAgencyName: "Ada's agency",
+        }),
+      });
+      throw new Error("expected redirect");
+    } catch (error) {
+      expect(isRedirect(error)).toBe(true);
+      expect((error as { options: { href: string } }).options.href).toBe("/welcome");
+    }
+  });
+
+  test("completed first-run on welcome opens tracker when the account has an agency", async () => {
+    try {
+      await loadAuthenticatedShell({
+        queryClient: createClient(),
+        location: { pathname: "/welcome", searchStr: "" },
+        fetchSession: async () => session,
+        fetchChrome: async () => chromeFor("team-a"),
+        fetchFirstRun: async () => ({
+          status: "done",
+          completedAt: "2026-09-18T00:00:00.000Z",
+          membershipCount: 1,
+          joinTeam: { id: "team-a", name: "Alpha" },
+          defaultAgencyName: "Ada's agency",
+        }),
+      });
+      throw new Error("expected redirect");
+    } catch (error) {
+      expect(isRedirect(error)).toBe(true);
+      expect((error as { options: { href: string } }).options.href).toBe("/agency");
+    }
+  });
+
+  test("completed first-run with no agency sends leftover canvas instead of Agency", async () => {
+    try {
+      await loadAuthenticatedShell({
+        queryClient: createClient(),
+        location: { pathname: "/agency", searchStr: "" },
+        fetchSession: async () => session,
+        fetchChrome: async () => ({ ...chromeFor(""), teams: { items: [] }, teamId: "" }),
+        fetchFirstRun: async () => ({
+          status: "done",
+          completedAt: "2026-09-18T00:00:00.000Z",
+          membershipCount: 0,
+          joinTeam: null,
+          defaultAgencyName: "Ada's agency",
+        }),
+      });
+      throw new Error("expected redirect");
+    } catch (error) {
+      expect(isRedirect(error)).toBe(true);
+      expect((error as { options: { href: string } }).options.href).toBe("/canvas");
+    }
   });
 
   test("prefetches billing for the resolved team after chrome loads", async () => {
@@ -161,6 +223,7 @@ describe("loadAuthenticatedShell", () => {
     });
 
     expect(result.teamCount).toBe(0);
+    expect(result.firstRun).toBeNull();
     expect(queryClient.getQueryData(teamListQueryKey())).toEqual(teams);
   });
 

@@ -5,20 +5,44 @@ import { resolveBootTeamId, seedBootChromeQueries, type BootShellChrome } from "
 import { orpc } from "@/lib/orpc";
 import type { BootSession } from "@/lib/session-boot";
 
+export type BootFirstRun = {
+  status: "create" | "join" | "done";
+  completedAt: string | null;
+  membershipCount: number;
+  joinTeam: { id: string; name: string } | null;
+  defaultAgencyName: string;
+};
+
+function isWelcomePath(pathname: string) {
+  return pathname === "/welcome";
+}
+
+function isAgencyPath(pathname: string) {
+  return pathname === "/agency" || pathname.startsWith("/agency/");
+}
+
 export async function loadAuthenticatedShell(input: {
   queryClient: QueryClient;
   location: { pathname: string; searchStr: string };
   preferredTeamId?: string | null;
   fetchSession: () => Promise<BootSession>;
   fetchChrome: (teamId?: string) => Promise<BootShellChrome>;
-  ensurePersonal?: () => Promise<unknown>;
-}): Promise<{ session: NonNullable<BootSession>; teamCount: number }> {
+  fetchFirstRun?: () => Promise<BootFirstRun>;
+}): Promise<{
+  session: NonNullable<BootSession>;
+  teamCount: number;
+  firstRun: BootFirstRun | null;
+}> {
   const bootStartedAt = Date.now();
   const preferredTeamId = input.preferredTeamId || undefined;
   const sessionPromise = input.fetchSession();
   const chromePromise = input.fetchChrome(preferredTeamId);
+  const firstRunPromise = input.fetchFirstRun
+    ? input.fetchFirstRun().catch(() => null)
+    : Promise.resolve(null);
   const session = await sessionPromise;
-  let chrome = await chromePromise;
+  const chrome = await chromePromise;
+  const firstRun = await firstRunPromise;
 
   if (!session) {
     const redirectTo = `${input.location.pathname}${input.location.searchStr}`;
@@ -27,9 +51,24 @@ export async function loadAuthenticatedShell(input: {
     });
   }
 
-  if (chrome.teams?.items.length === 0 && input.ensurePersonal) {
-    await input.ensurePersonal();
-    chrome = await input.fetchChrome(preferredTeamId);
+  if (firstRun && firstRun.status !== "done" && !isWelcomePath(input.location.pathname)) {
+    throw redirect({ href: "/welcome", replace: true });
+  }
+
+  if (firstRun && firstRun.status === "done" && isWelcomePath(input.location.pathname)) {
+    throw redirect({
+      href: firstRun.membershipCount > 0 ? "/agency" : "/canvas",
+      replace: true,
+    });
+  }
+
+  if (
+    firstRun &&
+    firstRun.status === "done" &&
+    firstRun.membershipCount === 0 &&
+    isAgencyPath(input.location.pathname)
+  ) {
+    throw redirect({ href: "/canvas", replace: true });
   }
 
   const teamId = resolveBootTeamId(chrome.teams?.items ?? [], preferredTeamId);
@@ -43,5 +82,9 @@ export async function loadAuthenticatedShell(input: {
   }
 
   seedBootChromeQueries(input.queryClient, chrome, bootStartedAt);
-  return { session, teamCount: chrome.teams?.items.length ?? 0 };
+  if (firstRun) {
+    input.queryClient.setQueryData(orpc.onboarding.get.queryOptions().queryKey, firstRun);
+  }
+
+  return { session, teamCount: chrome.teams?.items.length ?? 0, firstRun };
 }

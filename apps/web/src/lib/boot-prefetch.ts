@@ -44,11 +44,11 @@ export const fetchBootShellChrome = createServerFn({ method: "GET" })
     return loadBootShellChrome(client, data.teamId);
   });
 
-export const ensurePersonalAgencyOnBoot = createServerFn({ method: "POST" }).handler(async () => {
+export const fetchBootFirstRun = createServerFn({ method: "GET" }).handler(async () => {
   const cookie = getRequestHeader("cookie") ?? "";
   if (!cookie) {
-    throw new Error("Cannot ensure a personal Agency without an authenticated session.");
+    throw new Error("Cannot load first-run without an authenticated session.");
   }
 
-  return createServerOrpcClient(cookie).team.ensurePersonal();
+  return createServerOrpcClient(cookie).onboarding.get();
 });

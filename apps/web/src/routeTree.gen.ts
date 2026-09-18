@@ -12,12 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DevRouteImport } from './routes/dev'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAgencyChromeRouteImport } from './routes/_authenticated/_agency-chrome'
 import { Route as AuthenticatedCanvasRouteImport } from './routes/_authenticated/canvas'
+import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
+import { Route as DevIndexRouteImport } from './routes/dev.index'
 import { Route as DevDialogsRouteImport } from './routes/dev.dialogs'
+import { Route as DevErrorRouteImport } from './routes/dev.error'
 import { Route as DevNotificationsRouteImport } from './routes/dev.notifications'
 import { Route as AuthenticatedAgencyMeRouteImport } from './routes/_authenticated/agency.me'
 import { Route as AuthenticatedBillingSuccessRouteImport } from './routes/_authenticated/billing.success'
@@ -51,6 +55,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevRoute = DevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -76,15 +85,30 @@ const AuthenticatedCanvasRoute = AuthenticatedCanvasRouteImport.update({
   path: '/canvas',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const DevIndexRoute = DevIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DevRoute,
+} as any)
 const DevDialogsRoute = DevDialogsRouteImport.update({
-  id: '/dev/dialogs',
-  path: '/dev/dialogs',
-  getParentRoute: () => rootRouteImport,
+  id: '/dialogs',
+  path: '/dialogs',
+  getParentRoute: () => DevRoute,
+} as any)
+const DevErrorRoute = DevErrorRouteImport.update({
+  id: '/error',
+  path: '/error',
+  getParentRoute: () => DevRoute,
 } as any)
 const DevNotificationsRoute = DevNotificationsRouteImport.update({
-  id: '/dev/notifications',
-  path: '/dev/notifications',
-  getParentRoute: () => rootRouteImport,
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => DevRoute,
 } as any)
 const AuthenticatedAgencyMeRoute = AuthenticatedAgencyMeRouteImport.update({
   id: '/agency/me',
@@ -189,12 +213,16 @@ const AuthenticatedAgencyChromeAgencyReportsReportIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/dev': typeof DevRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/error': typeof DevErrorRoute
   '/dev/notifications': typeof DevNotificationsRoute
+  '/dev/': typeof DevIndexRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -220,8 +248,11 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/canvas': typeof AuthenticatedCanvasRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/error': typeof DevErrorRoute
   '/dev/notifications': typeof DevNotificationsRoute
+  '/dev': typeof DevIndexRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
@@ -245,13 +276,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/dev': typeof DevRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/_agency-chrome': typeof AuthenticatedAgencyChromeRouteWithChildren
   '/_authenticated/canvas': typeof AuthenticatedCanvasRoute
+  '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
+  '/dev/error': typeof DevErrorRoute
   '/dev/notifications': typeof DevNotificationsRoute
+  '/dev/': typeof DevIndexRoute
   '/_authenticated/agency/me': typeof AuthenticatedAgencyMeRoute
   '/_authenticated/billing/success': typeof AuthenticatedBillingSuccessRoute
   '/_authenticated/node/$id': typeof AuthenticatedNodeIdRoute
@@ -275,12 +310,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/dev'
     | '/login'
     | '/privacy'
     | '/terms'
     | '/canvas'
+    | '/welcome'
     | '/dev/dialogs'
+    | '/dev/error'
     | '/dev/notifications'
+    | '/dev/'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -306,8 +345,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/canvas'
+    | '/welcome'
     | '/dev/dialogs'
+    | '/dev/error'
     | '/dev/notifications'
+    | '/dev'
     | '/agency/me'
     | '/billing/success'
     | '/node/$id'
@@ -330,13 +372,17 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/dashboard'
+    | '/dev'
     | '/login'
     | '/privacy'
     | '/terms'
     | '/_authenticated/_agency-chrome'
     | '/_authenticated/canvas'
+    | '/_authenticated/welcome'
     | '/dev/dialogs'
+    | '/dev/error'
     | '/dev/notifications'
+    | '/dev/'
     | '/_authenticated/agency/me'
     | '/_authenticated/billing/success'
     | '/_authenticated/node/$id'
@@ -360,11 +406,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  DevRoute: typeof DevRouteWithChildren
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
-  DevDialogsRoute: typeof DevDialogsRoute
-  DevNotificationsRoute: typeof DevNotificationsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -388,6 +433,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev': {
+      id: '/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof DevRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -425,19 +477,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCanvasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/welcome': {
+      id: '/_authenticated/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/dev/': {
+      id: '/dev/'
+      path: '/'
+      fullPath: '/dev/'
+      preLoaderRoute: typeof DevIndexRouteImport
+      parentRoute: typeof DevRoute
+    }
     '/dev/dialogs': {
       id: '/dev/dialogs'
-      path: '/dev/dialogs'
+      path: '/dialogs'
       fullPath: '/dev/dialogs'
       preLoaderRoute: typeof DevDialogsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DevRoute
+    }
+    '/dev/error': {
+      id: '/dev/error'
+      path: '/error'
+      fullPath: '/dev/error'
+      preLoaderRoute: typeof DevErrorRouteImport
+      parentRoute: typeof DevRoute
     }
     '/dev/notifications': {
       id: '/dev/notifications'
-      path: '/dev/notifications'
+      path: '/notifications'
       fullPath: '/dev/notifications'
       preLoaderRoute: typeof DevNotificationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DevRoute
     }
     '/_authenticated/agency/me': {
       id: '/_authenticated/agency/me'
@@ -624,6 +697,7 @@ const AuthenticatedAgencyChromeRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAgencyChromeRoute: typeof AuthenticatedAgencyChromeRouteWithChildren
   AuthenticatedCanvasRoute: typeof AuthenticatedCanvasRoute
+  AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedAgencyMeRoute: typeof AuthenticatedAgencyMeRoute
   AuthenticatedBillingSuccessRoute: typeof AuthenticatedBillingSuccessRoute
   AuthenticatedNodeIdRoute: typeof AuthenticatedNodeIdRoute
@@ -634,6 +708,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAgencyChromeRoute: AuthenticatedAgencyChromeRouteWithChildren,
   AuthenticatedCanvasRoute: AuthenticatedCanvasRoute,
+  AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedAgencyMeRoute: AuthenticatedAgencyMeRoute,
   AuthenticatedBillingSuccessRoute: AuthenticatedBillingSuccessRoute,
   AuthenticatedNodeIdRoute: AuthenticatedNodeIdRoute,
@@ -645,15 +720,30 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface DevRouteChildren {
+  DevDialogsRoute: typeof DevDialogsRoute
+  DevErrorRoute: typeof DevErrorRoute
+  DevNotificationsRoute: typeof DevNotificationsRoute
+  DevIndexRoute: typeof DevIndexRoute
+}
+
+const DevRouteChildren: DevRouteChildren = {
+  DevDialogsRoute: DevDialogsRoute,
+  DevErrorRoute: DevErrorRoute,
+  DevNotificationsRoute: DevNotificationsRoute,
+  DevIndexRoute: DevIndexRoute,
+}
+
+const DevRouteWithChildren = DevRoute._addFileChildren(DevRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  DevRoute: DevRouteWithChildren,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
-  DevDialogsRoute: DevDialogsRoute,
-  DevNotificationsRoute: DevNotificationsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
