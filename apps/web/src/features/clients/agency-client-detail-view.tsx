@@ -3,6 +3,7 @@ import {
   Archive,
   ArchiveRestore,
   ArrowLeft,
+  FolderKanban,
   ExternalLink,
   MoreHorizontal,
   Plus,
@@ -29,6 +30,7 @@ import {
   parseBillableRateAmount,
 } from "@/features/shared/format-rate";
 import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { Button } from "@/ui/button";
@@ -468,23 +470,16 @@ export function AgencyClientDetailView({
                 ) : null}
               </header>
               {projects.length === 0 ? (
-                <div className="py-8 text-center">
-                  <p className="text-sm font-bold text-highlighted">No projects yet</p>
-                  <p className="mt-1 text-xs text-muted">
-                    Create a project to start tracking time under this client.
-                  </p>
-                  {canEditRecords && !isArchived ? (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => setCreateProjectOpen(true)}
-                    >
-                      <Plus />
-                      New project
-                    </Button>
-                  ) : null}
-                </div>
+                <AgencyFirstRunEmptyView
+                  className="border-0 bg-transparent p-0"
+                  icon={FolderKanban}
+                  title="No projects yet"
+                  body="Create a project to start tracking time for this client."
+                  primaryLabel={canEditRecords && !isArchived ? "New project" : undefined}
+                  onPrimary={
+                    canEditRecords && !isArchived ? () => setCreateProjectOpen(true) : undefined
+                  }
+                />
               ) : (
                 <ul className="grid gap-2">
                   {projects.map((project) => {
@@ -562,7 +557,10 @@ export function AgencyClientDetailView({
                   >
                     {canEditRecords ? (
                       <div>
-                        <Label htmlFor={`client-name-${clientId}`} className="text-[11px] font-bold">
+                        <Label
+                          htmlFor={`client-name-${clientId}`}
+                          className="text-[11px] font-bold"
+                        >
                           Name
                         </Label>
                         <Input

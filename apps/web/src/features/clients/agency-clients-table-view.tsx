@@ -9,8 +9,8 @@ import {
 import { useRef } from "react";
 
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -478,19 +478,17 @@ export function AgencyClientsTableView({
 
   if (clients.length === 0) {
     return (
-      <div className={agencyEmptyPanelClass}>
-        <Building2 className="mx-auto size-6 text-muted" />
-        <p className="mt-3 text-sm font-bold text-highlighted">No clients yet.</p>
-        <p className="mt-1 text-xs text-muted">
-          Add your first client to start grouping projects and time.
-        </p>
-        {canEditRecords ? (
-          <Button variant="secondary" size="sm" className="mt-4" onClick={openNewClient}>
-            <Plus />
-            New client
-          </Button>
-        ) : null}
-      </div>
+      <AgencyFirstRunEmptyView
+        icon={Building2}
+        title={canEditRecords ? "Add a client to group projects and time" : "Nothing here yet"}
+        body={
+          canEditRecords
+            ? "Create a client here, then add projects and start tracking."
+            : "This agency has no clients yet."
+        }
+        primaryLabel={canEditRecords ? "New client" : undefined}
+        onPrimary={canEditRecords ? openNewClient : undefined}
+      />
     );
   }
 
