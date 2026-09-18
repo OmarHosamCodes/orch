@@ -8,6 +8,6 @@ export const Route = createFileRoute("/_authenticated/canvas")({
   component: CanvasPage,
   pendingComponent: () => <RoutePending label="Opening Canvas" />,
   head: () => ({
-    meta: [{ title: "Canvas — Orch" }],
+    meta: [{ title: "Canvas | Orch" }],
   }),
 });

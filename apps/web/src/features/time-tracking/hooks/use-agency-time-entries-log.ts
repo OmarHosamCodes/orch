@@ -8,10 +8,14 @@ import {
   useAgencyProjectsQuery,
   useAgencyTimeEntriesQuery,
 } from "@/features/shared/agency-queries";
+import { prefetchAgencySyncQueryOptions } from "@/features/shared/agency-query-options";
 import { useAgencyProjectTasksForChooserQuery } from "@/features/shared/agency-task-chooser-catalog";
+import { orpc } from "@/lib/orpc";
+import { getQueryClient } from "@/lib/query-client";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { findProjectTaskInCache } from "@/features/shared/agency-query-cache";
 import { useTeamWorkSchedule } from "@/features/shared/use-team-work-schedule";
+import { pinnedWeekKeyFromVirtualTop } from "@/features/time-tracking/week-head-state";
 import {
   flattenTimeEntryWeeksForVirtualization,
   groupEntriesByWeek,
@@ -39,9 +43,10 @@ import type { AgencyDayBulkDraft } from "@/features/time-tracking/entries/agency
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 500] as const;
 const ESTIMATED_ENTRY_ROW_HEIGHT = 56;
-const ESTIMATED_DAY_HEADER_HEIGHT = 48;
-const WEEK_HEADER_HEIGHT = 40;
+const ESTIMATED_DAY_HEADER_HEIGHT = 52;
+const WEEK_HEADER_HEIGHT = 62;
 const DAY_GAP = 20;
+const VIRTUALIZE_DAY_THRESHOLD = 16;
 
 type UseAgencyTimeEntriesLogOptions = {
   teamId: string;
@@ -57,6 +62,7 @@ export type AgencyTimeEntriesLogViewModel = {
   entriesEmpty: boolean;
   weekGroups: TimeEntryWeekGroup[];
   virtualDays: VirtualTimeEntryDay[];
+  virtualize: boolean;
   virtualItems: Array<{ index: number; key: string | number | bigint; start: number }>;
   virtualTotalSize: number;
   measureVirtualDay: (element: HTMLDivElement | null) => void;
@@ -100,8 +106,14 @@ export type AgencyTimeEntriesLogViewModel = {
   onDeleteSelected: (entryIds: string[]) => void;
   onMarkSelectedAsWaste: (entryIds: string[]) => void;
   onApplyBulk: () => void;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   onRequestOpenTaskChooser: () => void;
+  onStartTimer: () => void;
+  pinnedWeekOverlay: {
+    weekStartKey: string;
+    label: string;
+    totalSeconds: number;
+  } | null;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   showPagination: boolean;
   page: number;
@@ -189,8 +201,9 @@ export function useAgencyTimeEntriesLog({
     () => flattenTimeEntryWeeksForVirtualization(weekGroups),
     [weekGroups],
   );
+  const virtualize = virtualDays.length > VIRTUALIZE_DAY_THRESHOLD;
   const virtualizer = useVirtualizer({
-    count: virtualDays.length,
+    count: virtualize ? virtualDays.length : 0,
     getScrollElement: () => scrollContainerRef.current,
     getItemKey: (index) => virtualDays[index]?.key ?? index,
     estimateSize: (index) => {
@@ -210,6 +223,17 @@ export function useAgencyTimeEntriesLog({
     overscan: 3,
   });
 
+  const virtualItems = virtualizer.getVirtualItems();
+  const firstVisibleIndex = virtualItems[0]?.index ?? -1;
+  const overlayWeekKey = pinnedWeekKeyFromVirtualTop(
+    virtualDays.map((item) => item.week?.weekStartKey ?? null),
+    firstVisibleIndex,
+  );
+  const overlayWeek =
+    virtualDays.find((item) => item.week?.weekStartKey === overlayWeekKey)?.week ?? null;
+  const firstVisibleHasWeek = Boolean(virtualDays[firstVisibleIndex]?.week);
+  const pinnedWeekOverlay = overlayWeek && !firstVisibleHasWeek ? overlayWeek : null;
+
   const maxPage = useMemo(() => {
     if (pageSize <= 0) return 1;
     return Math.max(1, Math.ceil(totalEntries / pageSize));
@@ -225,6 +249,23 @@ export function useAgencyTimeEntriesLog({
   useEffect(() => {
     resetForTeam();
   }, [teamId, resetForTeam]);
+
+  useEffect(() => {
+    if (!teamId || page >= maxPage || totalEntries === 0) return;
+    try {
+      const utcOffsetMinutes = new Date().getTimezoneOffset();
+      void getQueryClient().prefetchQuery(
+        prefetchAgencySyncQueryOptions(
+          orpc.agencyOps.timeEntries.listMine.queryOptions({
+            input: { teamId, page: page + 1, pageSize, utcOffsetMinutes },
+          }),
+          "hot",
+        ),
+      );
+    } catch {
+      // QueryProvider binds the client after first paint in some boot paths.
+    }
+  }, [teamId, page, pageSize, maxPage, totalEntries]);
 
   const logQueryError = entriesQuery.error ?? projectsQuery.error ?? null;
 
@@ -461,8 +502,16 @@ export function useAgencyTimeEntriesLog({
     setBulkEditDayKey(null);
   }
 
+  function focusTrackerDescription() {
+    const root = document.querySelector("[data-agency-time-tracker]");
+    if (!(root instanceof HTMLElement)) return;
+    root.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const input = root.querySelector("input");
+    if (input instanceof HTMLInputElement) input.focus();
+  }
+
   function createTag(name: string) {
-    if (!teamId || tagCreatePending) return;
+    if (!teamId || !tagsQuery.canEditRecords || tagCreatePending) return;
     setTagCreatePending(true);
     void createAgencyTag(teamId, name)
       .then((created) => {
@@ -483,7 +532,8 @@ export function useAgencyTimeEntriesLog({
     entriesEmpty: entries.length === 0,
     weekGroups,
     virtualDays,
-    virtualItems: virtualizer.getVirtualItems(),
+    virtualize,
+    virtualItems,
     virtualTotalSize: virtualizer.getTotalSize(),
     measureVirtualDay: virtualizer.measureElement,
     projects,
@@ -516,8 +566,10 @@ export function useAgencyTimeEntriesLog({
     onDeleteSelected: (entryIds) => void deleteSelected(entryIds),
     onMarkSelectedAsWaste: (entryIds) => void markSelectedAsWaste(entryIds),
     onApplyBulk: () => void applyBulkPatch(),
-    onCreateTag: createTag,
+    onCreateTag: tagsQuery.canEditRecords ? createTag : undefined,
     onRequestOpenTaskChooser: requestOpenTaskChooser,
+    onStartTimer: focusTrackerDescription,
+    pinnedWeekOverlay,
     scrollContainerRef,
     showPagination: totalEntries > pageSize,
     page,

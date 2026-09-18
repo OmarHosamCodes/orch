@@ -235,22 +235,6 @@ function createFixture() {
 }
 
 describe("buildDashboardAgentTools", () => {
-  test("ui_present validates and returns a short canvas ack", async () => {
-    const fixture = createFixture();
-    const result = await callTool(fixture.tools, "ui_present", {
-      artifact: {
-        id: "summary",
-        kind: "schema",
-        title: "Summary",
-        schema: {
-          version: 1,
-          root: { type: "stat", label: "Nodes", value: 1 },
-        },
-      },
-    });
-    expect(result.message).toContain('Rendered "Summary" in the canvas (schema)');
-  });
-
   test("search_dashboard finds nested content across representative block types", async () => {
     const fixture = createFixture();
     const cases = [

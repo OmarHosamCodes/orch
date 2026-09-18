@@ -148,7 +148,7 @@ export function WorkspaceBusinessModelCanvasBlockEditor({
             <article
               key={cell.key}
               className={cn(
-                "rounded-xl border border-muted bg-background p-4",
+                "rounded-surface border border-muted bg-background p-surface",
                 gridAreaClass[cell.area],
               )}
             >
@@ -194,7 +194,7 @@ export function WorkspaceBusinessModelCanvasBlockEditor({
       ) : null}
 
       {block.analysis ? (
-        <section className="rounded-xl border border-muted bg-background p-4">
+        <section className="rounded-surface border border-muted bg-background p-surface">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold tracking-tight text-foreground">
@@ -212,7 +212,7 @@ export function WorkspaceBusinessModelCanvasBlockEditor({
             ) : null}
           </div>
 
-          <div className="mt-3 rounded-xl border border-muted bg-muted p-4 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+          <div className="mt-3 rounded-surface border border-muted bg-card p-surface text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
             {block.analysis}
           </div>
         </section>

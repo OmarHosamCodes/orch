@@ -18,7 +18,7 @@ import { createWorkspaceId } from "@orch/workspace";
 
 import { formatAvatarUrl } from "../shared/avatar-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { amountFromDurationAndRate } from "./client-billable-income";
 import { paginateItems, type PaginatedItems } from "./list-pagination";
 import {
@@ -156,7 +156,7 @@ export async function deletePayoutLinesByIds(
   actorUserId: string,
   input: { teamId: string; runId: string; lineIds: string[] },
 ): Promise<void> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   if (input.lineIds.length === 0) return;
   await db.delete(agencyOpsPayoutLine).where(inArray(agencyOpsPayoutLine.id, input.lineIds));
   await syncPayoutRunStatus(input.runId);
@@ -171,7 +171,7 @@ export async function ensurePayoutPeriod(
     currency?: string;
   },
 ): Promise<AgencyPayoutRunRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -264,7 +264,7 @@ export async function listPayoutLines(
     pageSize?: number;
   },
 ): Promise<PaginatedItems<AgencyPayoutLineRecord>> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -345,7 +345,7 @@ export async function createPayoutLineFromMember(
     currency?: string;
   },
 ): Promise<AgencyPayoutLineRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -499,7 +499,7 @@ export async function createPayoutLine(
     cohortKey?: string | null;
   },
 ): Promise<AgencyPayoutLineRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.sectionKey === "salaries") {
     throw new ORPCError("BAD_REQUEST", {
@@ -650,7 +650,7 @@ export async function recordPayoutPayment(
   actorUserId: string,
   input: { teamId: string; lineId: string; amount: number },
 ): Promise<AgencyPayoutLineRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.amount <= 0) {
     throw new ORPCError("BAD_REQUEST", { message: "Payment amount must be greater than zero." });
@@ -742,7 +742,7 @@ export async function updatePayoutLineStatus(
   actorUserId: string,
   input: { teamId: string; lineId: string; status: "paid" | "draft" },
 ): Promise<AgencyPayoutLineRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const existing = await loadPayoutLineForTeam(input.teamId, input.lineId);
   if (!existing) {
@@ -790,7 +790,7 @@ export async function deletePayoutLine(
   actorUserId: string,
   input: { teamId: string; lineId: string },
 ): Promise<{ id: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const existing = await loadPayoutLineForTeam(input.teamId, input.lineId);
   if (!existing) {
@@ -821,7 +821,7 @@ export async function getPayoutSummary(
     periodEnd: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -946,7 +946,7 @@ export async function getPayoutSectionTotals(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<Record<AgencyOpsPayoutSectionKey, number>> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
   if (periodStart >= periodEnd) {

@@ -44,7 +44,7 @@ export function rangePresets(tenureAvailable: boolean): RangePreset[] {
 const filterTriggerClass = agencyCommandBarFilterTriggerClass;
 
 const filterOptionButtonClass = cn(
-  "flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-semibold transition-colors hover:bg-default/80",
+  "flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors hover:bg-accent",
   agencyFocusRingClass,
   "motion-reduce:transition-none",
 );
@@ -108,8 +108,8 @@ export function RangePresetChooser({
                 <DropdownMenuSubTrigger
                   className={cn(
                     filterOptionButtonClass,
-                    "data-open:bg-default/80",
-                    selected && "bg-primary/10 text-primary data-open:bg-primary/10",
+                    "data-open:bg-accent",
+                    selected && "bg-accent text-accent-foreground data-open:bg-accent",
                   )}
                   onClick={() => {
                     selectTenureMonths([]);
@@ -140,7 +140,7 @@ export function RangePresetChooser({
                         className={cn(
                           filterOptionButtonClass,
                           "justify-start gap-2.5",
-                          allQuarterSelected && "bg-primary/10 text-primary",
+                          allQuarterSelected && "bg-accent text-accent-foreground",
                         )}
                       >
                         <RadioGroupItem value="all" className="size-3.5" aria-label="All Quarter" />
@@ -156,7 +156,7 @@ export function RangePresetChooser({
                           className={cn(
                             filterOptionButtonClass,
                             "justify-start gap-2.5",
-                            checked && "bg-primary/10 text-primary",
+                            checked && "bg-accent text-accent-foreground",
                           )}
                         >
                           <Checkbox
@@ -186,7 +186,10 @@ export function RangePresetChooser({
             <button
               key={preset}
               type="button"
-              className={cn(filterOptionButtonClass, selected && "bg-primary/10 text-primary")}
+              className={cn(
+                filterOptionButtonClass,
+                selected && "bg-accent text-accent-foreground",
+              )}
               onClick={() => {
                 onChange(preset);
                 setOpen(false);

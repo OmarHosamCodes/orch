@@ -3,7 +3,7 @@ import { db } from "@orch/db";
 import { agencyOpsProject, agencyOpsProjectTask, agencyOpsUserFavorite } from "@orch/db/schema";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { createWorkspaceId } from "@orch/workspace";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { getProjectByIdForTeam } from "../shared/lookup-helpers";
 
 export type AgencyFavoritesRecord = {
@@ -51,7 +51,7 @@ export async function listAgencyFavorites(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<AgencyFavoritesRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const mapped = mapFavoriteRows(await listFavoriteRows(input.teamId, actorUserId));
   if (mapped.projectIds.length === 0) return mapped;
 
@@ -81,7 +81,7 @@ export async function toggleAgencyFavorite(
     taskId?: string;
   },
 ): Promise<AgencyFavoritesRecord & { favorited: boolean }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   if (input.kind === "project") {
     if (!input.projectId) {

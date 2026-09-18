@@ -3,6 +3,7 @@ import { Calendar, ChevronUp, Expand, Plus, Trash2, User } from "lucide-react";
 import { useMemo, useState, type DragEvent } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -123,7 +124,7 @@ export function WorkspaceKanbanBlockEditor({
           <section
             key={column.id}
             className={cn(
-              "flex min-w-[300px] max-w-[300px] flex-col rounded-xl border border-muted bg-background p-4",
+              "flex min-w-[300px] max-w-[300px] flex-col rounded-surface border border-muted bg-background p-surface",
               dragOverColumnId === column.id ? "ring-2 ring-primary/20" : "",
             )}
             onDragOver={(event) => onColumnDragOver(column.id, event)}
@@ -166,7 +167,7 @@ export function WorkspaceKanbanBlockEditor({
                   key={card.id}
                   draggable
                   className={cn(
-                    "group relative flex flex-col rounded-xl border border-muted bg-background p-4",
+                    "group relative flex flex-col rounded-surface border border-muted bg-background p-surface",
                     draggingCardId === card.id
                       ? "pointer-events-none opacity-40"
                       : "cursor-grab active:cursor-grabbing",
@@ -248,22 +249,24 @@ export function WorkspaceKanbanBlockEditor({
                               }
                             />
                           </div>
-                        </div>
 
-                        <div className="space-y-1">
-                          <label className="px-1 text-xs font-semibold text-muted-foreground">
-                            Due date
-                          </label>
-                          <div className="relative">
-                            <Calendar className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
+                          <div className="space-y-1">
+                            <label className="px-1 text-xs font-semibold text-muted-foreground">
+                              Due date
+                            </label>
+                            <AgencyDateField
                               value={card.dueDate ?? ""}
-                              type="date"
-                              className="rounded-xl pl-9"
-                              onChange={(event) =>
+                              displayStyle="short"
+                              className="h-8 rounded-xl"
+                              aria-label="Due date"
+                              onChange={(next) =>
                                 mutateKanbanCard(tabId, block.id, card.id, (entry) => {
-                                  const nextValue = event.target.value;
-                                  entry.dueDate = nextValue || null;
+                                  entry.dueDate = next || null;
+                                })
+                              }
+                              onClear={() =>
+                                mutateKanbanCard(tabId, block.id, card.id, (entry) => {
+                                  entry.dueDate = null;
                                 })
                               }
                             />
@@ -312,10 +315,6 @@ export function WorkspaceKanbanBlockEditor({
                   ) : null}
                 </article>
               ))}
-
-              {(cardsByColumn[column.id] ?? []).length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">No cards yet.</p>
-              ) : null}
 
               <Button
                 type="button"

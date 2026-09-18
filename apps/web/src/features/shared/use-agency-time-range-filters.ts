@@ -5,6 +5,7 @@ import {
   startOfWeekUtc as startOfWeekUtcShared,
 } from "@orch/api/routers/agency-ops/resourcing/work-schedule";
 
+import { agencyTimeRangeCanReset } from "@/features/shared/command-bar/agency-time-range-can-reset";
 import type { RangePreset } from "@/features/shared/command-bar/range-preset-chooser";
 import type { AgencyFilterOptionGroup } from "@/features/shared/filters/agency-multi-select-filter";
 import {
@@ -84,6 +85,8 @@ type UseAgencyTimeRangeFiltersOptions = {
   includeClientFilter?: boolean;
   includeFieldsFilter?: boolean;
   fetchEntries?: boolean;
+  /** Subscribe to dashboard query fetch state for command-bar busy shimmer. */
+  fetchDashboard?: boolean;
   /** Seed custom period from URL handoff (Dashboard → Reports). */
   initialCustomRange?: { from: string; to: string } | null;
   initialFieldIds?: AgencyReportFieldId[];
@@ -96,6 +99,8 @@ type UseAgencyTimeRangeFiltersOptions = {
     showWaste: AgencyReportShowWaste;
     mergeSameTaskNames: boolean;
   }) => void;
+  /** Reports studio: choosers write applied scope immediately so the preview restyles. */
+  liveApply?: boolean;
 };
 
 function sameIdList(left: string[], right: string[]): boolean {
@@ -119,7 +124,12 @@ function buildProjectFilterGroups(
       currentGroup = { groupLabel: project.clientName, options: [] };
       groups.push(currentGroup);
     }
-    currentGroup.options!.push({ value: project.id, label: project.name });
+    currentGroup.options!.push({
+      value: project.id,
+      label: project.name,
+      secondary: project.clientName,
+      searchText: project.clientName,
+    });
   }
 
   return groups;
@@ -187,12 +197,14 @@ export function useAgencyTimeRangeFilters({
   includeClientFilter = false,
   includeFieldsFilter = false,
   fetchEntries = false,
+  fetchDashboard = false,
   initialCustomRange = null,
   initialFieldIds,
   initialShowWaste,
   initialMergeSameTaskNames,
   onFiltersApplied,
   onViewOptionsChange,
+  liveApply = false,
 }: UseAgencyTimeRangeFiltersOptions) {
   const defaultFieldIds = allAgencyReportFieldIds();
   const startingFieldIds = initialFieldIds ?? defaultFieldIds;
@@ -278,6 +290,10 @@ export function useAgencyTimeRangeFilters({
   );
   const [draftTenureMonthIndexes, setDraftTenureMonthIndexes] = useState<number[] | null>(null);
   const effectiveDraftTenureMonthIndexes = draftTenureMonthIndexes ?? defaultTenureMonthIndexes;
+  const defaultCustomRangeRef = useRef({
+    from: seededCustomRange?.from ?? toDateInputValue(startOfWeekUtc(weekStartsOn, now)),
+    to: seededCustomRange?.to ?? toDateInputValue(now),
+  });
 
   const tenurePeriodLabel = useMemo(
     () =>
@@ -385,6 +401,24 @@ export function useAgencyTimeRangeFilters({
     placeholderData: keepPreviousData,
   });
 
+  const dashboardQuery = useQuery({
+    ...orpc.agencyOps.reports.dashboard.queryOptions({
+      input: {
+        teamId,
+        from: range.from,
+        to: range.to,
+        clientId: appliedClientIds.length === 1 ? appliedClientIds[0] : undefined,
+        projectId: appliedProjectIds.length === 1 ? appliedProjectIds[0] : undefined,
+        memberUserId: appliedMemberUserIds.length === 1 ? appliedMemberUserIds[0] : undefined,
+        clientIds: appliedClientIds.length > 0 ? appliedClientIds : undefined,
+        projectIds: appliedProjectIds.length > 0 ? appliedProjectIds : undefined,
+        memberUserIds: appliedMemberUserIds.length > 0 ? appliedMemberUserIds : undefined,
+      },
+    }),
+    enabled: Boolean(teamId) && fetchDashboard && !tenurePolicyQuery.isPending,
+    placeholderData: keepPreviousData,
+  });
+
   const projects = projectsQuery.data?.items ?? [];
   const clients = (clientsQuery.data?.items ?? []).map((client) => ({
     id: client.id,
@@ -402,11 +436,34 @@ export function useAgencyTimeRangeFilters({
   const members = (membersQuery.data?.items ?? []).map((member) => ({
     userId: member.userId,
     userName: member.userName,
-    avatar: null,
   }));
+  const clientOptions = clients.map((client) => ({ value: client.id, label: client.name }));
+  const memberOptions = (membersQuery.data?.items ?? []).map((member) => ({
+    value: member.userId,
+    label: member.userName,
+    avatar: {
+      userId: member.userId,
+      name: member.userName,
+      avatarUrl: member.userAvatar,
+    },
+  }));
+  const canReset = agencyTimeRangeCanReset({
+    rangePreset: effectiveDraftRangePreset,
+    defaultRangePreset,
+    tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
+    defaultTenureMonthIndexes,
+    clientIds: draftClientIds,
+    projectIds: draftProjectIds,
+    memberUserIds: draftMemberUserIds,
+    customFromDate: draftCustomFromDate,
+    customToDate: draftCustomToDate,
+    defaultCustomFromDate: defaultCustomRangeRef.current.from,
+    defaultCustomToDate: defaultCustomRangeRef.current.to,
+  });
 
   function handleClientIdsChange(clientIds: string[]) {
     setDraftClientIds(clientIds);
+    if (liveApply) setAppliedClientIds(clientIds);
     if (clientIds.length === 0 || draftProjectIds.length === 0) return;
     const clientSet = new Set(clientIds);
     const nextProjectIds = draftProjectIds.filter((projectId) => {
@@ -415,6 +472,7 @@ export function useAgencyTimeRangeFilters({
     });
     if (!sameIdList(nextProjectIds, draftProjectIds)) {
       setDraftProjectIds(nextProjectIds);
+      if (liveApply) setAppliedProjectIds(nextProjectIds);
     }
   }
 
@@ -593,46 +651,15 @@ export function useAgencyTimeRangeFilters({
     projectsQuery.isPending ||
     (includeClientFilter && clientsQuery.isPending);
 
-  const barProps = {
-    rangePreset: effectiveDraftRangePreset,
-    onRangePresetChange: setDraftRangePreset,
-    customFromDate: draftCustomFromDate,
-    onCustomFromChange: setDraftCustomFromDate,
-    customToDate: draftCustomToDate,
-    onCustomToChange: setDraftCustomToDate,
-    onApply: handleApply,
-    hasPendingChanges: hasPendingFilterChanges,
-    onReset: handleReset,
-    defaultRangePreset,
-    tenureAvailable: Boolean(tenurePolicy?.enabled),
-    tenurePeriodLabel,
-    tenureQuarterLabel,
-    tenureQuarterMonths,
-    tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
-    onTenureMonthIndexesChange: (monthIndexes: number[]) => {
-      setDraftTenureMonthIndexes(monthIndexes);
-    },
-    members,
-    projectsLoading: projectsQuery.isPending,
-    clientIds: draftClientIds,
-    onClientIdsChange: handleClientIdsChange,
-    projectIds: draftProjectIds,
-    onProjectIdsChange: setDraftProjectIds,
-    memberUserIds: draftMemberUserIds,
-    onMemberUserIdsChange: setDraftMemberUserIds,
-    projectFilterGroups,
-    ...(includeClientFilter
-      ? {
-          clients,
-          clientsLoading: clientsQuery.isPending,
-        }
-      : {}),
-  };
+  const isRefreshing =
+    (fetchEntries && entriesQuery.isFetching && Boolean(entriesQuery.data)) ||
+    (fetchDashboard && dashboardQuery.isFetching && Boolean(dashboardQuery.data));
 
   return {
     applied,
-    barProps,
     isLoading,
+    isRefreshing,
+    isTenurePolicyPending: tenurePolicyQuery.isPending,
     projects,
     members,
     clients,
@@ -640,5 +667,51 @@ export function useAgencyTimeRangeFilters({
     entriesFetching: entriesQuery.isFetching,
     captureAppliedSnapshot,
     restoreSnapshot,
+    rangePreset: effectiveDraftRangePreset,
+    onRangePresetChange: (preset: RangePreset) => {
+      setDraftRangePreset(preset);
+      if (liveApply) setAppliedRangePreset(preset);
+    },
+    customFromDate: draftCustomFromDate,
+    onCustomFromChange: (value: string) => {
+      setDraftCustomFromDate(value);
+      if (liveApply) setAppliedCustomFromDate(value);
+    },
+    customToDate: draftCustomToDate,
+    onCustomToChange: (value: string) => {
+      setDraftCustomToDate(value);
+      if (liveApply) setAppliedCustomToDate(value);
+    },
+    onApply: handleApply,
+    hasPendingChanges: hasPendingFilterChanges,
+    onReset: handleReset,
+    canReset,
+    tenureAvailable: Boolean(tenurePolicy?.enabled),
+    tenurePeriodLabel,
+    tenureQuarterLabel,
+    tenureQuarterMonths,
+    tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
+    onTenureMonthIndexesChange: (indexes: number[]) => {
+      setDraftTenureMonthIndexes(indexes);
+      if (liveApply) setAppliedTenureMonthIndexes(indexes);
+    },
+    showClientFilter: includeClientFilter,
+    clientOptions,
+    clientsLoading: clientsQuery.isPending,
+    clientIds: draftClientIds,
+    onClientIdsChange: handleClientIdsChange,
+    projectIds: draftProjectIds,
+    onProjectIdsChange: (projectIds: string[]) => {
+      setDraftProjectIds(projectIds);
+      if (liveApply) setAppliedProjectIds(projectIds);
+    },
+    memberUserIds: draftMemberUserIds,
+    onMemberUserIdsChange: (memberUserIds: string[]) => {
+      setDraftMemberUserIds(memberUserIds);
+      if (liveApply) setAppliedMemberUserIds(memberUserIds);
+    },
+    memberOptions,
+    projectFilterGroups,
+    projectsLoading: projectsQuery.isPending,
   };
 }

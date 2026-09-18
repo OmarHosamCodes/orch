@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { normalizeTaskTitle } from "@orch/api/schemas/agency-ops";
+import { assignEntityIconOnWrite } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { db } from "@orch/db";
 import {
   agencyOpsClient,
@@ -673,6 +674,7 @@ export async function runImport(ctx: ImportContext, catalog: ImportCatalog): Pro
         teamId: ctx.teamId,
         clientId: clockifyClientId(NO_CLIENT_ID),
         name: NO_PROJECT_NAME,
+        ...assignEntityIconOnWrite({ name: NO_PROJECT_NAME }),
         createdByUserId: ctx.createdByUserId,
         createdAt: now,
         updatedAt: now,
@@ -707,6 +709,7 @@ export async function runImport(ctx: ImportContext, catalog: ImportCatalog): Pro
           teamId: ctx.teamId,
           clientId: project.clientId,
           name: project.name,
+          ...assignEntityIconOnWrite({ name: project.name }),
           createdByUserId: ctx.createdByUserId,
           createdAt: now,
           updatedAt: now,
@@ -728,6 +731,7 @@ export async function runImport(ctx: ImportContext, catalog: ImportCatalog): Pro
           teamId: ctx.teamId,
           projectId: task.projectId,
           title: task.title,
+          ...assignEntityIconOnWrite({ name: task.title }),
           status: "done",
           createdByUserId: ctx.createdByUserId,
           createdAt: now,

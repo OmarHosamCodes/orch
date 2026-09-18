@@ -1,7 +1,6 @@
 import type { WorkspaceBlock } from "@orch/workspace";
 import { Blocks } from "lucide-react";
 
-import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import {
   getWorkspaceBlockRegistryEntry,
@@ -11,21 +10,25 @@ import type { WorkspaceAddBlockCommandView } from "@/features/workspace/node/wor
 
 type WorkspaceNodeEmptyStateProps = {
   canEdit: boolean;
+  onAddBlock: (type: WorkspaceBlock["type"]) => string | null;
   onQuickAdd: (type: WorkspaceBlock["type"], blockId: string | null) => void;
   onBrowseAll: (view: WorkspaceAddBlockCommandView) => void;
 };
 
 export function WorkspaceNodeEmptyState({
   canEdit,
+  onAddBlock,
   onQuickAdd,
   onBrowseAll,
 }: WorkspaceNodeEmptyStateProps) {
-  const { addBlockToActiveTab } = useWorkspaceNodeEditorContext();
+  const defaultType = workspacePrimaryBlockTypes[0];
+  const defaultEntry = defaultType ? getWorkspaceBlockRegistryEntry(defaultType) : null;
+  const DefaultIcon = defaultEntry?.icon;
 
   if (!canEdit) {
     return (
       <div className="rounded-2xl border border-dashed border-muted/40 px-6 py-16 text-center text-sm text-muted-foreground">
-        No blocks yet.
+        Nothing here yet.
       </div>
     );
   }
@@ -37,43 +40,27 @@ export function WorkspaceNodeEmptyState({
       </div>
       <h2 className="mt-4 text-lg font-semibold text-highlighted">Start this workspace</h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        Add a block to capture tasks, notes, or decisions. You can always add more from the full
-        catalog.
+        Add a block to capture tasks, notes, or decisions.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        {workspacePrimaryBlockTypes.map((type) => {
-          const entry = getWorkspaceBlockRegistryEntry(type);
-          const Icon = entry.icon;
-
-          return (
-            <Button
-              key={type}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={() => {
-                const blockId = addBlockToActiveTab(type);
-                onQuickAdd(type, blockId);
-              }}
-            >
-              <Icon className="size-4" />
-              {entry.label}
-            </Button>
-          );
-        })}
+        {defaultType && defaultEntry && DefaultIcon ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              const blockId = onAddBlock(defaultType);
+              onQuickAdd(defaultType, blockId);
+            }}
+          >
+            <DefaultIcon className="size-4" aria-hidden />
+            Add {defaultEntry.label.toLowerCase()}
+          </Button>
+        ) : null}
+        <Button type="button" variant="ghost" size="sm" onClick={() => onBrowseAll("browse")}>
+          Browse all blocks
+        </Button>
       </div>
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="mt-4"
-        onClick={() => onBrowseAll("browse")}
-      >
-        Browse all blocks
-      </Button>
     </div>
   );
 }

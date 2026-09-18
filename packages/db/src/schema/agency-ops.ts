@@ -23,6 +23,7 @@ export type AgencyOpsJourneyStepStatus = "planned" | "active" | "done" | "blocke
 export type AgencyOpsProjectTaskMemberStatus = "open" | "in_progress" | "done";
 export type AgencyOpsClientCategory = "internal" | "external";
 export type AgencyOpsFavoriteKind = "project" | "task";
+export type AgencyOpsEntityIconSource = "auto" | "manual";
 export type AgencyOpsProjectTemplateMilestone = {
   title: string;
   assigneeUserIds?: string[];
@@ -73,6 +74,8 @@ export const agencyOpsProject = pgTable(
       .references(() => agencyOpsClient.id, { onDelete: "restrict" }),
     name: text("name").notNull(),
     colorHueId: integer("color_hue_id"),
+    iconKey: text("icon_key"),
+    iconSource: text("icon_source").$type<AgencyOpsEntityIconSource>().notNull().default("auto"),
     /** Optional override; null inherits the client billable rate. */
     billableRateAmount: integer("billable_rate_amount"),
     currency: text("currency").notNull().default("USD"),
@@ -150,6 +153,8 @@ export const agencyOpsProjectTask = pgTable(
       .notNull()
       .references(() => agencyOpsProject.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    iconKey: text("icon_key"),
+    iconSource: text("icon_source").$type<AgencyOpsEntityIconSource>().notNull().default("auto"),
     status: text("status").$type<AgencyOpsProjectTaskStatus>().notNull().default("open"),
     taskKind: text("task_kind").$type<AgencyOpsProjectTaskKind>().notNull().default("standard"),
     assignedToTeam: boolean("assigned_to_team").notNull().default(false),
@@ -175,6 +180,7 @@ export const agencyOpsProjectTask = pgTable(
     index("agency_ops_project_task_team_idx").on(table.teamId),
     index("agency_ops_project_task_team_project_idx").on(table.teamId, table.projectId),
     index("agency_ops_project_task_project_created_idx").on(table.projectId, table.createdAt),
+    index("agency_ops_project_task_team_created_idx").on(table.teamId, table.createdAt, table.id),
     index("agency_ops_project_task_status_idx").on(table.teamId, table.status),
     index("agency_ops_project_task_due_date_idx").on(table.dueDate),
     index("agency_ops_project_task_assigned_to_team_idx").on(table.teamId, table.assignedToTeam),
@@ -447,6 +453,12 @@ export const agencyOpsTimeEntry = pgTable(
     index("agency_ops_time_entry_team_user_idx").on(table.teamId, table.userId),
     index("agency_ops_time_entry_user_started_idx").on(table.userId, table.startedAt),
     index("agency_ops_time_entry_team_deleted_idx").on(table.teamId, table.deletedAt),
+    index("agency_ops_time_entry_mine_started_idx")
+      .on(table.teamId, table.userId, table.startedAt)
+      .where(sql`${table.deletedAt} is null`),
+    index("agency_ops_time_entry_user_task_live_idx")
+      .on(table.userId, table.taskId)
+      .where(sql`${table.deletedAt} is null and ${table.taskId} is not null`),
   ],
 );
 
@@ -544,10 +556,7 @@ export const agencyOpsActiveTimerLink = pgTable(
   },
   (table) => [
     index("agency_ops_active_timer_link_timer_idx").on(table.activeTimerId),
-    index("agency_ops_active_timer_link_timer_sort_idx").on(
-      table.activeTimerId,
-      table.sortOrder,
-    ),
+    index("agency_ops_active_timer_link_timer_sort_idx").on(table.activeTimerId, table.sortOrder),
   ],
 );
 

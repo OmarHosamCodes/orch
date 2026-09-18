@@ -1,3 +1,5 @@
+import { oversizeUploadResponse } from "@orch/api/billing-upload-route-order";
+import { rejectIfUploadsBlocked } from "@orch/api/billing-uploads";
 import { createContext, type Context } from "@orch/api/context";
 import { compressImage, replaceFileExtension } from "@orch/api/image-compression";
 import {
@@ -58,11 +60,6 @@ export function registerTaskAttachmentUploadRoute(app: Hono) {
       return c.json({ error: "file is required" }, 400);
     }
 
-    const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-    if (file.size > MAX_UPLOAD_BYTES) {
-      return c.json({ error: "File size must be under 50MB" }, 400);
-    }
-
     if (typeof taskId !== "string" || !taskId) {
       return c.json({ error: "taskId is required" }, 400);
     }
@@ -75,6 +72,17 @@ export function registerTaskAttachmentUploadRoute(app: Hono) {
     const projectId = await resolveTaskProjectId(teamId, taskId);
     if (!projectId) {
       return c.json({ error: "Task not found" }, 404);
+    }
+
+    const uploadGate = await rejectIfUploadsBlocked(teamId);
+    if (!uploadGate.ok) {
+      const { status, body } = uploadGate.response;
+      return c.json(body, status);
+    }
+
+    const oversize = oversizeUploadResponse(file.size);
+    if (oversize) {
+      return c.json(oversize.body, oversize.status);
     }
 
     let fileName = file.name;

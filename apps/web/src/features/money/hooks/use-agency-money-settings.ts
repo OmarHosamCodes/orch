@@ -355,6 +355,11 @@ export function useAgencyMoneySettings({
       memberOptions: (teamMembersQuery.data?.items ?? []).map((member) => ({
         value: member.userId,
         label: member.userName,
+        avatar: {
+          userId: member.userId,
+          name: member.userName,
+          avatarUrl: member.userAvatar,
+        },
       })),
       editor: moneySettingsDraft,
       onSelect: onSelectCohortAllocation,

@@ -26,7 +26,12 @@ import {
   dashboardConversationMessage,
   type DashboardConversationMessageToolsCalledRecord,
 } from "@orch/db/schema";
-import { createWorkspaceId, type WorkspaceNode } from "@orch/workspace";
+import {
+  createWorkspaceId,
+  knowledgeObjectHref,
+  knowledgeObjectTypeSchema,
+  type WorkspaceNode,
+} from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -59,7 +64,7 @@ import {
   createManualAgencyTimeEntry,
   deleteMyAgencyTimeEntry,
   getAgencyActiveTimer,
-  listMyAgencyTimeEntries,
+  getMyAgencyTimeEntry,
   startAgencyTimer,
   stopAgencyTimer,
   updateAgencyActiveTimerDescription,
@@ -129,8 +134,60 @@ async function appendConfirmProposalsToAssistantMessage(
     .where(eq(dashboardConversationMessage.id, message.id));
 }
 
+const STALE_PROPOSAL_MESSAGE =
+  "Underlying data changed. Reject this proposal and ask Orch to propose again.";
+const STALE_PROPOSAL_ROW_ERROR = "State changed since proposal; reject and re-propose.";
+
+function canonicalizeProposalState(value: unknown): unknown {
+  if (value == null) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(canonicalizeProposalState);
+  if (typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+    const entry = (value as Record<string, unknown>)[key];
+    if (entry === undefined) continue;
+    out[key] = canonicalizeProposalState(entry);
+  }
+  return out;
+}
+
 function stableJson(value: unknown) {
-  return JSON.stringify(value ?? null);
+  return JSON.stringify(canonicalizeProposalState(value));
+}
+
+function isStaleProposalError(error: unknown): boolean {
+  return error instanceof ORPCError && error.message === STALE_PROPOSAL_MESSAGE;
+}
+
+function isRetryableStaleProposal(row: { status: string; error: string | null }): boolean {
+  return (
+    row.status === "failed" &&
+    (row.error === STALE_PROPOSAL_MESSAGE || row.error === STALE_PROPOSAL_ROW_ERROR)
+  );
+}
+
+const VOLATILE_PROPOSAL_KEYS = new Set([
+  "updatedAt",
+  "createdAt",
+  "durationSeconds",
+  "links",
+  "heartbeatAt",
+]);
+
+function stripVolatileProposalState(value: unknown): unknown {
+  if (value == null || typeof value !== "object") return value ?? null;
+  if (Array.isArray(value)) return value.map(stripVolatileProposalState);
+  const out: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (VOLATILE_PROPOSAL_KEYS.has(key)) continue;
+    out[key] = stripVolatileProposalState(entry);
+  }
+  return out;
+}
+
+export function proposalStateFingerprint(value: unknown): string {
+  return stableJson(stripVolatileProposalState(value));
 }
 
 export async function loadAgencyActionBefore(
@@ -143,12 +200,7 @@ export async function loadAgencyActionBefore(
       return null;
     case "time_entry.update":
     case "time_entry.delete": {
-      const listed = await listMyAgencyTimeEntries(actorUserId, {
-        teamId,
-        page: 1,
-        pageSize: 100,
-      });
-      return listed.items.find((entry) => entry.id === action.entryId) ?? null;
+      return getMyAgencyTimeEntry(actorUserId, { teamId, entryId: action.entryId });
     }
     case "timer.start":
     case "timer.stop":
@@ -501,7 +553,7 @@ export async function confirmAgencyPlan(
   return { planId: plan.planId, proposals };
 }
 
-export async function createCanvasProposalRecord(
+export async function applyCanvasForYou(
   actorUserId: string,
   input: {
     action: unknown;
@@ -526,8 +578,7 @@ export async function createCanvasProposalRecord(
   const snapshotNodes = input.nodes ?? (await getWorkspaceSnapshot(actorUserId, {})).nodes;
   const preview = await applyCanvasAction(snapshotNodes, action);
   const storedAction = stampCanvasCreateIds(action, preview.after);
-  const now = new Date();
-  const id = createWorkspaceId("aap");
+  const saved = await saveWorkspaceNodes(actorUserId, { nodes: preview.nextNodes });
   const label = input.label?.trim() || canvasActionLabel(storedAction);
   const createdNodeId =
     storedAction.type === "node.create" && preview.after && typeof preview.after === "object"
@@ -539,41 +590,38 @@ export async function createCanvasProposalRecord(
           ? storedAction.nodeId
           : null
         : null;
+  const blockId =
+    storedAction.type.startsWith("block.") && "blockId" in storedAction
+      ? String(storedAction.blockId)
+      : null;
   const boardHref = createdNodeId ? `/node/${createdNodeId}` : "/canvas";
-
-  await db.insert(agentAgencyProposal).values({
-    id,
-    domain: "canvas",
-    teamId:
-      input.teamId ?? (storedAction.type === "node.create" ? (storedAction.teamId ?? null) : null),
-    actorUserId,
-    conversationId: input.conversationId ?? null,
-    messageId: null,
-    action: storedAction,
-    beforeState: preview.before,
-    afterState: preview.after,
-    label,
-    status: "pending",
-    illustrationArtifactId: null,
-    error: null,
-    expiresAt: new Date(now.getTime() + PROPOSAL_TTL_MS),
-    createdAt: now,
-    updatedAt: now,
-  });
-
+  void saved;
+  void input.conversationId;
   return {
-    proposalId: id,
-    status: "pending" as const,
-    action: storedAction,
-    before: preview.before,
-    after: preview.after,
-    nextNodes: preview.nextNodes,
+    applied: true as const,
+    nodeId: createdNodeId || null,
+    blockId,
     label,
     boardHref,
+    after: preview.after,
+    nextNodes: preview.nextNodes,
   };
 }
 
-export async function createKnowledgeProposalRecord(
+export async function createCanvasProposalRecord(
+  actorUserId: string,
+  input: {
+    action: unknown;
+    label?: string;
+    conversationId?: string | null;
+    teamId?: string | null;
+    nodes?: WorkspaceNode[];
+  },
+) {
+  return applyCanvasForYou(actorUserId, input);
+}
+
+export async function applyKnowledgeForYou(
   actorUserId: string,
   input: {
     action: unknown;
@@ -586,36 +634,48 @@ export async function createKnowledgeProposalRecord(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const action = knowledgeActionSchema.parse(input.action);
-  const now = new Date();
-  const id = createWorkspaceId("aap");
-  const label = input.label?.trim() || knowledgeActionLabel(action);
-  await db.insert(agentAgencyProposal).values({
-    id,
-    domain: "knowledge",
-    teamId: input.teamId ?? null,
-    actorUserId,
-    conversationId: input.conversationId ?? null,
-    messageId: null,
+  const applied = await applyKnowledgeAction(actorUserId, {
     action,
-    beforeState: null,
-    afterState: action,
-    label,
-    status: "pending",
-    illustrationArtifactId: null,
-    error: null,
-    expiresAt: new Date(now.getTime() + PROPOSAL_TTL_MS),
-    createdAt: now,
-    updatedAt: now,
+    teamId: input.teamId,
   });
+  const objectId =
+    applied && typeof applied === "object" && "objectId" in applied
+      ? String((applied as { objectId?: string }).objectId ?? "")
+      : null;
+  const after =
+    applied && typeof applied === "object" && "after" in applied
+      ? (applied as { after?: { objectType?: string; title?: string } }).after
+      : null;
+  const objectType =
+    after && typeof after === "object" && "objectType" in after
+      ? String((after as { objectType?: string }).objectType ?? "")
+      : null;
+  const label = input.label?.trim() || knowledgeActionLabel(action);
+  void input.conversationId;
+  const parsedType = knowledgeObjectTypeSchema.safeParse(objectType);
   return {
-    proposalId: id,
-    status: "pending" as const,
-    action,
-    before: null,
-    after: action,
+    applied: true as const,
+    objectId: objectId || null,
+    objectType: typeof objectType === "string" ? objectType : null,
     label,
-    boardHref: "/canvas",
+    boardHref: objectId
+      ? parsedType.success
+        ? knowledgeObjectHref(parsedType.data, objectId)
+        : `/object/${objectId}`
+      : "/canvas",
   };
+}
+
+export async function createKnowledgeProposalRecord(
+  actorUserId: string,
+  input: {
+    action: unknown;
+    label?: string;
+    conversationId?: string | null;
+    teamId?: string | null;
+  },
+) {
+  return applyKnowledgeForYou(actorUserId, input);
 }
 
 export async function confirmCanvasPlan(
@@ -626,29 +686,23 @@ export async function confirmCanvasPlan(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const plan = canvasDraftPlanSchema.parse(input.plan);
-  const proposals = [];
+  const created = [];
   let draftNodes = (await getWorkspaceSnapshot(actorUserId, {})).nodes;
   let lastCreated = null as ReturnType<typeof readLastCreatedCanvasTarget>;
   for (const step of plan.steps) {
     const boundAction = bindCanvasPlanStepAction(step.action, draftNodes, lastCreated);
-    const proposal = await createCanvasProposalRecord(actorUserId, {
+    const applied = await applyCanvasForYou(actorUserId, {
       action: boundAction,
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
       nodes: draftNodes,
     });
-    proposals.push(proposal);
-    draftNodes = proposal.nextNodes;
-    lastCreated = readLastCreatedCanvasTarget(boundAction, proposal.after) ?? lastCreated;
+    created.push(applied);
+    draftNodes = applied.nextNodes;
+    lastCreated = readLastCreatedCanvasTarget(boundAction, applied.after) ?? lastCreated;
   }
-  await appendConfirmProposalsToAssistantMessage(
-    actorUserId,
-    input.conversationId,
-    "propose_canvas_action",
-    proposals,
-  );
-  return { planId: plan.planId, proposals };
+  return { planId: plan.planId, proposals: [], created };
 }
 
 async function loadProposalForActor(
@@ -701,7 +755,7 @@ export async function approveAgencyProposal(
 ) {
   const row = await loadProposalForActor(actorUserId, input);
 
-  if (row.status !== "pending") {
+  if (row.status !== "pending" && !isRetryableStaleProposal(row)) {
     throw new ORPCError("BAD_REQUEST", { message: `Proposal is ${row.status}.` });
   }
   if (row.expiresAt.getTime() < Date.now()) {
@@ -754,17 +808,9 @@ export async function approveAgencyProposal(
     }
     const action = agencyActionSchema.parse(row.action);
     const currentBefore = await loadAgencyActionBefore(actorUserId, teamId, action);
-    if (stableJson(currentBefore) !== stableJson(row.beforeState)) {
-      await db
-        .update(agentAgencyProposal)
-        .set({
-          status: "failed",
-          error: "State changed since proposal; reject and re-propose.",
-          updatedAt: new Date(),
-        })
-        .where(eq(agentAgencyProposal.id, row.id));
+    if (proposalStateFingerprint(currentBefore) !== proposalStateFingerprint(row.beforeState)) {
       throw new ORPCError("BAD_REQUEST", {
-        message: "Underlying data changed. Reject this proposal and ask Orch to propose again.",
+        message: STALE_PROPOSAL_MESSAGE,
       });
     }
 
@@ -780,6 +826,9 @@ export async function approveAgencyProposal(
       label: row.label,
     };
   } catch (error) {
+    if (isStaleProposalError(error)) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : "Execute failed";
     await db
       .update(agentAgencyProposal)
@@ -794,7 +843,7 @@ export async function rejectAgencyProposal(
   input: { proposalId: string; teamId?: string },
 ) {
   const row = await loadProposalForActor(actorUserId, input);
-  if (row.status !== "pending") {
+  if (row.status !== "pending" && !isRetryableStaleProposal(row)) {
     throw new ORPCError("BAD_REQUEST", { message: `Proposal is ${row.status}.` });
   }
 
@@ -814,23 +863,17 @@ export async function confirmKnowledgePlan(
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
   const plan = knowledgeDraftPlanSchema.parse(input.plan);
-  const proposals = [];
+  const created = [];
   for (const step of plan.steps) {
-    const proposal = await createKnowledgeProposalRecord(actorUserId, {
+    const applied = await applyKnowledgeForYou(actorUserId, {
       action: step.action,
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
     });
-    proposals.push(proposal);
+    created.push(applied);
   }
-  await appendConfirmProposalsToAssistantMessage(
-    actorUserId,
-    input.conversationId,
-    "propose_knowledge_action",
-    proposals,
-  );
-  return { planId: plan.planId, proposals };
+  return { planId: plan.planId, proposals: [], created };
 }
 
 export async function confirmAgentPlan(

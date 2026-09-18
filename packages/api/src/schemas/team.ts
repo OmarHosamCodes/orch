@@ -12,6 +12,27 @@ export const teamMemberSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
+export const teamInviteStatusSchema = z.enum(["pending", "accepted", "declined"]);
+
+export const teamInviteSchema = z.object({
+  id: z.string().min(1),
+  teamId: z.string().min(1),
+  teamName: z.string().min(1),
+  teamImage: z.string().nullable(),
+  invitedUserId: z.string().min(1),
+  invitedEmail: z.email(),
+  invitedName: z.string().min(1),
+  invitedAvatar: z.string().nullable(),
+  invitedByUserId: z.string().min(1),
+  invitedByName: z.string().min(1),
+  invitedByAvatar: z.string().nullable(),
+  role: workspaceTeamRoleSchema,
+  status: teamInviteStatusSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  respondedAt: z.string().datetime().nullable(),
+});
+
 export const teamSummarySchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1).max(120),
@@ -23,6 +44,7 @@ export const teamSummarySchema = z.object({
 
 export const teamDetailSchema = teamSummarySchema.extend({
   members: z.array(teamMemberSchema),
+  pendingInvites: z.array(teamInviteSchema),
 });
 
 export const teamCreateInputSchema = z.object({
@@ -62,6 +84,10 @@ export const teamUpdateMemberRoleInputSchema = z.object({
 export const teamRemoveMemberInputSchema = z.object({
   teamId: z.string().min(1),
   userId: z.string().min(1),
+});
+
+export const teamInviteIdInputSchema = z.object({
+  inviteId: z.string().min(1),
 });
 
 /** Form-only schemas (omit server-assigned teamId). */

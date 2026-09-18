@@ -11,6 +11,7 @@ import {
 import { and, inArray, eq, asc } from "drizzle-orm";
 import type { AgencyProjectTask } from "../../../schemas/agency-ops";
 import { formatAvatarUrl } from "./avatar-helpers";
+import { readStoredEntityIcon } from "./entity-icon-catalog";
 
 export type AgencyProjectTaskAssigneeRecord = {
   userId: string;
@@ -36,6 +37,8 @@ export function mapProjectTaskRow(row: {
   teamId: string;
   projectId: string;
   title: string;
+  iconKey: string | null;
+  iconSource: string;
   status: "open" | "in_progress" | "done" | "archived";
   taskKind: "standard" | "journey_anchor" | "journey_milestone";
   assignedToTeam: boolean;
@@ -65,6 +68,7 @@ export function mapProjectTaskRow(row: {
     teamId: row.teamId,
     projectId: row.projectId,
     title: row.title,
+    ...readStoredEntityIcon(row),
     status: row.status,
     taskKind: row.taskKind,
     assignedToTeam: row.assignedToTeam,
@@ -269,6 +273,8 @@ export async function buildProjectTaskRecord(
     teamId: string;
     projectId: string;
     title: string;
+    iconKey: string | null;
+    iconSource: string;
     status: "open" | "in_progress" | "done" | "archived";
     taskKind: "standard" | "journey_anchor" | "journey_milestone";
     assignedToTeam: boolean;
@@ -344,6 +350,8 @@ export const projectTaskColumns = {
   teamId: agencyOpsProjectTask.teamId,
   projectId: agencyOpsProjectTask.projectId,
   title: agencyOpsProjectTask.title,
+  iconKey: agencyOpsProjectTask.iconKey,
+  iconSource: agencyOpsProjectTask.iconSource,
   status: agencyOpsProjectTask.status,
   taskKind: agencyOpsProjectTask.taskKind,
   assignedToTeam: agencyOpsProjectTask.assignedToTeam,
@@ -373,6 +381,8 @@ export type ProjectTaskRow = {
   teamId: string;
   projectId: string;
   title: string;
+  iconKey: string | null;
+  iconSource: string;
   status: "open" | "in_progress" | "done" | "archived";
   taskKind: "standard" | "journey_anchor" | "journey_milestone";
   assignedToTeam: boolean;

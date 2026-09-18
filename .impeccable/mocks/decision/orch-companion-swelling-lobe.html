@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Orch companion — Swelling lobe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./orch-companion-comp.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <section class="frame">
+        <div class="frame-label">Glance</div>
+        <div class="app">
+          <aside class="rail">
+            <div class="mark"></div>
+            <button>Cv</button>
+            <button class="active">Ag</button>
+            <div class="spacer"></div>
+            <div class="need"></div>
+          </aside>
+          <div class="main">
+            <header class="topbar">
+              <div class="crumb">Agency <span>/ Tracker</span></div>
+              <div class="grow"></div>
+              <button class="eclipse" aria-label="Orch needs you">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <defs>
+                    <mask id="bite-a">
+                      <rect width="64" height="64" fill="#fff" />
+                      <circle cx="46" cy="20" r="9" fill="#000" />
+                    </mask>
+                  </defs>
+                  <circle cx="32" cy="32" r="20" fill="currentColor" mask="url(#bite-a)" />
+                  <circle cx="46" cy="20" r="3.2" fill="#5b5bd6" />
+                </svg>
+                <span class="badge">2</span>
+              </button>
+            </header>
+            <div class="page">
+              <h1>Tracker</h1>
+              <p class="meta">This month · 142H:18M:07S</p>
+              <div class="plates">
+                <div class="plate"><b>38H</b><small>Paid</small></div>
+                <div class="plate"><b>4H</b><small>Waste</small></div>
+                <div class="plate"><b>11H</b><small>Internal</small></div>
+                <div class="plate"><b>2</b><small>Need you</small></div>
+              </div>
+              <div class="lobe">
+                <div class="status">
+                  <span class="dot"></span>
+                  <div><b>Needs you</b><div><span>1 running · 1 unread</span></div></div>
+                </div>
+                <div class="composer">
+                  <button class="icon-btn">+</button>
+                  <div class="field hint">Message Orch · /  @</div>
+                  <button class="send">↑</button>
+                </div>
+                <div class="threads">
+                  <button class="row"><span class="title">Approve client rate</span><span class="preview">Waiting for you</span></button>
+                  <button class="row"><span class="title">Fill today’s gap</span><span class="preview">Running</span></button>
+                </div>
+                <div class="footer"><button class="open">Open Orch</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="frame">
+        <div class="frame-label">Open Orch</div>
+        <div class="app">
+          <aside class="rail">
+            <div class="mark"></div>
+            <button>Cv</button>
+            <button class="active">Ag</button>
+            <div class="spacer"></div>
+            <div class="need"></div>
+          </aside>
+          <div class="main">
+            <header class="topbar">
+              <div class="crumb">Agency <span>/ Tracker</span></div>
+              <div class="grow"></div>
+              <button class="eclipse">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <defs>
+                    <mask id="bite-b">
+                      <rect width="64" height="64" fill="#fff" />
+                      <circle cx="46" cy="20" r="9" fill="#000" />
+                    </mask>
+                  </defs>
+                  <circle cx="32" cy="32" r="20" fill="currentColor" mask="url(#bite-b)" />
+                  <circle cx="46" cy="20" r="3.2" fill="#5b5bd6" />
+                </svg>
+              </button>
+            </header>
+            <div class="page" style="padding: 0; background: var(--paper)">
+              <div class="lobe-expand">
+                <aside class="settle">
+                  <div class="settle-head">
+                    <input class="search" placeholder="Search" />
+                    <button class="settle-btn">Settle</button>
+                  </div>
+                  <div class="settle-list">
+                    <button class="row active"><span class="title">Approve client rate</span><span class="preview">Needs you</span></button>
+                    <button class="row"><span class="title">Fill today’s gap</span><span class="preview">Running</span></button>
+                  </div>
+                  <div class="settled">Settled (3) <button class="restore">Restore</button></div>
+                </aside>
+                <section class="thread">
+                  <div class="thread-head">Approve client rate <button class="ghost">Collapse</button></div>
+                  <div class="msgs">
+                    <div class="you">Propose the Tribe It billable rate for Q3.</div>
+                    <div class="cot">Thinking <ol><li>Read current client rate</li></ol></div>
+                    <div class="activity"><div class="live">Draft proposal · Inspect</div></div>
+                    <div class="todos"><ul><li><span class="check on"></span> Load rate</li><li><span class="check"></span> Wait for Approve</li></ul></div>
+                    <div class="cites">Sources: <a href="#">Tribe It</a></div>
+                    <div class="orch">Ready. Approve applies; Reject leaves it.</div>
+                  </div>
+                  <div class="composer">
+                    <button class="icon-btn">+</button>
+                    <div class="field hint">Continue · /settle  @Tribe It</div>
+                    <button class="send">↑</button>
+                  </div>
+                </section>
+              </div>
+              <div class="window" title="Settled shows the page through"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

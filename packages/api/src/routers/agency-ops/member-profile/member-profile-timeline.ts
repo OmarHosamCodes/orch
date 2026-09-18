@@ -1,3 +1,4 @@
+import type { AgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import { resolveEntryWaste } from "../shared/waste-helpers";
 
 export type MemberProfileActivityEventType = "time_logged" | "waste_marked" | "leave";
@@ -18,6 +19,9 @@ export type MemberProfileTimeEntryActivity = {
   projectName: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   clientId: string;
   clientName: string;
   description: string;
@@ -46,6 +50,9 @@ export type MemberProfileLeaveActivity = {
   projectName: null;
   taskId: null;
   taskTitle: null;
+  taskIconKey: null;
+  colorHueId: null;
+  projectIconKey: null;
   clientId: null;
   clientName: null;
   description: null;
@@ -86,6 +93,9 @@ export function buildTimeEntryActivity(input: {
   projectName: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   clientId: string;
   clientName: string;
   durationSeconds: number;
@@ -117,6 +127,9 @@ export function buildTimeEntryActivity(input: {
     projectName: input.projectName,
     taskId: input.taskId,
     taskTitle: input.taskTitle,
+    taskIconKey: input.taskIconKey,
+    colorHueId: input.colorHueId,
+    projectIconKey: input.projectIconKey,
     clientId: input.clientId,
     clientName: input.clientName,
     description: input.description,
@@ -179,6 +192,9 @@ export function buildLeaveActivity(input: {
     projectName: null,
     taskId: null,
     taskTitle: null,
+    taskIconKey: null,
+    colorHueId: null,
+    projectIconKey: null,
     clientId: null,
     clientName: null,
     description: null,

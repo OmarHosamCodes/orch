@@ -1,16 +1,16 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouterState } from "@tanstack/react-router";
 import { Suspense } from "react";
 
 import { AppShell } from "@/features/app-shell/app-shell";
 import { ShellPageTransition } from "@/features/app-shell/components/shell-page-transition";
-import { RouteError, RoutePending } from "@/features/app-shell/route-status";
-import { shellContentInClass } from "@/features/app-shell/app-shell-ui";
+import { RouteError, RouteNotFound, RoutePending } from "@/features/app-shell/route-status";
 import { resolveLegacyAgencyRedirect } from "@/features/shared/agency-legacy-redirects";
+import { TeamInviteDialog } from "@/features/team/team-invite-dialog";
 import { useTeamStore } from "@/features/team/team-store";
 import { loadAuthenticatedShell } from "@/lib/authenticated-boot";
-import { fetchBootShellChrome } from "@/lib/boot-prefetch";
+import { fetchBootFirstRun, fetchBootShellChrome } from "@/lib/boot-prefetch";
+import { Outlet } from "@/lib/navigation";
 import { fetchBootSession } from "@/lib/session-boot";
-import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/providers/auth-provider";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -27,24 +27,37 @@ export const Route = createFileRoute("/_authenticated")({
       preferredTeamId: useTeamStore.getState().selectedTeamId,
       fetchSession: () => fetchBootSession(),
       fetchChrome: async (teamId) => fetchBootShellChrome({ data: teamId ? { teamId } : {} }),
+      fetchFirstRun: () => fetchBootFirstRun(),
     });
   },
-  pendingComponent: () => <RoutePending label="Opening your workspace" />,
-  errorComponent: () => <RouteError message="Couldn't open your workspace." />,
+  pendingComponent: () => <RoutePending variant="logo" label="Opening your workspace" />,
+  errorComponent: ({ error, reset }) => (
+    <RouteError message="Couldn't open your workspace." error={error} reset={reset} />
+  ),
+  notFoundComponent: RouteNotFound,
   component: AuthenticatedLayout,
 });
 
 function AuthenticatedLayout() {
   const { session } = Route.useLoaderData();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isFirstRun = pathname === "/welcome";
 
   return (
     <AuthProvider initialSession={session}>
-      <div className={cn(shellContentInClass, "h-full min-h-0")}>
-        <AppShell>
-          <Suspense fallback={<RoutePending label="Opening your workspace" />}>
-            <ShellPageTransition />
+      <div className="h-full min-h-0">
+        {isFirstRun ? (
+          <Suspense fallback={<RoutePending variant="logo" label="Opening Orch" />}>
+            <Outlet />
           </Suspense>
-        </AppShell>
+        ) : (
+          <AppShell>
+            <Suspense fallback={<RoutePending label="Opening your workspace" />}>
+              <ShellPageTransition />
+            </Suspense>
+          </AppShell>
+        )}
+        <TeamInviteDialog />
       </div>
     </AuthProvider>
   );

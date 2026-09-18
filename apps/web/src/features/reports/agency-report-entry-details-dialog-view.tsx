@@ -31,8 +31,8 @@ export function AgencyReportEntryDetailsDialogView({
         className="flex max-h-[85vh] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl"
         showCloseButton
       >
-        <DialogHeader className="shrink-0 space-y-1 border-b border-default/55 px-5 py-4 pr-14 text-left">
-          <DialogTitle className="truncate text-base font-bold text-highlighted">
+        <DialogHeader className="shrink-0 space-y-1 border-b border-default px-4 py-3 pr-14 text-left">
+          <DialogTitle className="truncate text-base font-semibold tracking-tight text-highlighted">
             {viewModel.title}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted">
@@ -65,6 +65,7 @@ export function AgencyReportEntryDetailsDialogView({
                   teamId={viewModel.teamId}
                   week={week}
                   renderGroupRow={renderGroupRow}
+                  headerClassName="static min-h-0 border-0 bg-transparent px-3 py-1"
                   selectedEntryIds={viewModel.selectedEntryIds}
                   bulkEditDayKey={viewModel.bulkEditDayKey}
                   bulkFieldEditOpen={viewModel.bulkFieldEditOpen}

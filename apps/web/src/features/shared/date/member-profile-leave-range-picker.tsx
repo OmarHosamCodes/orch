@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 import { agencyFocusRingClass } from "@/features/shared/agency-ui";
+import {
+  formatAgencyDisplayDay,
+  formatAgencyDateKey,
+  parseAgencyDateKey,
+} from "@/features/shared/date/agency-date-field";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
@@ -13,35 +18,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 /** Matches `--motion-ease-out` (ease-out-quart). */
 const EASE: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
-function parseLocalDateKey(value: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  if (!match) return undefined;
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function formatLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatDisplayDay(value: string): string {
-  const date = parseLocalDateKey(value);
-  if (!date) return value || "Pick a date";
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function rangeLabel(startDate: string, endDate: string, emptyLabel: string): string {
   if (!startDate || !endDate) return emptyLabel;
-  if (startDate === endDate) return formatDisplayDay(startDate);
-  return `${formatDisplayDay(startDate)} → ${formatDisplayDay(endDate)}`;
+  if (startDate === endDate) return formatAgencyDisplayDay(startDate);
+  return `${formatAgencyDisplayDay(startDate)} → ${formatAgencyDisplayDay(endDate)}`;
 }
 
 type RangeValue = { startDate: string; endDate: string };
@@ -71,21 +52,21 @@ export function MemberProfileOffDayRangePanel({
   const [monthCount, setMonthCount] = useState(1);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 640px)");
+    const media = window.matchMedia("(min-width: 768px)");
     const sync = () => setMonthCount(media.matches ? 2 : 1);
     sync();
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  const from = parseLocalDateKey(draftStart);
-  const to = parseLocalDateKey(draftEnd);
+  const from = parseAgencyDateKey(draftStart);
+  const to = parseAgencyDateKey(draftEnd);
   const selected: DateRange | undefined = from ? { from, to: to ?? from } : undefined;
   const canConfirm = Boolean(draftStart && draftEnd && draftEnd >= draftStart);
   const draftLabel = rangeLabel(draftStart, draftEnd, emptyLabel);
 
   return (
-    <div className="max-h-[min(85vh,34rem)] overflow-y-auto">
+    <div className="min-h-0 max-h-[min(85vh,34rem)] overflow-y-auto">
       <Calendar
         mode="range"
         numberOfMonths={monthCount}
@@ -98,15 +79,15 @@ export function MemberProfileOffDayRangePanel({
           if (lockStart && from) {
             const picked = range.to ?? range.from;
             const end = picked < from ? from : picked;
-            setDraftEnd(formatLocalDateKey(end));
+            setDraftEnd(formatAgencyDateKey(end));
             return;
           }
-          setDraftStart(formatLocalDateKey(range.from));
-          setDraftEnd(formatLocalDateKey(range.to ?? range.from));
+          setDraftStart(formatAgencyDateKey(range.from));
+          setDraftEnd(formatAgencyDateKey(range.to ?? range.from));
         }}
         autoFocus
       />
-      <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2.5">
+      <div className="flex flex-col items-stretch gap-3 border-t border-border px-3 py-3 md:flex-row md:items-center">
         <div className="relative min-h-4 min-w-0 flex-1 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
@@ -115,13 +96,13 @@ export function MemberProfileOffDayRangePanel({
               animate={{ opacity: 1, x: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, x: -8 }}
               transition={{ duration: 0.16, ease: EASE }}
-              className="truncate text-xs text-muted-foreground"
+              className="text-xs leading-relaxed text-muted-foreground"
             >
               {draftLabel}
             </motion.p>
           </AnimatePresence>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel
           </Button>

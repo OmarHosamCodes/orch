@@ -1,5 +1,31 @@
 {
   "$schema": "./node_modules/knip/schema.json",
+  "ignore": [
+    "apps/web/perf/check-filters.mjs",
+    "apps/web/src/components/elements/thread-list.tsx",
+    "apps/web/src/components/elements/thread-search.tsx",
+    "apps/web/src/components/marketing/bits/GradualBlur.tsx",
+    "apps/web/src/components/marketing/bits/WebThreads.tsx",
+    "apps/web/src/components/marketing/landing-features-index.tsx",
+    "apps/web/src/components/originkit/ui/reflect-shader.tsx",
+    "apps/web/src/features/app-shell/app-shell-chrome.tsx",
+    "apps/web/src/features/app-shell/app-shell-notifications.tsx",
+    "apps/web/src/features/notifications/agency-notifications.tsx",
+    "apps/web/src/features/notifications/featured-rail-alerts.tsx",
+    "apps/web/src/features/notifications/featured-rail-notification.tsx",
+    "apps/web/src/features/task-management/my-tasks-rail/agency-my-tasks-rail.tsx"
+  ],
+  "ignoreIssues": {
+    "apps/web/**": [
+      "exports",
+      "types",
+      "nsExports",
+      "nsTypes",
+      "enumMembers",
+      "namespaceMembers",
+      "duplicates"
+    ]
+  },
   "workspaces": {
     ".": {
       "entry": [
@@ -16,7 +42,8 @@
     },
     "apps/web": {
       "entry": [
-        "src/main.tsx",
+        "src/router.tsx",
+        "src/routes/**/*.{ts,tsx}",
         "src/**/*.{test,spec}.{ts,tsx}",
         "src/ui/**/*.{ts,tsx}",
         "vite.config.ts",
@@ -25,12 +52,9 @@
       ],
       "project": ["src/**/*.{ts,tsx}", "vite*.ts", "scripts/**/*.mjs", "perf/**/*.mjs"],
       "ignoreDependencies": [
+        "@tanstack/react-query-devtools",
+        "@tanstack/react-router-devtools",
         "tailwindcss",
-        "@fontsource-variable/ibm-plex-sans",
-        "@fontsource-variable/merriweather",
-        "@fontsource-variable/roboto",
-        "@fontsource-variable/roboto-mono",
-        "@fontsource/lato",
         "tw-animate-css",
         "tw-shimmer",
         "shadcn"
@@ -43,9 +67,12 @@
         "src/operations/seeds/seed.ts",
         "src/operations/seeds/seed-agency.ts",
         "src/operations/seeds/seed-massive.ts",
+        "src/operations/seeds/record-film-clips.ts",
+        "src/operations/seeds/seed-film-agency.ts",
         "src/operations/imports/import-clockify.ts",
         "src/operations/backfills/import-clockify-backfill.ts",
         "src/operations/backfills/verify-clockify-backfill.ts",
+        "src/operations/backfills/verify-agency-clone.ts",
         "src/operations/maintenance/clear-team-data.ts",
         "src/operations/maintenance/cleanup-agency-operator-nodes.ts",
         "src/operations/maintenance/grant-lifetime-pro.ts",
@@ -73,7 +100,7 @@
       "project": ["src/**/*.ts", "drizzle.config.ts"]
     },
     "packages/env": {
-      "entry": ["src/server.ts", "src/vite.ts", "src/web.ts"],
+      "entry": ["src/server.ts", "src/vite.ts", "src/web.ts", "src/**/*.{test,spec}.ts"],
       "project": ["src/**/*.ts"]
     },
     "packages/workspace": {

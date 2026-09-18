@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "@/lib/navigation";
 
 import {
@@ -14,6 +14,13 @@ import {
   moneyBillsStatusFilterFromSearch,
 } from "@/features/billing/money-bills-filters";
 import { expenseStripFilterFromSearch } from "@/features/money/money-expenses-strip";
+import {
+  buildMoneyNeedsActionItems,
+  moneyNeedsActionEmptyCopy,
+  moneyNeedsActionStatus,
+  type MoneyNeedsActionItem,
+} from "@/features/money/money-needs-action";
+import { buildMoneyPnlStages } from "@/features/money/money-pnl-narrative";
 import { useAgencyMoneyBills } from "@/features/money/hooks/use-agency-money-bills";
 import { useAgencyMoneyExpensesPanel } from "@/features/money/hooks/use-agency-money-expenses-panel";
 import { useAgencyMoneyScoreboard } from "@/features/money/hooks/use-agency-money-scoreboard";
@@ -25,10 +32,6 @@ import {
 } from "@/features/shared/stores/agency-ops";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
-export type {
-  MoneyStatsCardViewModel,
-  MoneyStatsMetricSelection,
-} from "@/features/money/hooks/use-agency-money-scoreboard";
 
 export type AgencyMoneySurfaceViewModel = ReturnType<typeof useAgencyMoneySurface>;
 
@@ -77,21 +80,24 @@ export function useAgencyMoneySurface(teamId: string) {
     return () => window.clearTimeout(timer);
   }, [searchTerm]);
 
-  function updateMoneySearch(
-    updates: Partial<Record<"party" | "status" | "expense" | "q", string | null>>,
-    replace = true,
-  ) {
-    setSearchParams(
-      (current) => {
-        for (const [key, value] of Object.entries(updates)) {
-          if (value) current.set(key, value);
-          else current.delete(key);
-        }
-        return current;
-      },
-      { replace },
-    );
-  }
+  const updateMoneySearch = useCallback(
+    (
+      updates: Partial<Record<"party" | "status" | "expense" | "q", string | null>>,
+      replace = true,
+    ) => {
+      setSearchParams(
+        (current) => {
+          for (const [key, value] of Object.entries(updates)) {
+            if (value) current.set(key, value);
+            else current.delete(key);
+          }
+          return current;
+        },
+        { replace },
+      );
+    },
+    [setSearchParams],
+  );
 
   const teamQuery = useQuery({
     ...orpc.team.get.queryOptions({ input: { teamId } }),
@@ -183,6 +189,79 @@ export function useAgencyMoneySurface(teamId: string) {
     },
   };
 
+  const needsActionStatus = moneyNeedsActionStatus(
+    scoreboard.scoreboardStatus,
+    expenses.expensesStatus,
+    bills.queueSalaryPoolQueryStatus,
+  );
+
+  const needsActionItems = useMemo(() => {
+    if (needsActionStatus !== "ready") return [];
+    return buildMoneyNeedsActionItems({
+      currency: scoreboard.currency,
+      clientRemainingAmount: scoreboard.clientRemainingAmount,
+      salaryPoolRemainingAmount: bills.queueSalaryPoolRemainingAmount,
+      profitShareRemainingAmount: scoreboard.profitShareRemainingAmount,
+      dueExpenses: expenses.dueQueueExpenses,
+    });
+  }, [
+    bills.queueSalaryPoolRemainingAmount,
+    expenses.dueQueueExpenses,
+    needsActionStatus,
+    scoreboard.clientRemainingAmount,
+    scoreboard.currency,
+    scoreboard.profitShareRemainingAmount,
+  ]);
+
+  const appliedDefaultPartyKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const periodKey = `${periodRange.from}:${periodRange.to}`;
+    if (searchParams.get("party")) {
+      appliedDefaultPartyKeyRef.current = periodKey;
+      return;
+    }
+    if (needsActionStatus !== "ready") return;
+    if (appliedDefaultPartyKeyRef.current === periodKey) return;
+    appliedDefaultPartyKeyRef.current = periodKey;
+    const first = needsActionItems[0];
+    if (!first || first.party === "client") return;
+    updateMoneySearch({
+      party: first.party,
+      status: first.status,
+      expense: first.expense,
+    });
+  }, [
+    needsActionItems,
+    needsActionStatus,
+    periodRange.from,
+    periodRange.to,
+    searchParams,
+    updateMoneySearch,
+  ]);
+
+  function onSelectNeedsAction(item: MoneyNeedsActionItem) {
+    updateMoneySearch(
+      {
+        party: item.party,
+        status: item.status,
+        expense: item.expense,
+      },
+      false,
+    );
+    if (item.kind === "salary-pool") {
+      bills.onOpenSalaryPool();
+    }
+    window.requestAnimationFrame(() => {
+      const panelHeading = document.getElementById("money-bills-panel-heading");
+      panelHeading?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+      panelHeading?.focus({ preventScroll: true });
+    });
+  }
+
   return {
     teamId,
     isOwner,
@@ -210,11 +289,18 @@ export function useAgencyMoneySurface(teamId: string) {
       label: periodLabel,
     },
     statsCards: scoreboard.statsCards,
+    pnlStages: buildMoneyPnlStages(scoreboard.statsCards),
     lastStatsMetricHint: scoreboard.lastStatsMetricHint,
     scoreboardStatus: scoreboard.scoreboardStatus,
     scoreboardErrorMessage: scoreboard.scoreboardErrorMessage,
     onRetryScoreboard: scoreboard.onRetryScoreboard,
     onSelectMetric: scoreboard.onSelectMetric,
+    needsAction: {
+      status: needsActionStatus,
+      items: needsActionItems,
+      emptyCopy: moneyNeedsActionEmptyCopy(),
+      onSelect: onSelectNeedsAction,
+    },
     moneySettings,
     bills: {
       ...bills,

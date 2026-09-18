@@ -7,6 +7,6 @@ export const Route = createFileRoute("/_authenticated/agency/me")({
   validateSearch: validateProfileSearch,
   component: AgencyMemberProfilePage,
   head: () => ({
-    meta: [{ title: "My profile — Orch" }],
+    meta: [{ title: "Profile | Orch" }],
   }),
 });

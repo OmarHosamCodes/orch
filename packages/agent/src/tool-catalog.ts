@@ -6,18 +6,6 @@ const ALL_MODES: DashboardAgentToolPreset[] = ["ask", "plan", "agent"];
 
 const TOOL_CATALOG: ToolCatalogDefinition[] = [
   {
-    name: "ui_present",
-    usage: "Renders a schema, React, or workspace block UI artifact in the canvas.",
-    surface: ["canvas", "agency"],
-    modes: ALL_MODES,
-  },
-  {
-    name: "ask_agency_question",
-    usage: "Asks the user a clarifying question in the chat UI (single, multi, or text).",
-    surface: ["agency", "canvas"],
-    modes: ALL_MODES,
-  },
-  {
     name: "list_dashboard_nodes",
     usage: "Lists canvas nodes with structural summaries.",
     surface: ["canvas"],
@@ -81,6 +69,12 @@ const TOOL_CATALOG: ToolCatalogDefinition[] = [
   {
     name: "get_current_time",
     usage: "Returns the current ISO timestamp.",
+    surface: ["canvas", "agency"],
+    modes: ALL_MODES,
+  },
+  {
+    name: "remember_fact",
+    usage: "Saves a durable personal preference or fact about this user.",
     surface: ["canvas", "agency"],
     modes: ALL_MODES,
   },
@@ -176,55 +170,26 @@ const TOOL_CATALOG: ToolCatalogDefinition[] = [
     modes: ["agent"],
   },
   {
-    name: "draft_knowledge_plan",
-    usage: "Drafts a multi-step knowledge-graph plan for user confirmation (no writes).",
+    name: "apply_knowledge_action",
+    usage: "Applies one knowledge create/update/link immediately and returns the object to Open.",
     surface: ["canvas"],
-    modes: ["plan"],
+    modes: ALL_MODES,
   },
   {
-    name: "draft_canvas_plan",
-    usage: "Drafts a multi-step Canvas change plan for user confirmation (no writes).",
+    name: "apply_canvas_action",
+    usage: "Applies one Canvas write immediately and returns the node or block to Open.",
     surface: ["canvas"],
-    modes: ["plan"],
-  },
-  {
-    name: "propose_knowledge_action",
-    usage: "Proposes one knowledge create/update/link with before/after for Approve/Reject.",
-    surface: ["canvas"],
-    modes: ["agent"],
-  },
-  {
-    name: "propose_canvas_action",
-    usage: "Proposes one Canvas write with before/after for Approve/Reject.",
-    surface: ["canvas"],
-    modes: ["agent"],
+    modes: ALL_MODES,
   },
 ];
 
-export function resolveUnlockedSurfaces(input: {
-  surface: AgentSurface;
+export function resolveUnlockedSurfaces(_input?: {
+  surface?: AgentSurface;
   unlockedSurfaces?: AgentSurface[];
   scopeRefs?: Array<{ kind: string; id: string }>;
 }): AgentSurface[] {
-  const unlocked = new Set<AgentSurface>([input.surface, ...(input.unlockedSurfaces ?? [])]);
-  for (const ref of input.scopeRefs ?? []) {
-    if (ref.kind === "node" || ref.kind === "tab" || ref.kind === "block") {
-      unlocked.add("canvas");
-    }
-    if (
-      ref.kind === "timeEntry" ||
-      ref.kind === "project" ||
-      ref.kind === "task" ||
-      ref.kind === "taskMessage" ||
-      ref.kind === "member"
-    ) {
-      unlocked.add("agency");
-    }
-    if (ref.kind === "surface" && (ref.id === "canvas" || ref.id === "agency")) {
-      unlocked.add(ref.id);
-    }
-  }
-  return [...unlocked];
+  void _input;
+  return ["agency", "canvas"];
 }
 
 export function listAgentToolCatalog(input: {
@@ -233,12 +198,13 @@ export function listAgentToolCatalog(input: {
   unlockedSurfaces?: AgentSurface[];
   scopeRefs?: Array<{ kind: string; id: string }>;
 }): AgentToolCatalogEntry[] {
-  const surfaces = resolveUnlockedSurfaces(input);
+  void input.surface;
+  void input.mode;
+  void input.unlockedSurfaces;
+  void input.scopeRefs;
   const seen = new Set<string>();
   const tools: AgentToolCatalogEntry[] = [];
   for (const entry of TOOL_CATALOG) {
-    if (!entry.modes.includes(input.mode)) continue;
-    if (!entry.surface.some((surface) => surfaces.includes(surface))) continue;
     if (seen.has(entry.name)) continue;
     seen.add(entry.name);
     tools.push({ ...entry, available: true });

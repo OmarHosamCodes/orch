@@ -16,7 +16,7 @@ import { createWorkspaceId } from "@orch/workspace";
 import { formatAvatarUrl } from "../shared/avatar-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
 import { assertNoSalaryPoolForRateDerivedExport } from "./salary-pool-service";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { getAgencyCurrency } from "./money-fx-service";
 import {
   buildClientObligations,
@@ -334,7 +334,7 @@ export async function settleMoneyObligation(
     userId?: string;
   },
 ): Promise<{ documentId: string; kind: "invoice" | "payout" }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const isReady = input.obligationId.startsWith("ready:");
 
@@ -606,7 +606,7 @@ export async function exportMoneyDocuments(
     selections: ExportSelection[];
   },
 ): Promise<{ documents: Array<{ id: string; kind: "invoice" | "payout" }> }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.selections.length === 0) {
     throw new ORPCError("BAD_REQUEST", { message: "Select at least one obligation to export." });
@@ -726,7 +726,7 @@ export async function listPeriodMoneyObligations(
   members: MoneyCarryMemberObligation[];
   pendingAdjustments: MoneyPendingAdjustmentRecord[];
 }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const rangeStart = parseIsoDateTime(input.periodStart, "periodStart");
   const rangeEnd = parseIsoDateTime(input.periodEnd, "periodEnd");

@@ -43,3 +43,12 @@ export const fetchBootShellChrome = createServerFn({ method: "GET" })
     const client = createServerOrpcClient(cookie);
     return loadBootShellChrome(client, data.teamId);
   });
+
+export const fetchBootFirstRun = createServerFn({ method: "GET" }).handler(async () => {
+  const cookie = getRequestHeader("cookie") ?? "";
+  if (!cookie) {
+    throw new Error("Cannot load first-run without an authenticated session.");
+  }
+
+  return createServerOrpcClient(cookie).onboarding.get();
+});

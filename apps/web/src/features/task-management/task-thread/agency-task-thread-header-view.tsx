@@ -1,6 +1,9 @@
 import type { KeyboardEvent, ReactNode } from "react";
 import { ArrowLeft, Pencil } from "lucide-react";
 
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
+
+import { AgencyEntityIconMarkPickerView } from "@/features/shared/agency-entity-icon-picker-view";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { AgencyMemberChooser } from "@/features/shared/choosers/agency-member-chooser";
 import type { AgencyMemberOption } from "@/features/shared/agency-member-option";
@@ -17,6 +20,9 @@ export type AgencyTaskThreadHeaderAssignee = {
 
 type AgencyTaskThreadHeaderViewProps = {
   title: string;
+  projectId: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   projectLabel: string | null;
   assignedToTeam: boolean;
   assignees: AgencyTaskThreadHeaderAssignee[];
@@ -36,11 +42,15 @@ type AgencyTaskThreadHeaderViewProps = {
   onTitleCancel: () => void;
   onAssignedToTeamChange: (assignedToTeam: boolean) => void;
   onAssigneeUserIdsChange: (userIds: string[]) => void;
+  onChangeIcon: (iconKey: AgencyEntityIconKey | null) => void;
   miniTimer?: ReactNode;
 };
 
 export function AgencyTaskThreadHeaderView({
   title,
+  projectId,
+  colorHueId,
+  iconKey,
   projectLabel,
   assignedToTeam,
   assignees,
@@ -60,6 +70,7 @@ export function AgencyTaskThreadHeaderView({
   onTitleCancel,
   onAssignedToTeamChange,
   onAssigneeUserIdsChange,
+  onChangeIcon,
   miniTimer,
 }: AgencyTaskThreadHeaderViewProps) {
   const showAssignees = assignees.length > 0;
@@ -94,7 +105,17 @@ export function AgencyTaskThreadHeaderView({
         </Button>
 
         <div className="min-w-0 flex-1 pt-0.5">
-          <div className="group/title flex min-w-0 items-center gap-1">
+          <div className="group/title flex min-w-0 items-center gap-1.5">
+            <AgencyEntityIconMarkPickerView
+              name={titleEditing ? titleDraft : title}
+              projectId={projectId}
+              iconKey={iconKey}
+              colorHueId={colorHueId}
+              size="header"
+              disabled={!canEdit}
+              ariaLabel="Change task icon"
+              onChange={onChangeIcon}
+            />
             {titleEditing ? (
               <Input
                 value={titleDraft}

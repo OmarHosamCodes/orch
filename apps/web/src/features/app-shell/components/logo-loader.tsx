@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { logoLoaderStatus } from "@/features/app-shell/components/logo-loader-status";
-import { getBrandAssetHref, getLogoAnimationHref } from "@/lib/favicon";
-import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
+import { Loader } from "@/components/ui/loader";
+import { logoLoaderSubtitle } from "@/features/app-shell/components/logo-loader-status";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/stores/theme";
 
 type LogoLoaderProps = {
   label?: string;
@@ -13,8 +11,6 @@ type LogoLoaderProps = {
 };
 
 export function LogoLoader({ label = "Opening Orch", placement = "page" }: LogoLoaderProps) {
-  const { theme } = useTheme();
-  const reducedMotion = usePrefersReducedMotion();
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
@@ -25,10 +21,7 @@ export function LogoLoader({ label = "Opening Orch", placement = "page" }: LogoL
     return () => window.clearInterval(id);
   }, []);
 
-  const status = logoLoaderStatus(label, elapsedMs);
-  const markHref = reducedMotion
-    ? getBrandAssetHref("favicon", theme)
-    : getLogoAnimationHref(theme);
+  const subtitle = logoLoaderSubtitle(label, elapsedMs);
 
   const body = (
     <div
@@ -36,15 +29,16 @@ export function LogoLoader({ label = "Opening Orch", placement = "page" }: LogoL
       aria-live="polite"
       aria-busy="true"
       className={cn(
-        "flex flex-col items-center justify-center gap-5 bg-default",
+        "bg-default",
         placement === "page" ? "fixed inset-0 z-[80]" : "h-full min-h-0 w-full",
       )}
     >
-      <img src={markHref} alt="" className="size-20 select-none" draggable={false} />
-      <p className="text-sm text-muted-foreground">{status}</p>
-      <div className="h-px w-32 overflow-hidden bg-border" aria-hidden>
-        <div className="logo-loader-bar h-full w-1/3 bg-foreground" />
-      </div>
+      <Loader
+        className="h-full w-full"
+        size={placement === "page" ? "lg" : "md"}
+        subtitle={subtitle}
+        title={label}
+      />
     </div>
   );
 

@@ -16,7 +16,7 @@ import {
   agencyOpsTag,
   workspaceTeamMember,
 } from "@orch/db/schema";
-import { eq, and, or, asc, isNull, desc, sql, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, asc, isNull, desc, sql, gte, lte, inArray } from "drizzle-orm";
 import { createWorkspaceId } from "@orch/workspace";
 import { notifyTimerActivity } from "../../notifications/fanout";
 import { flushDeferredNotificationPushes } from "../../notifications/service";
@@ -24,12 +24,13 @@ import { formatAvatarUrl } from "../shared/avatar-helpers";
 import { getProjectByIdForTeam } from "../shared/lookup-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
 import { type ReportEntityFilterInput, applyReportEntityFilters } from "../shared/report-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { groupTimeEntryTagRows } from "./group-time-entry-tag-rows";
 import { normalizeTimeEntryLinkUrls } from "./normalize-time-entry-links";
 import { loadTeamWorkSchedule } from "../resourcing/load-team-work-schedule";
 import {
   addDaysToDateKey,
+  applyDailyDurationTotals,
   getLocalWeekBounds,
   getLocalWeekStartKeyFromDateKey,
   localDateKeyFromInstant,
@@ -37,7 +38,12 @@ import {
 } from "./local-week-bounds";
 import { resolveAgencyTimerStopBinding } from "./resolve-agency-timer-stop-binding";
 import { resolveAgencyActiveTimerTaskBinding } from "./resolve-agency-active-timer-task-binding";
+import { isAgencyEntityIconKey, type AgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import { publishAgencyTimerUpdated } from "../live/live";
+
+function asEntityIconKey(value: string | null | undefined): AgencyEntityIconKey | null {
+  return isAgencyEntityIconKey(value) ? value : null;
+}
 
 type AgencyTimeEntrySource = "timer" | "manual";
 
@@ -62,8 +68,11 @@ type AgencyTimeEntryRecord = {
   projectId: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
   taskIsWaste: boolean | null;
   projectName: string;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   clientId: string;
   clientName: string;
   source: AgencyTimeEntrySource;
@@ -88,8 +97,11 @@ function mapAgencyTimeEntryRow(
     projectId: string;
     taskId: string | null;
     taskTitle: string | null;
+    taskIconKey: string | null;
     taskIsWaste: boolean | null;
     projectName: string;
+    colorHueId: number | null;
+    projectIconKey: string | null;
     clientId: string;
     clientName: string;
     source: AgencyTimeEntrySource;
@@ -113,8 +125,11 @@ function mapAgencyTimeEntryRow(
     projectId: row.projectId,
     taskId: row.taskId ?? null,
     taskTitle: row.taskTitle ?? null,
+    taskIconKey: row.taskId ? asEntityIconKey(row.taskIconKey) : null,
     taskIsWaste: row.taskId ? (row.taskIsWaste ?? false) : null,
     projectName: row.projectName,
+    colorHueId: row.colorHueId,
+    projectIconKey: asEntityIconKey(row.projectIconKey),
     clientId: row.clientId,
     clientName: row.clientName,
     source: row.source,
@@ -138,7 +153,10 @@ type AgencyActiveTimerRecord = {
   projectId: string;
   taskId: string | null;
   taskTitle: string | null;
+  taskIconKey: AgencyEntityIconKey | null;
   projectName: string;
+  colorHueId: number | null;
+  projectIconKey: AgencyEntityIconKey | null;
   description: string;
   isBillable: boolean;
   tags: AgencyTagRecord[];
@@ -286,7 +304,9 @@ async function replaceTimeEntryLinks(
   timeEntryId: string,
   urls: string[],
 ) {
-  await tx.delete(agencyOpsTimeEntryLink).where(eq(agencyOpsTimeEntryLink.timeEntryId, timeEntryId));
+  await tx
+    .delete(agencyOpsTimeEntryLink)
+    .where(eq(agencyOpsTimeEntryLink.timeEntryId, timeEntryId));
   await insertTimeEntryLinks(tx, timeEntryId, urls);
 }
 
@@ -344,8 +364,11 @@ async function getActiveTimerByUser(userId: string) {
       projectId: agencyOpsActiveTimer.projectId,
       taskId: agencyOpsActiveTimer.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       description: agencyOpsActiveTimer.description,
       isBillable: agencyOpsActiveTimer.isBillable,
       startedAt: agencyOpsActiveTimer.startedAt,
@@ -372,7 +395,10 @@ async function getActiveTimerByUser(userId: string) {
     projectId: timer.projectId ?? "",
     taskId: timer.taskId,
     taskTitle: timer.taskTitle ?? null,
+    taskIconKey: timer.taskId ? asEntityIconKey(timer.taskIconKey) : null,
     projectName: timer.projectName ?? "",
+    colorHueId: timer.colorHueId,
+    projectIconKey: asEntityIconKey(timer.projectIconKey),
     description: timer.description,
     isBillable: timer.isBillable,
     tags,
@@ -421,7 +447,7 @@ export async function getAgencyActiveTimer(actorUserId: string, input: { teamId?
     };
   }
 
-  await requireTeamMembership(actorUserId, timer.teamId, "viewer");
+  await requireAgencyRole(actorUserId, timer.teamId, "viewer");
 
   if (input.teamId && timer.teamId !== input.teamId) {
     return {
@@ -440,7 +466,15 @@ export async function listAgencyActiveMembers(
     teamId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
+
+  const activeTimerWhere =
+    role === "viewer"
+      ? and(
+          eq(agencyOpsActiveTimer.teamId, input.teamId),
+          eq(agencyOpsActiveTimer.userId, actorUserId),
+        )
+      : eq(agencyOpsActiveTimer.teamId, input.teamId);
 
   const rows = await db
     .select({
@@ -456,7 +490,7 @@ export async function listAgencyActiveMembers(
     .innerJoin(user, eq(user.id, agencyOpsActiveTimer.userId))
     .leftJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsActiveTimer.projectId))
     .leftJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
-    .where(eq(agencyOpsActiveTimer.teamId, input.teamId))
+    .where(activeTimerWhere)
     .orderBy(asc(user.name));
 
   return {
@@ -484,7 +518,7 @@ export async function startAgencyTimer(
     isBillable?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = normalizeTimeEntryLinkUrls(input.links);
 
@@ -554,7 +588,10 @@ export async function startAgencyTimer(
         }
 
         const previousLinks = await tx
-          .select({ url: agencyOpsActiveTimerLink.url, sortOrder: agencyOpsActiveTimerLink.sortOrder })
+          .select({
+            url: agencyOpsActiveTimerLink.url,
+            sortOrder: agencyOpsActiveTimerLink.sortOrder,
+          })
           .from(agencyOpsActiveTimerLink)
           .where(eq(agencyOpsActiveTimerLink.activeTimerId, existing.id))
           .orderBy(asc(agencyOpsActiveTimerLink.sortOrder));
@@ -673,8 +710,11 @@ async function fetchAgencyTimeEntryRecords(entryIds: string[]) {
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -699,11 +739,7 @@ async function fetchAgencyTimeEntryRecords(entryIds: string[]) {
   const recordsById = new Map(
     rows.map((row) => [
       row.id,
-      mapAgencyTimeEntryRow(
-        row,
-        tagsByEntryId.get(row.id) ?? [],
-        linksByEntryId.get(row.id) ?? [],
-      ),
+      mapAgencyTimeEntryRow(row, tagsByEntryId.get(row.id) ?? [], linksByEntryId.get(row.id) ?? []),
     ]),
   );
   const records: AgencyTimeEntryRecord[] = [];
@@ -752,7 +788,7 @@ export async function stopAgencyTimer(
     };
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (input.teamId && active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -761,8 +797,7 @@ export async function stopAgencyTimer(
   }
 
   const tagIds = await validateAgencyTagIds(active.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   let taskId = active.taskId ?? null;
   let entryProjectId = active.projectId;
@@ -927,7 +962,7 @@ export async function updateAgencyActiveTimerDescription(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -970,7 +1005,7 @@ export async function updateAgencyActiveTimerLinks(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1018,7 +1053,7 @@ export async function updateAgencyActiveTimerTask(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1086,7 +1121,7 @@ export async function updateAgencyActiveTimerStart(
     throw new ORPCError("NOT_FOUND", { message: "No active timer." });
   }
 
-  await requireTeamMembership(actorUserId, active.teamId, "viewer");
+  await requireAgencyRole(actorUserId, active.teamId, "viewer");
 
   if (active.teamId !== input.teamId) {
     throw new ORPCError("BAD_REQUEST", {
@@ -1119,6 +1154,31 @@ export async function updateAgencyActiveTimerStart(
   return { timer };
 }
 
+export async function getMyAgencyTimeEntry(
+  actorUserId: string,
+  input: { teamId: string; entryId: string },
+) {
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
+  const [row] = await db
+    .select({ id: agencyOpsTimeEntry.id })
+    .from(agencyOpsTimeEntry)
+    .where(
+      and(
+        eq(agencyOpsTimeEntry.id, input.entryId),
+        eq(agencyOpsTimeEntry.teamId, input.teamId),
+        eq(agencyOpsTimeEntry.userId, actorUserId),
+        isNull(agencyOpsTimeEntry.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  return fetchAgencyTimeEntryRecord(row.id);
+}
+
 export async function listMyAgencyTimeEntries(
   actorUserId: string,
   input: {
@@ -1129,13 +1189,19 @@ export async function listMyAgencyTimeEntries(
     utcOffsetMinutes?: number;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const page = Math.max(1, input.page ?? 1);
   const pageSize = Math.min(500, Math.max(1, input.pageSize ?? 25));
   const offset = (page - 1) * pageSize;
 
-  const rows = await db
+  const mineWhere = and(
+    eq(agencyOpsTimeEntry.teamId, input.teamId),
+    eq(agencyOpsTimeEntry.userId, actorUserId),
+    isNull(agencyOpsTimeEntry.deletedAt),
+  );
+
+  const listQuery = db
     .select({
       id: agencyOpsTimeEntry.id,
       teamId: agencyOpsTimeEntry.teamId,
@@ -1144,8 +1210,11 @@ export async function listMyAgencyTimeEntries(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1163,42 +1232,25 @@ export async function listMyAgencyTimeEntries(
     .innerJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
     .leftJoin(agencyOpsProjectTask, eq(agencyOpsProjectTask.id, agencyOpsTimeEntry.taskId))
     .leftJoin(user, eq(user.id, agencyOpsTimeEntry.userId))
-    .where(
-      and(
-        eq(agencyOpsTimeEntry.teamId, input.teamId),
-        eq(agencyOpsTimeEntry.userId, actorUserId),
-        isNull(agencyOpsTimeEntry.deletedAt),
-      ),
-    )
+    .where(mineWhere)
     .orderBy(desc(agencyOpsTimeEntry.startedAt))
     .limit(pageSize)
     .offset(offset);
 
-  const tagsByEntryId = await listTagsByTimeEntryIds(rows.map((row) => row.id));
-  const linksByEntryId = await listLinksByTimeEntryIds(rows.map((row) => row.id));
-  const items = rows.map((row) =>
-    mapAgencyTimeEntryRow(row, tagsByEntryId.get(row.id) ?? [], linksByEntryId.get(row.id) ?? []),
-  );
-
-  // Count total for pagination
-  const [countRow] = await db
+  const countQuery = db
     .select({ count: sql<number>`count(*)` })
     .from(agencyOpsTimeEntry)
-    .where(
-      and(
-        eq(agencyOpsTimeEntry.teamId, input.teamId),
-        eq(agencyOpsTimeEntry.userId, actorUserId),
-        isNull(agencyOpsTimeEntry.deletedAt),
-      ),
-    );
+    .where(mineWhere);
+
+  const [rows, countRows] = await Promise.all([listQuery, countQuery]);
+  const [countRow] = countRows;
 
   const parsedTotal = Number(countRow?.count ?? 0);
   const total = Number.isFinite(parsedTotal) && parsedTotal >= 0 ? parsedTotal : 0;
 
-  // Compute complete totals for the anchor week and every week represented on this page.
-  const anchor = input.anchorDate ? parseIsoDateTime(input.anchorDate, "anchorDate") : new Date();
   const utcOffsetMinutes = input.utcOffsetMinutes ?? 0;
   const { weekStartsOn } = await loadTeamWorkSchedule(input.teamId);
+  const anchor = input.anchorDate ? parseIsoDateTime(input.anchorDate, "anchorDate") : new Date();
   const anchorWeek = getLocalWeekBounds(anchor, utcOffsetMinutes, weekStartsOn);
   const summaryWeekStartKeys = [
     ...new Set([
@@ -1228,32 +1280,50 @@ export async function listMyAgencyTimeEntries(
       totalSeconds: 0,
     });
   }
-  const summaryRangeFilters = [...summaryWeeks.values()].map((week) =>
-    and(gte(agencyOpsTimeEntry.startedAt, week.start), lte(agencyOpsTimeEntry.startedAt, week.end)),
+
+  const weekStarts = [...summaryWeeks.values()].map((week) => week.start);
+  const weekEnds = [...summaryWeeks.values()].map((week) => week.end);
+  const summaryStart = weekStarts.reduce((earliest, start) =>
+    start < earliest ? start : earliest,
+  );
+  const summaryEnd = weekEnds.reduce((latest, end) => (end > latest ? end : latest));
+  // Naive UTC timestamp minus getTimezoneOffset() minutes, matching localDateKeyFromInstant.
+  // Offset is inlined so SELECT and GROUP BY share one expression; distinct $n slots make
+  // Postgres treat them as different and reject started_at.
+  const offsetMinutesSql = sql.raw(String(Math.trunc(utcOffsetMinutes)));
+  const localDateSql = sql`to_char((${agencyOpsTimeEntry.startedAt} - (${offsetMinutesSql} * interval '1 minute')), 'YYYY-MM-DD')`;
+
+  const [tagsByEntryId, linksByEntryId, dailyRows] = await Promise.all([
+    listTagsByTimeEntryIds(rows.map((row) => row.id)),
+    listLinksByTimeEntryIds(rows.map((row) => row.id)),
+    db
+      .select({
+        dateKey: sql<string>`${localDateSql}`.as("date_key"),
+        totalSeconds: sql<number>`coalesce(sum(${agencyOpsTimeEntry.durationSeconds}), 0)`,
+      })
+      .from(agencyOpsTimeEntry)
+      .where(
+        and(
+          mineWhere,
+          gte(agencyOpsTimeEntry.startedAt, summaryStart),
+          lte(agencyOpsTimeEntry.startedAt, summaryEnd),
+        ),
+      )
+      .groupBy(sql.raw("date_key")),
+  ]);
+
+  applyDailyDurationTotals(
+    summaryWeeks,
+    dailyRows.map((row) => ({
+      dateKey: row.dateKey,
+      totalSeconds: Number(row.totalSeconds) || 0,
+    })),
+    weekStartsOn,
   );
 
-  const weekRows = await db
-    .select({
-      startedAt: agencyOpsTimeEntry.startedAt,
-      durationSeconds: agencyOpsTimeEntry.durationSeconds,
-    })
-    .from(agencyOpsTimeEntry)
-    .where(
-      and(
-        eq(agencyOpsTimeEntry.teamId, input.teamId),
-        eq(agencyOpsTimeEntry.userId, actorUserId),
-        isNull(agencyOpsTimeEntry.deletedAt),
-        or(...summaryRangeFilters),
-      ),
-    );
-
-  for (const weekRow of weekRows) {
-    const dateKey = localDateKeyFromInstant(weekRow.startedAt, utcOffsetMinutes);
-    const summary = summaryWeeks.get(getLocalWeekStartKeyFromDateKey(dateKey, weekStartsOn));
-    if (!summary) continue;
-    summary.daily.set(dateKey, (summary.daily.get(dateKey) ?? 0) + weekRow.durationSeconds);
-    summary.totalSeconds += weekRow.durationSeconds;
-  }
+  const items = rows.map((row) =>
+    mapAgencyTimeEntryRow(row, tagsByEntryId.get(row.id) ?? [], linksByEntryId.get(row.id) ?? []),
+  );
 
   const weekSummaries = [...summaryWeeks.entries()].map(([weekStartKey, summary]) => ({
     weekStartKey,
@@ -1294,7 +1364,7 @@ export async function listMyAgencyTimeEntriesInRange(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const from = parseAgencyDateRangeBound(input.from, "from", "start");
   const to = parseAgencyDateRangeBound(input.to, "to", "end");
@@ -1314,8 +1384,11 @@ export async function listMyAgencyTimeEntriesInRange(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1368,7 +1441,7 @@ export async function createManualAgencyTimeEntry(
     isBillable?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
   const links = normalizeTimeEntryLinkUrls(input.links);
 
@@ -1435,8 +1508,11 @@ export async function createManualAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1484,10 +1560,9 @@ export async function updateMyAgencyTimeEntry(
     isWaste?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   const [current] = await db
     .select({
@@ -1588,8 +1663,11 @@ export async function updateMyAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1637,7 +1715,7 @@ export async function updateMyAgencyTimeEntriesBulk(
     };
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const entryIds = [...new Set(input.entryIds)];
   if (entryIds.length === 0) {
@@ -1646,9 +1724,7 @@ export async function updateMyAgencyTimeEntriesBulk(
 
   const tagIds = await validateAgencyTagIds(input.teamId, input.patch.tagIds);
   const links =
-    input.patch.links === undefined
-      ? undefined
-      : normalizeTimeEntryLinkUrls(input.patch.links);
+    input.patch.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.patch.links);
 
   if (input.patch.projectId) {
     await getProjectByIdForTeam(input.teamId, input.patch.projectId);
@@ -1734,7 +1810,7 @@ export async function deleteMyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const now = new Date();
   const [deleted] = await db
@@ -1770,7 +1846,7 @@ export async function getAgencyTimeSummary(
     memberUserId?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -1885,7 +1961,7 @@ export async function listAllAgencyTimeEntries(
     pageSize?: number;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "editor");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -1919,8 +1995,11 @@ export async function listAllAgencyTimeEntries(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -1982,10 +2061,9 @@ export async function updateAnyAgencyTimeEntry(
     isWaste?: boolean;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
   const tagIds = await validateAgencyTagIds(input.teamId, input.tagIds);
-  const links =
-    input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
+  const links = input.links === undefined ? undefined : normalizeTimeEntryLinkUrls(input.links);
 
   const [current] = await db
     .select({
@@ -2084,8 +2162,11 @@ export async function updateAnyAgencyTimeEntry(
       projectId: agencyOpsTimeEntry.projectId,
       taskId: agencyOpsTimeEntry.taskId,
       taskTitle: agencyOpsProjectTask.title,
+      taskIconKey: agencyOpsProjectTask.iconKey,
       taskIsWaste: agencyOpsProjectTask.isWaste,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      projectIconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       source: agencyOpsTimeEntry.source,
@@ -2124,7 +2205,7 @@ export async function deleteAnyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const now = new Date();
   const [deleted] = await db
@@ -2159,7 +2240,7 @@ export async function duplicateAnyAgencyTimeEntry(
     entryId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [source] = await db
     .select({

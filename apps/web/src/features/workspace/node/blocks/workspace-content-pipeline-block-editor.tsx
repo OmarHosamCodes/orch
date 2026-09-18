@@ -276,7 +276,7 @@ export function WorkspaceContentPipelineBlockEditor({
               <section
                 key={column.status}
                 className={cn(
-                  "flex w-[300px] shrink-0 snap-start flex-col rounded-xl border p-4",
+                  "flex w-[300px] shrink-0 snap-start flex-col rounded-surface border p-surface",
                   column.className,
                   dragOverStatus === column.status ? "ring-2 ring-primary/30" : "",
                 )}
@@ -311,7 +311,7 @@ export function WorkspaceContentPipelineBlockEditor({
                         key={item.id}
                         draggable
                         className={cn(
-                          "group relative rounded-xl border border-muted bg-background p-4",
+                          "group relative rounded-surface border border-muted bg-background p-surface",
                           draggingItemId === item.id
                             ? "pointer-events-none opacity-40"
                             : "cursor-grab active:cursor-grabbing",
@@ -405,7 +405,7 @@ export function WorkspaceContentPipelineBlockEditor({
                   })}
 
                   {columnItems.length === 0 ? (
-                    <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-background p-6 text-center">
+                    <div className="flex h-full flex-col items-center justify-center rounded-surface border border-dashed border-muted bg-background p-surface text-center">
                       <p className="text-sm font-semibold text-muted-foreground">
                         No {workspaceContentPipelineStatusLabels[column.status]} yet.
                       </p>

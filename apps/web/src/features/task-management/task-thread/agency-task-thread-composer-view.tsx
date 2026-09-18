@@ -147,12 +147,10 @@ export function AgencyTaskThreadComposerView({
                 transition={{ ...orchPresenceContentFade, delay: 0.18 }}
                 className="text-[11px] leading-none text-muted-foreground"
               >
-                Asks in this thread
+                Opens Orch
               </motion.span>
             ) : (
-              <span className="text-[11px] leading-none text-muted-foreground">
-                Asks in this thread
-              </span>
+              <span className="text-[11px] leading-none text-muted-foreground">Opens Orch</span>
             )
           ) : null}
         </div>

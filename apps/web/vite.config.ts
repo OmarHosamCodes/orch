@@ -69,7 +69,8 @@ export default defineConfig(({ mode }) => {
       port: 7001,
       strictPort: true,
       proxy: {
-        "/api/auth": {
+        // Match apps/web/scripts/railway-ssr-server.mjs so first-party asset URLs work in dev.
+        "/api": {
           target: "http://localhost:7000",
           changeOrigin: true,
         },
@@ -79,6 +80,10 @@ export default defineConfig(({ mode }) => {
           ws: true,
         },
         "/uploads": {
+          target: "http://localhost:7000",
+          changeOrigin: true,
+        },
+        "/billing": {
           target: "http://localhost:7000",
           changeOrigin: true,
         },

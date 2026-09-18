@@ -35,7 +35,6 @@ import type {
   TimeEntryRecord,
 } from "@/features/time-tracking/group-time-entries";
 import { useTrackerDraft } from "@/features/time-tracking/stores/agency-time-tracking";
-import { useTheme } from "@/stores/theme";
 
 function isTimeFieldTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -107,7 +106,7 @@ type UseAgencyTimeEntryRowOptions = {
   tasks: AgencyProjectTask[];
   tags: AgencyTagOption[];
   tagCreatePending: boolean;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   expanded: boolean;
   isTimerMutationPending: boolean;
   deletingEntryIds: string[];
@@ -141,7 +140,7 @@ export type AgencyTimeEntryRowViewModel = {
   tasks: AgencyProjectTask[];
   tags: AgencyTagOption[];
   tagCreatePending: boolean;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   expanded: boolean;
   isTimerMutationPending: boolean;
   isDark: boolean;
@@ -229,7 +228,6 @@ export function useAgencyTimeEntryRow({
   onSaveLinks,
   onBulkPatch,
 }: UseAgencyTimeEntryRowOptions): AgencyTimeEntryRowViewModel {
-  const { isDark } = useTheme();
   const activeTimer = useAgencyActiveTimerQuery(teamId).data?.timer ?? null;
   const activeTimerTeamId = activeTimer?.teamId ?? teamId;
   const trackerDraft = useTrackerDraft(activeTimerTeamId);
@@ -550,7 +548,7 @@ export function useAgencyTimeEntryRow({
     onCreateTag,
     expanded,
     isTimerMutationPending,
-    isDark,
+    isDark: true,
     isMulti,
     expandedChildGroups,
     canRestart,

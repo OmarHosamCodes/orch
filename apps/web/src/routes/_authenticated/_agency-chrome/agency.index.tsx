@@ -8,6 +8,6 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/")({
   component: AgencyTrackerPage,
   pendingComponent: () => <RoutePending label="Opening Tracker" />,
   head: () => ({
-    meta: [{ title: "Tracker — Orch" }],
+    meta: [{ title: "Tracker | Orch" }],
   }),
 });

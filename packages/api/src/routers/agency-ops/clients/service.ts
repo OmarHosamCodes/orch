@@ -11,8 +11,40 @@ import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { getClientByIdForTeam } from "../shared/lookup-helpers";
 import { type AgencyClientArchiveFilter } from "../shared/report-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
+import { assertWithinLimit } from "../../../billing-team";
+
+type AgencyClientCommercialInput = {
+  category?: "internal" | "external";
+  billableRateAmount?: number | null;
+  currency?: string;
+};
+
+function clientInputTouchesCommercialFields(input: AgencyClientCommercialInput): boolean {
+  if ("category" in input && input.category !== undefined) {
+    return true;
+  }
+  if ("billableRateAmount" in input && input.billableRateAmount !== undefined) {
+    return true;
+  }
+  if ("currency" in input && input.currency !== undefined) {
+    return true;
+  }
+  return false;
+}
+
+async function requireAgencyClientWriteRole(
+  actorUserId: string,
+  teamId: string,
+  input: AgencyClientCommercialInput,
+) {
+  if (clientInputTouchesCommercialFields(input)) {
+    await requireAgencyRole(actorUserId, teamId, "owner");
+  } else {
+    await requireAgencyRole(actorUserId, teamId, "editor");
+  }
+}
 
 type AgencyClientRecord = {
   id: string;
@@ -74,7 +106,7 @@ export async function listAgencyClients(
     archiveFilter?: AgencyClientArchiveFilter;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const archiveFilter = input.archiveFilter ?? (input.includeArchived ? "all" : "nonarchived");
 
@@ -96,11 +128,169 @@ export async function listAgencyClients(
   };
 }
 
+export type AgencyClientBookIndexItem = {
+  clientId: string;
+  weekDurationSeconds: number;
+  monthUninvoicedDurationSeconds: number;
+  outstandingAmount: number;
+  billingCurrency: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+};
+
+export type AgencyClientBookIndex = {
+  canViewBilling: boolean;
+  items: AgencyClientBookIndexItem[];
+};
+
+export async function listAgencyClientsBookIndex(
+  actorUserId: string,
+  input: {
+    teamId: string;
+    includeArchived?: boolean;
+    archiveFilter?: AgencyClientArchiveFilter;
+  },
+): Promise<AgencyClientBookIndex> {
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
+  const listed = await listAgencyClients(actorUserId, input);
+  const canViewBilling = role === "owner";
+  const clientIds = listed.items.map((client) => client.id);
+  if (clientIds.length === 0) {
+    return { canViewBilling, items: [] };
+  }
+
+  const weekStart = utcWeekStart();
+  const { start: monthStart, end: monthEnd } = utcMonthBounds();
+
+  const contactRows = await db
+    .select({
+      clientId: agencyOpsClientContact.clientId,
+      name: agencyOpsClientContact.name,
+      email: agencyOpsClientContact.email,
+      phone: agencyOpsClientContact.phone,
+    })
+    .from(agencyOpsClientContact)
+    .where(
+      and(
+        eq(agencyOpsClientContact.teamId, input.teamId),
+        inArray(agencyOpsClientContact.clientId, clientIds),
+      ),
+    );
+
+  const weekRows = await db
+    .select({
+      clientId: agencyOpsProject.clientId,
+      total: sql<number>`coalesce(sum(${agencyOpsTimeEntry.durationSeconds}), 0)`.mapWith(Number),
+    })
+    .from(agencyOpsTimeEntry)
+    .innerJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsTimeEntry.projectId))
+    .where(
+      and(
+        eq(agencyOpsTimeEntry.teamId, input.teamId),
+        isNull(agencyOpsTimeEntry.deletedAt),
+        inArray(agencyOpsProject.clientId, clientIds),
+        gte(agencyOpsTimeEntry.startedAt, weekStart),
+      ),
+    )
+    .groupBy(agencyOpsProject.clientId);
+
+  const monthRows = await db
+    .select({
+      clientId: agencyOpsProject.clientId,
+      total: sql<number>`coalesce(sum(${agencyOpsTimeEntry.durationSeconds}), 0)`.mapWith(Number),
+    })
+    .from(agencyOpsTimeEntry)
+    .innerJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsTimeEntry.projectId))
+    .where(
+      and(
+        eq(agencyOpsTimeEntry.teamId, input.teamId),
+        isNull(agencyOpsTimeEntry.deletedAt),
+        inArray(agencyOpsProject.clientId, clientIds),
+        gte(agencyOpsTimeEntry.startedAt, monthStart),
+        lte(agencyOpsTimeEntry.startedAt, monthEnd),
+      ),
+    )
+    .groupBy(agencyOpsProject.clientId);
+
+  const weekByClient = new Map(weekRows.map((row) => [row.clientId, row.total]));
+  const monthByClient = new Map(monthRows.map((row) => [row.clientId, row.total]));
+  const contactByClient = new Map(contactRows.map((row) => [row.clientId, row]));
+
+  const outstandingByClient = new Map<string, { amount: number; currency: string }>();
+  const invoicedThisMonth = new Set<string>();
+
+  if (canViewBilling) {
+    const openStatuses = ["draft", "sent", "partial"] as const;
+    const openRows = await db
+      .select({
+        clientId: agencyOpsInvoice.clientId,
+        amount: agencyOpsInvoice.amount,
+        receivedAmount: agencyOpsInvoice.receivedAmount,
+        currency: agencyOpsInvoice.currency,
+      })
+      .from(agencyOpsInvoice)
+      .where(
+        and(
+          eq(agencyOpsInvoice.teamId, input.teamId),
+          inArray(agencyOpsInvoice.clientId, clientIds),
+          inArray(agencyOpsInvoice.status, [...openStatuses]),
+        ),
+      );
+
+    for (const row of openRows) {
+      const remaining = Math.max(0, row.amount - row.receivedAmount);
+      const current = outstandingByClient.get(row.clientId);
+      outstandingByClient.set(row.clientId, {
+        amount: (current?.amount ?? 0) + remaining,
+        currency: row.currency || current?.currency || "EGP",
+      });
+    }
+
+    const overlapRows = await db
+      .select({ clientId: agencyOpsInvoice.clientId })
+      .from(agencyOpsInvoice)
+      .where(
+        and(
+          eq(agencyOpsInvoice.teamId, input.teamId),
+          inArray(agencyOpsInvoice.clientId, clientIds),
+          lte(agencyOpsInvoice.periodStart, monthEnd),
+          gte(agencyOpsInvoice.periodEnd, monthStart),
+        ),
+      );
+
+    for (const row of overlapRows) {
+      invoicedThisMonth.add(row.clientId);
+    }
+  }
+
+  return {
+    canViewBilling,
+    items: listed.items.map((client) => {
+      const contact = contactByClient.get(client.id);
+      const monthDuration = monthByClient.get(client.id) ?? 0;
+      const monthUninvoicedDurationSeconds =
+        !canViewBilling || invoicedThisMonth.has(client.id) ? 0 : monthDuration;
+      const outstanding = outstandingByClient.get(client.id);
+      return {
+        clientId: client.id,
+        weekDurationSeconds: weekByClient.get(client.id) ?? 0,
+        monthUninvoicedDurationSeconds,
+        outstandingAmount: canViewBilling ? (outstanding?.amount ?? 0) : 0,
+        billingCurrency: outstanding?.currency ?? client.currency,
+        contactName: contact?.name ?? "",
+        contactEmail: contact?.email ?? "",
+        contactPhone: contact?.phone ?? "",
+      };
+    }),
+  };
+}
+
 export async function getAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [row] = await db
     .select(clientSelect)
@@ -162,7 +352,7 @@ export async function getAgencyClientCommercialSummary(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ): Promise<AgencyClientCommercialSummary> {
-  const role = await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  const role = await requireAgencyRole(actorUserId, input.teamId, "viewer");
   const client = await getAgencyClient(actorUserId, input);
 
   const [contactRow] = await db
@@ -337,7 +527,7 @@ export async function createAgencyClient(
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyClientWriteRole(actorUserId, input.teamId, input);
 
   const now = new Date();
   let billableRateAmount = input.billableRateAmount ?? null;
@@ -358,23 +548,26 @@ export async function createAgencyClient(
     fxAsOf = new Date(money.fxAsOf);
   }
 
-  const [created] = await db
-    .insert(agencyOpsClient)
-    .values({
-      id: createWorkspaceId("agency-client"),
-      teamId: input.teamId,
-      name: input.name.trim(),
-      category: input.category ?? "external",
-      billableRateAmount,
-      currency,
-      sourceBillableRateAmount,
-      fxRate,
-      fxAsOf,
-      createdByUserId: actorUserId,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning(clientSelect);
+  const [created] = await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "clients", { tx });
+    return tx
+      .insert(agencyOpsClient)
+      .values({
+        id: createWorkspaceId("agency-client"),
+        teamId: input.teamId,
+        name: input.name.trim(),
+        category: input.category ?? "external",
+        billableRateAmount,
+        currency,
+        sourceBillableRateAmount,
+        fxRate,
+        fxAsOf,
+        createdByUserId: actorUserId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning(clientSelect);
+  });
 
   if (!created) {
     throw new ORPCError("INTERNAL_SERVER_ERROR");
@@ -394,7 +587,7 @@ export async function updateAgencyClient(
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyClientWriteRole(actorUserId, input.teamId, input);
 
   const [current] = await db
     .select({
@@ -486,7 +679,7 @@ export async function archiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const [client] = await db
     .select({ id: agencyOpsClient.id, archivedAt: agencyOpsClient.archivedAt })
@@ -515,7 +708,7 @@ export async function unarchiveAgencyClient(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const now = new Date();
   await db
@@ -541,7 +734,7 @@ export async function getClientContact(
   actorUserId: string,
   input: { teamId: string; clientId: string },
 ): Promise<AgencyClientContactRecord | null> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [row] = await db
     .select()
@@ -578,7 +771,7 @@ export async function upsertClientContact(
     phone?: string;
   },
 ): Promise<AgencyClientContactRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   await getClientByIdForTeam(input.teamId, input.clientId);
 

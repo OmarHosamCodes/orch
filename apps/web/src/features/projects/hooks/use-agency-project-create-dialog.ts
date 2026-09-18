@@ -1,7 +1,9 @@
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { orpc } from "@/lib/orpc";
 import { withAgencySyncQueryOptions } from "@/features/shared/agency-query-options";
+import { useAgencyEntityIconDraft } from "@/features/shared/use-agency-entity-icon-draft";
 import {
   selectIsProjectMutationPending,
   useAgencyOpsStore,
@@ -33,6 +35,8 @@ export type AgencyProjectCreateDialogViewModel = {
   setClientId: (id: string) => void;
   projectName: string;
   setProjectName: (name: string) => void;
+  iconKey: AgencyEntityIconKey | null;
+  setIconKey: (value: AgencyEntityIconKey | null) => void;
   milestones: MilestoneDraft[];
   setMilestones: React.Dispatch<React.SetStateAction<MilestoneDraft[]>>;
   formError: string | null;
@@ -88,6 +92,7 @@ export function useAgencyProjectCreateDialog({
   const [projectName, setProjectName] = useState("");
   const [milestones, setMilestones] = useState<MilestoneDraft[]>(() => [createMilestoneDraft()]);
   const [formError, setFormError] = useState<string | null>(null);
+  const { displayIconKey, setIconKey, submitIconKey } = useAgencyEntityIconDraft(projectName, open);
 
   const isJourneyMode = mode === "journey";
 
@@ -162,6 +167,7 @@ export function useAgencyProjectCreateDialog({
         clientId: resolvedClientId,
         clientName: selectedClient.name,
         name,
+        iconKey: submitIconKey,
         milestones: validMilestones,
       });
 
@@ -177,6 +183,7 @@ export function useAgencyProjectCreateDialog({
       clientId: resolvedClientId,
       clientName: selectedClient.name,
       name,
+      iconKey: submitIconKey,
     });
 
     if (projectId) {
@@ -199,6 +206,8 @@ export function useAgencyProjectCreateDialog({
     setClientId,
     projectName,
     setProjectName,
+    iconKey: displayIconKey,
+    setIconKey,
     milestones,
     setMilestones,
     formError,

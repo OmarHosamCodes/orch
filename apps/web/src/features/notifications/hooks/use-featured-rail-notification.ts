@@ -2,7 +2,6 @@ import type { NotificationRecord } from "@orch/api/schemas/notifications";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@/lib/navigation";
 
-import { useAppShellStore } from "@/features/app-shell/app-shell-store";
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import {
   useAgencyNotificationsQuery,
@@ -15,24 +14,16 @@ import {
   featuredNotificationTitle,
   formatRelativeTime,
   notificationHref,
+  pickFeaturedNeedsAction,
   pickFeaturedRailItem,
 } from "@/features/notifications/notification-presentation";
-import { useNotificationsInboxUiStore } from "@/features/notifications/stores/notifications-inbox-ui";
 import { useTeamStore } from "@/features/team/team-store";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import { useWorkspaceAgentStore } from "@/features/workspace-agent/stores/workspace-agent-store";
 
-export type FeaturedRailNotificationInput = {
-  /** Mobile drawer is always wide enough for the card. */
-  forceExpanded?: boolean;
-};
-
-export function useFeaturedRailNotification(input: FeaturedRailNotificationInput = {}) {
+export function useFeaturedRailNotification() {
   const teamId = useTeamStore((s) => s.selectedTeamId) ?? "";
-  const railPinned = useAppShellStore((s) => s.railPinned);
-  const expanded = input.forceExpanded || railPinned;
   const navigate = useNavigate();
-  const requestOpenInbox = useNotificationsInboxUiStore((s) => s.requestOpen);
   const startTimer = useAgencyTimeTrackingStore((state) => state.startTimer);
   const updateAvailable = useAppUpdateStore((s) => s.updateAvailable);
   const isRefreshing = useAppUpdateStore((s) => s.isRefreshing);
@@ -40,14 +31,19 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
   const listQuery = useAgencyNotificationsQuery(teamId, Boolean(teamId));
   const markReadMutation = useMarkNotificationReadMutation(teamId);
   const [actionPending, setActionPending] = useState(false);
+  const [featuredSkip, setFeaturedSkip] = useState(0);
 
   const items = listQuery.data?.items ?? [];
   const picked = useMemo(
     () => pickFeaturedRailItem(items, updateAvailable),
     [items, updateAvailable],
   );
-  const featured = picked.kind === "notification" ? picked.featured : null;
-  const count = picked.count;
+  const needsAction = useMemo(
+    () => pickFeaturedNeedsAction(items, featuredSkip),
+    [featuredSkip, items],
+  );
+  const featured = picked.kind === "app-update" ? null : needsAction.featured;
+  const count = picked.kind === "app-update" ? picked.count : needsAction.count;
   const isAppUpdate = picked.kind === "app-update";
 
   const title = isAppUpdate ? "App update" : featured ? featuredNotificationTitle(featured) : "";
@@ -61,13 +57,18 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
     : featured
       ? featuredNotificationCta(featured)
       : { kind: "open" as const, label: "Open" };
-  const moreCount = Math.max(0, count - 1);
-  const badgeLabel = count > 9 ? "9+" : String(count);
+  const moreCount = Math.max(
+    0,
+    (isAppUpdate ? picked.count - 1 : needsAction.count) - (isAppUpdate ? 0 : 1),
+  );
   const actorName = featured?.actorName?.trim() || "Team";
   const actorAvatar = featured?.actorAvatar ?? null;
   const relativeTime = featured ? formatRelativeTime(featured.createdAt) : "";
+  const overflowCount = isAppUpdate
+    ? Math.max(0, needsAction.count)
+    : Math.max(0, needsAction.count - 1);
   const moreLabel =
-    moreCount === 1 ? "1 waiting in inbox" : moreCount > 1 ? `${moreCount} waiting in inbox` : null;
+    overflowCount === 1 ? "1 more" : overflowCount > 1 ? `${overflowCount} more` : null;
 
   async function markRead(notification: NotificationRecord) {
     await markReadMutation.mutateAsync(notification.id);
@@ -125,13 +126,11 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
 
   return {
     teamId,
-    expanded,
     isAppUpdate,
     featured,
     count,
     moreCount,
     moreLabel,
-    badgeLabel,
     title,
     body,
     ctaLabel: cta.label,
@@ -145,7 +144,7 @@ export function useFeaturedRailNotification(input: FeaturedRailNotificationInput
       void markRead(featured);
     },
     onPrimaryCta: () => void handlePrimaryCta(),
-    onOpenInbox: () => requestOpenInbox(),
+    onAdvanceFeatured: () => setFeaturedSkip((current) => current + 1),
   };
 }
 

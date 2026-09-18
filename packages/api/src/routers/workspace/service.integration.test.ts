@@ -3,13 +3,14 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { user }, { createWorkspaceNode }, teamService, workspaceService] =
+const [{ db }, { user }, { createWorkspaceNode }, teamService, workspaceService, billingTeam] =
   await Promise.all([
     import("@orch/db"),
     import("@orch/db/schema/auth"),
     import("@orch/workspace"),
     import("../team/service"),
     import("./service"),
+    import("../../billing-team"),
   ]);
 
 const fixtureUsers: string[] = [];
@@ -154,7 +155,8 @@ describe("workspace service authorization", () => {
     const ownerUserId = await createFixtureUser();
     const editorUserId = await createFixtureUser();
     const ownerTeam = await teamService.createTeam(ownerUserId, { name: "Editor Team" });
-    await teamService.addTeamMember(ownerUserId, {
+    await billingTeam.applyPaidPlan(ownerTeam.id, "agency", { seats: 2 });
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: ownerTeam.id,
       userEmail: `${editorUserId}@example.test`,
       role: "editor",
@@ -186,7 +188,8 @@ describe("workspace service authorization", () => {
     const ownerUserId = await createFixtureUser();
     const teammateUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Visibility Team" });
-    await teamService.addTeamMember(ownerUserId, {
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: team.id,
       userEmail: `${teammateUserId}@example.test`,
       role: "viewer",
@@ -219,7 +222,8 @@ describe("workspace service authorization", () => {
     const ownerUserId = await createFixtureUser();
     const teammateUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Connection Team" });
-    await teamService.addTeamMember(ownerUserId, {
+    await billingTeam.applyPaidPlan(team.id, "agency", { seats: 2 });
+    await teamService.addAcceptedTeamMember(ownerUserId, {
       teamId: team.id,
       userEmail: `${teammateUserId}@example.test`,
       role: "viewer",

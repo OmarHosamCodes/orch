@@ -1,18 +1,22 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import type { AgencyTimeRangeFilters } from "@/features/shared/use-agency-time-range-filters";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { orpc } from "@/lib/orpc";
 import { useAgencyPresenceMembers } from "@/features/shared/agency-queries";
-import { useTheme } from "@/stores/theme";
+import { type DashboardTeamMemberSheetMember } from "@/features/dashboard/dashboard-team-member-types";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 
 export type UseAgencyDashboardSurfaceProps = {
   teamId: string;
   filters: AgencyTimeRangeFilters;
+  policyReady: boolean;
   onSelectProject?: (projectId: string) => void;
   onSelectClient?: (clientId: string) => void;
   onSelectMember?: (userId: string) => void;
+  onGoToTracker: () => void;
 };
 
 export type AgencyDashboardSurfaceViewModel = ReturnType<typeof useAgencyDashboardSurface>;
@@ -20,18 +24,20 @@ export type AgencyDashboardSurfaceViewModel = ReturnType<typeof useAgencyDashboa
 export function useAgencyDashboardSurface({
   teamId,
   filters,
+  policyReady,
   onSelectProject,
   onSelectClient,
   onSelectMember,
+  onGoToTracker,
 }: UseAgencyDashboardSurfaceProps) {
   const { range, projectId, memberUserId, clientId, clientIds, projectIds, memberUserIds } =
     filters;
   const { members: presenceMembers } = useAgencyPresenceMembers(teamId);
-  const { isDark } = useTheme();
-  const [hourBreakdownOpen, setHourBreakdownOpen] = useState(false);
-  const totalButtonId = useId();
-  const breakdownPanelId = useId();
-
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const canViewTeamSummary = agencyTeamCapabilities(teamQuery.data?.role).isOwner;
   const dashboardQuery = useQuery({
     ...orpc.agencyOps.reports.dashboard.queryOptions({
       input: {
@@ -46,7 +52,7 @@ export function useAgencyDashboardSurface({
         memberUserIds,
       },
     }),
-    enabled: Boolean(teamId),
+    enabled: Boolean(teamId) && policyReady && canViewTeamSummary,
     placeholderData: keepPreviousData,
   });
 
@@ -65,6 +71,51 @@ export function useAgencyDashboardSurface({
     return [...members].sort((a, b) => b.totalSeconds - a.totalSeconds);
   }, [summary?.teamMembers]);
 
+  const [selectedMemberUserId, setSelectedMemberUserId] = useState<string | null>(null);
+
+  const selectedMemberSheet = useMemo((): DashboardTeamMemberSheetMember | null => {
+    if (!selectedMemberUserId) return null;
+    const member = sortedTeamMembers.find((row) => row.userId === selectedMemberUserId);
+    if (!member) return null;
+
+    const liveTimer = activeTimerByUserId.get(member.userId);
+    const isTracking = Boolean(liveTimer) || member.isActive;
+    const activity = liveTimer
+      ? {
+          description: liveTimer.description,
+          projectName: liveTimer.projectName,
+          clientName: liveTimer.clientName ?? null,
+          startedAt: liveTimer.startedAt,
+        }
+      : member.latestEntry
+        ? {
+            description: member.latestEntry.description,
+            projectName: member.latestEntry.projectName,
+            clientName: member.latestEntry.clientName,
+            startedAt: member.latestEntry.startedAt,
+          }
+        : null;
+
+    return {
+      userId: member.userId,
+      userName: member.userName,
+      userEmail: member.userEmail,
+      avatar: member.avatar,
+      totalSeconds: member.totalSeconds,
+      isTracking,
+      activity,
+      projectBreakdown: member.projectBreakdown,
+    };
+  }, [activeTimerByUserId, selectedMemberUserId, sortedTeamMembers]);
+
+  const openMemberActivity = useCallback((userId: string) => {
+    setSelectedMemberUserId(userId);
+  }, []);
+
+  const closeMemberActivity = useCallback(() => {
+    setSelectedMemberUserId(null);
+  }, []);
+
   const sortedRankedProjects = useMemo(() => {
     const list = [...rankedProjects];
     return list.sort((a, b) => b.hours - a.hours);
@@ -73,7 +124,9 @@ export function useAgencyDashboardSurface({
   const errorMessage = getErrorMessage(dashboardQuery.error, "Try refreshing.");
 
   return {
-    isLoading: dashboardQuery.isLoading,
+    isLoading:
+      teamQuery.isPending || (canViewTeamSummary && (dashboardQuery.isLoading || !policyReady)),
+    canViewTeamSummary,
     isError: dashboardQuery.isError,
     errorMessage,
     summary,
@@ -82,14 +135,15 @@ export function useAgencyDashboardSurface({
     activeTimerByUserId,
     sortedTeamMembers,
     sortedRankedProjects,
-    isDark,
-    hourBreakdownOpen,
-    setHourBreakdownOpen,
-    totalButtonId,
-    breakdownPanelId,
+    selectedMemberUserId,
+    selectedMemberSheet,
+    openMemberActivity,
+    closeMemberActivity,
+    isDark: true,
     onSelectProject,
     onSelectClient,
     onSelectMember,
+    onGoToTracker,
     refetch: () => {
       void dashboardQuery.refetch();
     },

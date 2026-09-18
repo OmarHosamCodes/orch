@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import {
   deletePendingAdjustment,
@@ -30,7 +30,7 @@ export const moneyPendingAdjustmentRecordSchema = z.object({
 });
 
 export const pendingAdjustmentsRouter = {
-  list: protectedProProcedure
+  list: protectedProcedure
     .input(
       teamScopedInputSchema.extend({
         partyType: moneyPartyTypeSchema.optional(),
@@ -44,7 +44,7 @@ export const pendingAdjustmentsRouter = {
         })
         .parse(await listPendingAdjustments(context.session.user.id, input));
     }),
-  upsert: protectedProProcedure
+  upsert: protectedProcedure
     .input(
       teamScopedInputSchema.extend({
         id: z.string().min(1).optional(),
@@ -63,7 +63,7 @@ export const pendingAdjustmentsRouter = {
         await upsertPendingAdjustment(context.session.user.id, input),
       );
     }),
-  remove: protectedProProcedure
+  remove: protectedProcedure
     .input(
       teamScopedInputSchema.extend({
         id: z.string().min(1),

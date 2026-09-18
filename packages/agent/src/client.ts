@@ -10,3 +10,7 @@ export function createOpenRouterClient() {
     apiKey: env.OPENROUTER_API_KEY,
   });
 }
+
+export function openRouterFetchOptions(signal?: AbortSignal) {
+  return signal ? { fetchOptions: { signal } } : {};
+}

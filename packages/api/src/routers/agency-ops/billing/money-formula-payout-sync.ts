@@ -15,7 +15,7 @@ import { ORPCError } from "@orpc/server";
 import { and, eq, gte, isNotNull, isNull, lte, sum } from "drizzle-orm";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { sumExpensesInPeriod } from "./expense-service";
 import {
   buildMoneyFormulaContext,
@@ -118,7 +118,7 @@ export async function syncFormulaPayoutLines(
     refreshSnapshot?: boolean;
   },
 ): Promise<{ upserted: number; skipped: number }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");

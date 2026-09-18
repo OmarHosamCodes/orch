@@ -116,7 +116,7 @@ export function WorkspaceProsConsBlockEditor({
           onClick={() => addItem(list)}
         >
           <Plus />
-          Add
+          {addLabel}
         </Button>
       </section>
     );

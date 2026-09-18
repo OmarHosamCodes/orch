@@ -254,12 +254,12 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
               onClick={addClient}
             >
               <Plus />
-              Add Client
+              Add client
             </Button>
           </div>
 
           {block.clients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-background py-10 text-center">
+            <div className="flex flex-col items-center justify-center rounded-surface border border-dashed border-muted bg-background py-surface text-center">
               <div className="flex size-16 items-center justify-center rounded-2xl bg-muted text-muted">
                 <Users2 className="size-8" />
               </div>
@@ -281,7 +281,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
                 return (
                   <article
                     key={client.id}
-                    className="group relative rounded-xl border border-muted bg-background p-5 transition-all hover:border-muted"
+                    className="group relative rounded-surface border border-muted bg-background p-surface transition-all hover:border-muted"
                   >
                     <div className="mb-5 flex items-start justify-between gap-4 border-b border-muted pb-4">
                       <div className="min-w-0 flex-1">
@@ -361,7 +361,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
                       </div>
                     </div>
 
-                    <div className="mt-4 rounded-xl border border-muted bg-muted p-4">
+                    <div className="mt-4 rounded-surface border border-muted bg-card p-surface">
                       <div className="mb-2 flex items-center justify-between">
                         <BlockFieldLabel>Relationship Health</BlockFieldLabel>
                         <div className="flex items-center gap-1.5">
@@ -398,7 +398,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
           )}
         </section>
 
-        <section className="flex flex-col gap-5 rounded-xl border border-muted bg-background p-6 lg:sticky lg:top-8 lg:h-fit">
+        <section className="flex flex-col gap-5 rounded-surface border border-muted bg-background p-surface lg:sticky lg:top-8 lg:h-fit">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold tracking-tight text-foreground">
@@ -420,12 +420,12 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
           </div>
 
           {block.expenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-background py-8 text-center">
+            <div className="flex flex-col items-center justify-center rounded-surface border border-dashed border-muted bg-background py-surface text-center">
               <Receipt className="size-6 text-muted" />
               <p className="mt-3 text-xs font-bold text-muted-foreground">No overhead costs yet.</p>
               <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={addExpense}>
                 <Plus />
-                Add
+                Add cost
               </Button>
             </div>
           ) : (
@@ -433,7 +433,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
               {block.expenses.map((expense) => (
                 <article
                   key={expense.id}
-                  className="relative rounded-xl border border-muted bg-background p-4 transition-all hover:bg-background"
+                  className="relative rounded-surface border border-muted bg-background p-surface transition-all hover:bg-background"
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="flex-1">
@@ -485,7 +485,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
                 </article>
               ))}
 
-              <div className="flex items-center justify-between rounded-xl border border-muted bg-background p-4">
+              <div className="flex items-center justify-between rounded-surface border border-muted bg-background p-surface">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
                     Total Monthly

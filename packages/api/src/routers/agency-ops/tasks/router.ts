@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import {
   teamScopedInputSchema,
   agencyProjectTaskBlueprintSchema,
   agencyProjectTaskSchema,
+  agencyEntityIconKeySchema,
 } from "../shared/schemas";
 import {
   listAgencyProjectTasks,
@@ -16,7 +17,7 @@ import {
 
 export const tasksRouter = {
   projectTasks: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1).optional(),
@@ -28,6 +29,7 @@ export const tasksRouter = {
           search: z.string().optional(),
           page: z.number().int().min(1).optional(),
           pageSize: z.number().int().min(1).max(100).optional(),
+          detail: z.enum(["full", "chooser"]).optional(),
         }),
       )
       .handler(async ({ context, input }) => {
@@ -40,11 +42,12 @@ export const tasksRouter = {
           })
           .parse(await listAgencyProjectTasks(context.session.user.id, input));
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1),
           title: z.string().trim().min(1).max(240),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           status: z.enum(["open", "in_progress", "done", "archived"]).optional(),
           assignedToTeam: z.boolean().optional(),
           assigneeUserIds: z.array(z.string().min(1)).optional(),
@@ -59,11 +62,12 @@ export const tasksRouter = {
         );
         return task;
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
           title: z.string().trim().min(1).max(240).optional(),
+          iconKey: agencyEntityIconKeySchema.nullable().optional(),
           status: z.enum(["open", "in_progress", "done", "archived"]).optional(),
           assignedToTeam: z.boolean().optional(),
           assigneeUserIds: z.array(z.string().min(1)).optional(),
@@ -80,7 +84,7 @@ export const tasksRouter = {
         );
         return task;
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
@@ -95,7 +99,7 @@ export const tasksRouter = {
           .parse(await deleteAgencyProjectTask(context.session.user.id, input));
         return result;
       }),
-    completeForMember: protectedProProcedure
+    completeForMember: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           taskId: z.string().min(1),
@@ -107,7 +111,7 @@ export const tasksRouter = {
         );
         return task;
       }),
-    updateBlueprint: protectedProProcedure
+    updateBlueprint: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           blueprintId: z.string().min(1),

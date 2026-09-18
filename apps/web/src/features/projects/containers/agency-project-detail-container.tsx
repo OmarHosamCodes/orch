@@ -19,7 +19,13 @@ export function AgencyProjectDetailContainer({
   onSelectClient,
 }: AgencyProjectDetailContainerProps) {
   const viewModel = useAgencyProjectDetail({ teamId, projectId });
-  const journeyStepper = <AgencyProjectJourneyStepper teamId={teamId} projectId={projectId} />;
+  const journeyStepper = (
+    <AgencyProjectJourneyStepper
+      teamId={teamId}
+      projectId={projectId}
+      readOnly={!viewModel.canEditRecords}
+    />
+  );
   const projectTasks = viewModel.project ? (
     <AgencyProjectTasks
       teamId={teamId}

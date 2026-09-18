@@ -13,6 +13,30 @@ const schemaArtifact = {
 };
 
 describe("agentChatTurnStreamEventSchema", () => {
+  test("started events require runId", () => {
+    expect(() =>
+      agentChatTurnStreamEventSchema.parse({
+        type: "started",
+        conversationId: "conv-1",
+        createdConversation: true,
+        userMessageId: "message-1",
+        assistantMessageId: "message-2",
+        model: "openrouter/auto-beta",
+      }),
+    ).toThrow();
+
+    const started = agentChatTurnStreamEventSchema.parse({
+      type: "started",
+      runId: "agent-run-00000000-0000-0000-0000-000000000001",
+      conversationId: "conv-1",
+      createdConversation: true,
+      userMessageId: "message-1",
+      assistantMessageId: "message-2",
+      model: "openrouter/auto-beta",
+    });
+    expect(started.type === "started" && started.runId.startsWith("agent-run-")).toBe(true);
+  });
+
   test("accepts token and completed events", () => {
     expect(
       agentChatTurnStreamEventSchema.parse({
@@ -117,6 +141,19 @@ describe("agentChatTurnStreamEventSchema", () => {
         },
       }).type,
     ).toBe("proposal");
+  });
+
+  test("accepts created_object stream events", () => {
+    const event = agentChatTurnStreamEventSchema.parse({
+      type: "created_object",
+      object: {
+        kind: "node",
+        id: "node-1",
+        title: "Brief",
+        href: "/node/node-1",
+      },
+    });
+    expect(event.type).toBe("created_object");
   });
 
   test("accepts question stream events", () => {

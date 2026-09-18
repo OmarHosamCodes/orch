@@ -86,6 +86,3 @@ export function buildThreadOrchAskPrompt(args: {
   lines.push(`User: ${question}`);
   return lines.join("\n");
 }
-
-export const ORCH_THREAD_AGENT_USER_ID = "orch-agent";
-export const ORCH_THREAD_AGENT_NAME = "Orch";

@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { RefObject } from "react";
 
 import {
   knowledgeCreateIconClass,
@@ -27,6 +28,7 @@ export type CanvasKnowledgeCreateMenuViewProps = {
   y: number;
   unplacedCount: number;
   motionState: MenuMotionState;
+  menuRef: RefObject<HTMLDivElement | null>;
   activeKind: KnowledgeCreateKind | null;
   onActiveKindChange: (kind: KnowledgeCreateKind | null) => void;
   onClose: () => void;
@@ -35,7 +37,6 @@ export type CanvasKnowledgeCreateMenuViewProps = {
 };
 
 const RADIAL_RADIUS = 70;
-const ACTION_SAFE_INSET = 28;
 
 function kindIcon(kind: KnowledgeCreateKind) {
   switch (kind) {
@@ -68,27 +69,12 @@ function radialPosition(index: number) {
   };
 }
 
-function keepActionInsideCanvas(
-  position: { x: number; y: number },
-  cursor: { x: number; y: number },
-  canvasRect: DOMRect | undefined,
-) {
-  const left = (canvasRect?.left ?? 0) + ACTION_SAFE_INSET;
-  const right = (canvasRect?.right ?? window.innerWidth) - ACTION_SAFE_INSET;
-  const top = (canvasRect?.top ?? 0) + ACTION_SAFE_INSET;
-  const bottom = (canvasRect?.bottom ?? window.innerHeight) - ACTION_SAFE_INSET;
-
-  return {
-    x: Math.min(Math.max(cursor.x + position.x, left), right) - cursor.x,
-    y: Math.min(Math.max(cursor.y + position.y, top), bottom) - cursor.y,
-  };
-}
-
 export function CanvasKnowledgeCreateMenuView({
   x,
   y,
   unplacedCount,
   motionState,
+  menuRef,
   activeKind,
   onActiveKindChange,
   onClose,
@@ -103,6 +89,11 @@ export function CanvasKnowledgeCreateMenuView({
   const canvasRect = document
     .querySelector<HTMLElement>("[aria-label='Workspace canvas']")
     ?.getBoundingClientRect();
+  const centerX = Math.max(116, Math.min(x, (canvasRect?.right ?? window.innerWidth) - 116));
+  const centerY = Math.max(
+    116,
+    Math.min(y, (canvasRect?.bottom ?? window.innerHeight) - (unplacedCount > 0 ? 156 : 116)),
+  );
 
   return createPortal(
     <div
@@ -112,11 +103,12 @@ export function CanvasKnowledgeCreateMenuView({
     >
       <div
         role="menu"
+        ref={menuRef}
         aria-label="Add to canvas"
         className="absolute z-50 size-52"
         style={{
-          left: x,
-          top: y,
+          left: centerX,
+          top: centerY,
           opacity: motionState === "opening" ? 0 : 1,
           transform: `translate(-50%, -50%) scale(${motionState === "opening" ? 0.96 : 1})`,
           transition: reducedMotion
@@ -124,6 +116,30 @@ export function CanvasKnowledgeCreateMenuView({
             : "opacity 140ms ease-out, transform 180ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            onClose();
+            return;
+          }
+          if (
+            !["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)
+          )
+            return;
+          const items = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>("[role=menuitem]"),
+          );
+          const index = items.findIndex((item) => item === document.activeElement);
+          const next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? items.length - 1
+                : (index + (["ArrowUp", "ArrowLeft"].includes(event.key) ? -1 : 1) + items.length) %
+                  items.length;
+          event.preventDefault();
+          items[next]?.focus();
+        }}
       >
         <div
           className="absolute left-1/2 top-1/2 flex size-14 items-center justify-center rounded-full bg-popover text-center shadow-lg ring-1 ring-foreground/10 dark:ring-foreground/15"
@@ -146,7 +162,7 @@ export function CanvasKnowledgeCreateMenuView({
 
         {knowledgeCreateKinds.map((kind, index) => {
           const Icon = kindIcon(kind);
-          const position = keepActionInsideCanvas(radialPosition(index), { x, y }, canvasRect);
+          const position = radialPosition(index);
           const delay = reducedMotion
             ? 0
             : closing
@@ -191,6 +207,7 @@ export function CanvasKnowledgeCreateMenuView({
         {unplacedCount > 0 ? (
           <button
             type="button"
+            role="menuitem"
             className="absolute left-1/2 top-full mt-2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-popover px-2.5 py-1 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-foreground/10 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
             style={{
               opacity: expanded ? 1 : 0,

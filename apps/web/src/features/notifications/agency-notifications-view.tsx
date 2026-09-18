@@ -14,7 +14,8 @@ import { Checkbox } from "@/ui/checkbox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
+import { ShellLiquidBadge } from "@/features/app-shell/shell-liquid-badge";
 import { cn } from "@/lib/utils";
 
 type AgencyNotificationsViewProps = {
@@ -120,7 +121,7 @@ function InboxNotificationRow({
     <li>
       <article
         className={cn(
-          "rounded-xl border border-transparent px-2.5 py-2.5 transition-colors",
+          "rounded-surface border border-transparent px-2.5 py-2.5 transition-colors",
           needsAction && unread && "border-border/60 bg-card",
           !needsAction && unread && "bg-muted/40",
           !unread && "opacity-70",
@@ -155,7 +156,7 @@ function InboxNotificationRow({
                     <NotificationSentence parts={parts} />
                   </p>
                 )}
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
                   {view.formatRelativeTime(notification.createdAt)}
                 </p>
               </div>
@@ -182,16 +183,12 @@ function InboxNotificationRow({
                 size="sm"
                 className="mt-2.5 h-8 w-full rounded-full text-xs font-semibold"
                 disabled={pending}
+                aria-busy={pending}
                 onClick={() => view.onPrimaryAction(notification)}
               >
-                {pending ? (
-                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                ) : (
-                  <>
-                    {cta.label}
-                    <ArrowRight className="size-3.5" aria-hidden />
-                  </>
-                )}
+                {pending ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+                {cta.label}
+                {pending ? null : <ArrowRight className="size-3.5" aria-hidden />}
               </Button>
             ) : (
               <Button
@@ -229,7 +226,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
           type="button"
           variant="ghost"
           size="icon"
-          className="relative size-8 rounded-full text-muted hover:text-highlighted"
+          className="relative size-8 shrink-0 rounded-full text-muted hover:bg-sidebar-accent hover:text-highlighted"
           aria-label={
             view.badgeCount > 0
               ? `Notifications, ${view.badgeCount} needing attention`
@@ -237,15 +234,11 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
           }
         >
           <Bell className="size-4" aria-hidden />
-          {view.badgeCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
-              {view.badgeLabel}
-            </span>
-          ) : null}
+          <ShellLiquidBadge visible={view.badgeCount > 0}>{view.badgeLabel}</ShellLiquidBadge>
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" side="bottom" className="w-[380px] p-0">
+      <PopoverContent align="end" side="bottom" size="inbox">
         <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <div className="min-w-0">
@@ -277,7 +270,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
               disabled={!view.hasUnread || view.markAllReadPending}
               onClick={view.onMarkAllRead}
             >
-              Mark all read
+              Mark all as read
             </Button>
           ) : null}
         </div>
@@ -285,16 +278,14 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
         {view.showSettings ? (
           view.preferencesPending ? (
             <div className="space-y-2 px-3 py-3">
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
+              <SurfaceShimmer className="min-h-44" label="Loading notification settings" />
             </div>
           ) : (
             <div className="max-h-[420px] space-y-3 overflow-y-auto px-3 py-3">
               <div className="space-y-2 rounded-xl border border-border/50 px-3 py-2.5">
-                <p className="text-sm font-medium text-foreground">Focus & quiet hours</p>
+                <p className="text-sm font-medium text-foreground">Focus and quiet hours</p>
                 <p className="text-xs text-muted-foreground">
-                  Push pauses while you focus or during quiet hours. The inbox still fills.
+                  Push pauses during focus or quiet hours. New items still appear in your inbox.
                 </p>
                 <div className="flex items-center gap-2 pt-1">
                   <Checkbox
@@ -403,10 +394,8 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
             </div>
           )
         ) : view.listPending ? (
-          <div className="space-y-2 px-3 py-3">
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <Skeleton className="h-14 w-full rounded-xl" />
+          <div className="px-3 py-3">
+            <SurfaceShimmer className="min-h-44" label="Loading notifications" />
           </div>
         ) : view.items.length === 0 ? (
           <div className="px-4 py-8 text-center">
@@ -439,7 +428,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
         {view.showPushPrompt ? (
           <div className="border-t border-border/60 px-3 py-2.5">
             <p className="text-xs text-muted-foreground">
-              Enable push only when something needs you — assignments and replies, not every update.
+              Enable push only when something needs you. Assignments and replies, not every update.
             </p>
             <div className="mt-2 flex items-center gap-2">
               <Button
@@ -449,7 +438,7 @@ export function AgencyNotificationsView({ view }: AgencyNotificationsViewProps) 
                 disabled={view.pushBusy}
                 onClick={view.onEnablePush}
               >
-                Enable
+                Enable push
               </Button>
               <Button
                 type="button"

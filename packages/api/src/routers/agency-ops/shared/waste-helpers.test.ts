@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  isReportEntryWaste,
-  isWasteLabel,
-  resolveEntryWaste,
-} from "./waste-helpers";
+import { isReportEntryWaste, isWasteLabel, resolveEntryWaste } from "./waste-helpers";
 
 describe("isWasteLabel", () => {
   test("matches waste in any format", () => {

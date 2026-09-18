@@ -1,29 +1,19 @@
-import { type KeyboardEvent } from "react";
 import { motion } from "motion/react";
 
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import { agencyErrorPanelClass } from "@/features/shared/agency-ui";
-import {
-  expenseStatusVariant,
-  expenseStripMeta,
-  moneyExpenseSettleLabel,
-  type ExpenseStripItem,
-} from "@/features/money/money-expenses-strip";
-import { ExpenseStripGlyph } from "@/features/money/money-expense-strip-glyphs";
+import { type ExpenseStripItem } from "@/features/money/money-expenses-strip";
 import { moneyBaseTransition } from "@/features/money/money-motion";
-import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-import { AgencyMoneyExpenseDetailSheet } from "./agency-money-expense-detail-sheet-view";
-import { MoneyTableActionsCell } from "./agency-money-table-actions-view";
+import { AgencyMoneyExpenseDetailDialog } from "./agency-money-expense-detail-dialog-view";
+import { AgencyMoneyLedgerTableView } from "./agency-money-ledger-table-view";
 import { type AgencyMoneySurfaceViewModel } from "./hooks/use-agency-money-surface";
+import { buildMoneyLedgerExpenseParents } from "./money-ledger-rows";
 
-function ExpenseStatusBadge({ item }: { item: ExpenseStripItem }) {
-  return <Badge variant={expenseStatusVariant(item.status)}>{item.statusLabel}</Badge>;
-}
+const EMPTY_EXPANDED: ReadonlySet<string> = new Set();
 
 function ExpenseTable({
   items,
@@ -40,156 +30,36 @@ function ExpenseTable({
   onOpenExpenseRow: (rowId: string) => void;
   onSettleExpense: (expenseId: string) => void;
 }) {
-  function onRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, rowId: string) {
-    if (event.target !== event.currentTarget) return;
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    onOpenExpenseRow(rowId);
-  }
+  const rows = buildMoneyLedgerExpenseParents(items);
+  const itemsById = new Map(items.map((item) => [item.id, item]));
 
   return (
-    <div className="px-4 pt-4">
-      <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
-        <Table className="min-w-[48rem]" aria-label="Expenses">
-          <TableHeader className="border-b border-default/50">
-            <TableRow>
-              <TableHead scope="col">Expense</TableHead>
-              <TableHead scope="col">Kind</TableHead>
-              <TableHead scope="col">Status</TableHead>
-              <TableHead scope="col">Due</TableHead>
-              <TableHead scope="col" className="w-32 text-right">
-                Amount
-              </TableHead>
-              <TableHead scope="col" className="w-32 text-right">
-                Remaining
-              </TableHead>
-              <TableHead scope="col" className="text-right">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow
-                key={item.id}
-                tabIndex={0}
-                aria-label={`${item.name}. ${item.statusLabel}. Remaining ${item.remainingLabel}.`}
-                aria-selected={selectedRowId === item.id}
-                className={cn(
-                  "cursor-pointer border-b border-default transition-colors last:border-b-0 hover:bg-elevated/35 focus-visible:bg-elevated/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
-                  selectedRowId === item.id && "bg-elevated/40",
-                )}
-                onClick={() => onOpenExpenseRow(item.id)}
-                onKeyDown={(event) => onRowKeyDown(event, item.id)}
-              >
-                <TableCell>
-                  <div className="flex min-w-48 items-center gap-2.5">
-                    <ExpenseStripGlyph kind={item.kind} />
-                    <span className="min-w-0 truncate font-medium text-highlighted" dir="auto">
-                      <AgencySearchHighlight text={item.name} query={searchTerm} />
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-muted">
-                  {item.kind === "subscription" ? "Subscription" : "One-time"}
-                </TableCell>
-                <TableCell>
-                  <ExpenseStatusBadge item={item} />
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-muted">
-                  <AgencySearchHighlight text={expenseStripMeta(item)} query={searchTerm} />
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    "whitespace-nowrap text-right font-mono tabular-nums",
-                    item.status === "paid" ? "text-muted" : "text-highlighted",
-                  )}
-                >
-                  {item.amountLabel}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    "whitespace-nowrap text-right font-mono tabular-nums",
-                    item.remainingAmount > 0 ? "text-warning" : "text-muted",
-                  )}
-                >
-                  {item.remainingLabel}
-                </TableCell>
-                <MoneyTableActionsCell
-                  settleLabel={moneyExpenseSettleLabel(item)}
-                  settleDisabled={settleDisabled}
-                  onSettle={() => onSettleExpense(item.expenseId)}
-                  detailsLabel={`Details for ${item.name}`}
-                  onOpenDetails={() => onOpenExpenseRow(item.id)}
-                />
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="min-h-0 flex-1">
+      <AgencyMoneyLedgerTableView
+        ariaLabel="Expenses"
+        rows={rows}
+        searchTerm={searchTerm}
+        receivedHeading="Paid"
+        showPartyGlyph={false}
+        isMutationPending={settleDisabled}
+        selectedRowId={selectedRowId}
+        expandedRowIds={EMPTY_EXPANDED}
+        onToggleExpand={() => undefined}
+        onOpenRow={onOpenExpenseRow}
+        onSettle={(rowId) => {
+          const item = itemsById.get(rowId);
+          if (item) onSettleExpense(item.expenseId);
+        }}
+        onOverflow={() => undefined}
+      />
     </div>
   );
 }
 
 function ExpenseTableSkeleton() {
   return (
-    <div className="px-4 pt-4" aria-busy="true" aria-label="Loading expenses">
-      <div className="overflow-x-auto rounded-dense border border-default/55 bg-default">
-        <Table className="min-w-[48rem]">
-          <TableHeader className="border-b border-default/50">
-            <TableRow>
-              {["Expense", "Kind", "Status", "Due", "Amount", "Remaining", "Actions"].map(
-                (column) => (
-                  <TableHead
-                    key={column}
-                    scope="col"
-                    className={
-                      column === "Amount" || column === "Remaining" || column === "Actions"
-                        ? "text-right"
-                        : undefined
-                    }
-                  >
-                    {column}
-                  </TableHead>
-                ),
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 4 }, (_, index) => (
-              <TableRow key={index} className="border-b border-default last:border-b-0">
-                <TableCell>
-                  <div className="flex items-center gap-2.5">
-                    <Skeleton className="size-9 shrink-0 rounded-xl" />
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-28 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="ml-auto h-4 w-20 rounded-md" />
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Skeleton className="h-7 w-16 rounded-2xl" />
-                    <Skeleton className="size-7 rounded-2xl" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="p-4">
+      <SurfaceShimmer className="min-h-64" label="Loading expenses" />
     </div>
   );
 }
@@ -207,7 +77,7 @@ function MoneyExpensesPanelContent({
 
   return (
     <>
-      <div className="flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         {panel.status === "loading" ? (
           <ExpenseTableSkeleton />
         ) : panel.status === "error" ? (
@@ -256,7 +126,7 @@ function MoneyExpensesPanelContent({
         ) : null}
       </div>
 
-      <AgencyMoneyExpenseDetailSheet panel={panel} />
+      <AgencyMoneyExpenseDetailDialog panel={panel} />
     </>
   );
 }

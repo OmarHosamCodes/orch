@@ -1,6 +1,6 @@
 ---
 name: Orch
-description: A spatial knowledge workspace with an embedded agent. Quiet instrument, photographic depth. Dual register — dark cinematic marketing, light precise product.
+description: A spatial knowledge workspace with an embedded agent. Quiet instrument, photographic depth. Dark-only product and marketing.
 colors:
   operator-violet: "oklch(0.55 0.22 264.53)"
   operator-violet-dark: "oklch(0.58 0.21 260.84)"
@@ -141,6 +141,12 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.4xl}"
     padding: "20px"
+  location-title:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-inverted}"
+    rounded: "{rounded.lg}"
+    padding: "0 8px"
+    height: "32px"
   eyebrow:
     backgroundColor: "transparent"
     textColor: "{colors.ink-muted}"
@@ -153,7 +159,7 @@ components:
 
 **Creative North Star: "Quiet instrument, photographic depth"**
 
-Orch is a dual-register system. Marketing is dark and cinematic: large type, generous air, aurora atmosphere reserved for the hero. Product shares one cool zinc family across light and dark — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.
+Orch is a dual-register system. Marketing is atmospheric and spare: one hero, large type, generous air, and a restrained field. Product uses one dark cool-zinc family — a surface ladder, hairlines, monochrome primary CTAs, and one violet accent used sparingly. Same typographic voice, same component vocabulary, different rhythm and ambient light.
 
 Shipped tokens live in `apps/web/src/index.css` (Vercel/tweakcn shadcn theme). Neutrals are achromatic zinc steps; the brand accent is `chart-2` (Operator Violet). Depth comes from tonal steps and hairlines, not from shadow-on-every-card. Inspiration (synthesize, don't copy): Apple whitespace, Linear surface ladder, Vercel hero atmosphere only.
 
@@ -161,32 +167,34 @@ The system rejects category defaults. No purple gradient heroes, no animated orb
 
 **Key Characteristics:**
 
-- Restrained color: zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome (`--primary` black in light, white in dark).
+- Restrained color: dark zinc neutrals (`--background` / `--secondary` / `--muted` / `--border`) with Operator Violet (`--chart-2`) as the sole brand accent on ≤10% of any product surface (selection, heatmaps, soft glows, canvas minimap). Primary CTAs are monochrome white-on-black.
 - Typographic hierarchy carries the system. `--font-sans`: Poppins for Latin, IBM Plex Sans Arabic for Arabic glyphs; IBM Plex Mono for tool traces and metrics.
 - Surface ladder, not flat paper. Background → card → secondary/muted → border. Soft shadows only for true float (dialogs, popovers) via the theme shadow scale.
 - Radii from `--radius` (`0.5rem`): controls use `rounded-2xl` (~14px); cards/dialogs use `radius-4xl` capped at 24px; dense tables pin `radius-dense` at 8px.
-- Marketing may use aurora/mesh and blur-text reveals; product stays quiet. `prefers-reduced-motion` is mandatory.
+- Marketing stays focused: the root route is a single hero with one ambient WebThreads field and direct auth actions; product stays quiet. `prefers-reduced-motion` is mandatory.
+- Global grain is ambient texture: every route receives a static 256px pixel-noise tile at low opacity, painted into background and shell surfaces through a shared CSS image token. It never sits above content.
+- Authenticated location chrome is Current Title: one leaf name plus chevron on the connected 44px bar; destinations live in its grouped menu.
 
 ## Colors
 
-Cool zinc neutrals with one violet accent. Runtime source: `:root` / `.dark` in `apps/web/src/index.css`.
+Dark cool-zinc neutrals with one violet accent. Runtime source: `:root` in `apps/web/src/index.css`. Appearance is dark-only.
 
 ### Primary
 
-- **Ink / Paper CTA** (`oklch(0 0 0)` light → `oklch(1 0 0)` dark): Monochrome `--primary` buttons. Not a decorative hue.
-- **Operator Violet** (`oklch(0.55 0.22 264.53)` light / `oklch(0.58 0.21 260.84)` dark as `--chart-2`): The single brand accent. Selection, heatmaps, soft glows, canvas minimap, marketing threads (`#5b5bd6` literal in hero/login). Soft tint via `color-mix` or `oklch(0.94 0.04 264)`. Never decorative wallpaper.
+- **Ink / Paper CTA** (`oklch(1 0 0)` / `oklch(0 0 0)`): Monochrome `--primary` buttons. Not a decorative hue.
+- **Operator Violet** (`oklch(0.58 0.21 260.84)` as `--chart-2`): The single brand accent. Selection, heatmaps, soft glows, canvas minimap, marketing threads (`#5b5bd6` literal in hero/login). Never decorative wallpaper.
 
 ### Neutral
 
-- **Ink** (`oklch(0 0 0)` / `--foreground`): Body text, headings (light).
-- **Ink Muted** (`oklch(0.44 0 0)` / `--muted-foreground`): Secondary text, placeholders.
-- **Paper** (`oklch(0.99 0 0)` / `--background`): Default light page ground — near-white zinc, not cream, not emerald.
-- **Paper Pure** (`oklch(1 0 0)` / `--card`): Cards and raised surfaces in light.
-- **Surface Elevated** (`oklch(0.94 0 0)` / `--secondary`, `--accent`): Chrome fills, ghost hover, elevated wells.
-- **Surface Muted** (`oklch(0.97 0 0)` / `--muted`): Soft recessed fills.
-- **Hairline** (`oklch(0.92 0 0)` / `--border`): Default separators; inputs use `--input` (`oklch(0.94 0 0)`).
+- **Ink** (`oklch(1 0 0)` / `--foreground`): Body text and headings.
+- **Ink Muted** (`oklch(0.72 0 0)` / `--muted-foreground`): Secondary text and placeholders.
+- **Paper** (`oklch(0 0 0)` / `--background`): Default page ground.
+- **Paper Pure** (`oklch(0.14 0 0)` / `--card`): Cards and raised surfaces.
+- **Surface Elevated** (`oklch(0.25 0 0)` / `--secondary`, `--accent`): Chrome fills, ghost hover, elevated wells.
+- **Surface Muted** (`oklch(0.23 0 0)` / `--muted`): Soft recessed fills.
+- **Hairline** (`oklch(0.26 0 0)` / `--border`): Default separators; inputs use `--input` (`oklch(0.32 0 0)`).
 
-### Inverted (Dark theme + marketing)
+### Marketing surfaces
 
 - **Paper Inverted** (`oklch(0 0 0)` / `--background`): Page / marketing hero ground.
 - **Surface Inverted** (`oklch(0.14 0 0)` / `--card`): Raised dark panels.
@@ -195,20 +203,20 @@ Cool zinc neutrals with one violet accent. Runtime source: `:root` / `.dark` in 
 
 ### State
 
-- **Success** (`oklch(0.55 0.15 150)` light / `oklch(0.72 0.17 145)` dark): Confirmations, healthy status. Semantic only — not the brand accent.
-- **Warning** (`oklch(0.56 0.15 55)` light / `oklch(0.79 0.15 70)` dark): Caution.
-- **Error** (`oklch(0.63 0.19 23.03)` light / `oklch(0.69 0.2 23.91)` dark): Failures, destructive (`--destructive`).
-- **Info** (`oklch(0.55 0.21 255)` light / `oklch(0.68 0.16 252)` dark): Neutral system messages.
+- **Success** (`oklch(0.72 0.17 145)`): Confirmations, healthy status. Semantic only — not the brand accent.
+- **Warning** (`oklch(0.79 0.15 70)`): Caution.
+- **Error** (`oklch(0.69 0.2 23.91)`): Failures, destructive (`--destructive`).
+- **Info** (`oklch(0.68 0.16 252)`): Neutral system messages.
 
 ### Named Rules
 
 **The One Voice Rule.** Operator Violet on ≤10% of any product screen. Rarity is the point. Primary CTAs stay monochrome.
 
-**The Soft Paper Rule.** Light mode page ground is cool near-white zinc (`oklch(0.99 0 0)`), never warm cream or emerald paper. Do not tint the ladder toward terracotta or purple wallpaper.
+**The Dark Ground Rule.** Page ground is black zinc (`oklch(0 0 0)`), with depth coming from tonal surface steps rather than wallpaper.
 
 **The Tinted Accent Rule.** Neutrals stay achromatic zinc; chroma belongs to Operator Violet and semantic state colors only.
 
-**The Marketing Atmosphere Exception.** Soft aurora/mesh glow on the dark hero is allowed once. It is not a product pattern.
+**The Marketing Atmosphere Exception.** One restrained atmosphere field may sit behind the landing hero. It is not a product pattern or a reason to add animated wallpaper elsewhere.
 
 ## Typography
 
@@ -273,6 +281,10 @@ Theme scale in `index.css` (HSL black, low opacity):
 
 **The Flat-By-Default Rule.** Surfaces are flat at rest. Shadows appear for true float (dialogs, popovers, toasts) or brief state feedback.
 
+### Ambient grain
+
+`GlobalGrain` generates one static 256px pixel-noise tile and publishes it as `--orch-grain-image`. Background, card, sidebar, top-bar, drawer, and landing surfaces consume that image directly with a low-alpha tile, so grain stays beneath text and controls instead of becoming a fixed overlay. Keep it subtle so dialogs, canvas content, and dense tables remain readable.
+
 ## Components
 
 Controls share `rounded-2xl` (~14.4px from `--radius`), medium weight, and monochrome primary fill. Philosophy: refined and restrained — instrument chrome, not marketing chrome.
@@ -305,8 +317,23 @@ Controls share `rounded-2xl` (~14.4px from `--radius`), medium weight, and monoc
 
 ### Navigation
 
-- **Marketing:** Footer nav; optional frosted top strip only if it earns its place. No sticky chrome by default.
-- **Product:** Connected left rail + top context bar (`app-shell`). Active: Operator Violet text + soft tint (`bg-sidebar-primary/10` or chart-2 mixes). Nested routes use a quiet 1px thread line — never a side-stripe. Rail collapsed `3.25rem` / expanded `15.5rem`.
+- **Marketing:** The root landing is one full-viewport hero with a compact brand lockup and auth action. It has no feature index, pricing block, or footer. Legal pages may retain the centered marketing footer. No sticky chrome by default.
+- **Product:** Connected left rail + always-on 44px top context bar (`app-shell`). Location chrome is Current Title: one leaf name plus chevron (`32px` high, `8px` inline padding, `dir="auto"`) opens a shadcn popover of grouped destinations. Nested pages add a quiet ChevronLeft back (`Back to ${parentLabel}`). Mobile keeps the bar; the hamburger lives in it and opens the rail sheet. Bell and CloudOff stay right. Active chrome: a measured CSS selection rect (`sidebar-accent` fill) behind the Current Title (`context-location-title` only) and behind rail rows — not a static tint or side-stripe. Nested rail routes keep the quiet 1px thread line. Rail expanded `15.5rem` on desktop.
+
+### Current Title (signature)
+
+One current place, not a nested trail. The leaf title is the wayfinder; destinations live in its menu.
+
+- **Trigger:** Semibold `0.8125rem` leaf name plus a `12px` chevron at 50% opacity. The traveling selection rect registers on `context-location-title` only. Hover and open fill `8%` sidebar-foreground over `8px` corners.
+- **Back:** Nested entity pages only (member, project, client, report, node, task). Icon-only ChevronLeft, `32px` hit, muted until hover.
+- **Menu:** Opaque shadcn popover, `240–360px`, no search. Groups Products / Agency / Management (~11 destinations). Full labels, `g x` shortcuts in IBM Plex Mono `10px`, quiet `6px` `--primary` current dot, no icons or checks. Current-mark is the product and/or the destination whose label matches the leaf; member profile marks Agency only.
+- **Overlays:** Leaf names from caches (members, projects, clients, nodes, session) with fallbacks Profile / Project / Client / Report / Node / Task.
+
+**The Current Title Rule.** The context bar shows one leaf name plus chevron. Destinations live in its grouped menu. Nested pages get one quiet parent back, never a crumb trail.
+
+### Authentication
+
+Auth uses one screen for both new and returning users. A compact card hangs from a static lanyard using neutral `secondary`, `muted`, `background`, and `border` tokens over Scanner. Use the shared Card and Button components. The remembered-account action sends that email as Google `loginHint`; Continue with Google opens account selection without a hint. Better Auth creates or reuses the account through the same OAuth callback. There is no sign-up mode or public email/password endpoint. A signed HttpOnly cookie on the API host remembers the last successful Google account; the uncached `/api/auth/remembered-account` endpoint supplies the optional account row without exposing session credentials.
 
 ### Tool Trace (signature)
 
@@ -314,7 +341,9 @@ Label-scale tool name in mono, violet running indicator while live, hairline sep
 
 ### Marketing motion (register exception)
 
-Allowed on marketing only, sparingly (≤3 animated pieces per page): aurora/mesh behind the hero, BlurText headline reveal, soft CTA attraction, SpotlightCard for at most two feature moments. All degrade under `prefers-reduced-motion`. Product motion stays to shell rail easing (`--motion-ease-rail`) and short state transitions (`120–220ms`).
+Allowed on marketing only, sparingly (≤3 animated pieces per page): the WebThreads hero field, a headline reveal, and a purposeful CTA response. The current root landing uses only the WebThreads field; the global grain is static. All motion degrades under `prefers-reduced-motion`.
+
+**Product chrome motion** uses a CSS active-selection rect for shell destination selection: rail rows, and the context-bar Current Title (`context-location-title`) as the only bar target. The notification overflow badge stays a static pill. Route content commits instantly — no `shell-page-enter` / `shell-content-in` fades on authenticated hops. Keep selection chrome behind labels only; never the page well, Canvas, or whole rail. This is opaque shell chrome, not liquid glass (`ui-liquid-glass-*` stays banned). Other product surfaces may keep short state transitions (`120–220ms`) until migrated.
 
 ## Do's and Don'ts
 
@@ -325,6 +354,9 @@ Allowed on marketing only, sparingly (≤3 animated pieces per page): aurora/mes
 - **Do** use Poppins + IBM Plex Sans Arabic (`--font-sans`) and IBM Plex Mono for system-reported truth.
 - **Do** keep control radii on the `--radius` scale (`rounded-2xl` controls, `radius-4xl` cards); use full pills only for intentionally circular chrome (e.g. mobile nav trigger).
 - **Do** put product nav in the rail/top-bar; make tool traces selectable and plain-prose-shaped.
+- **Do** keep location chrome as Current Title: one leaf plus chevron; traveling selection rect on `context-location-title` only.
+- **Do** mark current as the product and/or the destination whose label matches the leaf (member profile marks Agency only).
+- **Do** keep the root landing to one clear hero action and let the surface-owned grain remain a quiet background texture.
 - **Do** respect `prefers-reduced-motion` for shell, marketing, and feedback animations.
 
 ### Don't:
@@ -333,6 +365,10 @@ Allowed on marketing only, sparingly (≤3 animated pieces per page): aurora/mes
 - **Don't** flood product UI with violet wallpaper or gradient text.
 - **Don't** use liquid glass / `ui-liquid-glass-*` for overlays or Canvas chrome; use opaque shadcn surfaces + hairlines.
 - **Don't** wrap everything in a card; nested cards are always wrong.
+- **Don't** add a second grain/noise overlay to an individual route; use the shared `--orch-grain-image` surface token.
 - **Don't** put an uppercase eyebrow on every section or orchestrate entrance sequences in product surfaces.
-- **Don't** use side-stripe active indicators — use text + soft tint, or the quiet thread line for nested routes.
+- **Don't** use side-stripe active indicators — use the CSS selection rect + text emphasis, or the quiet thread line for nested routes.
+- **Don't** restore nested ancestor crumbs, dual product+place chips, or a command-field wayfinder in the context bar.
+- **Don't** put search, icons, or checkmarks in the location destination menu.
+- **Don't** wrap authenticated page content or the whole shell in gooey filters — chrome blobs only.
 - **Don't** use em dashes in copy or UI text.

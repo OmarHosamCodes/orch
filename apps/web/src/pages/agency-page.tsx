@@ -9,7 +9,7 @@ import {
   shellPageNestClass,
   shellPageScrollClass,
 } from "@/features/app-shell/app-shell-ui";
-import { AgencyProUpsell } from "@/features/billing/agency-pro-upsell";
+import { AgencyPaywall } from "@/features/billing/agency-paywall";
 import { useBilling } from "@/features/billing/billing-queries";
 import { useAgencyActiveTimerQuery } from "@/features/shared/agency-queries";
 import { AgencyPlaceholderSurface } from "@/features/shared/agency-placeholder-surface";
@@ -39,11 +39,12 @@ export function AgencyPage() {
   const currentUserId = user?.id ?? "";
   const location = useLocation();
   const segment = agencySegmentFromPathname(location.pathname) ?? "work";
+  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
+  const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
 
-  const { limits, billingQuery } = useBilling();
-  const agencyEnabled = Boolean(limits.agencyOps);
+  const { agencyEnabled, billingQuery, plan } = useBilling(selectedTeamId);
   const billingGatePending = billingQuery.isPending;
-  const showAgencyUpsell = !billingGatePending && !agencyEnabled;
+  const showAgencyUpsell = !billingGatePending && plan === "leftover" && !agencyEnabled;
 
   const teamsQuery = useQuery({
     ...teamListQueryOptions(),
@@ -51,9 +52,6 @@ export function AgencyPage() {
   });
 
   const teams = teamsQuery.data?.items ?? [];
-
-  const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
-  const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
 
   useEffect(() => {
     syncSelectedTeam(teams);
@@ -112,7 +110,7 @@ export function AgencyPage() {
             fill={isFullHeightSegment || isBooting}
           >
             {showAgencyUpsell ? (
-              <AgencyProUpsell />
+              <AgencyPaywall />
             ) : teams.length === 0 ? (
               <AgencyPlaceholderSurface
                 icon="i-lucide-users"

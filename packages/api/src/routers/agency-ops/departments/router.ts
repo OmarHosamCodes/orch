@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { agencyDepartmentSchema, teamScopedInputSchema } from "../shared/schemas";
 import {
   createAgencyDepartment,
@@ -13,19 +13,19 @@ const departmentNameSchema = z.string().trim().min(1).max(50);
 
 export const departmentsRouter = {
   departments: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return z
         .object({ items: z.array(agencyDepartmentSchema) })
         .parse(await listAgencyDepartments(context.session.user.id, input));
     }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(teamScopedInputSchema.extend({ name: departmentNameSchema }))
       .handler(async ({ context, input }) => {
         return agencyDepartmentSchema.parse(
           await createAgencyDepartment(context.session.user.id, input),
         );
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           departmentId: z.string().min(1),
@@ -37,7 +37,7 @@ export const departmentsRouter = {
           await updateAgencyDepartment(context.session.user.id, input),
         );
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(teamScopedInputSchema.extend({ departmentId: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         return z

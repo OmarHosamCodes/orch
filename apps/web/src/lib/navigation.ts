@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import {
   createElement,
+  forwardRef,
   useCallback,
   useMemo,
   type ComponentProps,
@@ -133,6 +134,12 @@ export function useNavigationType(): "POP" | "PUSH" | "REPLACE" {
   return "PUSH";
 }
 
+type AppLinkActiveOptions = {
+  exact?: boolean;
+  includeSearch?: boolean;
+  includeHash?: boolean;
+};
+
 type AppLinkProps = {
   to: string;
   replace?: boolean;
@@ -146,6 +153,7 @@ type AppLinkProps = {
   role?: string;
   title?: string;
   id?: string;
+  activeOptions?: AppLinkActiveOptions;
   "aria-label"?: string;
   "aria-current"?: ComponentProps<"a">["aria-current"];
   "aria-haspopup"?: ComponentProps<"a">["aria-haspopup"];
@@ -153,19 +161,24 @@ type AppLinkProps = {
   "aria-controls"?: string;
 };
 
-export function Link({ to, replace, state, children, onClick, ...rest }: AppLinkProps) {
+export const Link = forwardRef<HTMLAnchorElement, AppLinkProps>(function Link(
+  { to, replace, state, children, onClick, activeOptions, ...rest },
+  ref,
+) {
   return createElement(
     TanStackLink,
     {
       ...rest,
+      ref,
       to,
       replace,
       state: state as never,
       onClick,
+      activeOptions,
     } as never,
     children,
   );
-}
+});
 
 type AppNavigateProps = {
   to: string;

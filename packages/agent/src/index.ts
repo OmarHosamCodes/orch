@@ -5,29 +5,25 @@ import {
   agencyProposalSnapshotSchema,
   type AgencyDraftPlan,
 } from "./agency-actions";
-import {
-  agencyAgentQuestionSchema,
-  ASK_AGENCY_QUESTION_TOOL_NAME,
-  isAgencyQuestionAnswerMessage,
-  type AgencyAgentQuestion,
-} from "./agency-question";
 import { buildAgencyAgentTools } from "./agency-tools";
-import { canvasDraftPlanSchema, canvasProposalSnapshotSchema } from "./canvas-actions";
-import { knowledgeDraftPlanSchema, knowledgeProposalSnapshotSchema } from "./knowledge-actions";
+import { canvasDraftPlanSchema } from "./canvas-actions";
+import { knowledgeDraftPlanSchema } from "./knowledge-actions";
 import { buildCanvasScopedPatchNote } from "./canvas-scope-instructions";
 import { buildCanvasWriteTools } from "./canvas-tools";
 import { buildKnowledgeTools } from "./knowledge-tools";
-import { resolveUnlockedSurfaces } from "./tool-catalog";
+import { buildMemoryTools } from "./memory-tools";
 import {
-  agencyQuestionRetryNote,
-  agencyToolRetryNote,
-  agencyUiPresentRetryNote,
-  bootstrapAgencyMonthReportsCanvas,
-  shouldBootstrapAgencyMonthReports,
-} from "./agency-reports-canvas";
-import { createOpenRouterClient } from "./client";
+  createLeakedToolMarkupFilter,
+  finalizeAssistantResponseText,
+  isIncompleteToolPreamble,
+  stripLeakedToolCallMarkup,
+} from "./tool-call-markup";
+import { resolveUnlockedSurfaces } from "./tool-catalog";
+import { agencyToolRetryNote } from "./agency-reports-canvas";
+import { createOpenRouterClient, openRouterFetchOptions } from "./client";
 import { resolveOpenRouterReasoning } from "./reasoning-effort";
 import { resolveOpenRouterModel } from "./models";
+import { formatPlannerPlanForTools, parsePlannerTodos, runPlannerPass } from "./planner";
 import {
   mergeToolCallFromStreamMessage,
   orderedToolCalls,
@@ -51,12 +47,7 @@ import {
   type DashboardAgentWorkspaceContext,
   type DashboardConversationUsageLatest,
 } from "./types";
-import {
-  artifactFromToolCall,
-  cappedArtifacts,
-  UI_PRESENT_SYSTEM_GUIDANCE,
-  type AiUiArtifact,
-} from "./ui-artifact";
+import { artifactFromToolCall, cappedArtifacts, type AiUiArtifact } from "./ui-artifact";
 
 type OpenRouterUsage = {
   inputTokens: number;
@@ -210,7 +201,7 @@ function buildScopedWorkspaceContext(workspace: DashboardAgentWorkspaceContext) 
   ].join("\n");
 }
 
-function buildAgencyInstructions(workspace: DashboardAgentWorkspaceContext) {
+function buildPersonalAssistantInstructions(workspace: DashboardAgentWorkspaceContext) {
   const userLabel = workspace.userName?.trim()
     ? `The current user is ${workspace.userName.trim()}.`
     : "The current user name is unavailable.";
@@ -218,169 +209,45 @@ function buildAgencyInstructions(workspace: DashboardAgentWorkspaceContext) {
   const scopeLines =
     workspace.scopeRefs && workspace.scopeRefs.length > 0
       ? [
-          "Pinned scope chips for this turn:",
+          "Pinned scope chips are focus for this turn, not catalog unlocks:",
           ...workspace.scopeRefs.map((ref) => `- ${ref.kind}: ${ref.label} (${ref.id})`),
         ]
-      : ["No Agency scope chips are pinned for this turn."];
+      : ["No scope chips are pinned for this turn."];
+  const scopedPatchNote = buildCanvasScopedPatchNote({
+    scopeNodes: (workspace.scopeNodes ?? []).map((node) => ({ id: node.id, title: node.title })),
+  });
+  const scopedNodes = getScopedWorkspaceNodes(workspace);
+  const scopedWorkspace = hasScopedWorkspace(workspace);
+  const focusedWorkspaceDetails = buildFocusedWorkspaceDetails(scopedNodes);
+  const scopedContext = buildScopedWorkspaceContext(workspace);
 
   return [
-    "You are Orch's Agency assistant.",
-    "Help the user understand tracked time, projects, members, and report totals.",
-    "Ground every answer in real Agency tool results. Never invent hours, members, or billable/waste splits.",
+    "You are Orch, a you-only personal assistant. Agency and Canvas are tools you drive.",
+    "There is no Ask, Plan, or Agent mode. First think with an internal plan, then call tools.",
+    "Agency data writes must go through propose_agency_action and wait for Approve. Never claim an Agency write applied until the user Approves.",
+    "Canvas and knowledge writes apply immediately with apply_canvas_action and apply_knowledge_action. After creating something, name it and how to Open it.",
+    "When the user tells you a preference (report format, waste priority, timezone), call remember_fact immediately. Do not store personal preferences as knowledge objects.",
+    "Scope chips focus attention; you already have both Agency and Canvas tools.",
+    "Ground answers in real tool results. Never invent hours, members, or billable/waste splits.",
     "Never narrate tool calls in prose. Use actual function calls.",
-    "Be concise, concrete, and factual.",
+    "After tools return, write the full answer in the same turn. Do not stop at I'll gather / let me check — tool cards already show the work.",
+    "Be concise, concrete, and factual. Ask clarifying questions in prose when needed.",
     `Today's date (UTC) is ${todayUtc}. Use YYYY-MM-DD for from/to. For "this month", use month start through today.`,
     "Prefer get_agency_reports_summary for project/client breakdowns; get_agency_time_summary for per-member totals.",
     "Time gap fill: call list_agency_time_gaps first. Report window, tracked hours, uncovered rows, and projected total. Do not propose time_entry.create until the user asks to insert. New entries must not overlap existing ones. Inherit project/task from the gap neighbor. Never mark a whole day as waste.",
     "Waste: propose time_entry.update isWaste on a single entryId from get_agency_time_entry. Never a day total or grouped row.",
-    "Money: get_agency_client_bill then ui_present before/after amounts. In Agent mode propose money.export_client only when the user asks to export/persist. Never say an invoice was sent.",
+    "Money: get_agency_client_bill then propose money.export_client only when the user asks to export/persist. Never say an invoice was sent.",
     "Needs-action / member alerts: list_member_profile_alerts, then propose only targeted time_entry.update (for example isWaste on one entryId). Never waste a whole day. Do not send notifications.",
-    UI_PRESENT_SYSTEM_GUIDANCE,
     userLabel,
     workspace.teamId ? `Active team id: ${workspace.teamId}.` : "Active team id is unavailable.",
     ...scopeLines,
-  ].join("\n");
-}
-
-function buildAgencyAskInstructions(workspace: DashboardAgentWorkspaceContext) {
-  return [
-    buildAgencyInstructions(workspace),
-    "Ask mode is read-only. Do not create, edit, or delete Agency data.",
-    "Agency Ask requires tools: before answering any time/report/member/project question, call at least one Agency data tool.",
-    "Default response shape: after the data tool, call ui_present with kind 'schema' (stack/grid/stat/table/pillRow). Then reply with one short line only — do not repeat the numbers as a bullet list.",
-    "If you need the user to choose between options, call ask_agency_question instead of asking only in prose.",
-    "If a requested breakdown is missing from tool output, say what the tool returned instead of inventing fields.",
-  ].join("\n");
-}
-
-function buildAgencyPlanInstructions(workspace: DashboardAgentWorkspaceContext) {
-  return [
-    buildAgencyInstructions(workspace),
-    "Plan mode workflow: (1) research with read tools, (2) must call ask_agency_question at least once to clarify assumptions (never ask only in prose), (3) after the user answers in a later turn, call draft_agency_plan, (4) prefer ui_present for context and for a schema plan overview.",
-    "Do not call draft_agency_plan until ask_agency_question has been used this turn (or the user already answered a prior question). Do not claim changes were applied.",
-    "After draft_agency_plan, call ui_present with a schema overview of the plan (steps, targets, impact). Then tell the user to Confirm in the UI.",
-    "Never invent ids — use tool results. Do not call propose_agency_action in Plan mode.",
-    "Time gap insert: propose time_entry.create per gap; one proposal per entry unless the user asks for a batch; always ui_present before/after. Do not insert during check.",
-  ].join("\n");
-}
-
-function buildAgencyAgentModeInstructions(workspace: DashboardAgentWorkspaceContext) {
-  return [
-    buildAgencyInstructions(workspace),
-    "Agent mode: never write Agency data directly. Call propose_agency_action for each intended write.",
-    "When you need clarification, call ask_agency_question (do not ask only in prose). Prefer ui_present for before/after.",
-    "Required: after each propose_agency_action, call ui_present with a clear before/after illustration, then tell the user to Approve or Reject.",
-    "Never claim a write succeeded until the user Approves. Prefer one proposal at a time unless the user asks for a batch.",
-    "Time gap insert: propose time_entry.create per gap; one proposal per entry unless the user asks for a batch; always ui_present before/after. Do not insert during check.",
-  ].join("\n");
-}
-
-function buildCanvasPlanInstructions(workspace: DashboardAgentWorkspaceContext) {
-  const scopedPatchNote = buildCanvasScopedPatchNote({
-    scopeNodes: (workspace.scopeNodes ?? []).map((node) => ({ id: node.id, title: node.title })),
-  });
-  return [
-    buildAgentInstructions({ ...workspace, surface: "canvas" }),
-    "Plan mode workflow: (1) research with read tools, (2) must call ask_agency_question at least once to clarify assumptions (never ask only in prose), (3) after the user answers in a later turn, call draft_canvas_plan, (4) prefer ui_present for a schema or workspaceBlock plan overview.",
-    "Do not call draft_canvas_plan until ask_agency_question has been used this turn (or the user already answered a prior question). Do not claim changes were applied.",
-    "After draft_canvas_plan, call ui_present with an overview of the plan. Then tell the user to Confirm in the UI.",
-    "Never invent ids — use tool results. Do not call propose_canvas_action in Plan mode.",
-    "When drafting a new node, node.create.blocks must list every planned block type (task-list, table, notes, …). A title-only node.create only creates default empty Notes.",
     ...(scopedPatchNote ? [scopedPatchNote] : []),
-  ].join("\n");
-}
-
-function buildCanvasAgentModeInstructions(workspace: DashboardAgentWorkspaceContext) {
-  const scopedPatchNote = buildCanvasScopedPatchNote({
-    scopeNodes: (workspace.scopeNodes ?? []).map((node) => ({ id: node.id, title: node.title })),
-  });
-  return [
-    buildAgentInstructions({ ...workspace, surface: "canvas" }),
-    "Canvas is a view of the team brain. Mix documents with notes, decisions, sources, and folders on the same board. Agency projects, tasks, members, clients, and time entries are live records — pin with placement.upsert, link with about, never copy or mutate Agency. Private notes apply immediately; team-visible writes still need Approve.",
-    "This agent connects and groups: relation.create (about, supports, in) and folders. Do not invent Agency ids. Query before proposing.",
-    "Agent mode: never write Canvas data directly. Call propose_canvas_action for board/block AST edits and propose_knowledge_action for notes, decisions, sources, folders, grouping, and Agency links.",
-    "When you need clarification, call ask_agency_question (do not ask only in prose).",
-    "Required: after each propose_canvas_action, call ui_present with kind workspaceBlock or workspaceNode, then tell the user to Approve or Reject.",
-    "Never claim a write succeeded until the user Approves. Prefer one proposal at a time unless the user asks for a batch.",
-    "If the workspace is scoped, use the scoped nodeId/tabId/blockId in propose_canvas_action. Do not propose create_node unless the user explicitly asks for a new node.",
-    ...(scopedPatchNote ? [scopedPatchNote] : []),
-  ].join("\n");
-}
-
-function appendCrossSurfaceInstructions(
-  base: string,
-  workspace: DashboardAgentWorkspaceContext,
-  toolPreset: DashboardAgentToolPreset,
-) {
-  const surfaces = resolveUnlockedSurfaces({
-    surface: workspace.surface ?? "canvas",
-    unlockedSurfaces: workspace.unlockedSurfaces,
-    scopeRefs: workspace.scopeRefs,
-  });
-  if (surfaces.length < 2) return base;
-  const extra: string[] = [
-    "This turn is unlocked across Agency and Canvas. Use Agency tools for time/projects/tasks and Canvas tools for the board.",
-  ];
-  if (toolPreset === "agent") {
-    extra.push(
-      "Writes stay on the proposal bus: propose_agency_action for Agency, propose_canvas_action for Canvas. Never claim either applied until Approve.",
-    );
-  }
-  if (toolPreset === "plan") {
-    extra.push(
-      "Draft with draft_agency_plan and/or draft_canvas_plan depending on the requested domain.",
-    );
-  }
-  const scopedPatchNote = buildCanvasScopedPatchNote({
-    scopeNodes: (workspace.scopeNodes ?? []).map((node) => ({ id: node.id, title: node.title })),
-  });
-  if (scopedPatchNote) {
-    extra.push(scopedPatchNote);
-  }
-  return [base, ...extra].join("\n");
-}
-
-function buildAgentInstructions(workspace: DashboardAgentWorkspaceContext) {
-  if (workspace.surface === "agency") {
-    // Mode-specific Agency instructions are applied in resolveAgentExecutionConfig.
-    return buildAgencyInstructions(workspace);
-  }
-
-  const scopedNodes = getScopedWorkspaceNodes(workspace);
-  const scopedWorkspace = hasScopedWorkspace(workspace);
-  const updatedLabel = workspace.updatedAt
-    ? `Workspace updated at ${workspace.updatedAt}.`
-    : "Workspace update time is unavailable.";
-  const userLabel = workspace.userName?.trim()
-    ? `The current user is ${workspace.userName.trim()}.`
-    : "The current user name is unavailable.";
-  const marketplaceCount = workspace.marketplaceItems?.length ?? 0;
-  const focusedWorkspaceDetails = buildFocusedWorkspaceDetails(scopedNodes);
-  const scopedContext = buildScopedWorkspaceContext(workspace);
-  const scopeRefLines =
-    workspace.scopeRefs && workspace.scopeRefs.length > 0
-      ? [
-          "Pinned scope chips for this turn:",
-          ...workspace.scopeRefs.map((ref) => `- ${ref.kind}: ${ref.label} (${ref.id})`),
-        ]
-      : [];
-
-  return [
-    "You are Orch's dashboard agent.",
-    "Help the user reason about the dashboard, prioritize work, and spot gaps.",
-    "Ground every answer in the actual workspace data. If you need more detail, call a tool instead of guessing.",
-    "Be concise, concrete, and action-oriented.",
-    UI_PRESENT_SYSTEM_GUIDANCE,
-    userLabel,
-    updatedLabel,
     `The dashboard currently has ${workspace.nodes.length} nodes.`,
     ...(scopedWorkspace
       ? [
           `The current turn is scoped to ${scopedNodes.length} node${scopedNodes.length === 1 ? "" : "s"}. Prioritize those unless the user asks you to work elsewhere.`,
         ]
       : []),
-    `The marketplace currently has ${marketplaceCount} items.`,
-    ...scopeRefLines,
     scopedWorkspace ? "Scoped dashboard overview:" : "Dashboard overview:",
     buildWorkspaceOverview(scopedNodes),
     ...(scopedContext ? [scopedContext] : []),
@@ -388,13 +255,13 @@ function buildAgentInstructions(workspace: DashboardAgentWorkspaceContext) {
   ].join("\n");
 }
 
-function buildToolEnabledAgentInstructions(workspace: DashboardAgentWorkspaceContext) {
-  return [buildAgentInstructions(workspace)].join("\n");
+function buildAgentInstructions(workspace: DashboardAgentWorkspaceContext) {
+  return buildPersonalAssistantInstructions(workspace);
 }
 
 function buildDirectAnswerInstructions(workspace: DashboardAgentWorkspaceContext, note?: string) {
   return [
-    buildAgentInstructions(workspace),
+    buildPersonalAssistantInstructions(workspace),
     "Answer directly from the provided workspace context.",
     "Do not call tools in this pass.",
     "If the context is incomplete, say what is missing instead of returning an empty response.",
@@ -402,183 +269,55 @@ function buildDirectAnswerInstructions(workspace: DashboardAgentWorkspaceContext
   ].join("\n");
 }
 
-function buildAskInstructions(
+function resolveAgentExecutionConfig(
   workspace: DashboardAgentWorkspaceContext,
-  toolingUnavailable = false,
+  _toolPreset: DashboardAgentToolPreset,
+  supportsTools: boolean,
 ) {
-  if (workspace.surface === "agency") {
-    return toolingUnavailable
-      ? [
-          buildAgencyInstructions(workspace),
-          "The selected model cannot call tools in this pass, so say that Agency data inspection requires a tools-capable model instead of inventing numbers.",
-        ].join("\n")
-      : buildAgencyAskInstructions(workspace);
+  void _toolPreset;
+  const fallback = buildDirectAnswerInstructions(
+    workspace,
+    "Tooling is unavailable for the selected model, so say you cannot load live data instead of inventing it.",
+  );
+  return {
+    shouldUseTools: supportsTools,
+    instructions: supportsTools ? buildPersonalAssistantInstructions(workspace) : fallback,
+    fallbackInstructions: fallback,
+    maxSteps: 10,
+    maxOutputTokens: 1_200,
+    shouldRetryForInspection: supportsTools,
+  };
+}
+
+function formatToolFindingsForSynthesis(tools: AgentToolCall[]): string {
+  const lines: string[] = [];
+  let used = 0;
+  for (const tool of tools) {
+    if (tool.status !== "completed" && tool.status !== "error") continue;
+    const payload = tool.status === "error" ? { error: tool.error } : (tool.output ?? null);
+    let body = "";
+    try {
+      body = JSON.stringify(payload);
+    } catch {
+      body = String(payload);
+    }
+    if (body.length > 800) body = `${body.slice(0, 800)}…`;
+    const line = `${tool.name}: ${body}`;
+    if (used + line.length > 4_000) break;
+    lines.push(line);
+    used += line.length;
   }
-
-  const scopedWorkspace = hasScopedWorkspace(workspace);
-
-  return [
-    buildToolEnabledAgentInstructions(workspace),
-    toolingUnavailable
-      ? "The selected model cannot call tools in this pass, so answer directly from the provided context and say when deeper inspection would require a tools-capable model."
-      : "Start from the provided workspace context. If you need inspection, prefer one compact list, search, or summary detail tool before answering.",
-    "Prefer ui_present for structured answers (tables, rankings, multi-item lists); keep the chat reply to one short line.",
-    "Ask mode is read-only. Do not create, rename, update, or delete nodes, tabs, or blocks.",
-    "Avoid full raw node, tab, block, or marketplace payloads unless the answer is blocked.",
-    "If you inspect a block, use get_block_details and rely on its summary instead of guessing field names.",
-    ...(scopedWorkspace
-      ? [
-          "SCOPE WORKFLOW: The user is inside a specific node. Inspect the scoped node's data first before looking elsewhere. Use the provided nodeId and tabId to target your inspection tools.",
-        ]
-      : []),
-  ].join("\n");
+  return lines.join("\n");
 }
 
 function normalizeMessages(messages: AgentModelInputMessage[]) {
   return messages.map((message) => ({
     role: message.role,
-    content: typeof message.content === "string" ? message.content.trim() : message.content,
+    content:
+      typeof message.content === "string"
+        ? stripLeakedToolCallMarkup(message.content) || message.content.trim()
+        : message.content,
   }));
-}
-
-function latestUserAnsweredAgencyQuestion(messages: ReturnType<typeof normalizeMessages>): boolean {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.role !== "user") continue;
-    return isAgencyQuestionAnswerMessage(message.content);
-  }
-  return false;
-}
-
-function toolResultsForRetry(toolCalls: AgentToolCall[]): string {
-  const results = toolCalls
-    .filter((tool) => tool.status === "completed")
-    .map((tool) => ({ name: tool.name, output: tool.output }));
-  return JSON.stringify(results).slice(0, 12_000);
-}
-
-function resolveAgentExecutionConfig(
-  workspace: DashboardAgentWorkspaceContext,
-  toolPreset: DashboardAgentToolPreset,
-  supportsTools: boolean,
-) {
-  const agencyFallback = buildDirectAnswerInstructions(
-    workspace,
-    "Tooling is unavailable for the selected model, so say you cannot load Agency time data instead of inventing hours.",
-  );
-  const canvasToolingFallback = buildDirectAnswerInstructions(
-    workspace,
-    "Tooling is unavailable for the selected model, so this answer is limited to the provided workspace context.",
-  );
-  const surface = workspace.surface ?? "canvas";
-
-  if (surface === "agency") {
-    switch (toolPreset) {
-      case "agent":
-        return {
-          shouldUseTools: supportsTools,
-          instructions: supportsTools
-            ? appendCrossSurfaceInstructions(
-                buildAgencyAgentModeInstructions(workspace),
-                workspace,
-                toolPreset,
-              )
-            : agencyFallback,
-          fallbackInstructions: agencyFallback,
-          maxSteps: 10,
-          maxOutputTokens: 1_200,
-          shouldRetryForInspection: supportsTools,
-        };
-      case "plan":
-        return {
-          shouldUseTools: supportsTools,
-          instructions: supportsTools
-            ? appendCrossSurfaceInstructions(
-                buildAgencyPlanInstructions(workspace),
-                workspace,
-                toolPreset,
-              )
-            : agencyFallback,
-          fallbackInstructions: agencyFallback,
-          maxSteps: 8,
-          maxOutputTokens: 1_200,
-          shouldRetryForInspection: supportsTools,
-        };
-      case "ask":
-        return {
-          shouldUseTools: supportsTools,
-          instructions: supportsTools
-            ? appendCrossSurfaceInstructions(
-                buildAgencyAskInstructions(workspace),
-                workspace,
-                toolPreset,
-              )
-            : agencyFallback,
-          fallbackInstructions: agencyFallback,
-          maxSteps: 8,
-          maxOutputTokens: 1_200,
-          shouldRetryForInspection: supportsTools,
-        };
-      default: {
-        const _exhaustive: never = toolPreset;
-        return _exhaustive;
-      }
-    }
-  }
-
-  switch (toolPreset) {
-    case "agent":
-      return {
-        shouldUseTools: supportsTools,
-        instructions: supportsTools
-          ? appendCrossSurfaceInstructions(
-              buildCanvasAgentModeInstructions(workspace),
-              workspace,
-              toolPreset,
-            )
-          : buildDirectAnswerInstructions(
-              workspace,
-              "Deep inspection is limited because the selected model cannot call tools.",
-            ),
-        fallbackInstructions: buildDirectAnswerInstructions(
-          workspace,
-          "Deep inspection is limited because the selected model cannot call tools.",
-        ),
-        maxSteps: 10,
-        maxOutputTokens: 1_200,
-        shouldRetryForInspection: supportsTools && workspace.nodes.length > 0,
-      };
-    case "plan":
-      return {
-        shouldUseTools: supportsTools,
-        instructions: supportsTools
-          ? appendCrossSurfaceInstructions(
-              buildCanvasPlanInstructions(workspace),
-              workspace,
-              toolPreset,
-            )
-          : canvasToolingFallback,
-        fallbackInstructions: canvasToolingFallback,
-        maxSteps: 8,
-        maxOutputTokens: 1_200,
-        shouldRetryForInspection: supportsTools && workspace.nodes.length > 0,
-      };
-    case "ask":
-      return {
-        shouldUseTools: supportsTools,
-        instructions: supportsTools
-          ? appendCrossSurfaceInstructions(buildAskInstructions(workspace), workspace, toolPreset)
-          : canvasToolingFallback,
-        fallbackInstructions: canvasToolingFallback,
-        maxSteps: 6,
-        maxOutputTokens: 1_200,
-        shouldRetryForInspection: supportsTools && workspace.nodes.length > 0,
-      };
-    default: {
-      const _exhaustive: never = toolPreset;
-      return _exhaustive;
-    }
-  }
 }
 
 type ToolPassArgs = {
@@ -589,6 +328,7 @@ type ToolPassArgs = {
   toolPreset: DashboardAgentToolPreset;
   agencyRuntime?: DashboardAgentConfig["agencyRuntime"];
   canvasRuntime?: DashboardAgentConfig["canvasRuntime"];
+  memoryRuntime?: DashboardAgentConfig["memoryRuntime"];
   normalizedMessages: ReturnType<typeof normalizeMessages>;
   instructions: string;
   maxSteps: number;
@@ -604,6 +344,10 @@ type ToolPassLiveEvent =
   | { type: "tool"; tool: AgentToolCall }
   | { type: "artifact"; artifact: AiUiArtifact }
   | {
+      type: "created_object";
+      object: { kind: "node" | "block" | "knowledge"; id: string; title: string; href: string };
+    }
+  | {
       type: "plan";
       plan:
         | AgencyDraftPlan
@@ -614,7 +358,6 @@ type ToolPassLiveEvent =
             steps: Array<{ label: string; action: unknown }>;
           };
     }
-  | { type: "question"; question: AgencyAgentQuestion }
   | {
       type: "proposal";
       proposal: {
@@ -659,7 +402,8 @@ type MergedAgentTool =
   | ReturnType<typeof buildDashboardAgentTools>[number]
   | ReturnType<typeof buildCanvasWriteTools>[number]
   | ReturnType<typeof buildKnowledgeTools>[number]
-  | ReturnType<typeof buildAgencyAgentTools>[number];
+  | ReturnType<typeof buildAgencyAgentTools>[number]
+  | ReturnType<typeof buildMemoryTools>[number];
 
 function mergeOpenRouterTools(groups: MergedAgentTool[][]) {
   const seen = new Set<string>();
@@ -702,7 +446,15 @@ async function* streamToolEnabledPass(
     surfaces.includes("agency") && args.agencyRuntime
       ? buildAgencyAgentTools(args.agencyRuntime, args.toolPreset)
       : [];
-  const availableTools = mergeOpenRouterTools([canvasReads, canvasWrites, agencyTools]);
+  const memoryTools: MergedAgentTool[] = args.memoryRuntime
+    ? buildMemoryTools(args.memoryRuntime)
+    : [];
+  const availableTools = mergeOpenRouterTools([
+    canvasReads,
+    canvasWrites,
+    agencyTools,
+    memoryTools,
+  ]);
   const tools = args.allowedToolNames
     ? availableTools.filter(
         (entry) =>
@@ -712,16 +464,19 @@ async function* streamToolEnabledPass(
   const calls = new Map<string, AgentToolCall>();
   const callOrder: string[] = [];
   const reasoning = resolveOpenRouterReasoning(args.modelPreset);
-  const result = createOpenRouterClient().callModel({
-    model: args.model,
-    instructions: args.instructions,
-    input: args.normalizedMessages,
-    tools,
-    stopWhen: [stepCountIs(args.maxSteps)],
-    ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
-    ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
-    ...(reasoning ? { reasoning } : {}),
-  });
+  const result = createOpenRouterClient().callModel(
+    {
+      model: args.model,
+      instructions: args.instructions,
+      input: args.normalizedMessages,
+      tools,
+      stopWhen: [stepCountIs(args.maxSteps)],
+      ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
+      ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
+      ...(reasoning ? { reasoning } : {}),
+    },
+    openRouterFetchOptions(args.signal),
+  );
 
   const queue: ToolPassLiveEvent[] = [];
   let wake: (() => void) | null = null;
@@ -746,6 +501,7 @@ async function* streamToolEnabledPass(
   args.signal?.addEventListener("abort", cancelOnAbort, { once: true });
 
   const textPump = (async () => {
+    const markupFilter = createLeakedToolMarkupFilter();
     try {
       for await (const delta of result.getTextStream()) {
         if (args.signal?.aborted) {
@@ -754,8 +510,11 @@ async function* streamToolEnabledPass(
         }
         if (!delta) continue;
         accumulated += delta;
-        enqueue({ type: "token", delta });
+        const visible = markupFilter.push(delta);
+        if (visible) enqueue({ type: "token", delta: visible });
       }
+      const rest = markupFilter.flush();
+      if (rest) enqueue({ type: "token", delta: rest });
     } catch {
       // cancel / stream end surfaced via getResponse below
     }
@@ -794,32 +553,49 @@ async function* streamToolEnabledPass(
                 enqueue({ type: "plan", plan: plan.data });
               }
             }
-            if (tool.name === ASK_AGENCY_QUESTION_TOOL_NAME) {
-              const question = agencyAgentQuestionSchema.safeParse(tool.output);
-              if (question.success) {
-                enqueue({ type: "question", question: question.data });
+            if (tool.name === "apply_canvas_action" || tool.name === "apply_knowledge_action") {
+              const output =
+                tool.output && typeof tool.output === "object"
+                  ? (tool.output as Record<string, unknown>)
+                  : {};
+              const label = typeof output.label === "string" ? output.label : "Created";
+              const href = typeof output.boardHref === "string" ? output.boardHref : "/canvas";
+              if (tool.name === "apply_canvas_action") {
+                const nodeId = typeof output.nodeId === "string" ? output.nodeId : null;
+                const blockId = typeof output.blockId === "string" ? output.blockId : null;
+                const id = blockId ?? nodeId;
+                if (id) {
+                  enqueue({
+                    type: "created_object",
+                    object: {
+                      kind: blockId ? "block" : "node",
+                      id,
+                      title: label,
+                      href,
+                    },
+                  });
+                }
+              } else {
+                const objectId = typeof output.objectId === "string" ? output.objectId : null;
+                if (objectId) {
+                  enqueue({
+                    type: "created_object",
+                    object: {
+                      kind: "knowledge",
+                      id: objectId,
+                      title: label,
+                      href:
+                        !href || href === "/canvas" || href === "/" ? `/object/${objectId}` : href,
+                    },
+                  });
+                }
               }
             }
-            if (
-              tool.name === "propose_agency_action" ||
-              tool.name === "propose_canvas_action" ||
-              tool.name === "propose_knowledge_action"
-            ) {
-              const proposal =
-                tool.name === "propose_canvas_action"
-                  ? canvasProposalSnapshotSchema.safeParse({
-                      ...(typeof tool.output === "object" && tool.output ? tool.output : {}),
-                      status: "pending",
-                    })
-                  : tool.name === "propose_knowledge_action"
-                    ? knowledgeProposalSnapshotSchema.safeParse({
-                        ...(typeof tool.output === "object" && tool.output ? tool.output : {}),
-                        status: "pending",
-                      })
-                    : agencyProposalSnapshotSchema.safeParse({
-                        ...(typeof tool.output === "object" && tool.output ? tool.output : {}),
-                        status: "pending",
-                      });
+            if (tool.name === "propose_agency_action") {
+              const proposal = agencyProposalSnapshotSchema.safeParse({
+                ...(typeof tool.output === "object" && tool.output ? tool.output : {}),
+                status: "pending",
+              });
               if (proposal.success) {
                 enqueue({
                   type: "proposal",
@@ -864,10 +640,11 @@ async function* streamToolEnabledPass(
   let providerError: string | null = null;
   try {
     const [responseText, response] = await Promise.all([result.getText(), result.getResponse()]);
-    accumulated = responseText || accumulated;
+    accumulated = stripLeakedToolCallMarkup(responseText || accumulated);
     usage = normalizeUsage(response.usage, args.model, args.contextLength);
   } catch (error) {
     providerError = error instanceof Error ? error.message : String(error);
+    accumulated = stripLeakedToolCallMarkup(accumulated);
     // cancelled mid-stream: keep accumulated tokens
   } finally {
     args.signal?.removeEventListener("abort", cancelOnAbort);
@@ -894,14 +671,17 @@ async function* streamTextOnlyPass(args: {
   signal?: AbortSignal;
 }): AsyncGenerator<ToolPassLiveEvent, ToolPassResult> {
   const reasoning = resolveOpenRouterReasoning(args.modelPreset);
-  const result = createOpenRouterClient().callModel({
-    model: args.model,
-    instructions: args.instructions,
-    input: args.normalizedMessages,
-    ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
-    ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
-    ...(reasoning ? { reasoning } : {}),
-  });
+  const result = createOpenRouterClient().callModel(
+    {
+      model: args.model,
+      instructions: args.instructions,
+      input: args.normalizedMessages,
+      ...(args.temperature === undefined ? {} : { temperature: args.temperature }),
+      ...(args.maxOutputTokens === undefined ? {} : { maxOutputTokens: args.maxOutputTokens }),
+      ...(reasoning ? { reasoning } : {}),
+    },
+    openRouterFetchOptions(args.signal),
+  );
 
   let accumulated = "";
   let stopped = Boolean(args.signal?.aborted);
@@ -911,6 +691,7 @@ async function* streamTextOnlyPass(args: {
   };
   args.signal?.addEventListener("abort", cancelOnAbort, { once: true });
 
+  const markupFilter = createLeakedToolMarkupFilter();
   try {
     for await (const delta of result.getTextStream()) {
       if (args.signal?.aborted) {
@@ -919,8 +700,11 @@ async function* streamTextOnlyPass(args: {
       }
       if (!delta) continue;
       accumulated += delta;
-      yield { type: "token", delta };
+      const visible = markupFilter.push(delta);
+      if (visible) yield { type: "token", delta: visible };
     }
+    const rest = markupFilter.flush();
+    if (rest) yield { type: "token", delta: rest };
   } catch {
     // cancelled
   }
@@ -929,7 +713,7 @@ async function* streamTextOnlyPass(args: {
   let providerError: string | null = null;
   try {
     const [responseText, response] = await Promise.all([result.getText(), result.getResponse()]);
-    accumulated = responseText || accumulated;
+    accumulated = stripLeakedToolCallMarkup(responseText || accumulated);
     usage = normalizeUsage(response.usage, args.model, args.contextLength);
   } catch (error) {
     providerError = error instanceof Error ? error.message : String(error);
@@ -1008,7 +792,6 @@ export async function* streamDashboardAgent(
 ): AsyncGenerator<DashboardAgentStreamEvent, void, void> {
   const toolCalls: AgentToolCall[] = [];
   const normalizedMessages = normalizeMessages(messages);
-  const questionAnsweredThisTurn = latestUserAnsweredAgencyQuestion(normalizedMessages);
   const workspaceRuntime = createDashboardAgentWorkspaceRuntime({
     nodes: workspace.nodes,
     updatedAt: workspace.updatedAt,
@@ -1016,7 +799,7 @@ export async function* streamDashboardAgent(
   const selectedModel = await resolveOpenRouterModel(config.model);
   const model = selectedModel?.id ?? config.model?.trim() ?? DEFAULT_AGENT_MODEL;
   const surface = workspace.surface ?? "canvas";
-  const toolPreset = config.toolPreset ?? "ask";
+  const toolPreset = "agent" as const;
   const supportsTools = selectedModel?.supportsTools ?? true;
   const executionConfig = resolveAgentExecutionConfig(
     { ...workspace, surface },
@@ -1031,6 +814,22 @@ export async function* streamDashboardAgent(
 
   if (executionConfig.shouldUseTools && !stopped) {
     try {
+      let plannerNote = formatPlannerPlanForTools("");
+      try {
+        const planText = await runPlannerPass({
+          model,
+          messages: normalizedMessages,
+          signal: config.signal,
+        });
+        plannerNote = formatPlannerPlanForTools(planText);
+        const todos = parsePlannerTodos(planText);
+        if (todos.length > 0) {
+          yield { type: "todo" as const, items: todos };
+        }
+      } catch {
+        plannerNote = formatPlannerPlanForTools("");
+      }
+      const instructions = `${executionConfig.instructions}\n${plannerNote}`;
       const initialIterator = streamToolEnabledPass({
         model,
         modelPreset: config.modelPreset,
@@ -1039,8 +838,9 @@ export async function* streamDashboardAgent(
         toolPreset,
         agencyRuntime: config.agencyRuntime,
         canvasRuntime: config.canvasRuntime,
+        memoryRuntime: config.memoryRuntime,
         normalizedMessages,
-        instructions: executionConfig.instructions,
+        instructions,
         maxSteps: executionConfig.maxSteps,
         temperature: config.temperature,
         maxOutputTokens: executionConfig.maxOutputTokens ?? config.maxOutputTokens,
@@ -1081,6 +881,7 @@ export async function* streamDashboardAgent(
             toolPreset,
             agencyRuntime: config.agencyRuntime,
             canvasRuntime: config.canvasRuntime,
+            memoryRuntime: config.memoryRuntime,
             normalizedMessages,
             instructions: `${executionConfig.instructions}\n${retryNote}`,
             maxSteps: executionConfig.maxSteps,
@@ -1108,127 +909,6 @@ export async function* streamDashboardAgent(
           artifacts.push(...retryNext.value.artifacts);
         }
       }
-
-      // Plan must ask via the question tool before drafting.
-      const askedQuestion = toolCalls.some(
-        (tool) => tool.name === ASK_AGENCY_QUESTION_TOOL_NAME && tool.status === "completed",
-      );
-      const shouldRetryForQuestion =
-        !stopped &&
-        !providerError &&
-        surface === "agency" &&
-        toolPreset === "plan" &&
-        executionConfig.shouldUseTools &&
-        !questionAnsweredThisTurn &&
-        !askedQuestion;
-      if (shouldRetryForQuestion) {
-        const questionNote = agencyQuestionRetryNote(toolPreset);
-        if (questionNote) {
-          const priorResults = toolResultsForRetry(toolCalls);
-          const questionRetryIterator = streamToolEnabledPass({
-            model,
-            modelPreset: config.modelPreset,
-            workspace: { ...workspace, surface },
-            workspaceRuntime,
-            toolPreset,
-            agencyRuntime: config.agencyRuntime,
-            canvasRuntime: config.canvasRuntime,
-            normalizedMessages,
-            instructions: `${executionConfig.instructions}\n${questionNote}\nPrior Agency tool results (reuse these; do not repeat reads):\n${priorResults}`,
-            maxSteps: Math.min(4, executionConfig.maxSteps),
-            temperature: config.temperature,
-            maxOutputTokens: executionConfig.maxOutputTokens ?? config.maxOutputTokens,
-            contextLength: selectedModel?.contextLength ?? null,
-            allowedToolNames: [ASK_AGENCY_QUESTION_TOOL_NAME],
-            signal: config.signal,
-          });
-          let questionRetryNext = await questionRetryIterator.next();
-          while (!questionRetryNext.done) {
-            yield questionRetryNext.value;
-            questionRetryNext = await questionRetryIterator.next();
-          }
-          if (questionRetryNext.value.responseText) {
-            responseText = questionRetryNext.value.responseText;
-          }
-          if (questionRetryNext.value.usage) {
-            usage = questionRetryNext.value.usage;
-          }
-          if (questionRetryNext.value.providerError) {
-            providerError = questionRetryNext.value.providerError;
-          }
-          stopped = stopped || questionRetryNext.value.stopped;
-          toolCalls.push(...questionRetryNext.value.toolCalls);
-          artifacts.push(...questionRetryNext.value.artifacts);
-        }
-      }
-
-      // Tools ran but skipped the canvas — text-only soft fallback cannot call ui_present.
-      const shouldRetryForUiPresent =
-        !stopped &&
-        !providerError &&
-        surface === "agency" &&
-        executionConfig.shouldUseTools &&
-        toolCalls.length > 0 &&
-        artifacts.length === 0;
-      if (shouldRetryForUiPresent) {
-        const priorResults = toolResultsForRetry(toolCalls);
-        const uiRetryIterator = streamToolEnabledPass({
-          model,
-          modelPreset: config.modelPreset,
-          workspace: { ...workspace, surface },
-          workspaceRuntime,
-          toolPreset,
-          agencyRuntime: config.agencyRuntime,
-          canvasRuntime: config.canvasRuntime,
-          normalizedMessages,
-          instructions: `${executionConfig.instructions}\n${agencyUiPresentRetryNote(toolPreset)}\nPrior Agency tool results (render these; do not repeat tools):\n${priorResults}`,
-          maxSteps: Math.min(4, executionConfig.maxSteps),
-          temperature: config.temperature,
-          maxOutputTokens: executionConfig.maxOutputTokens ?? config.maxOutputTokens,
-          contextLength: selectedModel?.contextLength ?? null,
-          allowedToolNames: ["ui_present"],
-          signal: config.signal,
-        });
-        let uiRetryNext = await uiRetryIterator.next();
-        while (!uiRetryNext.done) {
-          yield uiRetryNext.value;
-          uiRetryNext = await uiRetryIterator.next();
-        }
-        if (uiRetryNext.value.responseText) {
-          responseText = uiRetryNext.value.responseText;
-        }
-        if (uiRetryNext.value.usage) {
-          usage = uiRetryNext.value.usage;
-        }
-        if (uiRetryNext.value.providerError) {
-          providerError = uiRetryNext.value.providerError;
-        }
-        stopped = stopped || uiRetryNext.value.stopped;
-        toolCalls.push(...uiRetryNext.value.toolCalls);
-        artifacts.push(...uiRetryNext.value.artifacts);
-      }
-
-      // Ask-only: Mixtral and similar often skip tools — paint this month's hours so Ask
-      // still returns UI. Never bootstrap Plan/Agent (that reuses the same hours canvas and
-      // looks like the previous Ask thread leaked into a new chat).
-      if (
-        !stopped &&
-        surface === "agency" &&
-        shouldBootstrapAgencyMonthReports(toolPreset) &&
-        config.agencyRuntime &&
-        artifacts.length === 0 &&
-        !toolCalls.some((tool) => tool.name.startsWith("get_agency_"))
-      ) {
-        const boot = await bootstrapAgencyMonthReportsCanvas(config.agencyRuntime);
-        toolCalls.push(boot.tool);
-        yield { type: "tool", tool: { ...boot.tool, status: "in_progress" } };
-        yield { type: "tool", tool: boot.tool };
-        artifacts.push(boot.artifact);
-        yield { type: "artifact", artifact: boot.artifact };
-        if (!responseText.trim()) {
-          responseText = boot.responseText;
-        }
-      }
     } catch {
       // Keep any tools/artifacts already streamed; only clear empty text.
       if (!responseText.trim()) {
@@ -1239,28 +919,32 @@ export async function* streamDashboardAgent(
 
   let finalResponse = responseText.trim();
 
-  const askedAgencyQuestion = toolCalls.some(
-    (tool) => tool.name === ASK_AGENCY_QUESTION_TOOL_NAME && tool.status === "completed",
-  );
-
-  // Empty completion with no provider error: optional text-only pass.
-  // Never soft-fallback after a provider error, when a canvas exists, or when a question
-  // card is waiting (text-only cannot call ui_present / ask_agency_question).
+  const toolsWereCalled = toolCalls.length > 0;
   const willSoftFallback =
-    !finalResponse && !stopped && !providerError && artifacts.length === 0 && !askedAgencyQuestion;
+    !stopped &&
+    !providerError &&
+    artifacts.length === 0 &&
+    (toolsWereCalled ? isIncompleteToolPreamble(finalResponse) : !finalResponse);
   if (willSoftFallback) {
-    const toolsWereCalled = toolCalls.length > 0;
     const runtimeHasChanges = workspaceRuntime.hasChanges();
     const fallbackMaxOutputTokens = executionConfig.maxOutputTokens ?? config.maxOutputTokens;
+    const findings = formatToolFindingsForSynthesis(toolCalls);
 
     const fallbackInstructions = toolsWereCalled
       ? [
           buildAgentInstructions(workspace),
           runtimeHasChanges
-            ? "You already called tools and applied mutations to the workspace. Reply with one short plain-language line. Do not dump JSON. Do not say that tools are unavailable."
-            : "You called tools but could not paint a canvas. Reply with one short plain-language line about what you found. Do not dump JSON or markdown tables. Do not say that tools are unavailable.",
-        ].join("\n")
+            ? "You already called tools and applied mutations to the workspace. Write the actual answer now. Do not dump JSON. Do not say that tools are unavailable."
+            : "You already called tools. Write the actual answer to the user from these findings. Include figures, dates, risks, and next steps when they asked for them. Do not dump JSON or markdown tables. Do not say you will gather or look something up. This is the final reply.",
+          findings ? `Findings:\n${findings}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
       : executionConfig.fallbackInstructions;
+
+    if (finalResponse) {
+      yield { type: "token", delta: "\n\n" };
+    }
 
     const fallbackIterator = streamTextOnlyPass({
       model,
@@ -1277,10 +961,11 @@ export async function* streamDashboardAgent(
       yield fallbackNext.value;
       fallbackNext = await fallbackIterator.next();
     }
-    finalResponse = fallbackNext.value.responseText;
+    const synthesized = fallbackNext.value.responseText.trim();
+    finalResponse = synthesized || finalResponse;
     usage = fallbackNext.value.usage;
     stopped = stopped || fallbackNext.value.stopped;
-    if (!finalResponse.trim() && fallbackNext.value.providerError) {
+    if (!synthesized && fallbackNext.value.providerError) {
       providerError = fallbackNext.value.providerError;
     }
   }
@@ -1301,94 +986,33 @@ export async function* streamDashboardAgent(
     ) {
       finalResponse = "Drafted a plan — review the card and Confirm when ready.";
     } else if (
+      toolCalls.some((tool) => tool.name === "propose_agency_action" && tool.status === "completed")
+    ) {
+      finalResponse = "Proposed an Agency change — review before/after, then Approve or Reject.";
+    } else if (
       toolCalls.some(
         (tool) =>
-          (tool.name === "propose_agency_action" ||
-            tool.name === "propose_canvas_action" ||
-            tool.name === "propose_knowledge_action") &&
+          (tool.name === "apply_canvas_action" || tool.name === "apply_knowledge_action") &&
           tool.status === "completed",
       )
     ) {
-      finalResponse = "Proposed a change — review before/after, then Approve or Reject.";
-    } else if (askedAgencyQuestion) {
-      finalResponse = "Answer the question above to continue.";
-    } else if (artifacts.length > 0) {
-      finalResponse = "Opened a canvas with the results.";
-    } else if (surface === "agency" && toolPreset === "plan") {
-      finalResponse =
-        "I couldn't draft a plan from that request. Try naming the entries or projects to change, or switch to Ask to inspect time first.";
-    } else if (surface === "agency" && toolPreset === "agent") {
-      finalResponse =
-        "I couldn't propose a change from that request. Try being more specific, or switch to Ask to inspect time first.";
+      finalResponse = "Created it for you — Open from What I created.";
     }
   }
 
   yield {
     type: "done",
-    responseText: finalResponse || (stopped ? "" : "I couldn't generate a response."),
+    responseText: finalizeAssistantResponseText({
+      responseText: finalResponse,
+      stopped,
+      toolCount: toolCalls.length,
+    }),
     toolCalls,
     artifacts: cappedArtifacts(artifacts),
     usage,
     model,
     workspaceNodeCount: workspaceRuntime.getNodes().length,
     workspaceSnapshot: workspaceRuntime.hasChanges() ? workspaceRuntime.toSnapshot() : null,
-  };
-}
-
-export async function runTaskAgent(
-  messages: Array<{ role: "user" | "assistant"; content: string }>,
-  context: {
-    taskTitle: string;
-    taskStatus: string;
-    projectName: string;
-    clientName: string;
-    assigneeName: string | null;
-    recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-  },
-  config: {
-    model?: string;
-    maxOutputTokens?: number;
-  } = {},
-) {
-  const client = createOpenRouterClient();
-  const selectedModel = await resolveOpenRouterModel(config.model);
-  const model = selectedModel?.id ?? config.model?.trim() ?? DEFAULT_AGENT_MODEL;
-
-  const instructions = [
-    "You are Orch's agency task assistant.",
-    "Answer questions about the task using only the task context and recent messages provided.",
-    "You are read-only in this version: do not edit task status, assignee, or due date.",
-    "Be concise and concrete.",
-    "",
-    "Task context:",
-    `- Title: ${context.taskTitle}`,
-    `- Status: ${context.taskStatus}`,
-    `- Project: ${context.projectName}`,
-    `- Client: ${context.clientName}`,
-    context.assigneeName ? `- Assignee: ${context.assigneeName}` : "- Assignee: unassigned",
-    "",
-    "Recent messages in this thread:",
-    ...context.recentMessages.map((m) => `${m.role}: ${m.content}`),
-  ].join("\n");
-
-  const normalizedMessages = messages.map((m) => ({
-    role: m.role,
-    content: m.content.trim(),
-  }));
-
-  const result = client.callModel({
-    model,
-    instructions,
-    input: normalizedMessages,
-    ...(config.maxOutputTokens === undefined ? {} : { maxOutputTokens: config.maxOutputTokens }),
-  });
-
-  const [text, response] = await Promise.all([result.getText(), result.getResponse()]);
-
-  return {
-    response: text.trim() || "I couldn't generate a response.",
-    model,
-    usage: normalizeUsage(response.usage, model, selectedModel?.contextLength ?? null),
   };
 }
 
@@ -1399,5 +1023,11 @@ export * from "./attachment-content";
 export * from "./models";
 export * from "./model-routing";
 export * from "./stream-turn";
+export * from "./budget-model";
+export * from "./write-class";
+export * from "./planner";
+export * from "./memory-prompt";
+export * from "./memory-tools";
+export * from "./tool-call-markup";
 export * from "./types";
 export { listAgentToolCatalog, resolveUnlockedSurfaces } from "./tool-catalog";

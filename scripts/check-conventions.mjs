@@ -516,6 +516,67 @@ function scanGoldenService(record) {
   }
 }
 
+function scanPickerUnification(record) {
+  const { normalized, sourceFile } = record;
+  if (!normalized.startsWith("apps/web/src/") || !normalized.endsWith(".tsx")) return;
+
+  visitNodes(sourceFile, (node) => {
+    if (ts.isFunctionDeclaration(node) && node.name) {
+      if (
+        node.name.text === "parseLocalDateKey" ||
+        node.name.text === "formatLocalDateKey" ||
+        node.name.text === "formatDisplayDay"
+      ) {
+        violations.push({
+          file: normalized,
+          line: nodeLine(sourceFile, node),
+          rule: "picker-shared-date-helpers",
+          detail: `Use parseAgencyDateKey/formatAgencyDateKey/formatAgencyDisplayDay from @/features/shared/date/agency-date-field instead of a local copy`,
+        });
+      }
+    }
+
+    if (
+      (!ts.isJsxOpeningElement(node) && !ts.isJsxSelfClosingElement(node)) ||
+      !ts.isIdentifier(node.tagName)
+    ) {
+      return;
+    }
+
+    if (node.tagName.text === "select") {
+      violations.push({
+        file: normalized,
+        line: nodeLine(sourceFile, node),
+        rule: "picker-no-native-select",
+        detail: "Use @/ui/select (short enums) or the AgencyPickerShell family (searchable) instead of <select>",
+      });
+      return;
+    }
+
+    if (node.tagName.text !== "input") return;
+    const typeAttribute = node.attributes.properties.find(
+      (property) =>
+        ts.isJsxAttribute(property) &&
+        property.name.text === "type" &&
+        property.initializer &&
+        ts.isStringLiteral(property.initializer),
+    );
+    if (
+      typeAttribute &&
+      ts.isJsxAttribute(typeAttribute) &&
+      ts.isStringLiteral(typeAttribute.initializer) &&
+      typeAttribute.initializer.text === "date"
+    ) {
+      violations.push({
+        file: normalized,
+        line: nodeLine(sourceFile, node),
+        rule: "picker-no-native-date",
+        detail: "Use AgencyDateField from @/features/shared/date/agency-date-field instead of <input type=\"date\">",
+      });
+    }
+  });
+}
+
 function scanFile(filePath, content) {
   const normalized = normalizePath(filePath);
   const lines = content.split("\n");
@@ -615,6 +676,21 @@ function scanFile(filePath, content) {
       });
     }
 
+    if (
+      normalized.startsWith("apps/web/src/") &&
+      normalized.endsWith(".tsx") &&
+      line.includes('Search className="absolute') &&
+      !line.includes("size-4") &&
+      normalized !== "apps/web/src/features/shared/pickers/agency-picker-shell.tsx"
+    ) {
+      violations.push({
+        file: normalized,
+        line: lineNumber,
+        rule: "picker-panel-search",
+        detail: "Use AgencyPickerSearch from the picker shell instead of a hand-rolled panel search header",
+      });
+    }
+
     if (isRouterFile) {
       const isImport = trimmed.startsWith("import ");
       if (isImport) {
@@ -681,6 +757,7 @@ async function main() {
     if (isContainerFile) scanGoldenContainer(record);
     if (isApiRouterFile) scanGoldenRouter(record);
     if (isApiServiceFile) scanGoldenService(record);
+    scanPickerUnification(record);
   }
 
   if (violations.length === 0) {

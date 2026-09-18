@@ -96,7 +96,10 @@ export function WorkspaceScorecardBlockEditor({
             const progress = getMetricProgress(metric.value, metric.target);
 
             return (
-              <article key={metric.id} className="space-y-3 rounded-xl border border-muted p-4">
+              <article
+                key={metric.id}
+                className="space-y-3 rounded-surface border border-muted p-surface"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <Input
                     value={metric.label}

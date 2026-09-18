@@ -28,9 +28,11 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockCheckbox } from "@/features/workspace/node/blocks/shared/block-checkbox";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { WorkspaceOrchestratorSourcesModal } from "@/features/workspace/node/blocks/workspace-orchestrator-sources-modal";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
@@ -540,7 +542,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-muted bg-muted p-5">
+      <section className="rounded-surface border border-muted bg-muted p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-primary">
@@ -675,7 +677,10 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         {visibleQuadrants.map((quadrant) => (
           <article
             key={quadrant.key}
-            className={cn("rounded-xl border border-muted p-5", getQuadrantClassName(quadrant.key))}
+            className={cn(
+              "rounded-surface border border-muted p-surface",
+              getQuadrantClassName(quadrant.key),
+            )}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -706,7 +711,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                 {quadrant.tasks.map((item) => (
                   <article
                     key={getCollectedTaskKey(item)}
-                    className="rounded-xl border border-muted bg-background p-4"
+                    className="rounded-surface border border-muted bg-background p-surface"
                   >
                     <div className="flex items-start gap-3">
                       <BlockCheckbox
@@ -757,7 +762,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         ))}
       </div>
 
-      <section className="rounded-xl border border-muted bg-background p-6">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -802,7 +807,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         )}
       </section>
 
-      <section className="rounded-xl border border-muted bg-background p-6">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -839,17 +844,30 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         </div>
 
         {summary.prioritizedTasks.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-muted bg-background py-12 text-center text-sm font-medium text-toned">
-            {scopedCollectedTasks.length === 0
-              ? "No tasks to prioritize yet."
-              : "No tasks match the current filters."}
+          <div className="mt-6 rounded-xl border border-dashed border-muted bg-background py-12 text-center">
+            <p className="text-sm font-medium text-toned">
+              {scopedCollectedTasks.length === 0
+                ? "No tasks to prioritize yet."
+                : "No tasks match the current filters."}
+            </p>
+            {scopedCollectedTasks.length === 0 ? (
+              <Button
+                type="button"
+                size="sm"
+                className="mt-4 rounded-full px-4"
+                onClick={addTask}
+              >
+                <Plus />
+                Add task
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {summary.prioritizedTasks.map((item) => (
               <article
                 key={getCollectedTaskKey(item)}
-                className="rounded-xl border border-muted bg-background p-4"
+                className="rounded-surface border border-muted bg-background p-surface"
               >
                 <div className="grid gap-4 xl:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,0.7fr)]">
                   <div className="flex items-start pt-2">
@@ -930,13 +948,12 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                             {item.task.urgency}/10
                           </span>
                         </div>
-                        <input
+                        <BlockSlider
                           value={item.task.urgency}
-                          type="range"
                           min={1}
                           max={10}
                           disabled={isDerivedTask(item)}
-                          className="h-1.5 w-full appearance-none rounded-full bg-destructive/20 accent-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                          className="bg-destructive/20 accent-destructive disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label={`Urgency for ${item.task.text || "task"}`}
                           onChange={(event) => updateTaskUrgency(item, event.target.value)}
                         />
@@ -951,13 +968,12 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                             {item.task.importance}/10
                           </span>
                         </div>
-                        <input
+                        <BlockSlider
                           value={item.task.importance}
-                          type="range"
                           min={1}
                           max={10}
                           disabled={isDerivedTask(item)}
-                          className="h-1.5 w-full appearance-none rounded-full bg-primary/20 accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                          className="bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label={`Importance for ${item.task.text || "task"}`}
                           onChange={(event) => updateTaskImportance(item, event.target.value)}
                         />
@@ -984,13 +1000,14 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
                       <label className="px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
                         Due Date
                       </label>
-                      <Input
+                      <AgencyDateField
                         value={item.task.dueDate ?? ""}
-                        type="date"
-                        className="rounded-xl"
+                        displayStyle="short"
+                        className="h-8 rounded-xl"
                         disabled={isDerivedTask(item)}
                         aria-label={`Due date for ${item.task.text || "task"}`}
-                        onChange={(event) => updateTaskDueDate(item, event.target.value)}
+                        onChange={(next) => updateTaskDueDate(item, next)}
+                        onClear={() => updateTaskDueDate(item, "")}
                       />
                     </div>
 
@@ -1014,7 +1031,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         )}
       </section>
 
-      <section className="rounded-xl border border-muted bg-background p-5">
+      <section className="rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -1034,7 +1051,7 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         </div>
 
         <div
-          className="prose prose-sm dark:prose-invert mt-6 max-w-none rounded-xl border border-muted bg-background p-5 text-sm leading-relaxed text-toned shadow-sm"
+          className="prose prose-sm dark:prose-invert mt-6 max-w-none rounded-surface border border-muted bg-background p-surface text-sm leading-relaxed text-toned shadow-sm"
           dangerouslySetInnerHTML={{
             __html: renderSimpleMarkdown(
               block.latestBattlePlan ||

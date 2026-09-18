@@ -18,6 +18,7 @@ import { Calendar, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
@@ -207,7 +208,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
               <p className="mt-3 text-sm text-toned">No meetings yet.</p>
               <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={addMeeting}>
                 <Plus />
-                Add
+                Add meeting
               </Button>
             </>
           ) : (
@@ -220,7 +221,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
             <article
               key={meeting.id}
               className={cn(
-                "rounded-2xl border border-muted p-4 transition-all",
+                "rounded-surface border border-muted p-surface transition-all",
                 getMeetingClasses(meeting),
               )}
             >
@@ -318,13 +319,19 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
 
                   <div>
                     <BlockFieldLabel className="mb-1.5 block">Next Date</BlockFieldLabel>
-                    <Input
-                      type="date"
+                    <AgencyDateField
                       value={meeting.nextDate ?? ""}
-                      className="rounded-xl"
-                      onChange={(event) =>
+                      displayStyle="short"
+                      className="h-8 rounded-xl"
+                      aria-label="Next date"
+                      onChange={(next) =>
                         mutateMeeting(meeting.id, (entry) => {
-                          entry.nextDate = event.target.value || null;
+                          entry.nextDate = next || null;
+                        })
+                      }
+                      onClear={() =>
+                        mutateMeeting(meeting.id, (entry) => {
+                          entry.nextDate = null;
                         })
                       }
                     />
@@ -366,7 +373,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
                     />
                   </div>
 
-                  <div className="flex min-w-[120px] flex-col justify-center rounded-xl border border-muted bg-background px-3 py-2.5">
+                  <div className="flex min-w-[120px] flex-col justify-center rounded-surface border border-muted bg-background px-3 py-2.5">
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
                       {workspaceLeadershipRhythmLabels[meeting.rhythm]}
                     </span>

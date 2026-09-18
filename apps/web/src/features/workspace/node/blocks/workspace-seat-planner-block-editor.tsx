@@ -173,7 +173,7 @@ export function WorkspaceSeatPlannerBlockEditor({
                 onClick={addSeat}
               >
                 <Plus />
-                Add
+                Add seat
               </Button>
             </>
           ) : (

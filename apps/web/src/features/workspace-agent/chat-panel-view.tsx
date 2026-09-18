@@ -1,8 +1,7 @@
 import type { AiUiArtifact } from "@orch/agent/types";
-import { PanelLeftIcon, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Thread } from "@/components/assistant-ui/thread";
 import {
   CanvasSplit,
   CanvasSplitDocument,
@@ -12,19 +11,17 @@ import { ConversationSearch } from "@/components/elements/conversation-search";
 import type { SearchHit } from "@/components/elements/conversation-search";
 import { AgentArtifactPaneView } from "@/features/workspace-agent/agent-artifact-pane-view";
 import { AgentStickyDockView } from "@/features/workspace-agent/agent-sticky-dock-view";
+import { OrchMessageList } from "@/features/workspace-agent/orch-message-list";
 import {
   type OrchAgencyQuestionAnswer,
   type OrchUIDataParts,
   type OrchUIMessage,
 } from "@/features/workspace-agent/orch-ui-message";
 import type { WorkspaceAgentQuickStart } from "@/features/workspace-agent/workspace-agent-quick-starts";
-import { WorkspaceAgentThreadDataUI } from "@/features/workspace-agent/workspace-agent-thread-data-ui";
-import { WorkspaceAgentThreadHistory } from "@/features/workspace-agent/workspace-agent-thread-history";
 import {
   WorkspaceAgentReadAloudSlot,
   WorkspaceAgentStoppedRunSlot,
   WorkspaceAgentThreadMessageProvider,
-  WorkspaceAgentThreadWelcome,
 } from "@/features/workspace-agent/workspace-agent-thread-slots";
 import { resolveStickyDockItem, stickyDockItemKey } from "@/features/workspace-agent/sticky-dock";
 import { Button } from "@/ui/button";
@@ -49,13 +46,6 @@ export type WorkspaceAgentConversationOption = {
 
 type WorkspaceAgentChatPanelViewProps = {
   messages: OrchUIMessage[];
-  conversationOptions: WorkspaceAgentConversationOption[];
-  conversationsLoading: boolean;
-  historyQuery: string;
-  onHistoryQueryChange: (value: string) => void;
-  historyRailOpen: boolean;
-  onToggleHistoryRail: () => void;
-  onCloseHistoryRail: () => void;
   threadSearchOpen: boolean;
   onToggleThreadSearch: () => void;
   threadSearchQuery: string;
@@ -63,12 +53,6 @@ type WorkspaceAgentChatPanelViewProps = {
   threadSearchHits: readonly SearchHit[];
   threadSearchIndex: number;
   onThreadSearchStep: (delta: number) => void;
-  activeConversationId: string | null;
-  onSelectConversation: (id: string) => void;
-  onStartNewConversation: () => void;
-  onDeleteConversation: (id: string) => void;
-  onRenameConversation: (id: string) => void;
-  deletingConversationId: string | null;
   isRenameDialogOpen: boolean;
   isDeleteDialogOpen: boolean;
   renameDraft: string;
@@ -87,6 +71,7 @@ type WorkspaceAgentChatPanelViewProps = {
   onDismissArtifact: () => void;
   onOpenArtifactCanvas: (artifact: AiUiArtifact) => void;
   proposalBusyId: string | null;
+  proposalActionError: { proposalId: string; message: string } | null;
   planConfirmingId: string | null;
   answeredQuestionIds: ReadonlySet<string>;
   resolvedPlanIds: ReadonlySet<string>;
@@ -116,13 +101,6 @@ type WorkspaceAgentChatPanelViewProps = {
 
 export function WorkspaceAgentChatPanelView({
   messages,
-  conversationOptions,
-  conversationsLoading,
-  historyQuery,
-  onHistoryQueryChange,
-  historyRailOpen,
-  onToggleHistoryRail,
-  onCloseHistoryRail,
   threadSearchOpen,
   onToggleThreadSearch,
   threadSearchQuery,
@@ -130,12 +108,6 @@ export function WorkspaceAgentChatPanelView({
   threadSearchHits,
   threadSearchIndex,
   onThreadSearchStep,
-  activeConversationId,
-  onSelectConversation,
-  onStartNewConversation,
-  onDeleteConversation,
-  onRenameConversation,
-  deletingConversationId,
   isRenameDialogOpen,
   isDeleteDialogOpen,
   renameDraft,
@@ -154,6 +126,7 @@ export function WorkspaceAgentChatPanelView({
   onDismissArtifact,
   onOpenArtifactCanvas,
   proposalBusyId,
+  proposalActionError,
   planConfirmingId,
   answeredQuestionIds,
   resolvedPlanIds,
@@ -235,6 +208,12 @@ export function WorkspaceAgentChatPanelView({
             ? proposalBusyId === stickyItem.proposal.proposalId
             : false
         }
+        proposalError={
+          stickyItem?.kind === "proposal" &&
+          proposalActionError?.proposalId === stickyItem.proposal.proposalId
+            ? proposalActionError.message
+            : null
+        }
         onQuestionSelectedOptionIdsChange={(ids) => {
           if (stickyItem?.kind !== "question") return;
           onQuestionSelectedOptionIdsChange(stickyItem.question.questionId, ids);
@@ -274,18 +253,6 @@ export function WorkspaceAgentChatPanelView({
       <Button
         type="button"
         variant="ghost"
-        size="sm"
-        className="h-8 gap-1.5 rounded-lg px-2 text-xs md:hidden"
-        aria-expanded={historyRailOpen}
-        aria-controls="workspace-agent-thread-history"
-        onClick={onToggleHistoryRail}
-      >
-        <PanelLeftIcon className="size-3.5" aria-hidden />
-        Chats
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
         size="icon"
         className="ms-auto size-8 rounded-lg"
         aria-label="Find in this chat"
@@ -294,37 +261,12 @@ export function WorkspaceAgentChatPanelView({
       >
         <SearchIcon className="size-3.5" aria-hidden />
       </Button>
+      <WorkspaceAgentReadAloudSlot />
     </div>
   );
 
   return (
-    <div className="relative flex h-[min(70vh,640px)] min-h-0">
-      {historyRailOpen ? (
-        <button
-          type="button"
-          className="absolute inset-0 z-[9] bg-background md:hidden"
-          aria-label="Close chat list"
-          onClick={onCloseHistoryRail}
-        />
-      ) : null}
-      <WorkspaceAgentThreadHistory
-        className={
-          historyRailOpen
-            ? "absolute inset-y-0 start-0 z-10 flex bg-card md:static md:flex"
-            : "hidden md:flex"
-        }
-        conversationOptions={conversationOptions}
-        conversationsLoading={conversationsLoading}
-        historyQuery={historyQuery}
-        onHistoryQueryChange={onHistoryQueryChange}
-        activeConversationId={activeConversationId}
-        deletingConversationId={deletingConversationId}
-        onSelectConversation={onSelectConversation}
-        onStartNewConversation={onStartNewConversation}
-        onDeleteConversation={onDeleteConversation}
-        onRenameConversation={onRenameConversation}
-      />
-
+    <div className="relative flex h-full min-h-0">
       <WorkspaceAgentThreadMessageProvider
         value={{
           messages,
@@ -332,6 +274,7 @@ export function WorkspaceAgentChatPanelView({
           streamingMessageId,
           streamStopped,
           proposalBusyId,
+          proposalActionError,
           planConfirmingId,
           answeredQuestionIds,
           resolvedPlanIds,
@@ -362,14 +305,8 @@ export function WorkspaceAgentChatPanelView({
             <CanvasSplitThread className="flex h-full min-h-0 flex-1 flex-col overflow-hidden border-0 p-0 md:w-2/5 md:overflow-hidden">
               {threadToolbar}
               {threadSearchBar}
-              <WorkspaceAgentThreadDataUI />
-              <Thread
-                composer={threadComposer}
-                components={{
-                  Welcome: WorkspaceAgentThreadWelcome,
-                  AssistantActionExtra: WorkspaceAgentReadAloudSlot,
-                }}
-              />
+              <OrchMessageList />
+              <div className="shrink-0 px-4 pb-4">{threadComposer}</div>
             </CanvasSplitThread>
             <CanvasSplitDocument className="min-h-0 min-w-0 flex-1 border-s border-border">
               <AgentArtifactPaneView
@@ -384,14 +321,8 @@ export function WorkspaceAgentChatPanelView({
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {threadToolbar}
             {threadSearchBar}
-            <WorkspaceAgentThreadDataUI />
-            <Thread
-              composer={threadComposer}
-              components={{
-                Welcome: WorkspaceAgentThreadWelcome,
-                AssistantActionExtra: WorkspaceAgentReadAloudSlot,
-              }}
-            />
+            <OrchMessageList />
+            <div className="shrink-0 px-4 pb-4">{threadComposer}</div>
           </div>
         )}
       </WorkspaceAgentThreadMessageProvider>

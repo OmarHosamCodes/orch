@@ -4,6 +4,8 @@ export {
   teamDeleteInputSchema,
   teamDetailSchema,
   teamGetInputSchema,
+  teamInviteIdInputSchema,
+  teamInviteSchema,
   teamMemberSchema,
   teamRemoveMemberInputSchema,
   teamSummarySchema,

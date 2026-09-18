@@ -8,6 +8,7 @@ import {
   artifactFromToolCall,
   buildAgentModelUserContent,
   cappedArtifacts,
+  formatMemoryForPrompt,
   modelContentLength,
   dashboardConversationDetailSchema,
   dashboardConversationListResponseSchema,
@@ -20,26 +21,32 @@ import {
   resolveUnlockedSurfaces,
   runDashboardAgent,
   streamDashboardAgent,
+  finalizeAssistantResponseText,
   titleSeedFromAgentTurn,
   type AgencyAgentRuntime,
   type AgentChatTurnInput,
   type AgentChatTurnStreamEvent,
+  type AgentModelInputMessage,
   type AgentSurface,
   type AgentTextAttachment,
   type AgentToolCall,
   type AgentToolCallEntry,
+  type DashboardAgentWorkspaceContext,
   type AgentToolCatalogInput,
   type AiUiArtifact,
   type CanvasAgentRuntime,
   type DashboardConversationSummary,
   type DashboardConversationUsageLatest,
   type DashboardConversationUsageSummary,
+  type MemoryAgentRuntime,
 } from "@orch/agent";
 import { db } from "@orch/db";
 import type { AgencyOpsMemberProfileAlertContext } from "@orch/db/schema";
 import {
   dashboardConversation,
   dashboardConversationMessage,
+  workspaceTeam,
+  workspaceTeamMember,
   type DashboardConversationMessageArtifactRecord,
   type DashboardConversationMessageAttachmentRecord,
   type DashboardConversationMessageContextNodeTitlesRecord,
@@ -48,9 +55,9 @@ import {
 } from "@orch/db/schema";
 import { createWorkspaceId } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
-import { getBillingStateForUser } from "../../billing-guard";
+import { consumeOrchMessage } from "../../billing-team";
 import { listAgencyClients } from "../agency-ops/clients/service";
 import { listPeriodMoneyObligations } from "../agency-ops/billing/money-export-service";
 import { listAgencyProjects } from "../agency-ops/projects/service";
@@ -58,6 +65,7 @@ import { getAgencyReportsSummary } from "../agency-ops/reports/service";
 import { listAgencyTags } from "../agency-ops/tags/service";
 import { listAgencyProjectTasks } from "../agency-ops/tasks/service";
 import { listMemberProfileAlerts } from "../agency-ops/member-profile/member-profile-alert-service";
+import { requireAgencyRole } from "../agency-ops/shared/membership";
 import {
   getAgencyActiveTimer,
   getAgencyTimeSummary,
@@ -74,8 +82,8 @@ import {
 import { getKnowledgeObject, queryKnowledgeObjects } from "../workspace/knowledge-service";
 import {
   createAgencyProposalRecord,
-  createCanvasProposalRecord,
-  createKnowledgeProposalRecord,
+  applyCanvasForYou,
+  applyKnowledgeForYou,
 } from "./agency-proposals";
 import {
   buildDashboardConversationDeletionResult,
@@ -83,6 +91,45 @@ import {
   buildDashboardMessagePreview,
   normalizeDashboardConversationTitle,
 } from "./conversation-contracts";
+import { getMemoryForPrompt, insertInboxNote, upsertFact } from "./memory-service";
+import {
+  AGENT_TOKEN_FLUSH_CHARS,
+  AGENT_TOKEN_FLUSH_MS,
+  agentRunAbortRegistry,
+  cancelRun,
+  completeAgentRun,
+  createTokenCoalescer,
+  findRunningChatRun,
+  findRunningChatRuns,
+  hasRunListener,
+  insertAgentRun,
+  persistRunStreamEvent,
+  scheduleDetachedRun,
+  subscribeRun,
+} from "./run-service";
+
+async function resolveActorAgencyTeamId(actorUserId: string): Promise<string | null> {
+  const [owned] = await db
+    .select({ id: workspaceTeam.id })
+    .from(workspaceTeam)
+    .where(eq(workspaceTeam.createdByUserId, actorUserId))
+    .limit(1);
+  if (owned) return owned.id;
+
+  const [member] = await db
+    .select({ teamId: workspaceTeamMember.teamId })
+    .from(workspaceTeamMember)
+    .where(eq(workspaceTeamMember.userId, actorUserId))
+    .limit(1);
+
+  return member?.teamId ?? null;
+}
+
+async function consumeOrchMessageForActor(actorUserId: string, now = new Date()) {
+  const teamId = await resolveActorAgencyTeamId(actorUserId);
+  if (!teamId) return;
+  await consumeOrchMessage(teamId, now);
+}
 
 function entryIdsFromMemberAlertContext(context: AgencyOpsMemberProfileAlertContext): string[] {
   const raw = context as AgencyOpsMemberProfileAlertContext & { entryIds?: string[] };
@@ -114,6 +161,69 @@ function artifactsFromToolCalls(toolCalls: AgentToolCallEntry[]): AiUiArtifact[]
 
 function modelUserContent(content: string, attachments: AgentTextAttachment[]) {
   return buildAgentModelUserContent(content, attachments);
+}
+
+type AgencyAgentTimeSummaryInput = Parameters<AgencyAgentRuntime["getTimeSummary"]>[0];
+type AgencyAgentTimeSummary = Awaited<ReturnType<AgencyAgentRuntime["getTimeSummary"]>>;
+
+export async function getAgencyAgentTimeSummary(
+  actorUserId: string,
+  input: AgencyAgentTimeSummaryInput & { teamId: string },
+): Promise<AgencyAgentTimeSummary> {
+  const { teamId } = input;
+  const role = await requireAgencyRole(actorUserId, teamId, "viewer");
+
+  if (role !== "viewer") {
+    const result = await getAgencyTimeSummary(actorUserId, {
+      teamId,
+      from: input.from,
+      to: input.to,
+      memberUserId: input.memberUserId,
+      projectId: input.projectId,
+      clientId: input.clientId,
+    });
+    return {
+      totalSeconds: result.summary.totalSeconds,
+      members: result.summary.teamMembers.map((member) => ({
+        userId: member.id,
+        name: member.name,
+        seconds: member.totalSeconds,
+        isTiming: member.isActive,
+      })),
+    };
+  }
+
+  const [listed, activeTimer, members] = await Promise.all([
+    listMyAgencyTimeEntriesInRange(actorUserId, {
+      teamId,
+      from: input.from,
+      to: input.to,
+    }),
+    getAgencyActiveTimer(actorUserId, { teamId }),
+    listTeamMembers(actorUserId, { teamId }),
+  ]);
+  const includesActor = !input.memberUserId || input.memberUserId === actorUserId;
+  const entries = includesActor
+    ? listed.items.filter(
+        (entry) =>
+          (!input.projectId || entry.projectId === input.projectId) &&
+          (!input.clientId || entry.clientId === input.clientId),
+      )
+    : [];
+  const totalSeconds = entries.reduce((sum, entry) => sum + entry.durationSeconds, 0);
+  const actor = members.find((member) => member.userId === actorUserId);
+
+  return {
+    totalSeconds,
+    members: [
+      {
+        userId: actorUserId,
+        name: actor?.userName ?? "You",
+        seconds: totalSeconds,
+        isTiming: Boolean(activeTimer.timer),
+      },
+    ],
+  };
 }
 
 function createAgencyAgentRuntime(
@@ -243,23 +353,7 @@ function createAgencyAgentRuntime(
       };
     },
     getTimeSummary: async (input) => {
-      const result = await getAgencyTimeSummary(actorUserId, {
-        teamId,
-        from: input.from,
-        to: input.to,
-        memberUserId: input.memberUserId,
-        projectId: input.projectId,
-        clientId: input.clientId,
-      });
-      return {
-        totalSeconds: result.summary.totalSeconds,
-        members: result.summary.teamMembers.map((member) => ({
-          userId: member.id,
-          name: member.name,
-          seconds: member.totalSeconds,
-          isTiming: member.isActive,
-        })),
-      };
+      return getAgencyAgentTimeSummary(actorUserId, { teamId, ...input });
     },
     listTimeGaps: async ({ from, to }) => {
       const fromMs = Date.parse(`${from}T00:00:00.000Z`);
@@ -371,14 +465,25 @@ function createAgencyAgentRuntime(
   };
 }
 
+function createMemoryAgentRuntime(actorUserId: string, sourceRunId?: string): MemoryAgentRuntime {
+  return {
+    rememberFact: async (input) =>
+      upsertFact(actorUserId, {
+        key: input.key,
+        value: input.value,
+        sourceRunId,
+      }),
+  };
+}
+
 function createCanvasAgentRuntime(
   actorUserId: string,
   conversationId: string,
   teamId?: string | null,
 ): CanvasAgentRuntime {
   return {
-    createProposal: async (input) =>
-      createCanvasProposalRecord(actorUserId, {
+    applyCanvasAction: async (input) =>
+      applyCanvasForYou(actorUserId, {
         action: input.action,
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
@@ -398,8 +503,8 @@ function createCanvasAgentRuntime(
         objectType: input.objectType,
         teamId: input.teamId ?? teamId ?? undefined,
       }),
-    createKnowledgeProposal: async (input) =>
-      createKnowledgeProposalRecord(actorUserId, {
+    applyKnowledgeAction: async (input) =>
+      applyKnowledgeForYou(actorUserId, {
         action: input.action,
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
@@ -418,26 +523,6 @@ export function getAgentToolsCatalog(actorUserId: string, input: AgentToolCatalo
     }),
   });
 }
-export async function assertCanCreateDashboardConversation(
-  actorUserId: string,
-  _input: Record<string, never>,
-) {
-  const billing = await getBillingStateForUser(actorUserId);
-
-  if (billing.limits.aiConversations === -1) return;
-
-  const existing = await listDashboardConversations(actorUserId, {});
-  if (existing.conversations.length >= billing.limits.aiConversations) {
-    throw new ORPCError("FORBIDDEN", {
-      message: `Your ${billing.tier} plan allows up to ${billing.limits.aiConversations} AI conversations`,
-      data: {
-        limit: billing.limits.aiConversations,
-        current: existing.conversations.length,
-      },
-    });
-  }
-}
-
 function normalizeConversationUsageSummary(
   usageSummary: DashboardConversationUsageSummaryRecord | null | undefined,
 ) {
@@ -479,9 +564,15 @@ function buildNextConversationUsageSummary(
   });
 }
 
+function conversationIsUnread(row: { lastMessageAt: Date; lastReadAt: Date | null }): boolean {
+  if (!row.lastReadAt) return true;
+  return row.lastMessageAt.getTime() > row.lastReadAt.getTime();
+}
+
 function mapConversationSummary(args: {
   row: typeof dashboardConversation.$inferSelect;
   lastMessagePreview: string | null;
+  activeRunId?: string | null;
 }): DashboardConversationSummary {
   return dashboardConversationSummarySchema.parse({
     id: args.row.id,
@@ -494,7 +585,12 @@ function mapConversationSummary(args: {
     createdAt: args.row.createdAt.toISOString(),
     updatedAt: args.row.updatedAt.toISOString(),
     lastMessageAt: args.row.lastMessageAt.toISOString(),
+    lastReadAt: args.row.lastReadAt?.toISOString() ?? null,
+    archivedAt: args.row.archivedAt?.toISOString() ?? null,
     lastMessagePreview: args.lastMessagePreview,
+    taskId: args.row.taskId ?? null,
+    activeRunId: args.activeRunId ?? null,
+    unread: conversationIsUnread(args.row),
   });
 }
 
@@ -518,11 +614,7 @@ async function getConversationRecord(userId: string, conversationId: string) {
     .select()
     .from(dashboardConversation)
     .where(
-      and(
-        eq(dashboardConversation.id, conversationId),
-        eq(dashboardConversation.userId, userId),
-        isNull(dashboardConversation.archivedAt),
-      ),
+      and(eq(dashboardConversation.id, conversationId), eq(dashboardConversation.userId, userId)),
     )
     .limit(1);
 
@@ -565,24 +657,34 @@ async function getConversationPreviewMap(conversationIds: string[]) {
 
 export async function listDashboardConversations(
   actorUserId: string,
-  _input: Record<string, never>,
+  input: { filter?: "open" | "settled" },
 ) {
+  const filter = input.filter ?? "open";
   const conversations = await db
     .select()
     .from(dashboardConversation)
     .where(
-      and(eq(dashboardConversation.userId, actorUserId), isNull(dashboardConversation.archivedAt)),
+      and(
+        eq(dashboardConversation.userId, actorUserId),
+        filter === "settled"
+          ? isNotNull(dashboardConversation.archivedAt)
+          : isNull(dashboardConversation.archivedAt),
+      ),
     )
     .orderBy(desc(dashboardConversation.updatedAt), desc(dashboardConversation.id))
     .limit(DASHBOARD_CONVERSATION_HISTORY_LIMIT);
 
   const previewMap = await getConversationPreviewMap(conversations.map((item) => item.id));
+  const runningMap = await findRunningChatRuns(actorUserId, {
+    conversationIds: conversations.map((item) => item.id),
+  });
 
   return dashboardConversationListResponseSchema.parse({
     conversations: conversations.map((conversation) =>
       mapConversationSummary({
         row: conversation,
         lastMessagePreview: previewMap.get(conversation.id) ?? null,
+        activeRunId: runningMap.get(conversation.id)?.runId ?? null,
       }),
     ),
   });
@@ -604,12 +706,18 @@ export async function getDashboardConversation(
     )
     .orderBy(asc(dashboardConversationMessage.createdAt), asc(dashboardConversationMessage.id));
 
+  const running = await findRunningChatRun(actorUserId, {
+    conversationId: input.conversationId,
+  });
   const detail = dashboardConversationDetailSchema.parse({
     ...mapConversationSummary({
       row: conversation,
       lastMessagePreview: buildDashboardMessagePreview(messages.at(-1)?.content ?? ""),
+      activeRunId: running?.runId ?? null,
     }),
     messages: messages.map(mapConversationMessage),
+    activeRunId: running?.runId ?? null,
+    activeRunLastSeq: running?.lastSeq ?? 0,
   });
 
   return detail;
@@ -622,6 +730,7 @@ export async function createDashboardConversation(
     attachments?: AgentTextAttachment[];
     model?: string | null;
     toolPreset: AgentChatTurnInput["toolPreset"];
+    taskId?: string | null;
   },
 ) {
   const now = new Date();
@@ -639,10 +748,62 @@ export async function createDashboardConversation(
     createdAt: now,
     updatedAt: now,
     lastMessageAt: now,
+    lastReadAt: now,
     archivedAt: null,
+    taskId: input.taskId ?? null,
   });
 
   return getConversationRecord(actorUserId, conversationId);
+}
+
+export async function getOrCreateTaskConversation(
+  actorUserId: string,
+  input: { taskId: string; title?: string },
+) {
+  const [existing] = await db
+    .select()
+    .from(dashboardConversation)
+    .where(
+      and(
+        eq(dashboardConversation.userId, actorUserId),
+        eq(dashboardConversation.taskId, input.taskId),
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    if (existing.archivedAt) {
+      await db
+        .update(dashboardConversation)
+        .set({ archivedAt: null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(dashboardConversation.id, existing.id),
+            eq(dashboardConversation.userId, actorUserId),
+          ),
+        );
+    }
+    return getDashboardConversation(actorUserId, { conversationId: existing.id });
+  }
+
+  const now = new Date();
+  const conversationId = createWorkspaceId("conversation");
+  await db.insert(dashboardConversation).values({
+    id: conversationId,
+    userId: actorUserId,
+    title: buildDashboardConversationTitle(input.title?.trim() || "Task"),
+    model: null,
+    toolPreset: "agent",
+    usageSummary: normalizeConversationUsageSummary(null),
+    createdAt: now,
+    updatedAt: now,
+    lastMessageAt: now,
+    lastReadAt: now,
+    archivedAt: null,
+    taskId: input.taskId,
+  });
+
+  return getDashboardConversation(actorUserId, { conversationId });
 }
 
 export async function renameDashboardConversation(
@@ -708,6 +869,8 @@ export async function appendDashboardConversationTurn(
   }
 
   const now = new Date();
+  await consumeOrchMessageForActor(userId, now);
+
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
       ? turn.nodes
@@ -775,10 +938,15 @@ export async function appendDashboardConversationTurn(
   const canvasRuntime = needsCanvas
     ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId)
     : null;
+  const memoryRuntime = createMemoryAgentRuntime(userId);
+  const memoryText = formatMemoryForPrompt(await getMemoryForPrompt(userId, {}));
+  const messagesWithMemory: AgentModelInputMessage[] = memoryText
+    ? [{ role: "system", content: memoryText }, ...recentMessages]
+    : recentMessages;
 
   const result = await runDashboardAgent(
     [
-      ...recentMessages,
+      ...messagesWithMemory,
       {
         role: "user",
         content: turnModelContent,
@@ -802,6 +970,7 @@ export async function appendDashboardConversationTurn(
       toolPreset,
       agencyRuntime,
       canvasRuntime,
+      memoryRuntime,
     },
   );
   const nextUsageSummary = buildNextConversationUsageSummary(
@@ -907,6 +1076,8 @@ export async function* streamDashboardConversationTurn(
   }
 
   const now = new Date();
+  await consumeOrchMessageForActor(userId, now);
+
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
       ? turn.nodes
@@ -966,6 +1137,10 @@ export async function* streamDashboardConversationTurn(
         ? modelUserContent(message.content, attachmentsFromRow(message.attachments))
         : message.content,
   }));
+  const memoryText = formatMemoryForPrompt(await getMemoryForPrompt(userId, {}));
+  const messagesWithMemory: AgentModelInputMessage[] = memoryText
+    ? [{ role: "system", content: memoryText }, ...recentMessages]
+    : recentMessages;
   const scopeNodes = turn.scopeNodes ?? turn.nodes;
   const agencyRuntime =
     unlockedSurfaces.includes("agency") && turn.teamId
@@ -995,20 +1170,134 @@ export async function* streamDashboardConversationTurn(
 
   await db.insert(dashboardConversationMessage).values(userMessageRow);
 
-  yield agentChatTurnStreamEventSchema.parse({
+  const previousRun = await findRunningChatRun(userId, { conversationId: conversation.id });
+  if (previousRun) {
+    await cancelRun(userId, { runId: previousRun.runId });
+  }
+
+  const { runId } = await insertAgentRun(userId, {
+    conversationId: conversation.id,
+    kind: "chat",
+    model: resolvedModelId,
+  });
+  const serverController = new AbortController();
+  agentRunAbortRegistry.attach(runId, serverController);
+
+  const startedEvent = agentChatTurnStreamEventSchema.parse({
     type: "started",
+    runId,
     conversationId: conversation.id,
     createdConversation,
     userMessageId,
     assistantMessageId,
     model: resolvedModelId,
   });
+  await persistRunStreamEvent(userId, { runId, event: startedEvent });
 
-  let accumulated = "";
+  scheduleDetachedRun(() =>
+    executeDashboardConversationRun({
+      actorUserId: userId,
+      runId,
+      serverSignal: serverController.signal,
+      conversation,
+      createdConversation,
+      userMessageRow,
+      assistantMessageId,
+      userName,
+      turn,
+      turnModelContent,
+      surface,
+      toolPreset,
+      unlockedSurfaces,
+      fullWorkspaceSnapshot,
+      marketplaceItems: marketplaceResult.items,
+      scopeNodes,
+      agencyRuntime,
+      canvasRuntime,
+      resolvedModelId,
+      modelPreset,
+      recentMessages: messagesWithMemory,
+    }),
+  );
+
+  yield* subscribeRun(userId, { runId, afterSeq: 0, signal: input.signal });
+}
+
+async function executeDashboardConversationRun(args: {
+  actorUserId: string;
+  runId: string;
+  serverSignal: AbortSignal;
+  conversation: Awaited<ReturnType<typeof getConversationRecord>>;
+  createdConversation: boolean;
+  userMessageRow: {
+    id: string;
+    conversationId: string;
+    userId: string;
+    role: "user";
+    content: string;
+    attachments: AgentTextAttachment[];
+    contextNodeTitles: string[];
+    model: string;
+    toolsCalled: AgentToolCall[];
+    artifacts: AiUiArtifact[];
+    createdAt: Date;
+  };
+  assistantMessageId: string;
+  userName: string;
+  turn: AgentChatTurnInput;
+  turnModelContent: ReturnType<typeof modelUserContent>;
+  surface: AgentSurface;
+  toolPreset: AgentChatTurnInput["toolPreset"];
+  unlockedSurfaces: AgentSurface[];
+  fullWorkspaceSnapshot: {
+    nodes: DashboardAgentWorkspaceContext["nodes"];
+    updatedAt: string | null;
+  };
+  marketplaceItems: NonNullable<DashboardAgentWorkspaceContext["marketplaceItems"]>;
+  scopeNodes: AgentChatTurnInput["scopeNodes"] | AgentChatTurnInput["nodes"];
+  agencyRuntime: ReturnType<typeof createAgencyAgentRuntime> | null;
+  canvasRuntime: ReturnType<typeof createCanvasAgentRuntime> | null;
+  resolvedModelId: string;
+  modelPreset: NonNullable<AgentChatTurnInput["modelPreset"]> | typeof DEFAULT_AGENT_MODEL_PRESET;
+  recentMessages: AgentModelInputMessage[];
+}) {
+  const {
+    actorUserId: userId,
+    runId,
+    serverSignal,
+    conversation,
+    createdConversation,
+    userMessageRow,
+    assistantMessageId,
+    userName,
+    turn,
+    turnModelContent,
+    surface,
+    toolPreset,
+    unlockedSurfaces,
+    fullWorkspaceSnapshot,
+    marketplaceItems,
+    scopeNodes,
+    agencyRuntime,
+    canvasRuntime,
+    resolvedModelId,
+    modelPreset,
+    recentMessages,
+  } = args;
+
+  const persist = (event: AgentChatTurnStreamEvent) =>
+    persistRunStreamEvent(userId, { runId, event });
+
   const toolsById = new Map<string, AgentToolCall>();
   const toolOrder: string[] = [];
   const streamedArtifacts: AiUiArtifact[] = [];
-  let stopped = Boolean(input.signal?.aborted);
+  const coalescer = createTokenCoalescer({
+    flushMs: AGENT_TOKEN_FLUSH_MS,
+    flushChars: AGENT_TOKEN_FLUSH_CHARS,
+    onFlush: async (delta) => {
+      await persist(agentChatTurnStreamEventSchema.parse({ type: "token", delta }));
+    },
+  });
 
   try {
     for await (const event of streamDashboardAgent(
@@ -1022,7 +1311,7 @@ export async function* streamDashboardConversationTurn(
       {
         nodes: fullWorkspaceSnapshot.nodes,
         scopeNodes,
-        marketplaceItems: marketplaceResult.items,
+        marketplaceItems,
         updatedAt: fullWorkspaceSnapshot.updatedAt,
         userName,
         activeTabId: turn.activeTabId,
@@ -1037,37 +1326,46 @@ export async function* streamDashboardConversationTurn(
         toolPreset,
         agencyRuntime,
         canvasRuntime,
-        signal: input.signal,
+        memoryRuntime: createMemoryAgentRuntime(userId, runId),
+        signal: serverSignal,
       },
     )) {
       if (event.type === "token") {
-        accumulated += event.delta;
-        yield agentChatTurnStreamEventSchema.parse(event);
+        coalescer.push(event.delta);
         continue;
       }
+      await coalescer.flush();
       if (event.type === "tool") {
         const toolId = event.tool.id ?? `tool_${toolOrder.length}`;
         if (!toolsById.has(toolId)) {
           toolOrder.push(toolId);
         }
         toolsById.set(toolId, { ...event.tool, id: toolId });
-        yield agentChatTurnStreamEventSchema.parse({
-          type: "tool",
-          tool: { ...event.tool, id: toolId },
-        });
+        await persist(
+          agentChatTurnStreamEventSchema.parse({
+            type: "tool",
+            tool: { ...event.tool, id: toolId },
+          }),
+        );
         continue;
       }
       if (event.type === "artifact") {
         streamedArtifacts.push(event.artifact);
-        yield agentChatTurnStreamEventSchema.parse(event);
+        await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
-      if (event.type === "plan" || event.type === "proposal" || event.type === "question") {
-        yield agentChatTurnStreamEventSchema.parse(event);
+      if (
+        event.type === "plan" ||
+        event.type === "todo" ||
+        event.type === "proposal" ||
+        event.type === "question" ||
+        event.type === "created_object"
+      ) {
+        await persist(agentChatTurnStreamEventSchema.parse(event));
         continue;
       }
       if (event.type === "done") {
-        stopped = stopped || Boolean(input.signal?.aborted);
+        const stopped = serverSignal.aborted;
         const toolsCalled = toolOrder
           .map((id) => toolsById.get(id))
           .filter((tool): tool is AgentToolCall => Boolean(tool));
@@ -1080,12 +1378,11 @@ export async function* streamDashboardConversationTurn(
               ? streamedArtifacts
               : artifactsFromToolCalls(finalTools),
         );
-        const responseText =
-          event.responseText.trim().length > 0
-            ? event.responseText.trim().slice(0, 20_000)
-            : stopped
-              ? "Stopped before a reply."
-              : "I couldn't generate a response.";
+        const responseText = finalizeAssistantResponseText({
+          responseText: event.responseText,
+          stopped,
+          toolCount: finalTools.length,
+        });
 
         const nextUsageSummary = buildNextConversationUsageSummary(
           conversation.usageSummary,
@@ -1147,25 +1444,55 @@ export async function* streamDashboardConversationTurn(
           lastMessagePreview: buildDashboardMessagePreview(responseText),
         });
 
-        yield agentChatTurnStreamEventSchema.parse({
-          type: "completed",
-          conversation: conversationSummary,
-          userMessage: mapConversationMessage(userMessageRow),
-          assistantMessage: mapConversationMessage(assistantMessageRow),
-          createdConversation,
-          workspaceSnapshot,
-          stopped,
+        await persist(
+          agentChatTurnStreamEventSchema.parse({
+            type: "completed",
+            conversation: conversationSummary,
+            userMessage: mapConversationMessage(userMessageRow),
+            assistantMessage: mapConversationMessage(assistantMessageRow),
+            createdConversation,
+            workspaceSnapshot,
+            stopped,
+          }),
+        );
+        await completeAgentRun(userId, {
+          runId,
+          status: stopped ? "cancelled" : "succeeded",
         });
+        if (!hasRunListener(runId)) {
+          await insertInboxNote(userId, {
+            runId,
+            kind: "finish",
+            title: stopped ? "I stopped before finishing" : "I finished a reply",
+            body: responseText.slice(0, 400),
+          });
+        }
       }
     }
   } catch (error) {
+    await coalescer.flush();
     const message =
       error instanceof Error && error.message.trim()
         ? error.message.trim().slice(0, 2_000)
         : "Failed to stream the agent reply.";
-    yield agentChatTurnStreamEventSchema.parse({
-      type: "error",
-      message,
+    await persist(
+      agentChatTurnStreamEventSchema.parse({
+        type: "error",
+        message,
+      }),
+    );
+    await completeAgentRun(userId, {
+      runId,
+      status: serverSignal.aborted ? "cancelled" : "failed",
+      error: message,
     });
+    if (!hasRunListener(runId)) {
+      await insertInboxNote(userId, {
+        runId,
+        kind: "finish",
+        title: "I hit a problem",
+        body: message,
+      });
+    }
   }
 }

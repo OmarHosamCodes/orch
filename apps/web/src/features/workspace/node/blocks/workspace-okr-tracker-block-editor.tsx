@@ -10,6 +10,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -148,7 +149,7 @@ export function WorkspaceOkrTrackerBlockEditor({
               <article
                 key={objective.id}
                 className={cn(
-                  "overflow-hidden rounded-xl border border-l-4 border-muted bg-background p-4 transition-colors",
+                  "overflow-hidden rounded-surface border border-l-4 border-muted bg-background p-surface transition-colors",
                   getHealthClasses(health),
                 )}
               >
@@ -255,13 +256,11 @@ export function WorkspaceOkrTrackerBlockEditor({
 
                       <div className="space-y-1.5">
                         <BlockProgressBar value={keyResult.progress} max={100} />
-                        <input
+                        <BlockSlider
                           id={`kr-progress-${keyResult.id}`}
                           value={keyResult.progress}
-                          type="range"
                           min={0}
                           max={100}
-                          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                           aria-label="Key result progress"
                           onChange={(event) =>
                             mutateBlock(tabId, block.id, (entry) => {

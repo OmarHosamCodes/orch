@@ -134,14 +134,17 @@ const featureDomainAliases = new Map([
   ["dashboard", "dashboard"],
   ["dashboard-agent", "agent"],
   ["departments", "resourcing"],
+  ["dev", "web-platform"],
   ["workspace-agent", "agent"],
   ["favorites", "time-tracking"],
+  ["first-run", "team"],
   ["integrations", "integrations"],
   ["marketplace", "marketplace"],
   ["management", "settings"],
   ["member-profile", "member-profile"],
   ["money", "billing"],
   ["notifications", "notifications"],
+  ["onboarding", "team"],
   ["people", "resourcing"],
   ["projects", "projects"],
   ["project-templates", "projects"],
@@ -154,6 +157,8 @@ const featureDomainAliases = new Map([
   ["tasks", "task-management"],
   ["tags", "time-tracking"],
   ["team", "team"],
+  ["team-billing", "team"],
+  ["team-billing-credits", "team"],
   ["time-tracking", "time-tracking"],
   ["user-settings", "web-platform"],
   ["workspace", "workspace"],
@@ -415,7 +420,7 @@ function inferWebDomain(path, contents) {
   if (path === "apps/web/public/sw.js" || /(?:notification|push)/i.test(path)) {
     return "notifications";
   }
-  if (/landing-pricing/.test(path) && /useBilling|checkout|billing-queries/.test(contents)) {
+  if (/landing-pricing/.test(path) && /useBilling|billing-queries/.test(contents)) {
     return "billing";
   }
   if (

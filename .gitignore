@@ -73,3 +73,9 @@ temp
 .beads/context/
 .beads/plans/
 output/
+
+# Originkit agent + credential scratch (do not commit)
+.originkit/
+
+# Graphify local graph cache and reports
+graphify-out/

@@ -19,6 +19,7 @@ import {
 } from "@/features/member-profile/member-profile-format";
 import { buildMemberProfileView } from "@/features/member-profile/to-member-profile-view";
 import { buildMemberProfileGaugeDetail } from "@/features/member-profile/to-gauge-detail-context";
+import { agencyTimeRangeCanReset } from "@/features/shared/command-bar/agency-time-range-can-reset";
 import type { RangePreset } from "@/features/shared/command-bar/range-preset-chooser";
 import { useMemberProfileAlerts } from "@/features/member-profile/hooks/use-member-profile-alerts";
 import { useAgencyMemberProfileStore } from "@/features/member-profile/stores/agency-member-profile";
@@ -104,23 +105,41 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
     [now, tenurePolicy],
   );
 
-  const [rangePreset, setRangePreset] = useState<RangePreset | null>(null);
-  const effectiveRangePreset = rangePreset ?? defaultRangePreset;
   const weekStartsOn = tenurePolicy?.weekStartsOn ?? DEFAULT_WORK_SCHEDULE.weekStartsOn;
   const weekendDurationDays =
     tenurePolicy?.weekendDurationDays ?? DEFAULT_WORK_SCHEDULE.weekendDurationDays;
-  const [customFromDate, setCustomFromDate] = useState(
-    toDateInputValue(startOfWeekUtc(weekStartsOn)),
-  );
-  const [customToDate, setCustomToDate] = useState(toDateInputValue(now));
-  const [tenureMonthIndexes, setTenureMonthIndexes] = useState<number[] | null>(null);
-  const effectiveTenureMonthIndexes = tenureMonthIndexes ?? defaultTenureMonthIndexes;
+  const defaultCustomFromDate = toDateInputValue(startOfWeekUtc(weekStartsOn, now));
+  const defaultCustomToDate = toDateInputValue(now);
+  const defaultCustomRangeRef = useRef({
+    from: defaultCustomFromDate,
+    to: defaultCustomToDate,
+  });
 
+  const [appliedRangePreset, setAppliedRangePreset] = useState<RangePreset | null>(null);
+  const [appliedCustomFromDate, setAppliedCustomFromDate] = useState(defaultCustomFromDate);
+  const [appliedCustomToDate, setAppliedCustomToDate] = useState(defaultCustomToDate);
+  const [appliedTenureMonthIndexes, setAppliedTenureMonthIndexes] = useState<number[] | null>(null);
+  const effectiveAppliedRangePreset = appliedRangePreset ?? defaultRangePreset;
+  const effectiveAppliedTenureMonthIndexes = appliedTenureMonthIndexes ?? defaultTenureMonthIndexes;
+
+  const [draftRangePreset, setDraftRangePreset] = useState<RangePreset | null>(null);
+  const [draftCustomFromDate, setDraftCustomFromDate] = useState(defaultCustomFromDate);
+  const [draftCustomToDate, setDraftCustomToDate] = useState(defaultCustomToDate);
+  const [draftTenureMonthIndexes, setDraftTenureMonthIndexes] = useState<number[] | null>(null);
+  const effectiveDraftRangePreset = draftRangePreset ?? defaultRangePreset;
+  const effectiveDraftTenureMonthIndexes = draftTenureMonthIndexes ?? defaultTenureMonthIndexes;
+
+  const appliedTenurePeriodLabel = useMemo(
+    () =>
+      getCurrentTenurePeriodRange(tenurePolicy, now, effectiveAppliedTenureMonthIndexes)
+        ?.simpleLabel ?? null,
+    [effectiveAppliedTenureMonthIndexes, now, tenurePolicy],
+  );
   const tenurePeriodLabel = useMemo(
     () =>
-      getCurrentTenurePeriodRange(tenurePolicy, now, effectiveTenureMonthIndexes)?.simpleLabel ??
-      null,
-    [effectiveTenureMonthIndexes, now, tenurePolicy],
+      getCurrentTenurePeriodRange(tenurePolicy, now, effectiveDraftTenureMonthIndexes)
+        ?.simpleLabel ?? null,
+    [effectiveDraftTenureMonthIndexes, now, tenurePolicy],
   );
   const tenureQuarterLabel = useMemo(
     () => getCurrentTenurePeriodRange(tenurePolicy, now)?.simpleLabel ?? null,
@@ -130,24 +149,64 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   const range = useMemo(
     () =>
       resolveAgencyRangeFromPreset(
-        effectiveRangePreset,
-        customFromDate,
-        customToDate,
+        effectiveAppliedRangePreset,
+        appliedCustomFromDate,
+        appliedCustomToDate,
         tenurePolicy,
         now,
-        effectiveTenureMonthIndexes,
+        effectiveAppliedTenureMonthIndexes,
         weekStartsOn,
       ),
     [
-      customFromDate,
-      customToDate,
-      effectiveRangePreset,
-      effectiveTenureMonthIndexes,
+      appliedCustomFromDate,
+      appliedCustomToDate,
+      effectiveAppliedRangePreset,
+      effectiveAppliedTenureMonthIndexes,
       now,
       tenurePolicy,
       weekStartsOn,
     ],
   );
+
+  const hasPendingPeriodChanges =
+    effectiveDraftRangePreset !== effectiveAppliedRangePreset ||
+    draftCustomFromDate !== appliedCustomFromDate ||
+    draftCustomToDate !== appliedCustomToDate ||
+    draftTenureMonthIndexes !== appliedTenureMonthIndexes;
+
+  const canResetPeriod = agencyTimeRangeCanReset({
+    rangePreset: effectiveDraftRangePreset,
+    defaultRangePreset,
+    tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
+    defaultTenureMonthIndexes,
+    clientIds: [],
+    projectIds: [],
+    memberUserIds: [],
+    customFromDate: draftCustomFromDate,
+    customToDate: draftCustomToDate,
+    defaultCustomFromDate: defaultCustomRangeRef.current.from,
+    defaultCustomToDate: defaultCustomRangeRef.current.to,
+  });
+
+  function applyPeriodDraft() {
+    setAppliedRangePreset(draftRangePreset);
+    setAppliedCustomFromDate(draftCustomFromDate);
+    setAppliedCustomToDate(draftCustomToDate);
+    setAppliedTenureMonthIndexes(draftTenureMonthIndexes);
+    setPeriodMonthStartOverride(null);
+  }
+
+  function resetPeriodDraft() {
+    setDraftRangePreset(null);
+    setDraftCustomFromDate(defaultCustomRangeRef.current.from);
+    setDraftCustomToDate(defaultCustomRangeRef.current.to);
+    setDraftTenureMonthIndexes(null);
+    setAppliedRangePreset(null);
+    setAppliedCustomFromDate(defaultCustomRangeRef.current.from);
+    setAppliedCustomToDate(defaultCustomRangeRef.current.to);
+    setAppliedTenureMonthIndexes(null);
+    setPeriodMonthStartOverride(null);
+  }
 
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({ [today]: true });
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -220,22 +279,22 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   }, [subjectUserId]);
 
   const onRangePresetChange = useCallback((preset: RangePreset) => {
-    setRangePreset(preset);
+    setDraftRangePreset(preset);
     setPeriodMonthStartOverride(null);
   }, []);
 
   const onTenureMonthIndexesChange = useCallback((indexes: number[]) => {
-    setTenureMonthIndexes(indexes);
+    setDraftTenureMonthIndexes(indexes);
     setPeriodMonthStartOverride(null);
   }, []);
 
   const onCustomFromChange = useCallback((value: string) => {
-    setCustomFromDate(value);
+    setDraftCustomFromDate(value);
     setPeriodMonthStartOverride(null);
   }, []);
 
   const onCustomToChange = useCallback((value: string) => {
-    setCustomToDate(value);
+    setDraftCustomToDate(value);
     setPeriodMonthStartOverride(null);
   }, []);
 
@@ -281,7 +340,7 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   function openAlertPeriod(target: AlertPeriodTarget) {
     const focusDate = target.kind === "day" ? target.dateKey : target.focusDate;
     const alreadyOnTargetPeriod =
-      effectiveRangePreset === "custom" &&
+      effectiveAppliedRangePreset === "custom" &&
       target.from === rangeStartKey &&
       target.to === rangeEndKey;
     const dayMounted = Boolean(document.getElementById(`member-profile-day-${focusDate}`));
@@ -293,9 +352,12 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
       return;
     }
 
-    setRangePreset("custom");
-    setCustomFromDate(target.from);
-    setCustomToDate(target.to);
+    setDraftRangePreset("custom");
+    setDraftCustomFromDate(target.from);
+    setDraftCustomToDate(target.to);
+    setAppliedRangePreset("custom");
+    setAppliedCustomFromDate(target.from);
+    setAppliedCustomToDate(target.to);
     setPeriodMonthStartOverride(
       resolveProfilePeriodMonth({
         tenureEnabled,
@@ -383,10 +445,10 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
   });
 
   const periodLabel = rangePresetDisplayLabel(
-    effectiveRangePreset,
-    tenurePeriodLabel,
-    customFromDate,
-    customToDate,
+    effectiveAppliedRangePreset,
+    appliedTenurePeriodLabel,
+    appliedCustomFromDate,
+    appliedCustomToDate,
   );
 
   const canGoPrevCalendarMonth = canShiftProfilePeriodMonth(
@@ -410,14 +472,14 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
         fiscalCalendar,
         monthlyMinHours,
         quarterlyMinHours,
-        effectiveRangePreset,
-        effectiveTenureMonthIndexes,
+        effectiveRangePreset: effectiveAppliedRangePreset,
+        effectiveTenureMonthIndexes: effectiveAppliedTenureMonthIndexes,
         tenureQuarterMonths,
         anchorDateKey: today,
       }),
     [
-      effectiveRangePreset,
-      effectiveTenureMonthIndexes,
+      effectiveAppliedRangePreset,
+      effectiveAppliedTenureMonthIndexes,
       fiscalCalendar,
       monthlyMinHours,
       quarterlyMinHours,
@@ -461,8 +523,8 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
       today,
       periodLabel,
       paceParams,
-      effectiveRangePreset,
-      effectiveTenureMonthIndexes,
+      effectiveRangePreset: effectiveAppliedRangePreset,
+      effectiveTenureMonthIndexes: effectiveAppliedTenureMonthIndexes,
       expandedDays,
       selectedHeatDate,
       weekStartsOn,
@@ -482,8 +544,8 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
     });
   }, [
     departmentsQuery.data?.items,
-    effectiveRangePreset,
-    effectiveTenureMonthIndexes,
+    effectiveAppliedRangePreset,
+    effectiveAppliedTenureMonthIndexes,
     expandedDays,
     onCalendarNextMonth,
     onCalendarPrevMonth,
@@ -663,20 +725,24 @@ export function useAgencyMemberProfile(subjectUserId: string): AgencyMemberProfi
       : store.error,
     memberNav,
     period: {
-      rangePreset: effectiveRangePreset,
+      rangePreset: effectiveDraftRangePreset,
       onRangePresetChange,
-      customFromDate,
+      customFromDate: draftCustomFromDate,
       onCustomFromChange,
-      customToDate,
+      customToDate: draftCustomToDate,
       onCustomToChange,
       tenureAvailable: Boolean(tenurePolicy?.enabled),
       tenurePeriodLabel,
       tenureQuarterLabel,
       tenureQuarterMonths,
-      tenureMonthIndexes: effectiveTenureMonthIndexes,
+      tenureMonthIndexes: effectiveDraftTenureMonthIndexes,
       onTenureMonthIndexesChange,
       weekStartsOn,
       label: periodLabel,
+      hasPendingChanges: hasPendingPeriodChanges,
+      onApply: applyPeriodDraft,
+      canReset: canResetPeriod,
+      onReset: resetPeriodDraft,
     },
     profile,
     profileImagePending,

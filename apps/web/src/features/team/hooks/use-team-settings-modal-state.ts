@@ -2,7 +2,12 @@ import { useState } from "react";
 
 type TeamRole = "owner" | "editor" | "viewer";
 
-export type TeamSettingsPane = "general" | "members" | "invite" | "danger";
+export type TeamSettingsPane = "general" | "members" | "billing";
+
+export type StagedTeamInvite = {
+  email: string;
+  error: string | null;
+};
 
 export function useTeamSettingsModalState() {
   const [pane, setPane] = useState<TeamSettingsPane>("general");
@@ -13,6 +18,8 @@ export function useTeamSettingsModalState() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<TeamRole>("viewer");
   const [addingMember, setAddingMember] = useState(false);
+  const [stagedInvites, setStagedInvites] = useState<StagedTeamInvite[]>([]);
+  const [inviteFormError, setInviteFormError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRemoveUserId, setConfirmRemoveUserId] = useState<string | null>(null);
   const [deletingTeam, setDeletingTeam] = useState(false);
@@ -34,6 +41,10 @@ export function useTeamSettingsModalState() {
     setInviteRole,
     addingMember,
     setAddingMember,
+    stagedInvites,
+    setStagedInvites,
+    inviteFormError,
+    setInviteFormError,
     confirmDelete,
     setConfirmDelete,
     confirmRemoveUserId,

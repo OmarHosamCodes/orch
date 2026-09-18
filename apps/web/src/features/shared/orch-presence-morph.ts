@@ -1,6 +1,6 @@
 import type { Transition } from "motion/react";
 
-/** Shared-element morph between global Orch dock and task-thread composer badge. */
+/** Shared-element morph between top-bar Eclipse and task-thread composer badge. */
 export const ORCH_PRESENCE_LAYOUT_ID = "orch-presence";
 
 /** Collapsed dock pill — fully round for shared layout morph. */

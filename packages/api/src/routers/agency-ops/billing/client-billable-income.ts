@@ -92,10 +92,7 @@ export function convertWinningBillableRate(
 ): number | null {
   const winning = pickWinningBillableRateLevel(task, project, client);
   if (!winning || !hasPositiveBillableRate(winning.billableRateAmount)) return null;
-  if (
-    hasPositiveBillableRate(winning.sourceBillableRateAmount) &&
-    winning.currency
-  ) {
+  if (hasPositiveBillableRate(winning.sourceBillableRateAmount) && winning.currency) {
     return resolveMoneyValue({
       sourceAmount: winning.sourceBillableRateAmount,
       sourceCurrency: winning.currency,
@@ -297,8 +294,9 @@ export function aggregateExternalBillableIncome(
         sourceBillableAmount: [...billableSecondsByBucket.entries()].reduce(
           (total, [bucketKey, seconds]) => {
             const sourceRate = sourceRateByBucket.get(bucketKey);
-            const rate =
-              hasPositiveBillableRate(sourceRate) ? sourceRate : (effectiveRateByBucket.get(bucketKey) ?? 0);
+            const rate = hasPositiveBillableRate(sourceRate)
+              ? sourceRate
+              : (effectiveRateByBucket.get(bucketKey) ?? 0);
             return total + amountFromDurationAndRate(seconds, rate);
           },
           0,

@@ -4,6 +4,8 @@ import type { WorkspaceTeamRole } from "@orch/workspace";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 
+import { assertAgencyEntitled } from "../billing-team";
+
 const TEAM_ROLE_WEIGHT: Record<WorkspaceTeamRole, number> = {
   viewer: 1,
   editor: 2,
@@ -12,6 +14,18 @@ const TEAM_ROLE_WEIGHT: Record<WorkspaceTeamRole, number> = {
 
 function hasRoleAtLeast(role: WorkspaceTeamRole, required: WorkspaceTeamRole) {
   return TEAM_ROLE_WEIGHT[role] >= TEAM_ROLE_WEIGHT[required];
+}
+
+export function insufficientRoleError(
+  required: WorkspaceTeamRole,
+): ORPCError<"FORBIDDEN", { code: "insufficient_role" }> {
+  return new ORPCError("FORBIDDEN", {
+    message:
+      required === "owner"
+        ? "Only the owner can change billing and invoices."
+        : "You need editor access for this action.",
+    data: { code: "insufficient_role" },
+  });
 }
 
 export async function requireTeamMembership(
@@ -30,8 +44,19 @@ export async function requireTeamMembership(
   }
 
   if (!hasRoleAtLeast(membership.role, requiredRole)) {
-    throw new ORPCError("UNAUTHORIZED");
+    throw insufficientRoleError(requiredRole);
   }
 
   return membership.role;
+}
+
+export async function requireAgencyRole(
+  actorUserId: string,
+  teamId: string,
+  requiredRole: WorkspaceTeamRole,
+  now?: Date,
+) {
+  const role = await requireTeamMembership(actorUserId, teamId, requiredRole);
+  await assertAgencyEntitled(teamId, now);
+  return role;
 }

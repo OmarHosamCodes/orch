@@ -7,7 +7,9 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import type {
   AgencyProject,
   AgencyProjectTask,
@@ -26,6 +28,7 @@ import {
 import { useAgencyProjectTasksForChooserQuery } from "@/features/shared/agency-task-chooser-catalog";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import { statusLabel } from "@/features/task-management/agency-task-status";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   buildAgencyTaskChooserSections,
   type ChooserClientGroup,
@@ -40,12 +43,13 @@ import {
   type TaskChooserKeyboardItem,
 } from "@/features/time-tracking/agency-task-chooser-keyboard";
 
-type Project = Pick<AgencyProject, "id" | "clientId" | "clientName" | "name"> & {
-  colorHueId?: number | null;
-};
+type Project = Pick<
+  AgencyProject,
+  "id" | "clientId" | "clientName" | "name" | "colorHueId" | "iconKey"
+>;
 type AgencyTask = Pick<
   AgencyProjectTask,
-  "id" | "projectId" | "title" | "status" | "assignedToTeam" | "assignees"
+  "id" | "projectId" | "title" | "status" | "assignedToTeam" | "assignees" | "iconKey"
 >;
 
 type AgencyTaskChooserClientOption = {
@@ -127,6 +131,7 @@ export type AgencyTaskChooserViewModel = {
   activeOptionKey: string | null;
   activeOptionDomId: string | undefined;
   createPriority: "default" | "demoted" | "elevated";
+  canEditRecords: boolean;
   statusLabel: (status: TaskStatus | undefined) => string;
   createTaskOpen: boolean;
   createTaskProjectId: string;
@@ -191,6 +196,11 @@ export function useAgencyTaskChooser(
   const [createTaskProjectId, setCreateTaskProjectId] = useState("");
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
   const favoritesQuery = useAgencyFavoritesQuery(teamId);
   const templatesQuery = useAgencyProjectTemplatesQuery(teamId);
   const toggleFavorite = useAgencyOpsStore((state) => state.toggleFavorite);
@@ -246,6 +256,7 @@ export function useAgencyTaskChooser(
       clientId: cached?.clientId ?? "",
       clientName: fallbackClientName ?? cached?.clientName ?? "",
       colorHueId: cached?.colorHueId ?? null,
+      iconKey: cached?.iconKey ?? null,
     };
   }, [fallbackClientName, fallbackProjectId, fallbackProjectName, projectsById, selectedProject]);
 
@@ -284,72 +295,6 @@ export function useAgencyTaskChooser(
       }),
     [chooserProjects, chooserTasks, favoriteProjectIds, favoriteTaskIds, searchTerm],
   );
-
-  // #region agent log
-  useEffect(() => {
-    if (!open || pickProject) return;
-    const projectIds = new Set(chooserProjects.map((project) => project.id));
-    const orphaned = chooserTasks.filter((task) => !projectIds.has(task.projectId));
-    const visibleTaskCount =
-      sections.favorites.reduce((sum, entry) => sum + entry.tasks.length, 0) +
-      sections.clientGroups.reduce(
-        (sum, group) =>
-          sum + group.projects.reduce((inner, entry) => inner + entry.tasks.length, 0),
-        0,
-      );
-    fetch("http://127.0.0.1:7426/ingest/ccff2d3d-07dc-43a2-9258-da9208dfd805", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "ecaea0",
-      },
-      body: JSON.stringify({
-        sessionId: "ecaea0",
-        runId: "post-fix",
-        hypothesisId: "H4-H5",
-        location: "use-agency-task-chooser.ts:sections",
-        message: "task chooser catalog vs visible sections",
-        data: {
-          searchTermLen: searchTerm.trim().length,
-          projectCount: chooserProjects.length,
-          catalogTaskCount: chooserTasks.length,
-          orphanedTaskCount: orphaned.length,
-          orphanedSampleProjectIds: orphaned.slice(0, 5).map((task) => task.projectId),
-          visibleTaskCount,
-          queryTotal: chooserTasksQuery.total,
-          hasNextPage: chooserTasksQuery.hasNextPage,
-          isFetchingNextPage: chooserTasksQuery.isFetchingNextPage,
-          pages: chooserTasksQuery.data?.pages.length ?? 0,
-          // Sample: projects whose section task count is > 0 (proves search retained tasks).
-          projectsWithTasks: [
-            ...sections.favorites,
-            ...sections.clientGroups.flatMap((group) => group.projects),
-          ]
-            .filter((entry) => entry.tasks.length > 0)
-            .slice(0, 8)
-            .map((entry) => ({
-              name: entry.project.name,
-              client: entry.project.clientName,
-              taskCount: entry.tasks.length,
-              autoExpand: entry.searchExpandProject,
-            })),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }, [
-    open,
-    pickProject,
-    chooserProjects,
-    chooserTasks,
-    sections,
-    searchTerm,
-    chooserTasksQuery.total,
-    chooserTasksQuery.hasNextPage,
-    chooserTasksQuery.isFetchingNextPage,
-    chooserTasksQuery.data?.pages.length,
-  ]);
-  // #endregion
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -566,12 +511,14 @@ export function useAgencyTaskChooser(
   }
 
   function onOpenCreateTask(projectId: string) {
+    if (!canEditRecords) return;
     setOpen(false);
     setCreateTaskProjectId(projectId);
     setCreateTaskOpen(true);
   }
 
   function onOpenCreateProject() {
+    if (!canEditRecords) return;
     setOpen(false);
     setCreateProjectOpen(true);
   }
@@ -634,6 +581,7 @@ export function useAgencyTaskChooser(
     activeOptionKey,
     activeOptionDomId,
     createPriority,
+    canEditRecords,
     statusLabel,
     createTaskOpen,
     createTaskProjectId,

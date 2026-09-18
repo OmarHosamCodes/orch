@@ -24,7 +24,10 @@ export function WorkspaceSwotBlockEditor({
         const fieldId = `${block.id}-${quadrant.key}`;
 
         return (
-          <article key={quadrant.key} className="space-y-2 rounded-xl border border-muted p-4">
+          <article
+            key={quadrant.key}
+            className="space-y-2 rounded-surface border border-muted p-surface"
+          >
             <label htmlFor={fieldId} className="block text-sm font-semibold">
               {quadrant.label}
             </label>

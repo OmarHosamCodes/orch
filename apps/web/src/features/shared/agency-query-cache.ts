@@ -4,6 +4,7 @@ import type { AgencyProjectTask } from "@orch/api/schemas/agency-ops";
 import { getQueryClient } from "@/lib/query-client";
 import { orpc } from "@/lib/orpc";
 import { withAgencySyncQueryOptions } from "@/features/shared/agency-query-options";
+import { AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE } from "@/features/time-tracking/stores/agency-time-entries-log";
 
 type OrpcQueryMeta = {
   input?: Record<string, unknown>;
@@ -640,7 +641,12 @@ export async function refetchAgencyTimeEntriesListQueries(teamId: string) {
     withAgencySyncQueryOptions(
       {
         ...orpc.agencyOps.timeEntries.listMine.queryOptions({
-          input: { teamId, page: 1, pageSize: 20 },
+          input: {
+            teamId,
+            page: 1,
+            pageSize: AGENCY_TIME_ENTRIES_DEFAULT_PAGE_SIZE,
+            utcOffsetMinutes: new Date().getTimezoneOffset(),
+          },
         }),
       },
       "hot",

@@ -2,10 +2,11 @@ import { AlertTriangle, BarChart3 } from "lucide-react";
 import { type CSSProperties } from "react";
 
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
-import { AgencyProjectHueDot } from "@/features/shared/agency-project-hue-dot";
-import { AgencyProjectShareMorph } from "@/features/dashboard/agency-project-share-morph";
+import { AgencyDashboardHoursInstrument } from "@/features/dashboard/agency-dashboard-hours-instrument";
+import { DashboardTeamActivityCellView } from "@/features/dashboard/dashboard-team-activity-cell-view";
+import { DashboardTeamMemberActivitySheetView } from "@/features/dashboard/dashboard-team-member-activity-sheet-view";
+import { AgencyFirstRunEmptyView } from "@/features/shared/views/agency-first-run-empty-view";
 import {
-  agencyEmptyPanelClass,
   agencyErrorPanelClass,
   agencyFocusRingClass,
   agencyLabelClass,
@@ -14,7 +15,7 @@ import {
 } from "@/features/shared/agency-ui";
 import { projectHueFor } from "@/features/shared/project-palette";
 import { Button } from "@/ui/button";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { cn } from "@/lib/utils";
@@ -94,32 +95,31 @@ type AgencyDashboardSurfaceViewProps = {
 export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurfaceViewProps) {
   const {
     isLoading,
+    canViewTeamSummary,
     isError,
     errorMessage,
     summary,
-    rankedProjects,
     totalProjectHours,
     activeTimerByUserId,
     sortedTeamMembers,
     sortedRankedProjects,
+    selectedMemberSheet,
+    openMemberActivity,
+    closeMemberActivity,
     isDark,
-    hourBreakdownOpen,
-    setHourBreakdownOpen,
-    totalButtonId,
-    breakdownPanelId,
     onSelectProject,
     onSelectClient,
     onSelectMember,
+    onGoToTracker,
     refetch,
   } = viewModel;
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-full max-w-2xl rounded-xl" />
-        <Skeleton className="h-72 rounded-2xl" />
-      </div>
-    );
+    return <SurfaceShimmer className="min-h-72" label="Loading dashboard" />;
+  }
+
+  if (!canViewTeamSummary) {
+    return null;
   }
 
   if (isError) {
@@ -137,129 +137,29 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
 
   return (
     <div className="space-y-6 pb-6">
-      {summary && summary.totalEntries > 0 ? (
-        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-default pb-3 text-xs">
-          <div>
-            <span className={agencyLabelClass}>Total time</span>
-            <span className={cn("ml-2", agencyMetricClass)}>
-              {formatDuration(summary.totalSeconds)}
-            </span>
-          </div>
-          <div className="min-w-0 max-w-xs">
-            <span className={agencyLabelClass}>Top project</span>
-            <span className="ml-2 truncate font-semibold text-highlighted">
-              {summary.topProject?.projectName ?? "None"}
-            </span>
-          </div>
-          <div className="min-w-0 max-w-xs">
-            <span className={agencyLabelClass}>Top client</span>
-            <span className="ml-2 truncate font-semibold text-highlighted">
-              {summary.topClient?.clientName ?? "None"}
-            </span>
-          </div>
-          <div>
-            <span className={agencyLabelClass}>Active timers</span>
-            <span className={cn("ml-2", agencyMetricClass, "text-primary")}>
-              {summary.activeTimerCount}
-            </span>
-          </div>
-        </div>
-      ) : null}
-
       {!summary || summary.totalEntries === 0 ? (
-        <div className={agencyEmptyPanelClass}>
-          <BarChart3 className="mx-auto size-7 text-muted" />
-          <p className="mt-4 text-sm font-bold text-highlighted">No time tracked in this range.</p>
-          <p className="mt-1 text-xs text-muted">
-            Track time on Work, then adjust filters if needed.
-          </p>
-        </div>
+        <AgencyFirstRunEmptyView
+          icon={BarChart3}
+          title="No time tracked in this range"
+          body="Start a timer, then hours land here."
+          primaryLabel="Start tracking"
+          onPrimary={onGoToTracker}
+        />
       ) : (
         <div className="space-y-6">
-          <section className="grid gap-4 [content-visibility:auto] lg:grid-cols-[22rem_minmax(0,1fr)]">
-            <div className={cn(agencyPanelClass, "relative overflow-hidden p-4")}>
-              <p className={agencyLabelClass}>Project share</p>
-              <AgencyProjectShareMorph
-                projects={rankedProjects}
-                totalSeconds={summary.totalSeconds}
-                externalSeconds={summary.projectShareMetrics.externalSeconds}
-                internalSeconds={summary.projectShareMetrics.internalSeconds}
-                internalBillableSeconds={summary.projectShareMetrics.internalBillableSeconds}
-                paidSeconds={summary.projectShareMetrics.paidSeconds}
-                isDark={isDark}
-                open={hourBreakdownOpen}
-                onOpen={() => setHourBreakdownOpen(true)}
-                onClose={() => setHourBreakdownOpen(false)}
-                totalButtonId={totalButtonId}
-                breakdownPanelId={breakdownPanelId}
-              />
-            </div>
-            <div className={cn(agencyPanelClass, "p-4")}>
-              <p className={agencyLabelClass}>Ranked projects</p>
-              {rankedProjects.length === 0 ? (
-                <p className="mt-4 text-xs text-muted">No project breakdown in this range.</p>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {sortedRankedProjects.map((project) => {
-                    const seconds = Math.round(project.hours * 3_600);
-                    const share =
-                      totalProjectHours > 0 ? (project.hours / totalProjectHours) * 100 : 0;
-                    return (
-                      <div
-                        key={project.projectId}
-                        className="grid gap-2 text-xs md:grid-cols-[minmax(12rem,1fr)_6rem_minmax(12rem,1.5fr)_3.5rem] md:items-center"
-                      >
-                        <div className="group/project flex min-w-0 items-center gap-2">
-                          <AgencyProjectHueDot projectId={project.projectId} className="size-2" />
-                          <div className="min-w-0">
-                            <button
-                              type="button"
-                              className={cn(
-                                "block max-w-full truncate text-left font-semibold text-highlighted transition-colors hover:text-primary",
-                                agencyFocusRingClass,
-                              )}
-                              onClick={() => onSelectProject?.(project.projectId)}
-                            >
-                              {project.projectName}
-                            </button>
-                            {project.clientName ? (
-                              <button
-                                type="button"
-                                className={cn(
-                                  "block max-w-full truncate text-left text-[10px] font-medium text-muted",
-                                  "max-h-0 opacity-0 transition-[max-height,opacity,color] duration-200 ease-out",
-                                  "group-hover/project:max-h-4 group-hover/project:opacity-100",
-                                  "group-focus-within/project:max-h-4 group-focus-within/project:opacity-100",
-                                  "hover:text-highlighted",
-                                  agencyFocusRingClass,
-                                )}
-                                onClick={() => onSelectClient?.(project.clientId)}
-                              >
-                                {project.clientName}
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-                        <span className={cn(agencyMetricClass, "text-muted md:text-right")}>
-                          {formatDuration(seconds)}
-                        </span>
-                        <div className="h-3 overflow-hidden rounded-sm bg-elevated">
-                          <ProjectHueFill
-                            projectId={project.projectId}
-                            className="block h-full"
-                            style={{ width: `${Math.max(2, share)}%` }}
-                            isDark={isDark}
-                          />
-                        </div>
-                        <span className={cn(agencyMetricClass, "text-muted md:text-right")}>
-                          {share.toFixed(1)}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+          <section className="[content-visibility:auto]">
+            <AgencyDashboardHoursInstrument
+              projects={sortedRankedProjects}
+              totalProjectHours={totalProjectHours}
+              totalSeconds={summary.totalSeconds}
+              externalSeconds={summary.projectShareMetrics.externalSeconds}
+              internalSeconds={summary.projectShareMetrics.internalSeconds}
+              internalBillableSeconds={summary.projectShareMetrics.internalBillableSeconds}
+              paidSeconds={summary.projectShareMetrics.paidSeconds}
+              isDark={isDark}
+              onSelectProject={onSelectProject}
+              onSelectClient={onSelectClient}
+            />
           </section>
 
           <section className={cn(agencyPanelClass, "overflow-hidden")}>
@@ -271,17 +171,20 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
             </header>
             <div className="overflow-x-auto">
               <TooltipProvider delayDuration={120}>
-                <table className="w-full min-w-[62rem] text-left text-xs">
+                <table className="w-full table-fixed text-left text-xs">
+                  <colgroup>
+                    <col className="w-[14rem]" />
+                    <col />
+                    <col className="w-[7.5rem]" />
+                    <col className="w-[10rem]" />
+                  </colgroup>
                   <thead className="border-b border-default bg-elevated text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
                     <tr>
                       <th scope="col" className="px-4 py-2.5">
                         Team member
                       </th>
                       <th scope="col" className="px-4 py-2.5">
-                        Latest activity
-                      </th>
-                      <th scope="col" className="px-4 py-2.5">
-                        Current
+                        Activity
                       </th>
                       <th scope="col" className="px-4 py-2.5 text-right">
                         Total tracked
@@ -300,8 +203,16 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
                             description: liveTimer.description,
                             projectName: liveTimer.projectName,
                             clientName: liveTimer.clientName ?? null,
+                            startedAt: liveTimer.startedAt,
                           }
-                        : member.latestEntry;
+                        : member.latestEntry
+                          ? {
+                              description: member.latestEntry.description,
+                              projectName: member.latestEntry.projectName,
+                              clientName: member.latestEntry.clientName,
+                              startedAt: member.latestEntry.startedAt,
+                            }
+                          : null;
 
                       return (
                         <tr
@@ -334,45 +245,19 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
                               </div>
                             </div>
                           </td>
-                          <td className="max-w-sm px-4 py-3">
-                            {activity ? (
-                              <div className="min-w-0">
-                                <div className="flex min-w-0 items-center gap-1.5">
-                                  {isTracking ? (
-                                    <span
-                                      className="size-1.5 shrink-0 rounded-full bg-primary"
-                                      aria-hidden
-                                    />
-                                  ) : null}
-                                  <p className="truncate font-semibold text-highlighted">
-                                    {activity.description || "(no description)"}
-                                  </p>
-                                </div>
-                                <p className="truncate text-[11px] text-muted">
-                                  {activity.clientName
-                                    ? `${activity.projectName} · ${activity.clientName}`
-                                    : activity.projectName}
-                                </p>
-                              </div>
-                            ) : (
-                              <span className="text-muted">No activity</span>
+                          <td className="max-w-0 px-4 py-3">
+                            <DashboardTeamActivityCellView
+                              activity={activity}
+                              isTracking={isTracking}
+                              onOpen={() => openMemberActivity(member.userId)}
+                            />
+                          </td>
+                          <td
+                            className={cn(
+                              "whitespace-nowrap px-4 py-3 text-right",
+                              agencyMetricClass,
                             )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={cn(
-                                "inline-flex items-center rounded-full bg-elevated px-2 py-1 text-[11px] font-bold text-muted",
-                                isTracking && "gap-1.5",
-                              )}
-                              aria-label={isTracking ? "Timer running" : "Idle"}
-                            >
-                              {isTracking ? (
-                                <span className="size-1.5 rounded-full bg-primary" aria-hidden />
-                              ) : null}
-                              {isTracking ? "In progress" : "Idle"}
-                            </span>
-                          </td>
-                          <td className={cn("px-4 py-3 text-right", agencyMetricClass)}>
+                          >
                             {formatDuration(member.totalSeconds)}
                           </td>
                           <td className="px-4 py-3">
@@ -405,6 +290,16 @@ export function AgencyDashboardSurfaceView({ viewModel }: AgencyDashboardSurface
           </section>
         </div>
       )}
+
+      <DashboardTeamMemberActivitySheetView
+        member={selectedMemberSheet}
+        isDark={isDark}
+        open={selectedMemberSheet !== null}
+        onOpenChange={(open) => {
+          if (!open) closeMemberActivity();
+        }}
+        onOpenProfile={onSelectMember}
+      />
     </div>
   );
 }

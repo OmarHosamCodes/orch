@@ -197,7 +197,7 @@ export function WorkspaceSkillsHeatMapBlockEditor({
         />
       </div>
 
-      <div className="rounded-xl border border-muted bg-muted p-5">
+      <div className="rounded-surface border border-muted bg-card p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-foreground">Skills matrix</p>
@@ -266,7 +266,7 @@ export function WorkspaceSkillsHeatMapBlockEditor({
             onClick={initializeDimensions}
           >
             <Plus />
-            Initialize Default Dimensions
+            Initialize defaults
           </Button>
         </div>
       ) : block.members.length === 0 ? (

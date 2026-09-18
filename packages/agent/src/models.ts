@@ -2,12 +2,9 @@ import type { Model } from "@openrouter/sdk/models";
 import { env } from "@orch/env/server";
 import { z } from "zod";
 
+import { resolveBudgetModel } from "./budget-model";
 import { createOpenRouterClient } from "./client";
-import {
-  resolveModelForTurn as resolveModelForTurnSync,
-  type ModelPromptSignals,
-  type ResolveModelForTurnResult,
-} from "./model-routing";
+import type { ModelPromptSignals, ResolveModelForTurnResult } from "./model-routing";
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_PRESET, type AgentModelPreset } from "./types";
 
 const MODEL_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -405,15 +402,17 @@ export async function resolveOpenRouterModelForTurn(args: {
   signals: ModelPromptSignals;
   content?: string;
 }): Promise<ResolveModelForTurnResult> {
-  const catalog = await listOpenRouterModels();
   const preset = args.preset ?? DEFAULT_AGENT_MODEL_PRESET;
-
-  return resolveModelForTurnSync({
-    models: catalog.models,
-    defaultModel: catalog.defaultModel,
-    preset,
-    pinnedModelId: args.pinnedModelId,
-    signals: args.signals,
-    content: args.content,
+  const status = await getOpenRouterAccountStatus().catch(() => null);
+  const modelId = resolveBudgetModel({
+    remainingCreditsUsd: status?.availableCredits ?? status?.limitRemaining ?? null,
+    freeToggle: preset.free,
   });
+
+  return {
+    model: null,
+    modelId,
+    pinnedCleared: Boolean(args.pinnedModelId && args.pinnedModelId !== modelId),
+    reason: "auto",
+  };
 }

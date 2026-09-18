@@ -31,8 +31,28 @@ type TeamSummary = {
   updatedAt: string;
 };
 
+type TeamInvite = {
+  id: string;
+  teamId: string;
+  teamName: string;
+  teamImage: string | null;
+  invitedUserId: string;
+  invitedEmail: string;
+  invitedName: string;
+  invitedAvatar: string | null;
+  invitedByUserId: string;
+  invitedByName: string;
+  invitedByAvatar: string | null;
+  role: TeamRole;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+  updatedAt: string;
+  respondedAt: string | null;
+};
+
 type TeamDetail = TeamSummary & {
   members: TeamMember[];
+  pendingInvites: TeamInvite[];
 };
 
 type TeamStoreState = {
@@ -60,14 +80,31 @@ type TeamStoreState = {
     userId: string,
     workspaceRefetch: () => Promise<unknown>,
   ) => Promise<void>;
+  seatInviteTeamId: string | null;
+  clearSeatInvite: () => void;
+  agencySettingsLaunch: AgencySettingsLaunchRequest | null;
+  requestAgencySettings: (launch: AgencySettingsLaunchRequest) => void;
+  clearAgencySettingsLaunch: () => void;
 };
 
-function createPendingMemberId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return `pending-${crypto.randomUUID()}`;
+const SEAT_REQUIRED_MESSAGE = "Every member needs a seat. Add a seat to invite them.";
+
+export type AgencySettingsLaunchRequest = {
+  pane: "general" | "members" | "billing";
+  membersInviteAutofocus?: boolean;
+};
+
+function getOrpcErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined;
   }
 
-  return `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const direct = (error as { data?: { code?: string } }).data?.code;
+  if (direct) {
+    return direct;
+  }
+
+  return (error as { error?: { data?: { code?: string } } }).error?.data?.code;
 }
 
 async function refreshTeamData(teamId: string) {
@@ -87,8 +124,13 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   memberEmail: "",
   memberRole: "viewer",
   createTeamPending: false,
+  seatInviteTeamId: null,
+  agencySettingsLaunch: null,
 
   setSelectedTeamId: (teamId) => set({ selectedTeamId: teamId }),
+  clearSeatInvite: () => set({ seatInviteTeamId: null }),
+  requestAgencySettings: (launch) => set({ agencySettingsLaunch: launch }),
+  clearAgencySettingsLaunch: () => set({ agencySettingsLaunch: null }),
   setIsTeamAsideCompact: (compact) => set({ isTeamAsideCompact: compact }),
   setTeamNameDraft: (name) => set({ teamNameDraft: name }),
   setMemberEmail: (email) => set({ memberEmail: email }),
@@ -275,60 +317,30 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
 
     const queryClient = getQueryClient();
     const detailKey = teamDetailQueryKey(teamId);
-    const previousTeamDetail = queryClient.getQueryData<TeamDetail>(detailKey);
-    const pendingMemberId = createPendingMemberId();
-    const timestamp = new Date().toISOString();
-    const optimisticMember: TeamMember = {
-      teamId,
-      userId: pendingMemberId,
-      userName: userEmail.split("@")[0] || userEmail,
-      userEmail,
-      userAvatar: null,
-      role: memberRole,
-      joinedAt: timestamp,
-      updatedAt: timestamp,
-    };
-
-    queryClient.setQueryData<TeamDetail | undefined>(detailKey, (current) =>
-      current ? { ...current, members: [...current.members, optimisticMember] } : current,
-    );
 
     try {
-      const addedMember = await orpcClient.team.members.add({
+      await orpcClient.team.members.add({
         teamId,
         userEmail,
         role: memberRole,
       });
 
-      queryClient.setQueryData<TeamDetail | undefined>(detailKey, (current) => {
-        if (!current) return current;
-
-        const replacedMembers = current.members.map((member) =>
-          member.userId === pendingMemberId ? addedMember : member,
-        );
-        const hasRealMember = replacedMembers.some(
-          (member) => member.userId === addedMember.userId,
-        );
-
-        return {
-          ...current,
-          members: hasRealMember ? replacedMembers : [...replacedMembers, addedMember],
-        };
-      });
+      await queryClient.invalidateQueries({ queryKey: detailKey });
 
       set({ memberEmail: "", memberRole: "viewer" });
-      toast.success("Member added", {
-        description: `${userEmail} has been added to the team.`,
+      toast.success("Invite sent", {
+        description: `${userEmail} can accept in Orch.`,
       });
     } catch (error) {
-      if (previousTeamDetail) {
-        queryClient.setQueryData(detailKey, previousTeamDetail);
+      if (getOrpcErrorCode(error) === "seat_required") {
+        toast.error("Add a seat", { description: SEAT_REQUIRED_MESSAGE });
+        set({ seatInviteTeamId: teamId });
+        return;
       }
-      toast.error("Failed to add member", {
+
+      toast.error("Failed to send invite", {
         description: getErrorMessage(error, "Please try again."),
       });
-    } finally {
-      await refreshTeamData(teamId);
     }
   },
 

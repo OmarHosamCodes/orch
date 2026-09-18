@@ -1,3 +1,4 @@
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,11 +10,12 @@ import {
 } from "@/features/shared/format-rate";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import {
-  canSaveMyTasksEdit,
+  canSubmitMyTasksEditDialog,
   myTasksEditDraftFromTask,
   type MyTasksEditDraft,
 } from "@/features/task-management/agency-my-tasks-edit-draft";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import { orpc } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -33,6 +35,8 @@ export type AgencyMyTasksEditDialogViewModel = {
   members: AgencyMemberOption[];
   title: string;
   setTitle: (value: string) => void;
+  iconKey: AgencyEntityIconKey | null;
+  setIconKey: (value: AgencyEntityIconKey | null) => void;
   assignedToTeam: boolean;
   setAssignedToTeam: (value: boolean) => void;
   assigneeUserIds: string[];
@@ -40,6 +44,7 @@ export type AgencyMyTasksEditDialogViewModel = {
   estimateMinutes: number | null;
   setEstimateMinutes: (value: number | null) => void;
   isOwner: boolean;
+  canEditRecords: boolean;
   billableRateDraft: string;
   setBillableRateDraft: (value: string) => void;
   billableRateCurrency: string;
@@ -60,6 +65,7 @@ export type AgencyMyTasksEditDialogViewModel = {
 function emptyDraft(): MyTasksEditDraft {
   return {
     title: "",
+    iconKey: null,
     assignedToTeam: false,
     assigneeUserIds: [],
     estimateMinutes: null,
@@ -89,7 +95,7 @@ export function useAgencyMyTasksEditDialog({
     ...teamDetailQueryOptions(teamId),
     enabled: Boolean(teamId) && open,
   });
-  const isOwner = teamQuery.data?.role === "owner";
+  const { isOwner, canEditRecords } = agencyTeamCapabilities(teamQuery.data?.role);
 
   const fxRatesQuery = useQuery({
     ...orpc.agencyOps.fxRates.list.queryOptions({
@@ -153,7 +159,8 @@ export function useAgencyMyTasksEditDialog({
         )
       : null;
 
-  const canSubmit = canSaveMyTasksEdit({
+  const canSubmit = canSubmitMyTasksEditDialog({
+    canEditRecords,
     draft,
     baseline,
     pending,
@@ -162,6 +169,10 @@ export function useAgencyMyTasksEditDialog({
 
   function setTitle(value: string) {
     setDraft((prev) => ({ ...prev, title: value }));
+  }
+
+  function setIconKey(value: AgencyEntityIconKey | null) {
+    setDraft((prev) => ({ ...prev, iconKey: value }));
   }
 
   function setAssignedToTeam(value: boolean) {
@@ -198,7 +209,7 @@ export function useAgencyMyTasksEditDialog({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canEditRecords || !canSubmit) return;
     setEditError(null);
     try {
       const rateChanged =
@@ -215,6 +226,7 @@ export function useAgencyMyTasksEditDialog({
         teamId,
         taskId: task.id,
         title: draft.title.trim(),
+        iconKey: draft.iconKey !== baseline.iconKey ? draft.iconKey : undefined,
         assignedToTeam: draft.assignedToTeam,
         assigneeUserIds: draft.assignedToTeam ? [] : draft.assigneeUserIds,
         estimateMinutes: draft.estimateMinutes,
@@ -237,6 +249,8 @@ export function useAgencyMyTasksEditDialog({
     members,
     title: draft.title,
     setTitle,
+    iconKey: draft.iconKey,
+    setIconKey,
     assignedToTeam: draft.assignedToTeam,
     setAssignedToTeam,
     assigneeUserIds: draft.assigneeUserIds,
@@ -244,6 +258,7 @@ export function useAgencyMyTasksEditDialog({
     estimateMinutes: draft.estimateMinutes,
     setEstimateMinutes,
     isOwner,
+    canEditRecords,
     billableRateDraft: draft.billableRateDraft,
     setBillableRateDraft,
     billableRateCurrency: draft.billableRateCurrency,

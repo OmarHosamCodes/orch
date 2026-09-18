@@ -19,6 +19,42 @@ describe("OrchTurnStreamTransport", () => {
     expect(await transport.reconnectToStream()).toBeNull();
   });
 
+  test("reconnectToStream tails subscribe when a runId was started", async () => {
+    const transport = new OrchTurnStreamTransport();
+    transport.rememberRun("agent-run-1", 0);
+    transport.subscribeRun = async (_input, options) => {
+      options.onEvent({ type: "token", delta: "hi" });
+      options.onEvent({
+        type: "completed",
+        conversation: { id: "c1" } as never,
+        userMessage: { id: "u1" } as never,
+        assistantMessage: { id: "a1", content: "hi" } as never,
+        createdConversation: false,
+        workspaceSnapshot: null,
+        stopped: false,
+      });
+    };
+    const stream = await transport.reconnectToStream();
+    expect(stream).not.toBeNull();
+    const reader = stream!.getReader();
+    const first = await reader.read();
+    expect(first.done).toBe(false);
+  });
+
+  test("reconnectToStream forwards the caller abort signal", async () => {
+    const transport = new OrchTurnStreamTransport();
+    transport.rememberRun("agent-run-1", 0);
+    const listener = new AbortController();
+    let seenSignal: AbortSignal | undefined;
+    transport.subscribeRun = async (_input, options) => {
+      seenSignal = options.signal;
+    };
+    const stream = await transport.reconnectToStream({ abortSignal: listener.signal });
+    expect(stream).not.toBeNull();
+    await stream!.getReader().read();
+    expect(seenSignal).toBe(listener.signal);
+  });
+
   test("fills Orch extras from getContext when Thread send omits body", async () => {
     const transport = new OrchTurnStreamTransport(() => ({
       surface: "canvas",

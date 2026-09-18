@@ -1,15 +1,18 @@
-import { Check, ChevronDown, Plus, Search, UserRound, UsersRound } from "lucide-react";
+import { Check, Plus, UserRound, UsersRound, X } from "lucide-react";
 
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { shouldShowAssigneeStackPlus } from "@/features/shared/choosers/agency-member-stack";
-import { Input } from "@/ui/input";
+import {
+  AgencyPickerRow,
+  AgencyPickerSearch,
+  AgencyPickerTrigger,
+} from "@/features/shared/pickers/agency-picker-shell";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import type { AgencyMemberChooserViewModel } from "@/features/shared/choosers/use-agency-member-chooser";
 import {
   agencyAvatarStackRingClass,
   agencyFocusRingClass,
-  agencyInputPlaceholderClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +88,13 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
               stackVisible.map((member, index) => (
                 <span
                   key={member.userId}
-                  className={cn("relative", index > 0 && "-ml-2")}
+                  className={cn(
+                    "relative",
+                    "transition-[margin,transform,opacity] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+                    "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-[var(--motion-duration-fast)]",
+                    "motion-reduce:animate-none motion-reduce:transition-none",
+                    index > 0 && "-ml-2",
+                  )}
                   style={{ zIndex: index + 1 }}
                 >
                   <AgencyMemberAvatar
@@ -135,69 +144,81 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
             ) : null}
           </button>
         ) : (
-          <button
-            type="button"
+          <AgencyPickerTrigger
+            variant="chip"
+            open={open}
+            filled={
+              mode === "single"
+                ? Boolean(selectedMember)
+                : assignedToTeam || (multiple?.selectedUserIds.length ?? 0) > 0
+            }
             disabled={disabled || loading}
-            className={cn(
-              "flex h-8 w-full min-w-0 items-center gap-1.5 rounded-full border border-default bg-default px-2.5 text-[11px] font-semibold",
-              "transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
-              agencyFocusRingClass,
-              mode === "single" && selectedMember
-                ? "text-highlighted"
-                : mode === "multiple" &&
-                    (assignedToTeam || (multiple?.selectedUserIds.length ?? 0) > 0)
-                  ? "text-highlighted"
-                  : "text-muted",
-              "motion-reduce:transition-none",
-              className,
-            )}
             aria-label="Assignee"
-          >
-            {loading ? null : assignedToTeam ? (
-              <UsersRound className="size-3.5 shrink-0 text-muted" aria-hidden />
-            ) : selectedMember ? (
-              <AgencyMemberAvatar
-                name={selectedMember.userName}
-                userId={selectedMember.userId}
-                avatarUrl={selectedMember.userAvatar}
-                size="sm"
-              />
-            ) : (
-              <UserRound className="size-3.5 shrink-0 text-muted" aria-hidden />
-            )}
-            <span className="min-w-0 flex-1 truncate text-left">
-              {loading ? "Loading…" : triggerLabel}
-            </span>
-            <ChevronDown className="size-3 shrink-0 opacity-70" aria-hidden />
-          </button>
+            className={cn("w-full max-w-none", className)}
+            bareGlyph
+            glyph={
+              loading ? null : assignedToTeam ? (
+                <UsersRound className="size-3.5 shrink-0 text-muted" aria-hidden />
+              ) : selectedMember ? (
+                <AgencyMemberAvatar
+                  name={selectedMember.userName}
+                  userId={selectedMember.userId}
+                  avatarUrl={selectedMember.userAvatar}
+                  size="sm"
+                />
+              ) : (
+                <UserRound className="size-3.5 shrink-0 text-muted" aria-hidden />
+              )
+            }
+            label={loading ? "Loading…" : triggerLabel}
+          />
         )}
       </PopoverTrigger>
-      <PopoverContent
-        align={contentAlign}
-        className="w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
-      >
-        <div className="border-b border-white/10 p-2">
-          <div className="relative">
-            <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted" />
-            <Input
-              autoFocus
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
-              className={cn(
-                "h-9 rounded-lg border-default bg-default pl-8 text-sm",
-                agencyInputPlaceholderClass,
-              )}
-            />
+      <PopoverContent align={contentAlign} size="chooser" className="z-[60] overflow-hidden">
+        <AgencyPickerSearch
+          autoFocus
+          value={searchTerm}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+          ariaLabel="Search members"
+        />
+        {mode === "multiple" && !assignedToTeam && stackMembers.length > 0 ? (
+          <div className="flex flex-wrap gap-1 border-b border-border px-2 py-2">
+            {stackMembers.map((member) => (
+              <button
+                key={member.userId}
+                type="button"
+                className={cn(
+                  "inline-flex max-w-full items-center gap-1 rounded-full border border-default bg-elevated py-0.5 pr-0.5 pl-0.5",
+                  "transition-colors hover:bg-muted",
+                  agencyFocusRingClass,
+                  "motion-reduce:transition-none",
+                )}
+                onClick={() => multiple?.onToggleMember(member.userId)}
+                aria-label={`Remove ${member.userName}`}
+              >
+                <AgencyMemberAvatar
+                  name={member.userName}
+                  userId={member.userId}
+                  avatarUrl={member.userAvatar}
+                  size="sm"
+                  className="size-5 rounded-full"
+                />
+                <span className="max-w-[7rem] truncate text-[11px] font-medium text-highlighted">
+                  {member.userName}
+                </span>
+                <X className="mr-1 size-3 text-muted" aria-hidden />
+              </button>
+            ))}
           </div>
-        </div>
-        <div className="max-h-[24rem] overflow-x-hidden overflow-y-auto px-2 py-2">
+        ) : null}
+        <div className="min-h-0 max-h-[24rem] overflow-x-hidden overflow-y-auto p-1">
           {loading ? (
-            <div className="space-y-2 px-3 py-1">
+            <SkeletonGroup className="space-y-2 px-3 py-1">
               {[1, 2, 3].map((rowIndex) => (
                 <Skeleton key={rowIndex} className="h-8 rounded-lg" />
               ))}
-            </div>
+            </SkeletonGroup>
           ) : (
             <>
               {showTeamOption ? (
@@ -210,6 +231,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={() => multiple?.onToggleEntireTeam()}
+                  aria-pressed={assignedToTeam}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UsersRound className="size-3 text-muted" aria-hidden />
@@ -238,6 +260,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={() => single?.onClearSelection()}
+                  aria-pressed={!single?.value}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UsersRound className="size-3 text-muted" aria-hidden />
@@ -263,6 +286,7 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                     "motion-reduce:transition-none",
                   )}
                   onClick={single?.onSelectUnassigned}
+                  aria-pressed={isUnassigned}
                 >
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted">
                     <UserRound className="size-3 text-muted" aria-hidden />
@@ -290,39 +314,26 @@ export function AgencyMemberChooserView({ view }: AgencyMemberChooserViewProps) 
                       : (multiple?.isMemberSelected(member.userId) ?? false);
 
                   return (
-                    <button
+                    <AgencyPickerRow
                       key={member.userId}
-                      type="button"
-                      className={cn(
-                        "flex w-full min-w-0 items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-default/80",
-                        selected && "bg-primary/10 hover:bg-primary/10",
-                        agencyFocusRingClass,
-                        "motion-reduce:transition-none",
-                      )}
-                      onClick={() =>
+                      bareGlyph
+                      glyph={
+                        <AgencyMemberAvatar
+                          name={member.userName}
+                          userId={member.userId}
+                          avatarUrl={member.userAvatar}
+                          size="sm"
+                        />
+                      }
+                      label={member.userName}
+                      query={searchTerm}
+                      selected={selected}
+                      onSelect={() =>
                         mode === "single"
                           ? single?.onSelectMember(member.userId)
                           : multiple?.onToggleMember(member.userId)
                       }
-                    >
-                      <AgencyMemberAvatar
-                        name={member.userName}
-                        userId={member.userId}
-                        avatarUrl={member.userAvatar}
-                        size="sm"
-                      />
-                      <span
-                        className={cn(
-                          "min-w-0 flex-1 truncate text-xs font-semibold",
-                          selected ? "text-primary" : "text-highlighted",
-                        )}
-                      >
-                        {member.userName}
-                      </span>
-                      {mode === "multiple" && selected ? (
-                        <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
-                      ) : null}
-                    </button>
+                    />
                   );
                 })
               )}

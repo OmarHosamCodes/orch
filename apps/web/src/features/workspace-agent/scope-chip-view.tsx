@@ -23,6 +23,8 @@ function chipPrefix(kind: AgentScopeRef["kind"]) {
       return "Project";
     case "member":
       return "Member";
+    case "client":
+      return "Client";
     case "task":
       return "Task";
     case "taskMessage":

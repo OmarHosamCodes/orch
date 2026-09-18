@@ -1,0 +1,370 @@
+{
+  "run_id": "trun_b093793b0f7c4ead85c341de138a4f3d",
+  "interaction_id": "trun_b093793b0f7c4ead85c341de138a4f3d",
+  "result_url": "https://platform.parallel.ai/play/deep-research/trun_b093793b0f7c4ead85c341de138a4f3d",
+  "status": "completed",
+  "output": {
+    "basis": [
+      {
+        "field": "executive_summary",
+        "reasoning": "Assessment reasoning: The field_answer provides a multi-point executive summary covering core UX patterns for viewing large timesheets/invoices with progressive disclosure, client-chapter organization, virtualization, paper-like navigation (TOC, thumbnails), jump/navigation aids, dual review modes, and cautions about truncated previews vs complete reports. It aligns with the field_description's intent to describe an executive overview of production patterns. The excerpts include explicit references to Detailed report (Clockify), client/project grouping (Harvest), virtualization guidance, and table-of-contents/navigation concepts, which substantiate the key claims in the field_answer. Overall, the answer appears to address the expected aspects in the field description, so completeness is true and the answer is supported by excerpts.",
+        "citations": [
+          {
+            "url": "https://clockify.me/help/reports/detailed-report",
+            "excerpts": [
+              "You can open the detailed report by hovering over **Reports** in the Clockify sidebar and clicking **Detailed** .",
+              "Detailed report lets you see, export, and edit full details of all the time entries.",
+              "It can be useful when you need a file that contains all the details of each time entry (project, client, description, task, user, email, tags, who approved, billable status, start date, start time, end date, end time, duration, billable rate, billable amount, currency).",
+              "The export is also useful when you need more control over grouping time entries.",
+              "Like in any other time report, you can use [filters, change timeframe](https://clockify.me/help/reports/filtering-reports) , [save and share](https://clockify.me/help/reports/sharing-reports) the report, [create invoice from report](https://clockify.me/help/reports/create-invoice-from-reports) and [print and export](https://clockify.me/help/reports/exporting-reports) the results.",
+              "If you\u2019d like to see the reports that categorize your time and expenses by project, client, user, group, tag, or specific date, explore our [Summary report](https://clockify.me/help/reports/summary-report) .",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** .",
+              "From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view.",
+              "This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project.",
+              "[Detailed report export](https://clockify.me/help/reports/exporting-reports) is available in **PDF** (Free plan), or **CSV/Excel** (Basic plan or higher).",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** . From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view. This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project."
+            ],
+            "title": "Detailed report - Clockify Help"
+          },
+          {
+            "url": "https://www.getharvest.com/",
+            "excerpts": [
+              "Harvest: Time Tracking Software With Invoicing Organize Your clients, projects, and tasks.",
+              "Clients Group projects by client for clean reporting.",
+              "Projects Define scope, billing method,"
+            ],
+            "title": "Harvest: Time Tracking Software With Invoicing"
+          },
+          {
+            "url": "https://tanstack.com/table/latest/docs/framework/react/guide/virtualization",
+            "excerpts": [
+              "Virtualization (React) Guide | TanStack Table React Docs The React examples use useVirtualizerfrom @tanstack/react-virtual.",
+              "TanStack Table still owns rows, columns, headers, cells, sizing, sorting, filtering, and other table state; TanStack Virtual decides which item indexes should render for the current scroll position."
+            ],
+            "title": "Virtualization (React) Guide | TanStack Table React Docs"
+          },
+          {
+            "url": "https://www.nngroup.com/articles/table-of-contents",
+            "excerpts": [
+              "Table of Contents: The Ultimate Design Guide - NN/G When designing a table of contents, carefully compare different placement and styling options to maximize usability.",
+              "The table of contents has been a standard feature in book publication for centuries, helping readers locate specific chapters by providing an exact page number for each section.",
+              "Table of Contents: The Ultimate Design Guide - NN/G When designing a table of contents, carefully compare different placement and styling options to maximize usability. The table of contents has been a standard feature in book publication for centuries, helping readers locate specific chapters by providing an exact page number for each section."
+            ],
+            "title": "Table of Contents: The Ultimate Design Guide - NN/G"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "field": "1_the_core_pattern_complete_data_with_progressive_disclosure",
+        "reasoning": "Reasoning: The field_answer covers the core principle of progressive disclosure and distinguishes between data completeness and presentation for scanability. It cites Clockify's Detailed vs Summary reports, scope controls (date range, filters, number of clients/rows), and the idea that collapsed groups should show summary counts. It mentions expanding to reveal full rows, and that the full export comes from the Detailed report, which aligns with the need for complete data availability behind progressive disclosure. However, the user query asked for explicit interaction models (sticky chapter navigation, jump-to-client, collapse/expand, mini-map, etc.). The field_answer mentions collapse/expand and an index-style approach but does not explicitly describe all the listed interaction models (e.g., sticky chapter nav, mini-map, one-client pager). Because the answer touches on the essential completeness concept and offers a partial mapping to interactive patterns, but omits several specified interaction details, I judge completeness as not fully satisfied. Excerpts do support the references to Clockify Detailed/Summary reports, exporting, filtering, and the idea of grouping vs detail, which aligns with parts of the answer.",
+        "citations": [
+          {
+            "url": "https://clockify.me/help/reports/detailed-report",
+            "excerpts": [
+              "You can open the detailed report by hovering over **Reports** in the Clockify sidebar and clicking **Detailed** .",
+              "Detailed report lets you see, export, and edit full details of all the time entries.",
+              "It can be useful when you need a file that contains all the details of each time entry (project, client, description, task, user, email, tags, who approved, billable status, start date, start time, end date, end time, duration, billable rate, billable amount, currency).",
+              "The export is also useful when you need more control over grouping time entries.",
+              "Like in any other time report, you can use [filters, change timeframe](https://clockify.me/help/reports/filtering-reports) , [save and share](https://clockify.me/help/reports/sharing-reports) the report, [create invoice from report](https://clockify.me/help/reports/create-invoice-from-reports) and [print and export](https://clockify.me/help/reports/exporting-reports) the results.",
+              "If you\u2019d like to see the reports that categorize your time and expenses by project, client, user, group, tag, or specific date, explore our [Summary report](https://clockify.me/help/reports/summary-report) .",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** .",
+              "From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view.",
+              "This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project.",
+              "[Detailed report export](https://clockify.me/help/reports/exporting-reports) is available in **PDF** (Free plan), or **CSV/Excel** (Basic plan or higher).",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** . From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view. This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project."
+            ],
+            "title": "Detailed report - Clockify Help"
+          },
+          {
+            "url": "https://clockify.me/help/reports/exporting-reports",
+            "excerpts": [
+              "You can export data and download reports in **PDF** (Free plan) or **CSV/Excel** (Basic plan or higher), and then send the export to your accountant/payroll, keep as a personal backup, or import data into a spreadsheet and analyze the results.",
+              "**To get a full export (with all time entries** ), go to [Detailed report](https://clockify.me/help/reports/detailed-report) , choose the longest date range, and export the results.",
+              "Only the data covered in the report will be exported.",
+              "If you have filters applied, the export will only contain data that matches the selected filter criteria.",
+              "**Grouping options** in [Summary report](https://clockify.me/help/reports/summary-report) will affect how your exports look like.",
+              "**Export of Summary report doesn\u2019t contain timestamps** .",
+              "If you need timestamps, you should export Detailed report.",
+              "Only the data covered in the report will be exported. If you have filters applied, the export will only contain data that matches the selected filter criteria. **Grouping options** in [Summary report](https://clockify.me/help/reports/summary-report) will affect how your exports look like."
+            ],
+            "title": "Export reports - Clockify Help"
+          }
+        ],
+        "confidence": "low"
+      },
+      {
+        "field": "2_what_the_named_production_products_suggest",
+        "reasoning": "Assessment steps:\n- Field aims to list production products and provide evidence pattern/limitations, based on the provided input. The field answer enumerates Clockify, Harvest, Productive, AgencyAnalytics with a description of information model, UX pattern, and caveat. It also includes a concluding synthesis about a two-axis viewer pattern. \n- Completeness: The answer directly lists the four products, describes information-model/UX pattern/limitation for each, and aligns with the information present in excerpts. It also concludes with a synthesis that matches the provided information about hierarchy and two axes viewer. Therefore, the field answer covers all expected aspects: product name, information model, UX pattern, limitation, and a final integrative insight. No required elements appear missing.\n- Excerpts support: The excerpts include detailed references for Clockify (detailed report), Harvest (client/project/task organization), Productive (grouping/export), and AgencyAnalytics (client-scoped reports). These corroborate the claims in the field answer. The evidence mapping is consistent.\n- Confidence: High.\n",
+        "citations": [
+          {
+            "url": "https://clockify.me/help/reports/detailed-report",
+            "excerpts": [
+              "You can open the detailed report by hovering over **Reports** in the Clockify sidebar and clicking **Detailed** .",
+              "Detailed report lets you see, export, and edit full details of all the time entries.",
+              "It can be useful when you need a file that contains all the details of each time entry (project, client, description, task, user, email, tags, who approved, billable status, start date, start time, end date, end time, duration, billable rate, billable amount, currency).",
+              "The export is also useful when you need more control over grouping time entries.",
+              "Like in any other time report, you can use [filters, change timeframe](https://clockify.me/help/reports/filtering-reports) , [save and share](https://clockify.me/help/reports/sharing-reports) the report, [create invoice from report](https://clockify.me/help/reports/create-invoice-from-reports) and [print and export](https://clockify.me/help/reports/exporting-reports) the results.",
+              "If you\u2019d like to see the reports that categorize your time and expenses by project, client, user, group, tag, or specific date, explore our [Summary report](https://clockify.me/help/reports/summary-report) .",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** .",
+              "From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view.",
+              "This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project.",
+              "[Detailed report export](https://clockify.me/help/reports/exporting-reports) is available in **PDF** (Free plan), or **CSV/Excel** (Basic plan or higher).",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** . From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view. This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project."
+            ],
+            "title": "Detailed report - Clockify Help"
+          },
+          {
+            "url": "https://www.getharvest.com/",
+            "excerpts": [
+              "Harvest: Time Tracking Software With Invoicing Organize Your clients, projects, and tasks.",
+              "Clients Group projects by client for clean reporting.",
+              "Projects Define scope, billing method,"
+            ],
+            "title": "Harvest: Time Tracking Software With Invoicing"
+          },
+          {
+            "url": "https://help.productive.io/en/articles/2179623-tracking-and-managing-time-entries-in-budgets",
+            "excerpts": [
+              "Track time spent on services within a budget.",
+              "Manage and analyze time entries by grouping, editing, and exporting reports in Productive.",
+              "Tracking time spent working on client or internal projects helps you gain insights into your budget's profitability and overall efficiency.",
+              "Track time spent on services within a budget. Manage and analyze time entries by grouping, editing, and exporting reports in Productive. Tracking time spent working on client or internal projects helps you gain insights into your budget's profitability and overall efficiency."
+            ],
+            "title": "Tracking and Managing Time Entries in Budgets - Productive"
+          },
+          {
+            "url": "https://help.productive.io/en/articles/3732255-reports-overview",
+            "excerpts": [
+              "Reports Overview | Productive Help Center Creating and customizing reports in Productive is designed to be both simple and flexible, allowing you to tailor insights to your specific needs.",
+              "With a few clicks, you can generate custom reports that provide valuable data for your projects and teams.",
+              "Reports Overview | Productive Help Center Creating and customizing reports in Productive is designed to be both simple and flexible, allowing you to tailor insights to your specific needs. With a few clicks, you can generate custom reports that provide valuable data for your projects and teams."
+            ],
+            "title": "Reports Overview | Productive Help Center"
+          },
+          {
+            "url": "https://help.agencyanalytics.com/en/articles/15592180-create-manage-reports",
+            "excerpts": [
+              "Create & Manage Reports | AgencyAnalytics Knowledge Base Create a Report Step One: From within a Client, click Reports in the top navigation bar, then click Create Report in the upper right corner to open the creation wizard."
+            ],
+            "title": "Create & Manage Reports | AgencyAnalytics Knowledge Base"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "field": "3_recommended_screen_chapter_rail_plus_report_canvas",
+        "reasoning": "Reasoning: The field_answer proposes a two-pane desktop layout (chapter rail + report canvas) and discusses two modes (Table view and Paper view), plus TOC rationale and navigation features like previous/next, page counters, bookmarks/thumbnails. It references sticky headers with considerations about space, and notes that the chapter rail can be collapsed to an icon rail on small screens. It touches on interaction ideas such as selecting a client jumping to its chapter, and maintaining a stable rail in both modes. However, the user query asked for explicit coverage of: - collapse/expand groups, - one-client pager, - mini-map, - explicit jump-to-client behavior (present but not elaborated beyond selection), - interaction models like sticky chapter nav and a more explicit \u201cjump-to-client\u201d and grouping behavior, - cadence of infinite vs truncated previews, - a clear outline/TOC anchored to pages vs anchors, - and cross-reference with specific patterns for timesheet/invoice previews. The field_answer does not clearly guarantee collapse/expand groups, a dedicated one-client pager, or a mini-map, which are explicitly requested. Therefore, completeness is likely false, though several requested concepts are touched and several excerpts support parts of the answer. Confidence in the field answer being complete is moderate but not high.",
+        "citations": [
+          {
+            "url": "https://www.nngroup.com/articles/table-of-contents",
+            "excerpts": [
+              "Table of Contents: The Ultimate Design Guide - NN/G When designing a table of contents, carefully compare different placement and styling options to maximize usability.",
+              "The table of contents has been a standard feature in book publication for centuries, helping readers locate specific chapters by providing an exact page number for each section.",
+              "Table of Contents: The Ultimate Design Guide - NN/G When designing a table of contents, carefully compare different placement and styling options to maximize usability. The table of contents has been a standard feature in book publication for centuries, helping readers locate specific chapters by providing an exact page number for each section."
+            ],
+            "title": "Table of Contents: The Ultimate Design Guide - NN/G"
+          },
+          {
+            "url": "https://helpx.adobe.com/acrobat/using/page-thumbnails-bookmarks-pdfs.html",
+            "excerpts": [
+              "Follow these steps to use Adobe Acrobat to create thumbnails and bookmarks in PDFs."
+            ],
+            "title": "Page thumbnails and bookmarks in PDFs, Adobe Acrobat | Adobe ..."
+          },
+          {
+            "url": "https://www.nngroup.com/articles/sticky-headers",
+            "excerpts": [
+              "Sticky headers inherently take up space on the screen that could be used for content, so it\u2019s important that you use that space responsibly.",
+              "Maximize the Content-to-Chrome Ratio by Keeping It Small.",
+              "Sticky Headers: 5 Ways to Make Them Better - NN/G Here are 5 tips to ensure that your sticky header\u2019s design helps, not hinders, your users.",
+              "Maximize the Content-to-Chrome Ratio by Keeping It Small. Sticky headers inherently take up space on the screen that could be used for content, so it\u2019s important that you use that space responsibly."
+            ],
+            "title": "Sticky Headers: 5 Ways to Make Them Better - NN/G"
+          }
+        ],
+        "confidence": "low"
+      },
+      {
+        "field": "4_grouped_tables_and_virtualization_without_losing_trust",
+        "reasoning": "Assessment notes:\n- The user field query asks for guidance on 4_grouped_tables_and_virtualization_without_losing_trust, focusing on grouped tables, virtualization, UX interactions, and maintaining scanability.\n- The field_answer provides a detailed hierarchical table structure (Report -> Client -> Project/Invoice -> Entry), with virtualization concepts, sticky headers, IDs, state retention, loading placeholders, and layout decisions. It aligns with the requested topics (grouped tables, virtualization, UX interactions, state handling).\n- Completeness judgment: The answer directly addresses the requested themes (hierarchy, virtualization separation of concerns, preservation of state, initial expansion behavior, placeholders, and URL/view state). It seems to cover the key aspects needed to implement or describe a robust virtualized grouped table with trust/truth in data presentation. No explicit missing items jump out given typical expectations for this topic. Therefore, completeness is true.\n- Excerpts provided discuss TanStack Table ownership of state and the virtualization layer\u2019s role, which corroborates the field_answer\u2019s claims about separation of concerns and virtualization behavior. This supports the conceptual accuracy of the field_answer, though there is not a verbatim requirement to cite those exact lines. Overall, excerpts support the core virtualization claims.\n- Confidence: Moderate to high, given alignment with documented virtualization principles in the excerpts.",
+        "citations": [
+          {
+            "url": "https://tanstack.com/table/latest/docs/framework/react/guide/virtualization",
+            "excerpts": [
+              "Virtualization (React) Guide | TanStack Table React Docs The React examples use useVirtualizerfrom @tanstack/react-virtual.",
+              "TanStack Table still owns rows, columns, headers, cells, sizing, sorting, filtering, and other table state; TanStack Virtual decides which item indexes should render for the current scroll position."
+            ],
+            "title": "Virtualization (React) Guide | TanStack Table React Docs"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "field": "5_interaction_models_and_when_to_use_them",
+        "reasoning": "Completeness assessment reasoning:\n- The field answer provides a structured table of six interaction models (Sticky chapter navigation, Jump-to-client, Collapse/expand groups, One-client pager, Mini-map, Paper/PDF page navigation) with sections for Best use, Recommended behavior, and Avoid when. It also includes a descriptive note about a hybrid default approach and a mini-map design concept. This aligns with the field_description asking for interaction models and when to use them, so the completeness is true.\n- The excerpts provided are limited (only one excerpt about a Document minimap rail). While it touches on a related concept (minimap rail) that is part of the Mini-map interaction model, it does not comprehensively corroborate all six models or the exact recommended behaviors. Therefore, the field answer is not fully supported by the excerpts. The support assessment is likely false.\n- Overall, I judge completeness as true (the field answer covers the required content) and support as false (excerpts do not fully support the specific assertions in the field answer).",
+        "citations": [
+          {
+            "url": "https://antjanus.com/patterns/document-minimap-rail",
+            "excerpts": [
+              "Document minimap rail \u2014 UI Patterns Each rail node is a real anchor to its section containing two lines: a name row with an 11px marker dot and the section title, and a dimmed metadata line indented by the dot's width plus gap (19px) so its text aligns under the title, carrying whatever per-section fact is useful \u2014 a date, a count, an author."
+            ],
+            "title": "Document minimap rail \u2014 UI Patterns"
+          }
+        ],
+        "confidence": "medium"
+      },
+      {
+        "field": "6_truncated_samples_versus_infinite_dump_tables",
+        "reasoning": "Assessment reasoning:\n- The field_name suggests a comparison between truncated samples vs infinite dump tables. The field_answer discusses both concepts, their tradeoffs, and proposes a structured viewer approach with features (sticky navigation, anchors, pagination at client level, persisted views, etc.).\n- It also provides guidance for audit-sensitive work (completeness contract) and notes issues with infinite dumps (navigation, cognitive load).\n- The answer directly addresses the pros/cons and offers design guidance, which aligns with likely expectations for the field. Therefore, completeness appears true.\n- There are no excerpts provided to verify alignment, so support by excerpts cannot be established.\n- If excerpts were available, we would verify that the content in field_answer is reflected in them. Given missing excerpts, mark supported as false for now.",
+        "citations": [],
+        "confidence": "medium"
+      },
+      {
+        "field": "7_accessibility_and_operational_guardrails",
+        "reasoning": "Reasoning: The field answer provides a comprehensive set of accessibility guardrails aligned with WCAG principles: semantic structure and relationships visible to assistive tech, keyboard operability and focus indicators, keyboard navigation patterns, jump behavior with focus announcements, reflow behavior at narrow widths, and table-specific horizontal scrolling with a fixed identity column for wide tables. Given the field likely asks for accessibility and operational guardrails for complex, large data views (timesheets/invoices), the answer covers major required aspects (structure, keyboard access, focus, reflow, and table scrolling constraints). The excerpts include WCAG references for info/relationships, keyboard access, focus-visible, and reflow, which support these points. Therefore completeness = true. The excerpts provided also support the key assertions in the field answer (e.g., keyboard operability, focus indicators, and reflow guidance), so supported = true.",
+        "citations": [
+          {
+            "url": "http://w3.org/TR/WCAG22",
+            "excerpts": [
+              "Success Criterion 1.3.1 Info and Relationships [Understanding Info and Relationships](https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html) | [How to Meet Info and Relationships](https://www.w3.org/WAI/WCAG22/quickref/) (Level A) Information, structure , and relationships conveyed through presentation can be programmatically determined or are available in text.",
+              "Make all functionality available from a keyboard."
+            ],
+            "title": "http://w3.org/TR/WCAG22"
+          },
+          {
+            "url": "http://w3.org/WAI/WCAG22/Understanding/focus-visible.html",
+            "excerpts": [
+              "Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible."
+            ],
+            "title": "http://w3.org/WAI/WCAG22/Understanding/focus-visible.html"
+          },
+          {
+            "url": "http://w3.org/WAI/WCAG21/Understanding/reflow.html",
+            "excerpts": [
+              "Content can be presented without loss of information or functionality, and without requiring scrolling in two dimensions for: Vertical scrolling content at a width equivalent to 320 CSS pixels ; Horizontal scrolling content at a height equivalent to 256 CSS pixels ."
+            ],
+            "title": "http://w3.org/WAI/WCAG21/Understanding/reflow.html"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "field": "synthesis",
+        "reasoning": "Evaluation reasoning:\n- The field_description/prompt asks for a synthesis of patterns for viewing complete large timesheets/invoices with arrangements for navigation, scalability, and interaction models, plus a recommended product decision. \n- The provided field_answer articulates four pattern layers (complete-record, business hierarchy, configurable analysis, client-delivery shell) and how to combine them into a single complete, filterable report model with synchronized projections (grouped table, client pager, paginated paper preview). It also lists interaction features (sticky navigation, jump-to-client, collapse/expand, mini-map, one-client paging) and defends against trade-offs between completeness and visual load. \n- It appears to address all required aspects: multi-layer design, recommended combination approach, and concrete interaction features. Therefore completeness should be true. \n- Excerpts supplied include references to Clockify detailed reports, Harvest, Productive, and AgencyAnalytics, which support the notion of bills/clients/projects grouping, detailed exports, and reporting navigation tools. This supports the claim that the field_answer is grounded in available sources, so supported should be true.\n- No contradictions found in the provided text with respect to the excerpts; the answer aligns with the excerpts\u2019 themes (detailed reports, grouping, exports, client/project organization).",
+        "citations": [
+          {
+            "url": "https://clockify.me/help/reports/detailed-report",
+            "excerpts": [
+              "You can open the detailed report by hovering over **Reports** in the Clockify sidebar and clicking **Detailed** .",
+              "Detailed report lets you see, export, and edit full details of all the time entries.",
+              "It can be useful when you need a file that contains all the details of each time entry (project, client, description, task, user, email, tags, who approved, billable status, start date, start time, end date, end time, duration, billable rate, billable amount, currency).",
+              "The export is also useful when you need more control over grouping time entries.",
+              "Like in any other time report, you can use [filters, change timeframe](https://clockify.me/help/reports/filtering-reports) , [save and share](https://clockify.me/help/reports/sharing-reports) the report, [create invoice from report](https://clockify.me/help/reports/create-invoice-from-reports) and [print and export](https://clockify.me/help/reports/exporting-reports) the results.",
+              "If you\u2019d like to see the reports that categorize your time and expenses by project, client, user, group, tag, or specific date, explore our [Summary report](https://clockify.me/help/reports/summary-report) .",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** .",
+              "From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view.",
+              "This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project.",
+              "[Detailed report export](https://clockify.me/help/reports/exporting-reports) is available in **PDF** (Free plan), or **CSV/Excel** (Basic plan or higher).",
+              "To view detailed time entries of employees on a specific project, navigate to the **Reports > Detailed Report** . From there, use the **Project** filter to select your desired project and the **Team** filter to include the specific employees you want to view. This will generate a comprehensive, line-by-line list of all individual time entries logged by those team members for that project."
+            ],
+            "title": "Detailed report - Clockify Help"
+          },
+          {
+            "url": "https://www.getharvest.com/",
+            "excerpts": [
+              "Harvest: Time Tracking Software With Invoicing Organize Your clients, projects, and tasks.",
+              "Clients Group projects by client for clean reporting.",
+              "Projects Define scope, billing method,"
+            ],
+            "title": "Harvest: Time Tracking Software With Invoicing"
+          },
+          {
+            "url": "https://help.productive.io/en/articles/2179623-tracking-and-managing-time-entries-in-budgets",
+            "excerpts": [
+              "Track time spent on services within a budget.",
+              "Manage and analyze time entries by grouping, editing, and exporting reports in Productive.",
+              "Tracking time spent working on client or internal projects helps you gain insights into your budget's profitability and overall efficiency.",
+              "Track time spent on services within a budget. Manage and analyze time entries by grouping, editing, and exporting reports in Productive. Tracking time spent working on client or internal projects helps you gain insights into your budget's profitability and overall efficiency."
+            ],
+            "title": "Tracking and Managing Time Entries in Budgets - Productive"
+          },
+          {
+            "url": "https://help.agencyanalytics.com/en/articles/15592180-create-manage-reports",
+            "excerpts": [
+              "Create & Manage Reports | AgencyAnalytics Knowledge Base Create a Report Step One: From within a Client, click Reports in the top navigation bar, then click Create Report in the upper right corner to open the creation wizard."
+            ],
+            "title": "Create & Manage Reports | AgencyAnalytics Knowledge Base"
+          }
+        ],
+        "confidence": "high"
+      }
+    ],
+    "content": {
+      "executive_summary": "- **Complete Data, Progressive Disclosure**: The strongest production pattern is not to remove rows, but to keep the full report available while showing client summaries first and detail on demand. Clockify explicitly describes its Detailed report as showing, exporting, and editing full details for all time entries, including a comprehensive line-by-line list. [executive_summary[0]] [6][117.111] -> Make completeness visible, but do not make every detail visually dominant at once.\n- **Client Chapters**: Harvest organizes work around clients, projects, and tasks, and explicitly supports grouping projects by client for clean reporting. [executive_summary[1]] [8][170.2] -> Treat each client as a navigable chapter with a subtotal, row count, and expandable detail.\n- **Virtualized Rendering**: Virtualization can render only the rows currently in view while the table still owns rows, columns, headers, sorting, filtering, and state. [executive_summary[2]] [1] -> Use virtualization for performance, but preserve a complete logical dataset and accurate counts.\n- **Paper Preview Navigation**: Table-of-contents patterns help people locate chapters, while PDF tools use thumbnails and bookmarks as document navigation aids. [executive_summary[3]] [3][156.0] -> Give a paper-like preview a persistent outline, page count, thumbnails, and direct page navigation rather than one giant canvas.\n- **Jump Beats Scroll**: A long report should support client search, alphabetic or recent-client navigation, and direct chapter jumps. -> Do not make users prove completeness by scrolling through an endless table.\n- **Two Review Modes**: A continuous grouped table is best for cross-client comparison; a one-client pager is best for approval, audit, or invoice review. -> Offer both without changing the underlying report or filters.\n- **Samples Are for Demonstration**: A truncated preview is useful for showing the visual design, but it is not a trustworthy review surface because the user cannot know whether omitted rows contain an exception. -> Label samples explicitly and provide a clear transition to the complete report.\n- **Infinite Dump Is Not a Navigation Model**: A technically complete infinite list still makes recall, return-to-item, and cross-client orientation difficult. -> Pair virtual scrolling with a stable chapter rail, sticky context, and saved location.",
+      "1_the_core_pattern_complete_data_with_progressive_disclosure": "The design goal is not \"show everything at once.\" It is \"make everything available, and make the current slice understandable.\" That distinction matters for timesheets and invoices because users need both audit confidence and fast scanning. A report should state its scope at the top: date range, filters, number of clients, number of rows, total hours or amount, and whether the view is complete or sampled.\n\nClockify is a useful case study because its Detailed report is explicitly positioned as a full-record surface. It supports viewing, exporting, and editing full details for all time entries, with fields such as project, client, description, task, user, dates, duration, billable rate, and billable amount. [1_the_core_pattern_complete_data_with_progressive_disclosure[0]] [6][117.65] It also supports filters, time-range changes, saved and shared reports, invoice creation, printing, and export. [1_the_core_pattern_complete_data_with_progressive_disclosure[0]] [6] The lesson is that completeness comes from the data model and scope controls; scanability comes from the presentation layer.\n\nClockify also separates summary and detail. Its Summary report categorizes time and expenses by project, client, user, group, tag, or date, while the Detailed report provides line-by-line entries. [1_the_core_pattern_complete_data_with_progressive_disclosure[0]] [6][117.109-111] That is a strong information architecture for a large export: use summary rows as the navigational index, and reveal the full rows inside the selected group. Export behavior reinforces the distinction: the full export is obtained from Detailed report, while applied filters limit the export to the selected scope. [1_the_core_pattern_complete_data_with_progressive_disclosure[1]] [5][116.53][116.62-63]\n\nThe recommended rule is therefore: **never hide data by default without saying so; hide visual complexity by default, with counts and totals proving what is behind each collapsed group.** A collapsed client chapter should show \"Acme - 184 rows - 327.5 hours - $42,180\" rather than only \"Acme.\" Expanding it should expose the same rows that will appear in the export.",
+      "2_what_the_named_production_products_suggest": "| Product | Evidence of its information model | UX pattern to borrow | Limitation or caution |\n|---|---|---|---|\n| Clockify | Detailed reports expose full time-entry details, line by line, with filters, grouping-related reports, and PDF or CSV/Excel export options. [2_what_the_named_production_products_suggest[0]] [6][117.65][117.64][116.50] | Separate summary navigation from a complete detailed report; preserve the active filter and scope. | Do not make the detailed view a single undifferentiated wall of rows. |\n| Harvest | Harvest organizes clients, projects, and tasks, groups projects by client for reporting, and reviews weekly submitted time and expense entries for approval. [2_what_the_named_production_products_suggest[1]] [8][170.2][93.0] | Make client and project hierarchy the primary scan path; support an approval-oriented review state. | The hierarchy must not prevent a reviewer from reaching the underlying entry records. |\n| Productive | Productive supports grouping, editing, analyzing, and exporting time entries, including work on client or internal projects. [2_what_the_named_production_products_suggest[2]] [2] Its reports are customizable for project and team data. [2_what_the_named_production_products_suggest[3]] [12] | Let users choose the grouping dimension and switch between operational and management views. | Grouping should be stable and explainable; changing it must not silently change the report scope. |\n| AgencyAnalytics | Reports are created from within a specific client using the client context and Reports navigation. [2_what_the_named_production_products_suggest[4]] [9] | Use a client-first report shell when the viewer is intended for external client delivery. | This is a client-reporting navigation example, not evidence of a detailed timesheet-row viewer. Do not copy it as proof that a timesheet export should be client-paged. |\n\nThe common pattern is a hierarchy, not a flat dump. Clockify contributes the explicit complete-row model; Harvest contributes client/project/task organization; Productive contributes configurable grouping; AgencyAnalytics contributes a client-scoped report shell. Together they suggest a viewer with two axes: **where the user is in the report** and **which rows are visible within that location**.",
+      "3_recommended_screen_chapter_rail_plus_report_canvas": "Use a two-pane layout on desktop. The left pane is a narrow chapter rail; the right pane is the report canvas. The rail contains an overall summary followed by clients. Each client item includes name, row count, subtotal, status, and an optional exception badge. Selecting a client jumps the canvas to that chapter without removing other clients from the report.\n\nThe report canvas should offer two tabs or modes:\n\n1. **Table view** for filtering, comparison, approval, and editing.\n2. **Paper view** for reviewing the export as a paginated invoice or formal report.\n\nThe chapter rail should remain available in both modes, although it can collapse to an icon rail on small screens. A table of contents is valuable because its purpose is locating chapters, not merely decorating the page; NN/g describes a TOC as a mechanism for locating specific chapters with exact page references. [3_recommended_screen_chapter_rail_plus_report_canvas[0]] [3] In paper view, each client chapter can map to a page range. In table view, it maps to a row anchor and a virtual scroll position.\n\nFor paper view, use a page canvas with a page counter such as \"Client 7 of 42\" and \"Page 18 of 96.\" Add previous/next page controls, a page-number field, zoom, print, download, and a search field. A thumbnail strip is useful for visual orientation, while bookmarks or an outline are useful for semantic jumps. Adobe's PDF guidance explicitly covers thumbnails and bookmarks as PDF navigation mechanisms. [3_recommended_screen_chapter_rail_plus_report_canvas[1]] [10] The viewer should generate the same structure in the browser rather than create a separate, less navigable preview.\n\nFor table view, pin a compact report header containing scope and totals, then keep the column header visible. Sticky UI consumes screen area, so the sticky region should be small and focused; NN/g specifically warns that sticky headers take space away from content and recommends maximizing the content-to-chrome ratio. [3_recommended_screen_chapter_rail_plus_report_canvas[2]] [7] The client chapter row can become a second sticky context while its rows are visible, but only one context layer should be pinned at a time.",
+      "4_grouped_tables_and_virtualization_without_losing_trust": "The table should have a hierarchy such as:\n\n**Report -> Client -> Project or invoice section -> Entry row**\n\nAt the report level, show global totals and filters. At the client level, show subtotal, count, and status. At the project level, show its subtotal and count. At the entry level, show the fields needed for review. Use collapse and expand at every meaningful hierarchy level, but make the initial state intentional: expand the first client or the client selected from search, and collapse unrelated chapters.\n\nVirtualization is a rendering strategy, not a data-reduction strategy. TanStack's documentation makes the division explicit: the table owns rows, columns, headers, cells, sizing, sorting, filtering, and other table state, while the virtualizer decides which item indexes render for the current scroll position. [4_grouped_tables_and_virtualization_without_losing_trust[0]] [1] Implement the same separation. The report query should know all matching groups and counts; the browser should render only the visible rows plus a small buffer.\n\nImportant implementation details:\n\n- Keep group headers in the virtualized item stream so they can be sticky and addressable.\n- Give every client and row a stable ID, not an index that changes after filtering.\n- Preserve expanded groups, active client, selected rows, sort, filters, and scroll anchor in URL or view state.\n- Show loading placeholders only for data not yet fetched; do not make loaded rows look like an intentionally truncated sample.\n- Put the total row count beside the report title and each group count beside the group label.\n- If server-side paging is used, keep the user-facing model continuous and expose \"loaded\" versus \"total\" only when that distinction is real.\n- Keep the first columns, usually client, project, date, and description, visible while horizontal columns move.\n\nA good virtualized table feels like a complete document because navigation is semantic. A bad one feels like an infinite feed because the only available operation is scrolling.",
+      "5_interaction_models_and_when_to_use_them": "| Interaction model | Best use | Recommended behavior | Avoid when |\n|---|---|---|---|\n| Sticky chapter navigation | Long continuous table | Keep the current client and project context visible; show a compact \"Back to client list\" action. | The sticky stack takes more than a small portion of the viewport. |\n| Jump-to-client | Many clients or alphabetically distributed accounts | Search by client, use recent/favorites, show matching row count, then focus the chapter. | There are only a few clients visible at once. |\n| Collapse/expand groups | Mixed summary and detail review | Start with client summaries; expand one chapter, preserve state when navigating away. | Users need to compare every raw row side by side immediately. |\n| One-client pager | Approval, invoice proofing, client delivery | Show \"Client 7 of 42,\" previous/next, first/last, and a client selector. | Users need cross-client comparisons or global sorting. |\n| Mini-map | Extremely long reports with many chapters | Show anchored client nodes, chapter labels, and useful metadata such as count or amount. | The report is short or the mini-map becomes denser than the outline. |\n| Paper/PDF page navigation | Print fidelity and formal invoice review | Provide thumbnails, bookmarks, page number, chapter title, and page range. | Users need to edit or sort individual entries. |\n\nA mini-map should be semantic, not a decorative scrollbar. One useful pattern is a vertical rail where each node is a real anchor to a section and carries a title plus compact metadata. [5_interaction_models_and_when_to_use_them[0]] [13] For a timesheet, that metadata can be row count, hours, amount, or exception count. Clicking a node should jump to the chapter and update the active chapter in the main outline.\n\nThe best default is a hybrid: use a continuous grouped table for operations, add one-client pager controls for focused review, and offer a paper view for print validation. These are different lenses on the same complete report, not separate reports with potentially different data.",
+      "6_truncated_samples_versus_infinite_dump_tables": "A truncated sample preview answers the question \"What will this look like?\" It does not answer \"Is the report complete?\" Samples are appropriate in a template picker, onboarding flow, or dashboard card. They should contain an explicit label such as \"Preview - showing 20 of 12,438 rows,\" a scope summary, and a clear action to open the complete report. Never let a sample look like a successful export or silently omit clients.\n\nAn infinite dump table answers the completeness problem but creates a navigation problem. Users cannot easily tell how many clients remain, where a client begins, whether they have visited all exceptions, or how to return to a row after opening a detail panel. It also encourages users to scan by physical position rather than business hierarchy. Virtualization improves performance, but it does not solve those cognitive problems by itself.\n\nThe right comparison is not \"pagination versus no pagination.\" It is **unstructured scrolling versus structured continuity**. A structured viewer can use virtual scrolling internally while exposing client anchors, row counts, stable URLs, filters, saved views, and a persistent active chapter. It can also paginate at the client level without paginating the underlying dataset.\n\nFor audit-sensitive work, include a completeness contract near the title: \"All matching clients and rows shown; 42 clients; 12,438 rows; filters: January 1 to January 31; last updated 10:42 AM.\" If the system is still loading, say \"42 clients found; 8,000 of 12,438 rows loaded.\" The user should never infer completeness from how long the scrollbar looks.",
+      "7_accessibility_and_operational_guardrails": "The outline, chapter headers, and table relationships must exist in the accessible structure, not only in visual styling. WCAG requires that information, structure, and relationships conveyed through presentation be programmatically determinable or available in text. [7_accessibility_and_operational_guardrails[0]] [14] Give the report a real heading hierarchy, expose group state as expanded or collapsed, and associate cells with their headers.\n\nThe same view must work from the keyboard. WCAG requires keyboard availability for functionality, [7_accessibility_and_operational_guardrails[0]] [14] and a visible focus indicator for keyboard-operable interfaces. [7_accessibility_and_operational_guardrails[1]] [15] Provide keyboard shortcuts only as additions: arrow or tab navigation through the outline, Enter to open a client, and Escape to return focus to the rail. When a jump occurs, move focus to the destination heading and announce the new client context.\n\nAt narrow widths or increased text sizes, reflow ordinary content rather than forcing users into two-dimensional page scrolling. WCAG's Reflow guidance requires content to be presented without loss of information or functionality and without two-dimensional scrolling at the specified narrow viewport, except for content whose two-dimensional layout is essential. [7_accessibility_and_operational_guardrails[2]] [16] For wide invoice tables, provide a deliberate table-specific horizontal scroll region with a fixed identity column, rather than making the entire page scroll in both directions.",
+      "synthesis": "The four product examples point to different layers of the same solution. Clockify is the strongest reference for the **complete-record layer**: it distinguishes detailed line items from grouped summaries and lets users filter and export the full scope. [synthesis[0]] [6][117.104] Harvest is the clearest reference for the **business hierarchy layer**: client, project, and task relationships make reporting meaningful, while weekly approval makes review a workflow rather than passive browsing. [synthesis[1]] [8][170.2][93.0] Productive illustrates the **configurable analysis layer**, where grouping and custom reports support different operational questions. [synthesis[2]] [2][166.0-1] AgencyAnalytics illustrates the **client-delivery shell**, but its client-scoped report creation should not be mistaken for proof of a complete timesheet grid. [synthesis[3]] [9]\n\nThe main tension is between completeness and visual load. Collapsing groups reduces cognitive load but can feel like hiding data; virtualization reduces rendering cost but can feel like an infinite feed; pagination restores orientation but can obstruct cross-client comparison; paper preview improves print confidence but is weak for editing. The solution is not to pick one pattern. It is to keep one complete, filterable report model and expose multiple synchronized projections: grouped table, client pager, and paginated paper preview.\n\nThe recommended product decision is therefore: **build a complete report navigator, not a preview and not a dump table**. Make clients the primary chapters, make counts and totals prove completeness, use virtualized grouped rows for scale, keep chapter navigation sticky but small, add jump-to-client and optional mini-map for long reports, and use one-client paging only for focused review. That combination preserves trust, scanability, and print fidelity without asking users to read thousands of rows line by line."
+    },
+    "type": "json",
+    "beta_fields": null,
+    "mcp_tool_calls": null,
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "executive_summary": {
+          "type": "string",
+          "title": "Executive Summary"
+        },
+        "1_the_core_pattern_complete_data_with_progressive_disclosure": {
+          "type": "string",
+          "title": "1. The Core Pattern: Complete Data with Progressive Disclosure"
+        },
+        "2_what_the_named_production_products_suggest": {
+          "type": "string",
+          "title": "2. What the Named Production Products Suggest"
+        },
+        "3_recommended_screen_chapter_rail_plus_report_canvas": {
+          "type": "string",
+          "title": "3. Recommended Screen: Chapter Rail Plus Report Canvas"
+        },
+        "4_grouped_tables_and_virtualization_without_losing_trust": {
+          "type": "string",
+          "title": "4. Grouped Tables and Virtualization Without Losing Trust"
+        },
+        "5_interaction_models_and_when_to_use_them": {
+          "type": "string",
+          "title": "5. Interaction Models and When to Use Them"
+        },
+        "6_truncated_samples_versus_infinite_dump_tables": {
+          "type": "string",
+          "title": "6. Truncated Samples Versus Infinite Dump Tables"
+        },
+        "7_accessibility_and_operational_guardrails": {
+          "type": "string",
+          "title": "7. Accessibility and Operational Guardrails"
+        },
+        "synthesis": {
+          "type": "string",
+          "title": "Synthesis"
+        }
+      },
+      "required": [
+        "executive_summary",
+        "1_the_core_pattern_complete_data_with_progressive_disclosure",
+        "2_what_the_named_production_products_suggest",
+        "3_recommended_screen_chapter_rail_plus_report_canvas",
+        "4_grouped_tables_and_virtualization_without_losing_trust",
+        "5_interaction_models_and_when_to_use_them",
+        "6_truncated_samples_versus_infinite_dump_tables",
+        "7_accessibility_and_operational_guardrails",
+        "synthesis"
+      ]
+    }
+  }
+}

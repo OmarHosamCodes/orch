@@ -2,7 +2,6 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { AiUiArtifact } from "@orch/agent/types";
 import { Volume2, VolumeX } from "lucide-react";
 
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { StoppedRun } from "@/components/elements/stopped-run";
 import {
   EmptyState,
@@ -17,6 +16,7 @@ import {
   type OrchUIMessage,
 } from "@/features/workspace-agent/orch-ui-message";
 import { shouldShowStoppedRun } from "@/features/workspace-agent/workspace-agent-continue";
+import { Button } from "@/ui/button";
 import type { WorkspaceAgentQuickStart } from "@/features/workspace-agent/workspace-agent-quick-starts";
 import type { StickyDockItem } from "@/features/workspace-agent/sticky-dock";
 
@@ -26,6 +26,7 @@ export type WorkspaceAgentThreadMessageContextValue = {
   streamingMessageId: string | null;
   streamStopped: boolean;
   proposalBusyId: string | null;
+  proposalActionError: { proposalId: string; message: string } | null;
   planConfirmingId: string | null;
   answeredQuestionIds: ReadonlySet<string>;
   resolvedPlanIds: ReadonlySet<string>;
@@ -95,13 +96,16 @@ export function WorkspaceAgentReadAloudSlot() {
   const ctx = useContext(WorkspaceAgentThreadMessageContext);
   if (!ctx || !ctx.readAloudSupported) return null;
   return (
-    <TooltipIconButton
-      tooltip="Read aloud"
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="size-8 rounded-lg"
       aria-label={ctx.readAloudPlaying ? "Stop reading" : "Read aloud"}
       onClick={ctx.onToggleReadAloud}
     >
       {ctx.readAloudPlaying ? <VolumeX /> : <Volume2 />}
-    </TooltipIconButton>
+    </Button>
   );
 }
 

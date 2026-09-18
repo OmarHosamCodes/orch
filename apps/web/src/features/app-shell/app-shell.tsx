@@ -1,16 +1,21 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+
+import { GlobalGrain } from "@/components/global-grain";
 import { useLocation } from "@/lib/navigation";
 
-import { AppShellChrome } from "@/features/app-shell/app-shell-chrome";
-import { LogoLoader } from "@/features/app-shell/components/logo-loader";
+import { AppShellContextBar } from "@/features/app-shell/app-shell-context-bar";
+import { AppShellRail, AppShellRailOverlays } from "@/features/app-shell/app-shell-rail";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { useAppUpdateStore } from "@/features/app-shell/app-update-store";
 import { useAppUpdateWatcher } from "@/features/app-shell/hooks/use-app-update-watcher";
 import { useAppShellStore, useShellMode } from "@/features/app-shell/app-shell-store";
 import { useAgencyTrackingFavicon } from "@/features/time-tracking/hooks/use-agency-time-tracker";
 import { useAgencyActiveTimerQuery } from "@/features/shared/agency-queries";
 import { WorkspaceAgentHost } from "@/features/workspace-agent/workspace-agent-host";
+import { scheduleIdle } from "@/lib/schedule-idle";
 import { cn } from "@/lib/utils";
 import { useCurrentAgencyTeamStore } from "@/features/time-tracking/stores/agency-timer";
+import { TeamSeatInviteDialog } from "@/features/team/team-seat-invite-dialog";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const agencyTeamId = useCurrentAgencyTeamStore((s) => s.currentAgencyTeamId) ?? "";
@@ -23,10 +28,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const setCurrentPath = useAppShellStore((s) => s.setCurrentPath);
   const shellMode = useShellMode();
 
-  const railPinned = useAppShellStore((s) => s.railPinned);
   const toggleCommandPalette = useAppShellStore((s) => s.toggleCommandPalette);
 
   const isSpatialMode = shellMode === "spatial";
+  const [agentReady, setAgentReady] = useState(false);
+
+  useEffect(() => scheduleIdle(() => setAgentReady(true)), []);
 
   useEffect(() => {
     setCurrentPath(location.pathname);
@@ -50,23 +57,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [toggleCommandPalette]);
 
   return (
-    <div
-      className={cn(
-        "app-shell bg-background text-foreground",
-        isSpatialMode ? "app-shell--spatial" : "app-shell--execution",
-        railPinned && "app-shell--rail-pinned",
-      )}
-    >
-      <AppShellChrome />
+    <div className={cn("app-shell", isSpatialMode ? "app-shell--spatial" : "app-shell--execution")}>
+      <GlobalGrain />
+      <AppShellRail />
+      <AppShellContextBar />
       <main className="app-shell__main relative">
-        {children}
-        {isRefreshing ? (
-          <div className="absolute inset-0 z-[2]">
-            <LogoLoader placement="slot" label="Applying the update" />
-          </div>
-        ) : null}
+        <div className="app-shell__page-well relative min-h-0 flex-1">
+          {children}
+          {isRefreshing ? (
+            <SurfaceShimmer overlay className="z-[2]" label="Applying the update" />
+          ) : null}
+        </div>
       </main>
-      <WorkspaceAgentHost />
+      <AppShellRailOverlays />
+      {agentReady ? <WorkspaceAgentHost /> : null}
+      <TeamSeatInviteDialog />
     </div>
   );
 }

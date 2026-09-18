@@ -6,7 +6,7 @@ import {
 } from "@orch/workspace";
 import { z } from "zod";
 
-import { protectedProcedure, protectedProProcedure } from "../../procedures";
+import { protectedProcedure } from "../../procedures";
 import { captureKnowledgeAction } from "./knowledge-capture";
 import { getKnowledgeObject, listKnowledgeBoard, queryKnowledgeObjects } from "./knowledge-service";
 import {
@@ -44,7 +44,7 @@ export const workspaceRouter = {
     workspaceSnapshotOutputSchema.parse(await getWorkspaceSnapshot(context.session.user.id, {})),
   ),
   save: protectedProcedure.input(workspaceSaveInputSchema).handler(async ({ input, context }) => {
-    await assertCanSaveWorkspaceNodes(context.session.user.id, { nodeCount: input.nodes.length });
+    await assertCanSaveWorkspaceNodes(context.session.user.id, { nodes: input.nodes });
     return workspaceSaveOutputSchema.parse(
       await saveWorkspaceNodes(context.session.user.id, { nodes: input.nodes }),
     );
@@ -123,7 +123,7 @@ export const workspaceRouter = {
           await getWorkspaceMarketplaceItems(context.session.user.id, input),
         ),
       ),
-    save: protectedProProcedure
+    save: protectedProcedure
       .input(workspaceMarketplaceSaveInputSchema)
       .handler(async ({ input, context }) =>
         workspaceMarketplaceItemSchema.parse(

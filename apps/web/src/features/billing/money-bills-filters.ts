@@ -15,11 +15,11 @@ export const MONEY_BILLS_PARTY_OPTIONS: ReadonlyArray<{
   id: MoneyBillsPartyFilter;
   label: string;
 }> = [
-  { id: "all", label: "All" },
   { id: "client", label: "Clients" },
   { id: "team", label: "Team" },
-  { id: "adjustments", label: "Adjustments" },
   { id: "expenses", label: "Expenses" },
+  { id: "adjustments", label: "Adjustments" },
+  { id: "all", label: "All" },
 ];
 
 const MONEY_BILLS_STATUS_LABELS: Record<MoneyBillsStatusFilter, string> = {
@@ -32,7 +32,7 @@ const MONEY_BILLS_STATUS_LABELS: Record<MoneyBillsStatusFilter, string> = {
 export function moneyBillsPartyFilterFromSearch(value: string | null): MoneyBillsPartyFilter {
   return MONEY_BILLS_PARTY_OPTIONS.some((option) => option.id === value)
     ? (value as MoneyBillsPartyFilter)
-    : "all";
+    : "client";
 }
 
 export function moneyBillsStatusFilterFromSearch(

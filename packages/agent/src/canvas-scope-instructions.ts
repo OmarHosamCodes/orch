@@ -5,9 +5,9 @@ export function buildCanvasScopedPatchNote(input: {
   if (!node) return "";
   return [
     `Scoped node: ${node.id} (“${node.title}”).`,
-    "Draft or propose patches against this nodeId (block.patch / node.update).",
-    "Do not propose node.create unless the user explicitly asks for a new node.",
-    "After propose_canvas_action, ui_present kind workspaceBlock or workspaceNode, then ask for Approve.",
+    "Draft or apply patches against this nodeId (block.patch / node.update).",
+    "Do not create a new node unless the user explicitly asks for one.",
+    "After apply_canvas_action, tell the user how to Open the node.",
     "To link Agency: node.update agencyRef { teamId, projectId?, taskId? } on a team-visible node. Never invent ids.",
   ].join(" ");
 }

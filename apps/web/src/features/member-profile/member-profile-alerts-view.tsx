@@ -9,6 +9,7 @@ import {
   agencyFocusRingClass,
   agencyFormFieldClass,
   agencyFormLabelClass,
+  agencyPanelClass,
   agencyWorkCountBadgeClass,
   agencyWorkMetaClass,
   agencyWorkTitleClass,
@@ -25,10 +26,8 @@ import {
 } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
-
-const profilePanelClass = "rounded-xl border border-border bg-card";
 
 type AlertItem = MemberProfileAlertsViewModel["items"][number];
 
@@ -96,11 +95,11 @@ export function MemberProfileAlertsPanel({ alerts }: Props) {
   return (
     <>
       <section
-        className={cn(profilePanelClass, "p-4")}
+        className={cn(agencyPanelClass, "flex h-full min-h-0 min-w-0 flex-col overflow-hidden")}
         aria-labelledby="member-profile-alerts"
         aria-busy={alerts.loading || alerts.refreshing || undefined}
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-default px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <h2 id="member-profile-alerts" className={agencyWorkTitleClass}>
               Alerts
@@ -129,28 +128,25 @@ export function MemberProfileAlertsPanel({ alerts }: Props) {
         </div>
 
         {alerts.error ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="flex min-h-0 flex-1 flex-wrap items-center gap-2 px-4 py-3">
             <p className="text-sm text-destructive">{alerts.error}</p>
             <Button type="button" size="sm" variant="outline" onClick={alerts.retry}>
               Retry
             </Button>
           </div>
         ) : alerts.loading ? (
-          <div className="mt-3 space-y-2" aria-label="Loading alerts">
-            <Skeleton className="h-[4.75rem] w-full rounded-xl" />
-            <Skeleton className="h-[4.75rem] w-full rounded-xl" />
-          </div>
+          <SurfaceShimmer className="min-h-0 flex-1" label="Loading alerts" />
         ) : alerts.items.length === 0 ? (
-          <div className="mt-3 space-y-1 py-2">
+          <div className="flex min-h-0 flex-1 flex-col justify-center px-4 py-4">
             <p className="text-sm font-medium text-foreground">No open alerts</p>
-            <p className={agencyWorkMetaClass}>
+            <p className={cn(agencyWorkMetaClass, "mt-1 max-w-sm text-pretty")}>
               {alerts.canManage
                 ? "Pace and hours look fine for this member. Add an alert when something needs a follow-up."
                 : "Nothing needs your attention on this profile right now."}
             </p>
           </div>
         ) : (
-          <ul className="mt-1 flex list-none flex-col p-0">
+          <ul className="min-h-0 flex-1 list-none overflow-y-auto px-4">
             {alerts.items.map((alert) => (
               <li key={alert.id} className="min-w-0">
                 <AlertStripRow alert={alert} onOpen={() => alerts.openDetail(alert.id)} />

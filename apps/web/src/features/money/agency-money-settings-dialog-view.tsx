@@ -15,7 +15,7 @@ import { Checkbox } from "@/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import { type AgencyMoneySurfaceViewModel } from "./hooks/use-agency-money-surface";
@@ -88,11 +88,7 @@ function MoneySettingsDialog({
             )}
           >
             {settings.status === "loading" ? (
-              <div className="flex flex-1 flex-col gap-3 py-4" aria-busy="true">
-                <Skeleton className="h-7 w-36" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
+              <SurfaceShimmer className="min-h-48 my-4" label="Loading Money settings" />
             ) : settings.status === "error" ? (
               <div className={cn(agencyErrorPanelClass, "my-auto")} role="alert">
                 <p className="text-sm font-medium text-highlighted">Couldn’t load Money settings</p>

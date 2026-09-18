@@ -2,9 +2,9 @@ import { Clock, X } from "lucide-react";
 import { useState } from "react";
 
 import {
-  agencyFocusRingClass,
   agencyMyTasksFilterPillActiveClass,
   agencyMyTasksFilterPillClass,
+  agencyPickerChipTriggerClass,
 } from "@/features/shared/agency-ui";
 import {
   AGENCY_TASK_ESTIMATE_PRESETS,
@@ -57,18 +57,18 @@ export function AgencyMyTasksEstimatePopover({
           aria-label={triggerLabel ? `Estimate ${triggerLabel}` : "Add estimate"}
           title={triggerLabel ? `Estimate ${triggerLabel}` : "Add estimate"}
           className={cn(
-            "h-8 shrink-0 gap-1 rounded-full border border-transparent px-2 text-xs font-medium",
+            agencyPickerChipTriggerClass,
+            "w-auto shrink-0 gap-1 border-transparent bg-transparent font-medium",
             triggerLabel
               ? "bg-primary/10 text-primary hover:bg-primary/15"
               : "text-muted hover:bg-muted hover:text-foreground",
-            agencyFocusRingClass,
           )}
         >
           <Clock className="size-3.5 shrink-0" aria-hidden />
           {triggerLabel ? <span className="tabular-nums">{triggerLabel}</span> : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-60 gap-3 rounded-2xl p-3">
+      <PopoverContent align="end" size="form" tone="morph" className="gap-3 p-surface">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium text-foreground">Estimate</p>
           {triggerLabel ? (

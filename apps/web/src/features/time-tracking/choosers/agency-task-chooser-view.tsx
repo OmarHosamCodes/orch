@@ -1,6 +1,8 @@
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type { ReactNode } from "react";
+
+import { AgencyPickerSearch } from "@/features/shared/pickers/agency-picker-shell";
 
 import { AgencyTimeEntryProjectLabel } from "@/features/time-tracking/entries/agency-time-entry-project-label";
 import { AgencyTaskChooserClientSection } from "@/features/time-tracking/choosers/agency-task-chooser-client-section";
@@ -24,15 +26,12 @@ import {
   taskChooserTaskOptionKey,
 } from "@/features/time-tracking/agency-task-chooser-keyboard";
 import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { Skeleton, SkeletonGroup } from "@/ui/skeleton";
 import {
-  agencyInputPlaceholderClass,
   agencyTaskChooserCreateActionClass,
   agencyTaskChooserCreateActionMutedClass,
   agencyTaskChooserPanelClass,
-  agencyTaskChooserSearchInputClass,
   agencyTaskChooserTriggerClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
@@ -55,6 +54,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
     open,
     searchTerm,
     triggerProject,
+    selectedTask,
     triggerTaskTitle,
     favorites,
     clientGroups,
@@ -79,6 +79,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
     activeOptionKey,
     activeOptionDomId,
     createPriority,
+    canEditRecords,
     teamId,
     createTaskOpen,
     createTaskProjectId,
@@ -123,6 +124,9 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
             taskTitle={triggerTaskTitle}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
+            taskIconKey={selectedTask?.iconKey}
             className="min-w-0"
           />
         );
@@ -134,6 +138,8 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectId={triggerProject.id}
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
             className="min-w-0"
           />
         );
@@ -147,6 +153,8 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             projectId={triggerProject.id}
             projectName={triggerProject.name}
             clientName={triggerProject.clientName}
+            colorHueId={triggerProject.colorHueId}
+            projectIconKey={triggerProject.iconKey}
             className="min-w-0"
           />
         );
@@ -175,6 +183,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
           projectName={entry.project.name}
           clientName={entry.project.clientName}
           colorHueId={entry.project.colorHueId}
+          iconKey={entry.project.iconKey}
           taskCount={entry.tasks.length}
           expanded={expanded}
           favorited={favorited}
@@ -183,7 +192,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
           searchTerm={searchTerm}
           highlightSearch={highlightSearch}
           showClientName={showClientName}
-          showCreateTask={!pickProject}
+          showCreateTask={!pickProject && canEditRecords}
           createMuted={createMuted}
           pickMode={pickProject}
           onToggle={() => {
@@ -211,6 +220,9 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                       key={task.id}
                       taskId={task.id}
                       title={task.title}
+                      projectId={entry.project.id}
+                      colorHueId={entry.project.colorHueId}
+                      iconKey={task.iconKey}
                       selected={task.id === value}
                       bestMatch={Boolean(bestMatchTaskId) && task.id === bestMatchTaskId}
                       active={activeOptionKey === taskOptionKey}
@@ -223,26 +235,28 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                     />
                   );
                 })}
-                <div className="flex items-center py-0.5 pl-5">
-                  <motion.button
-                    type="button"
-                    className={cn(
-                      createMuted
-                        ? agencyTaskChooserCreateActionMutedClass
-                        : agencyTaskChooserCreateActionClass,
-                      createElevated && "text-sm",
-                    )}
-                    whileTap={chooserTapScale}
-                    onPointerDown={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }}
-                    onClick={() => onOpenCreateTask(entry.project.id)}
-                  >
-                    <Plus className="size-3.5" aria-hidden />
-                    Create task
-                  </motion.button>
-                </div>
+                {canEditRecords ? (
+                  <div className="flex items-center py-0.5 pl-5">
+                    <motion.button
+                      type="button"
+                      className={cn(
+                        createMuted
+                          ? agencyTaskChooserCreateActionMutedClass
+                          : agencyTaskChooserCreateActionClass,
+                        createElevated && "text-sm",
+                      )}
+                      whileTap={chooserTapScale}
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                      onClick={() => onOpenCreateTask(entry.project.id)}
+                    >
+                      <Plus className="size-3.5" aria-hidden />
+                      Create task
+                    </motion.button>
+                  </div>
+                ) : null}
               </div>
             </motion.div>
           ) : null}
@@ -252,7 +266,7 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
   }
 
   const isEmpty = favorites.length === 0 && clientGroups.length === 0;
-  const emptyLabel = searchTerm.trim() ? "No matches" : "No projects yet.";
+  const emptyLabel = searchTerm.trim() ? "No matches" : "Create a project to choose a task.";
   const hasFavorites = favorites.length > 0;
 
   return (
@@ -286,52 +300,58 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
             className={agencyTaskChooserPanelClass}
           >
             <MotionConfig reducedMotion="user">
-              <div className="border-b border-border p-3">
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    ref={searchInputRef}
-                    autoFocus
-                    role="combobox"
-                    aria-expanded={open}
-                    aria-controls="agency-task-chooser-listbox"
-                    aria-autocomplete="list"
-                    aria-activedescendant={activeOptionDomId}
-                    value={searchTerm}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    onKeyDown={onSearchKeyDown}
-                    placeholder={searchPlaceholder}
-                    className={cn(agencyTaskChooserSearchInputClass, agencyInputPlaceholderClass)}
-                  />
-                </div>
-              </div>
+              <AgencyPickerSearch
+                autoFocus
+                value={searchTerm}
+                onChange={onSearchChange}
+                placeholder={searchPlaceholder}
+                inputProps={{
+                  ref: searchInputRef,
+                  role: "combobox",
+                  "aria-expanded": open,
+                  "aria-controls": "agency-task-chooser-listbox",
+                  "aria-autocomplete": "list",
+                  "aria-activedescendant": activeOptionDomId,
+                  onKeyDown: onSearchKeyDown,
+                }}
+              />
 
               <div
                 id="agency-task-chooser-listbox"
                 ref={listRef}
                 role="listbox"
                 aria-label={pickProject ? "Projects" : "Tasks"}
-                className="max-h-[min(24rem,60vh)] overflow-y-auto [overflow-anchor:none] px-1.5 py-2"
+                className="min-h-0 max-h-[min(24rem,60vh)] overflow-y-auto [overflow-anchor:none] px-1.5 py-2"
               >
                 {loading ? (
-                  <div className="space-y-1.5 px-1 py-1">
+                  <SkeletonGroup className="space-y-1.5 px-1 py-1">
                     {[1, 2, 3, 4, 5].map((rowIndex) => (
                       <Skeleton key={rowIndex} className="h-8 rounded-lg" />
                     ))}
-                  </div>
+                  </SkeletonGroup>
                 ) : (
                   <AnimatePresence mode="wait" initial={false}>
                     {isEmpty ? (
-                      <motion.p
+                      <motion.div
                         key={`empty-${emptyLabel}`}
                         variants={chooserEmptyVariants}
                         initial="hidden"
                         animate="show"
                         exit="exit"
-                        className="px-3 py-8 text-center text-sm text-muted-foreground"
+                        className="px-3 py-8 text-center"
                       >
-                        {emptyLabel}
-                      </motion.p>
+                        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+                        {canEditRecords && !searchTerm.trim() ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="mt-3"
+                            onClick={onOpenCreateProject}
+                          >
+                            New project
+                          </Button>
+                        ) : null}
+                      </motion.div>
                     ) : (
                       <motion.div
                         key="chooser-list"
@@ -373,43 +393,49 @@ export function AgencyTaskChooserView({ view }: AgencyTaskChooserViewProps) {
                 )}
               </div>
 
-              <div className="border-t border-border px-3 py-2.5">
-                <motion.button
-                  type="button"
-                  className={cn(
-                    createMuted
-                      ? agencyTaskChooserCreateActionMutedClass
-                      : agencyTaskChooserCreateActionClass,
-                    "px-1 text-sm",
-                    createElevated && "text-primary",
-                  )}
-                  whileTap={chooserTapScale}
-                  onClick={onOpenCreateProject}
-                >
-                  <Plus className="size-4" aria-hidden />
-                  Create project
-                </motion.button>
-              </div>
+              {canEditRecords && !(isEmpty && !searchTerm.trim()) ? (
+                <div className="shrink-0 border-t border-border px-3 py-2.5">
+                  <motion.button
+                    type="button"
+                    className={cn(
+                      createMuted
+                        ? agencyTaskChooserCreateActionMutedClass
+                        : agencyTaskChooserCreateActionClass,
+                      "px-1 text-sm",
+                      createElevated && "text-primary",
+                    )}
+                    whileTap={chooserTapScale}
+                    onClick={onOpenCreateProject}
+                  >
+                    <Plus className="size-4" aria-hidden />
+                    New project
+                  </motion.button>
+                </div>
+              ) : null}
             </MotionConfig>
           </PopoverContent>
         </Popover>
       </div>
 
-      <AgencyTaskCreateDialog
-        open={createTaskOpen}
-        onOpenChange={onCreateTaskOpenChange}
-        teamId={teamId}
-        projectId={createTaskProjectId}
-        onCreated={onTaskCreated}
-      />
-      <AgencyTaskChooserProjectCreateDialog
-        open={createProjectOpen}
-        onOpenChange={onCreateProjectOpenChange}
-        teamId={teamId}
-        clients={clients}
-        templates={templates}
-        onCreated={onProjectCreated}
-      />
+      {canEditRecords ? (
+        <>
+          <AgencyTaskCreateDialog
+            open={createTaskOpen}
+            onOpenChange={onCreateTaskOpenChange}
+            teamId={teamId}
+            projectId={createTaskProjectId}
+            onCreated={onTaskCreated}
+          />
+          <AgencyTaskChooserProjectCreateDialog
+            open={createProjectOpen}
+            onOpenChange={onCreateProjectOpenChange}
+            teamId={teamId}
+            clients={clients}
+            templates={templates}
+            onCreated={onProjectCreated}
+          />
+        </>
+      ) : null}
     </>
   );
 }

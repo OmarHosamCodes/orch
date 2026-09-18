@@ -7,10 +7,7 @@ import {
   toFiscalCalendar,
   type FiscalCalendar,
 } from "../resourcing/tenure-engine";
-import {
-  projectPeriodPace,
-  type WorkSchedule,
-} from "../resourcing/work-schedule";
+import { projectPeriodPace, type WorkSchedule } from "../resourcing/work-schedule";
 import { addDaysToDateKey } from "../time-tracking/local-week-bounds";
 
 export type DetectedAlert = {
@@ -72,7 +69,6 @@ export function abnormalDayThresholdHours(
 ): number {
   return requiredDailyHours + extraHours;
 }
-
 
 function addUtcDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * 86_400_000);
@@ -141,10 +137,12 @@ export function detectMonthPace(input: {
 }): DetectedAlert | null {
   const policy = input.policy ?? DEFAULT_ALERT_POLICY;
   if (!policy.monthPaceEnabled) return null;
-  const fiscalCalendar = input.fiscalCalendar ?? toFiscalCalendar({
-    fiscalYearStartMonth: 1,
-    fiscalYearStartDay: 1,
-  });
+  const fiscalCalendar =
+    input.fiscalCalendar ??
+    toFiscalCalendar({
+      fiscalYearStartMonth: 1,
+      fiscalYearStartDay: 1,
+    });
   const period = resolveProfilePeriodMonth({
     tenureEnabled: input.tenureEnabled ?? false,
     calendar: fiscalCalendar,
@@ -260,10 +258,12 @@ export function detectWasteSpike(input: {
 }): DetectedAlert | null {
   const policy = input.policy ?? DEFAULT_ALERT_POLICY;
   if (!policy.wasteSpikeEnabled) return null;
-  const fiscalCalendar = input.fiscalCalendar ?? toFiscalCalendar({
-    fiscalYearStartMonth: 1,
-    fiscalYearStartDay: 1,
-  });
+  const fiscalCalendar =
+    input.fiscalCalendar ??
+    toFiscalCalendar({
+      fiscalYearStartMonth: 1,
+      fiscalYearStartDay: 1,
+    });
   const period = resolveProfilePeriodMonth({
     tenureEnabled: input.tenureEnabled ?? false,
     calendar: fiscalCalendar,

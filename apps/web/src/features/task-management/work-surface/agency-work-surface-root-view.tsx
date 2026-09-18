@@ -5,7 +5,6 @@ import { agencyTimeLogPanelClass, agencyTimeTrackerPanelClass } from "@/features
 import { AgencyWorkSurfaceEmptyView } from "@/features/task-management/work-surface/agency-work-surface-empty-view";
 import { AgencyWorkSurfaceErrorView } from "@/features/task-management/work-surface/agency-work-surface-error-view";
 import { AgencyWorkSurfaceLayoutView } from "@/features/task-management/work-surface/agency-work-surface-layout-view";
-import { AgencyWorkSurfaceLoadingView } from "@/features/task-management/work-surface/agency-work-surface-loading-view";
 import { cn } from "@/lib/utils";
 
 type AgencyWorkSurfaceRootViewProps = {
@@ -28,17 +27,16 @@ export function AgencyWorkSurfaceRootView({
   let surface: ReactNode;
 
   switch (view.status) {
-    case "loading":
-      surface = <AgencyWorkSurfaceLoadingView />;
-      break;
     case "error":
       surface = <AgencyWorkSurfaceErrorView message={view.message} onRetry={view.onRetry} />;
       break;
     case "empty":
       surface = (
         <AgencyWorkSurfaceEmptyView
-          onGoToClients={view.onGoToClients}
-          onGoToProjects={view.onGoToProjects}
+          canEditRecords={view.canEditRecords}
+          onNewProject={view.onNewProject}
+          onAddClient={view.onAddClient}
+          isEnsuringClient={view.isEnsuringClient}
         />
       );
       break;

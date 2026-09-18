@@ -10,7 +10,7 @@ import {
   parseBillableRateAmount,
   previewConvertedRate,
 } from "@/features/shared/format-rate";
-import { agencyFocusRingClass } from "@/features/shared/agency-ui";
+import { agencyPickerChipTriggerClass } from "@/features/shared/agency-ui";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
 import { orpc } from "@/lib/orpc";
@@ -180,7 +180,8 @@ export function AgencyTaskRatePopover({
               : `Effective ${formatRate(effectiveRate.amount, effectiveRate.currency, { perHour: true })}`
           }
           className={cn(
-            "h-8 shrink-0 gap-1 rounded-md border border-transparent px-2 text-xs font-medium",
+            agencyPickerChipTriggerClass,
+            "w-auto shrink-0 gap-1 border-transparent bg-transparent py-0 font-medium",
             "transition-[opacity,colors] motion-reduce:transition-none",
             softHide &&
               "opacity-0 group-hover/task-rate-row:opacity-100 group-focus-within/task-rate-row:opacity-100",
@@ -188,7 +189,6 @@ export function AgencyTaskRatePopover({
             triggerLabel
               ? "bg-muted/80 font-mono tabular-nums text-highlighted hover:bg-muted"
               : "text-muted hover:bg-muted hover:text-foreground",
-            agencyFocusRingClass,
           )}
           onClick={(event) => event.stopPropagation()}
         >
@@ -198,7 +198,9 @@ export function AgencyTaskRatePopover({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-64 gap-3 rounded-2xl p-3"
+        size="form"
+        tone="morph"
+        className="gap-3 p-surface"
         onClick={(event) => event.stopPropagation()}
         onOpenAutoFocus={(event) => {
           if (!canEdit) event.preventDefault();
@@ -222,7 +224,7 @@ export function AgencyTaskRatePopover({
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor={`task-rate-${task.id}`} className="text-[11px] font-bold">
+              <Label htmlFor={`task-rate-${task.id}`} className="text-xs font-medium">
                 Rate / hour
               </Label>
               <div className="flex gap-2">
@@ -253,14 +255,14 @@ export function AgencyTaskRatePopover({
                 </Select>
               </div>
               {ratePreviewAmount != null ? (
-                <p className="text-[11px] text-muted">
+                <p className="text-xs text-muted-foreground">
                   ≈ {formatRate(ratePreviewAmount, agencyCurrency, { perHour: true })}
                 </p>
               ) : null}
-              <p className="text-[11px] text-muted">
+              <p className="text-xs text-muted-foreground">
                 Parent: {formatRate(parentRate.amount, parentRate.currency, { perHour: true })}
               </p>
-              <p className="text-[11px] text-muted">
+              <p className="text-sm font-medium text-foreground tabular-nums">
                 Effective:{" "}
                 {formatRate(draftEffective.amount, draftEffective.currency, { perHour: true })}
               </p>

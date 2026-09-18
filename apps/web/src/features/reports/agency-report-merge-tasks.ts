@@ -1,4 +1,4 @@
-/** Create Report: collapse same task titles within a project. Live Reports ignores this. */
+/** Collapse same task titles within a project on the Reports studio preview and export. */
 export const DEFAULT_AGENCY_REPORT_MERGE_SAME_TASK_NAMES = true;
 
 export const AGENCY_REPORT_MERGE_SAME_TASK_NAMES_LABEL = "Merge same task names";

@@ -87,7 +87,13 @@ export const agencyAvatarStackRingClass = "ring-1 ring-background";
 /** Readable placeholder text on default/elevated agency surfaces (≥4.5:1). */
 export const agencyInputPlaceholderClass = "placeholder:text-muted-foreground";
 
-export const agencyPanelClass = "rounded-[2rem] border border-default bg-default";
+/** Standalone filter-bar search (command bar + money panel chrome). */
+export const agencyCommandBarSearchInputClass = cn(
+  "h-9 rounded-xl border-default bg-default pl-9 text-sm",
+  agencyInputPlaceholderClass,
+);
+
+export const agencyPanelClass = "rounded-surface border border-default bg-default";
 
 export const agencyFormFieldClass = "flex w-full min-w-0 flex-col gap-1.5";
 
@@ -99,12 +105,12 @@ export const agencyEmptyPanelClass = shellEmptyPanelClass;
 
 /** My Tasks rail — same card language as the tracker bar (`agencyWorkTrackerCardClass`). */
 export const agencyTaskRailClass =
-  "flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card";
+  "flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card";
 
-/** Collapsed rail: top-aligned open count and expand control. */
+/** Collapsed rail: icon-only expand + surface markers. */
 export const agencyTaskRailCollapsedClass = cn(
   agencyTaskRailClass,
-  "relative items-center justify-start gap-2.5 px-2 pt-2.5 pb-2",
+  "relative items-center justify-start px-1.5 py-1.5",
 );
 
 /**
@@ -119,7 +125,7 @@ export const agencyTaskRailExpandedWidthClass = cn(
 
 export const agencyTaskRailCollapsedWidthClass = cn(
   "hidden min-h-0 shrink-0 grow-0 flex-col overflow-hidden",
-  "lg:flex lg:h-full lg:w-[5.5rem] lg:min-w-[5.5rem] lg:max-w-[5.5rem] lg:basis-[5.5rem]",
+  "lg:flex lg:h-full lg:w-[3.25rem] lg:min-w-[3.25rem] lg:max-w-[3.25rem] lg:basis-[3.25rem]",
 );
 
 /** Smooth dock width change — keep in sync with `RAIL_MS.rail` (320ms). */
@@ -127,6 +133,18 @@ export const agencyTaskRailWidthTransitionClass = cn(
   "motion-reduce:transition-none",
   "transition-[width,min-width,max-width,flex-basis] duration-[320ms]",
   "ease-[cubic-bezier(0.25,1,0.5,1)]",
+);
+
+/** Tracker right panel — inline dock beside tracker+log (T3 topology). */
+export const agencyTrackerRightPanelInlineClass = cn(
+  "hidden min-h-0 shrink-0 grow-0 self-stretch flex-col overflow-hidden",
+  "lg:flex lg:h-full lg:w-80 lg:min-w-80 lg:max-w-80 lg:basis-80",
+  "xl:w-96 xl:min-w-96 xl:max-w-96 xl:basis-96",
+);
+
+/** Tab strip chrome for the tracker right panel host. */
+export const agencyTrackerRightPanelTabStripClass = cn(
+  "flex w-full min-w-0 shrink-0 items-stretch border-b border-default bg-card",
 );
 
 /** Filter pills in My Tasks rail — inactive = offer, active = selected + clear. */
@@ -185,7 +203,8 @@ export const agencySearchHighlightMarkClass = "agency-search-highlight-mark";
 export const agencyTaskRowNeedsDescriptionClass = "bg-warning/5";
 
 /** Work time surface — stacks tracker and log as separate panels. */
-export const agencyTimePaneStackClass = "flex min-h-0 min-w-0 flex-1 flex-col gap-[20px] font-sans";
+export const agencyTimePaneStackClass =
+  "@container/tracker flex min-h-0 min-w-0 flex-1 flex-col gap-[20px] font-sans";
 
 export const agencyTimePaneBodyClass = "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden";
 
@@ -195,7 +214,7 @@ export const agencyTimeTrackerPanelClass = "relative z-20 shrink-0 overflow-visi
 export const agencyTimeLogPanelClass = "flex min-h-0 flex-1 flex-col overflow-hidden";
 
 const agencyWorkTrackerCardClass =
-  "shrink-0 overflow-hidden rounded-lg border border-border bg-card";
+  "shrink-0 overflow-hidden rounded-surface border border-border bg-card";
 
 export const agencyWorkTableBodyScrollClass = "min-h-0 flex-1 overflow-y-auto p-0";
 
@@ -213,20 +232,22 @@ export const agencyWorkPlayButtonClass = cn(
 /** Ghost icon control for entry rails — play and menu share this (no circle chrome). */
 export const agencyTimeEntryIconButtonClass = cn(
   "inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted",
-  "transition-colors hover:bg-elevated hover:text-highlighted",
+  "hover:bg-elevated hover:text-highlighted",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
-/** Match entry-row content height (`agencyTimeEntryRowClass` min-h-[52px]). */
+/** Week stack tracker bar — 56px card, one row, overflow visible for popovers. */
 export const agencyTimeTrackerCardClass = cn(
   agencyWorkTrackerCardClass,
-  "flex min-h-[52px] min-w-0 flex-row items-center overflow-visible px-3 sm:px-4",
+  "agency-tracker-card flex min-h-14 min-w-0 flex-nowrap flex-row items-center overflow-visible px-3 sm:px-4",
 );
 
-/** Whole-tracker loading shimmer — one surface, no partial text placeholders. */
+export const agencyTimeTrackerTaskSlotClass =
+  "min-w-0 max-w-[220px] shrink truncate sm:max-w-[260px]";
+
+/** Whole-surface loading shimmer — one sweep, no stacked placeholders. */
 export const agencyTimeTrackerShimmerClass =
-  "pointer-events-none absolute inset-0 rounded-[inherit] bg-muted/50 shimmer motion-reduce:animate-none";
+  "pointer-events-none absolute inset-0 rounded-[inherit] bg-muted/50 shimmer shimmer-bg text-foreground motion-reduce:animate-none";
 
 export const agencyTimeTrackerDescriptionZoneClass =
   "group/desc relative flex min-h-0 min-w-0 flex-1 items-center overflow-visible";
@@ -235,7 +256,8 @@ export const agencyTimeTrackerDescriptionInputClass =
   "block h-9 w-full min-w-0 truncate rounded-md border-0 bg-transparent px-0 py-0 text-base font-normal leading-9 text-foreground shadow-none";
 
 /** Tracker right cluster — single-height rail with hairline separators. */
-export const agencyTimeTrackerRailClass = "flex h-full shrink-0 items-center";
+export const agencyTimeTrackerRailClass =
+  "agency-tracker-controls flex h-full shrink-0 items-center";
 
 export const agencyTimeTrackerRailCellClass = "flex shrink-0 items-center gap-2 px-2.5";
 
@@ -255,11 +277,25 @@ export const agencyTimeTrackerElapsedInputClass = cn(
   "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
 );
 
-export const agencyTaskChooserTriggerClass = cn(
-  "inline-flex min-w-0 max-w-full shrink items-center justify-start gap-1.5 overflow-hidden rounded-lg border-0 bg-transparent px-2 py-0 font-normal leading-none text-foreground shadow-none",
-  "transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted hover:text-foreground active:scale-[0.98]",
+export const agencyPickerFieldTriggerClass = cn(
+  "inline-flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-default bg-default px-3 text-left text-xs font-semibold transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
   agencyFocusRingClass,
-  "motion-reduce:transition-none motion-reduce:active:scale-100",
+);
+
+export const agencyPickerChipTriggerClass = cn(
+  "inline-flex h-8 w-fit max-w-full items-center gap-1.5 rounded-full border border-default bg-elevated px-2 text-xs font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+  agencyFocusRingClass,
+);
+
+export const agencyPickerInlineTriggerClass = cn(
+  "inline-flex min-w-0 max-w-full items-center justify-start gap-1.5 overflow-hidden rounded-lg border-0 bg-transparent px-2 font-normal text-foreground shadow-none transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+  agencyFocusRingClass,
+);
+
+export const agencyTaskChooserTriggerClass = cn(
+  agencyPickerInlineTriggerClass,
+  "shrink py-0 leading-none transition-[color,background-color,transform] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] active:scale-[0.98]",
+  "motion-reduce:active:scale-100",
 );
 
 export const agencyTimeTrackerTaskChooserTriggerClass = cn(
@@ -268,27 +304,27 @@ export const agencyTimeTrackerTaskChooserTriggerClass = cn(
 );
 
 export const agencyTaskChooserPanelClass = cn(
-  "flex w-[26rem] max-w-[calc(100vw-2rem)] flex-col gap-0 rounded-xl border border-border bg-popover p-0 font-sans text-popover-foreground shadow-lg ring-0",
+  "w-[26rem] max-w-[calc(100vw-2rem)] p-0",
   // Exit animation can stall Presence unmount and leave a click-eating layer.
   "data-[state=closed]:animate-none",
 );
 
 export const agencyTaskChooserSearchInputClass = cn(
-  "h-9 rounded-lg border-border bg-card pl-8 font-sans text-sm transition-[border-color,box-shadow] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
+  "h-9 rounded-lg border-border bg-card pl-8 font-sans text-base md:text-sm transition-[border-color,box-shadow] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)]",
 );
 
 export const agencyTaskChooserRowClass = cn(
-  "group flex w-full items-center gap-0.5 rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted motion-reduce:transition-none",
+  "group flex w-full items-center gap-0.5 rounded-lg transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent motion-reduce:transition-none",
 );
 
-export const agencyTaskChooserRowSelectedClass = "bg-primary/10 hover:bg-primary/10";
+export const agencyTaskChooserRowSelectedClass = "bg-accent hover:bg-accent";
 
 export const agencyTaskChooserRowBestMatchClass = "bg-accent/40 hover:bg-accent/50";
 
 export const agencyTaskChooserRowActiveClass = "bg-accent hover:bg-accent";
 
 export const agencyTaskChooserSectionHoverClass = cn(
-  "rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-muted",
+  "rounded-md transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:bg-accent",
   "motion-reduce:transition-none",
 );
 
@@ -305,29 +341,27 @@ export const agencyTaskChooserCreateActionMutedClass = cn(
 );
 
 export const agencyTimeTrackerPrimaryActionClass =
-  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground hover:bg-primary/80";
+  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground transition-none hover:bg-primary/80";
 
 export const agencyTimeTrackerStopActionClass =
-  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-destructive px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground hover:bg-destructive/90";
+  "inline-flex h-9 max-h-9 min-h-9 min-w-[4.75rem] shrink-0 items-center justify-center rounded-2xl bg-destructive px-4 text-xs font-semibold uppercase tracking-wide text-primary-foreground transition-none hover:bg-destructive/90";
 
 export const agencyTimeTrackerIconActionClass = cn(
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 export const agencyTimeTrackerSuggestionPanelClass = cn(
-  "relative z-50 max-h-48 overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
+  "relative z-50 max-h-48 overflow-y-auto overflow-x-hidden rounded-surface border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none",
 );
 
 export const agencyTimeTrackerSuggestionOptionClass = cn(
-  "flex w-full min-w-0 flex-col items-stretch gap-0.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent/35",
+  "flex w-full min-w-0 flex-col items-stretch gap-0.5 rounded-md px-2.5 py-2 text-left hover:bg-accent/35",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
 export const agencyTimeEntryRowClass = cn(
-  "group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans transition-colors hover:bg-elevated/50 motion-reduce:transition-none",
+  "agency-entry-row group/row flex min-h-[52px] items-stretch border-b border-border/30 bg-clip-padding font-sans hover:bg-elevated/50",
 );
 
 /** Nested child row inside an expanded multi-entry group. */
@@ -341,7 +375,7 @@ export const agencyTimeEntryClockTimeInputClass = cn(
   // Override shared Input defaults (rounded-4xl, bg-input/30, focus ring).
   "h-7 w-[4.25rem] min-w-0 shrink appearance-none rounded-none border border-transparent bg-transparent px-0.5 py-0",
   "text-center font-mono text-xs font-medium tabular-nums text-muted shadow-none outline-none",
-  "transition-colors hover:border-border",
+  "hover:border-border",
   "focus-visible:border-primary focus-visible:bg-transparent focus-visible:text-highlighted focus-visible:ring-0",
   "disabled:cursor-not-allowed disabled:opacity-60",
 );
@@ -361,21 +395,22 @@ export const agencyTimeTrackerDateTriggerClass = cn(
 export const agencyTimeEntryDurationInputClass = cn(
   "h-8 w-full min-w-0 appearance-none rounded-none border border-transparent bg-transparent px-0 py-0",
   "text-center font-mono text-sm font-semibold tabular-nums text-highlighted shadow-none outline-none",
-  "transition-colors hover:border-border",
+  "hover:border-border",
   "focus-visible:border-primary focus-visible:bg-transparent focus-visible:ring-0",
   "disabled:cursor-not-allowed disabled:opacity-60",
   "aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive",
 );
 
 /** Left cluster — badge, description, task (free; not column-locked). */
-export const agencyTimeEntryMainClass = "flex min-w-0 flex-1 self-stretch items-center gap-0 pl-3";
+export const agencyTimeEntryMainClass =
+  "agency-entry-main flex min-w-0 flex-1 self-stretch items-center gap-0 pl-3";
 
 /**
  * Right rail — time | duration | actions.
  * Inset vertical ticks (`inset-y-2`); day headers use the quiet rail (no hairlines).
  */
 export const agencyTimeEntryRailClass = cn(
-  "relative flex shrink-0 self-stretch items-stretch",
+  "agency-entry-controls relative flex shrink-0 self-stretch items-stretch",
   "before:pointer-events-none before:absolute before:inset-y-2 before:left-0 before:w-px before:bg-border/40",
   "[&>*+*]:relative [&>*+*]:before:pointer-events-none [&>*+*]:before:absolute [&>*+*]:before:inset-y-2 [&>*+*]:before:left-0 [&>*+*]:before:w-px [&>*+*]:before:bg-border/40",
 );
@@ -387,35 +422,35 @@ const agencyTimeEntryRailCellClass = "box-border flex h-full shrink-0 items-cent
 
 export const agencyTimeEntryRailBillableClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-link w-[56px] justify-center",
 );
 
 /** Content-box width for locale ranges like "12:29 - 14:54" / "9:29 pm - 9:40 pm". */
 export const agencyTimeEntryRailTimeClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[188px] whitespace-nowrap",
+  "agency-entry-time w-[188px] whitespace-nowrap",
 );
 
 export const agencyTimeEntryRailCalendarClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[63px] justify-center",
+  "agency-entry-calendar w-[63px] justify-center",
 );
 
 /** Content-box width for bold tabular "HH:MM:SS". */
 export const agencyTimeEntryRailDurationClass = cn(
   agencyTimeEntryRailCellClass,
-  "relative w-[133px] whitespace-nowrap",
+  "agency-entry-duration relative w-[133px] whitespace-nowrap",
 );
 
 /** Play / more — 56+56; rail `[&>*+*]:before` draws the divider between them. */
 export const agencyTimeEntryRailPlayClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-play w-[56px] justify-center",
 );
 
 export const agencyTimeEntryRailMoreClass = cn(
   agencyTimeEntryRailCellClass,
-  "w-[56px] justify-center",
+  "agency-entry-more w-[56px] justify-center",
 );
 
 /** Combined 112px actions zone for day headers / skeletons. */
@@ -423,10 +458,8 @@ export const agencyTimeEntryRailActionsClass =
   "flex h-full w-[112px] shrink-0 items-center justify-end gap-1 pr-2";
 
 /** Day band — same rail geometry as rows so totals lock to the duration column. */
-export const agencyTimeEntrySectionHeaderClass = cn(
-  "flex h-10 items-center border-b border-border/30 bg-muted/20 font-sans",
-  "motion-reduce:transition-none transition-colors duration-150",
-);
+export const agencyTimeEntrySectionHeaderClass =
+  "flex h-10 items-center border-b border-border/30 bg-muted/20 font-sans";
 
 /** Bulk mode with a selection — soft Operator Violet surface, still quiet. */
 export const agencyTimeEntrySectionHeaderBulkActiveClass = "border-b-primary/25 bg-primary/5";
@@ -444,27 +477,24 @@ export const agencyTimeEntryBulkSelectColumnClass =
 
 export const agencyTimeEntryBulkRowSelectedClass = "bg-primary/5";
 
-export const agencyTimeEntryBulkToolbarClass = cn(
-  "flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/[0.04] px-4 py-2 sm:px-5",
-  "motion-reduce:transition-none transition-colors duration-150",
-);
+export const agencyTimeEntryBulkToolbarClass =
+  "flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/[0.04] px-4 py-2 sm:px-5";
 
 export const agencyTimeEntryBulkActionClass = cn(
   "h-7 gap-1 rounded-md px-2 text-xs font-medium text-muted",
   "hover:bg-elevated hover:text-highlighted",
   agencyFocusRingClass,
-  "motion-reduce:transition-none",
 );
 
-/** One day block — solid surface so background gutters read as hard separation. */
+/** One day card — Week stack surface so days read as Harvest stacks. */
 export const agencyTimeEntryDayGroupClass =
-  "overflow-hidden rounded-lg border border-default bg-default";
+  "@container/entries group/day overflow-hidden rounded-surface border border-border bg-card";
+
+export const agencyTimeEntryDayHeadClass =
+  "flex min-h-[52px] items-center justify-between gap-3 border-b border-border/40 pr-4 pl-3";
 
 /** Week band with visible week total chrome (Clockify-style). */
 export const agencyTimeWeekGroupClass = "flex flex-col";
-
-export const agencyTimeWeekGroupHeaderClass =
-  "flex h-[40px] shrink-0 items-center justify-between gap-3 bg-transparent";
 
 export const agencyTimeWeekGroupBodyClass = "flex flex-col gap-[20px] bg-background";
 
@@ -512,9 +542,6 @@ export const agencyMyTasksRailAddButtonClass = cn(
 export const agencyTimeEntryRowEditingClass = "bg-primary/5 hover:bg-primary/5";
 
 export const agencyTimeWeekFooterClass = cn(
-  "mt-[20px] flex h-[40px] shrink-0 items-center justify-between border-t border-default px-[20px]",
+  "mt-[20px] flex h-10 shrink-0 items-center justify-between rounded-surface border border-border px-5",
   "bg-elevated/40",
 );
-
-export const agencyTimeLogSkeletonClass =
-  "h-[4.5rem] border-b border-default bg-elevated/35 motion-reduce:animate-none animate-pulse";

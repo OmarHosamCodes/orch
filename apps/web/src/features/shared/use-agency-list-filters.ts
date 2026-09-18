@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import type { AgencyFilterOptionGroup } from "@/features/shared/filters/agency-multi-select-filter";
+import type {
+  AgencyFilterOption,
+  AgencyFilterOptionGroup,
+  AgencyMultiSelectStatusFilter,
+} from "@/features/shared/filters/agency-multi-select-filter";
 import { orpc } from "@/lib/orpc";
 import {
   useAgencyClientsQuery,
@@ -34,21 +38,88 @@ export type AgencyListFiltersApplied = {
   tasksSet: Set<string>;
 };
 
+const DEFAULT_ARCHIVE_FILTER: AgencyClientArchiveFilter = "nonarchived";
+const DEFAULT_TRASH_FILTER: AgencyProjectTrashFilter = "active";
+
+const ARCHIVE_STATUS_OPTIONS: AgencyMultiSelectStatusFilter["options"] = [
+  { value: "all", label: "All" },
+  { value: "nonarchived", label: "Active" },
+  { value: "archived", label: "Archived" },
+];
+
+const TRASH_STATUS_OPTIONS: AgencyMultiSelectStatusFilter["options"] = [
+  { value: "active", label: "Active" },
+  { value: "trashed", label: "In trash" },
+  { value: "all", label: "All" },
+];
+
 type UseAgencyListFiltersOptions = {
   teamId: string;
 };
 
-export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
-  const [filterTerm, setFilterTerm] = useState("");
-  const [archiveFilter, setArchiveFilter] = useState<AgencyClientArchiveFilter>("nonarchived");
-  const [trashFilter, setTrashFilter] = useState<AgencyProjectTrashFilter>("active");
-  const [selectedPeopleIds, setSelectedPeopleIds] = useState<string[]>([]);
-  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
-  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+function sameIdList(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+  const leftSet = new Set(left);
+  return right.every((value) => leftSet.has(value));
+}
 
-  const clientsQuery = useAgencyClientsQuery(teamId, { archiveFilter });
-  const projectsQuery = useAgencyProjectsQuery(teamId, { archiveFilter, trashFilter });
+function buildApplied(input: {
+  filterTerm: string;
+  archiveFilter: AgencyClientArchiveFilter;
+  trashFilter: AgencyProjectTrashFilter;
+  selectedPeopleIds: string[];
+  selectedClientIds: string[];
+  selectedProjectIds: string[];
+  selectedTaskIds: string[];
+}): AgencyListFiltersApplied {
+  return {
+    filterTerm: input.filterTerm,
+    archiveFilter: input.archiveFilter,
+    trashFilter: input.trashFilter,
+    selectedPeopleIds: input.selectedPeopleIds,
+    selectedClientIds: input.selectedClientIds,
+    selectedProjectIds: input.selectedProjectIds,
+    selectedTaskIds: input.selectedTaskIds,
+    peopleSet: new Set(input.selectedPeopleIds),
+    clientsSet: new Set(input.selectedClientIds),
+    projectsSet: new Set(input.selectedProjectIds),
+    tasksSet: new Set(input.selectedTaskIds),
+  };
+}
+
+export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
+  const [draftFilterTerm, setDraftFilterTerm] = useState("");
+  const [draftArchiveFilter, setDraftArchiveFilter] =
+    useState<AgencyClientArchiveFilter>(DEFAULT_ARCHIVE_FILTER);
+  const [draftTrashFilter, setDraftTrashFilter] =
+    useState<AgencyProjectTrashFilter>(DEFAULT_TRASH_FILTER);
+  const [draftPeopleIds, setDraftPeopleIds] = useState<string[]>([]);
+  const [draftClientIds, setDraftClientIds] = useState<string[]>([]);
+  const [draftProjectIds, setDraftProjectIds] = useState<string[]>([]);
+  const [draftTaskIds, setDraftTaskIds] = useState<string[]>([]);
+
+  const [appliedFilterTerm, setAppliedFilterTerm] = useState("");
+  const [appliedArchiveFilter, setAppliedArchiveFilter] =
+    useState<AgencyClientArchiveFilter>(DEFAULT_ARCHIVE_FILTER);
+  const [appliedTrashFilter, setAppliedTrashFilter] =
+    useState<AgencyProjectTrashFilter>(DEFAULT_TRASH_FILTER);
+  const [appliedPeopleIds, setAppliedPeopleIds] = useState<string[]>([]);
+  const [appliedClientIds, setAppliedClientIds] = useState<string[]>([]);
+  const [appliedProjectIds, setAppliedProjectIds] = useState<string[]>([]);
+  const [appliedTaskIds, setAppliedTaskIds] = useState<string[]>([]);
+
+  const clientsQuery = useAgencyClientsQuery(teamId, { archiveFilter: draftArchiveFilter });
+  const projectsQuery = useAgencyProjectsQuery(teamId, {
+    archiveFilter: draftArchiveFilter,
+    trashFilter: draftTrashFilter,
+  });
+  const appliedClientsQuery = useAgencyClientsQuery(teamId, {
+    archiveFilter: appliedArchiveFilter,
+  });
+  const appliedProjectsQuery = useAgencyProjectsQuery(teamId, {
+    archiveFilter: appliedArchiveFilter,
+    trashFilter: appliedTrashFilter,
+  });
   const entriesQuery = useAgencyTimeEntriesQuery(teamId, 1, 100);
   const membersQuery = useQuery(
     withAgencySyncQueryOptions(
@@ -61,7 +132,7 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
     ),
   );
   const tasksQuery = useAgencyProjectTasksQuery(teamId, {
-    search: filterTerm.trim() || undefined,
+    search: draftFilterTerm.trim() || undefined,
     pageSize: 100,
   });
 
@@ -71,16 +142,27 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
   const tasks = tasksQuery.data?.items ?? [];
 
   const peopleOptions = useMemo(() => {
-    const people = new Map<string, string>();
+    const people = new Map<string, AgencyFilterOption>();
     for (const member of membersQuery.data?.items ?? []) {
-      people.set(member.userId, member.userName);
+      people.set(member.userId, {
+        value: member.userId,
+        label: member.userName,
+        avatar: {
+          userId: member.userId,
+          name: member.userName,
+          avatarUrl: member.userAvatar,
+        },
+      });
     }
     for (const entry of entries) {
-      people.set(entry.userId, entry.userName);
+      if (people.has(entry.userId)) continue;
+      people.set(entry.userId, {
+        value: entry.userId,
+        label: entry.userName,
+        avatar: { userId: entry.userId, name: entry.userName },
+      });
     }
-    return Array.from(people, ([value, label]) => ({ value, label })).sort((a, b) =>
-      a.label.localeCompare(b.label),
-    );
+    return Array.from(people.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [entries, membersQuery.data?.items]);
 
   const clientOptions = useMemo(
@@ -101,7 +183,12 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
         currentGroup = { groupLabel: project.clientName, options: [] };
         groups.push(currentGroup);
       }
-      currentGroup.options!.push({ value: project.id, label: project.name });
+      currentGroup.options!.push({
+        value: project.id,
+        label: project.name,
+        secondary: project.clientName,
+        searchText: project.clientName,
+      });
     }
 
     return groups;
@@ -130,6 +217,8 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
               (group) => ({
                 value: group.groupKey,
                 label: group.title,
+                secondary: `${project.name} · ${clientGroup.clientName}`,
+                searchText: `${project.name} ${clientGroup.clientName}`,
               }),
             ),
           })),
@@ -137,67 +226,108 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
     });
   }, [projects, tasks]);
 
-  const applied: AgencyListFiltersApplied = useMemo(
-    () => ({
-      filterTerm,
-      archiveFilter,
-      trashFilter,
-      selectedPeopleIds,
-      selectedClientIds,
-      selectedProjectIds,
-      selectedTaskIds,
-      peopleSet: new Set(selectedPeopleIds),
-      clientsSet: new Set(selectedClientIds),
-      projectsSet: new Set(selectedProjectIds),
-      tasksSet: new Set(selectedTaskIds),
-    }),
+  const applied = useMemo(
+    () =>
+      buildApplied({
+        filterTerm: appliedFilterTerm,
+        archiveFilter: appliedArchiveFilter,
+        trashFilter: appliedTrashFilter,
+        selectedPeopleIds: appliedPeopleIds,
+        selectedClientIds: appliedClientIds,
+        selectedProjectIds: appliedProjectIds,
+        selectedTaskIds: appliedTaskIds,
+      }),
     [
-      filterTerm,
-      archiveFilter,
-      trashFilter,
-      selectedClientIds,
-      selectedPeopleIds,
-      selectedProjectIds,
-      selectedTaskIds,
+      appliedArchiveFilter,
+      appliedClientIds,
+      appliedFilterTerm,
+      appliedPeopleIds,
+      appliedProjectIds,
+      appliedTaskIds,
+      appliedTrashFilter,
     ],
   );
 
-  const hasActiveFilters =
-    filterTerm.trim() !== "" ||
-    archiveFilter !== "nonarchived" ||
-    trashFilter !== "active" ||
-    selectedPeopleIds.length > 0 ||
-    selectedClientIds.length > 0 ||
-    selectedProjectIds.length > 0 ||
-    selectedTaskIds.length > 0;
+  const hasPendingChanges =
+    draftFilterTerm !== appliedFilterTerm ||
+    draftArchiveFilter !== appliedArchiveFilter ||
+    draftTrashFilter !== appliedTrashFilter ||
+    !sameIdList(draftPeopleIds, appliedPeopleIds) ||
+    !sameIdList(draftClientIds, appliedClientIds) ||
+    !sameIdList(draftProjectIds, appliedProjectIds) ||
+    !sameIdList(draftTaskIds, appliedTaskIds);
 
-  function handleReset() {
-    setFilterTerm("");
-    setArchiveFilter("nonarchived");
-    setTrashFilter("active");
-    setSelectedPeopleIds([]);
-    setSelectedClientIds([]);
-    setSelectedProjectIds([]);
-    setSelectedTaskIds([]);
+  const canReset =
+    draftFilterTerm.trim() !== "" ||
+    draftArchiveFilter !== DEFAULT_ARCHIVE_FILTER ||
+    draftTrashFilter !== DEFAULT_TRASH_FILTER ||
+    draftPeopleIds.length > 0 ||
+    draftClientIds.length > 0 ||
+    draftProjectIds.length > 0 ||
+    draftTaskIds.length > 0;
+
+  function handleApply() {
+    setAppliedFilterTerm(draftFilterTerm);
+    setAppliedArchiveFilter(draftArchiveFilter);
+    setAppliedTrashFilter(draftTrashFilter);
+    setAppliedPeopleIds(draftPeopleIds);
+    setAppliedClientIds(draftClientIds);
+    setAppliedProjectIds(draftProjectIds);
+    setAppliedTaskIds(draftTaskIds);
   }
 
-  const barProps = {
-    filterTerm,
-    onFilterTermChange: setFilterTerm,
-    archiveFilter,
-    onArchiveFilterChange: setArchiveFilter,
-    showArchiveFilter: false,
-    trashFilter,
-    onTrashFilterChange: setTrashFilter,
-    showTrashFilter: false,
-    selectedPeopleIds,
-    onSelectedPeopleIdsChange: setSelectedPeopleIds,
-    selectedClientIds,
-    onSelectedClientIdsChange: setSelectedClientIds,
-    selectedProjectIds,
-    onSelectedProjectIdsChange: setSelectedProjectIds,
-    selectedTaskIds,
-    onSelectedTaskIdsChange: setSelectedTaskIds,
+  function handleReset() {
+    setDraftFilterTerm("");
+    setDraftArchiveFilter(DEFAULT_ARCHIVE_FILTER);
+    setDraftTrashFilter(DEFAULT_TRASH_FILTER);
+    setDraftPeopleIds([]);
+    setDraftClientIds([]);
+    setDraftProjectIds([]);
+    setDraftTaskIds([]);
+    setAppliedFilterTerm("");
+    setAppliedArchiveFilter(DEFAULT_ARCHIVE_FILTER);
+    setAppliedTrashFilter(DEFAULT_TRASH_FILTER);
+    setAppliedPeopleIds([]);
+    setAppliedClientIds([]);
+    setAppliedProjectIds([]);
+    setAppliedTaskIds([]);
+  }
+
+  const archiveStatusFilter: AgencyMultiSelectStatusFilter = {
+    label: "Show",
+    value: draftArchiveFilter,
+    options: ARCHIVE_STATUS_OPTIONS,
+    onChange: (value) => setDraftArchiveFilter(value as AgencyClientArchiveFilter),
+  };
+  const trashStatusFilter: AgencyMultiSelectStatusFilter = {
+    label: "Show",
+    value: draftTrashFilter,
+    options: TRASH_STATUS_OPTIONS,
+    onChange: (value) => setDraftTrashFilter(value as AgencyProjectTrashFilter),
+  };
+
+  const isRefreshing =
+    (appliedClientsQuery.isFetching && Boolean(appliedClientsQuery.data)) ||
+    (appliedProjectsQuery.isFetching && Boolean(appliedProjectsQuery.data));
+
+  return {
+    applied,
+    clients,
+    projects,
+    entries,
+    tasks,
+    isLoading: clientsQuery.isPending || projectsQuery.isPending,
+    isRefreshing,
+    filterTerm: draftFilterTerm,
+    onFilterTermChange: setDraftFilterTerm,
+    selectedPeopleIds: draftPeopleIds,
+    onSelectedPeopleIdsChange: setDraftPeopleIds,
+    selectedClientIds: draftClientIds,
+    onSelectedClientIdsChange: setDraftClientIds,
+    selectedProjectIds: draftProjectIds,
+    onSelectedProjectIdsChange: setDraftProjectIds,
+    selectedTaskIds: draftTaskIds,
+    onSelectedTaskIdsChange: setDraftTaskIds,
     peopleOptions,
     clientOptions,
     projectFilterGroups,
@@ -206,17 +336,11 @@ export function useAgencyListFilters({ teamId }: UseAgencyListFiltersOptions) {
     clientsLoading: clientsQuery.isPending,
     projectsLoading: projectsQuery.isPending,
     tasksLoading: tasksQuery.isPending,
-    hasActiveFilters,
+    archiveStatusFilter,
+    trashStatusFilter,
+    hasPendingChanges,
+    onApply: handleApply,
+    canReset,
     onReset: handleReset,
-  };
-
-  return {
-    applied,
-    barProps,
-    clients,
-    projects,
-    entries,
-    tasks,
-    isLoading: clientsQuery.isPending || projectsQuery.isPending,
   };
 }

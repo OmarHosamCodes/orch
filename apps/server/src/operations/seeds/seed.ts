@@ -1,4 +1,10 @@
-import { auth } from "@orch/auth";
+import { ensurePersonalAgency } from "@orch/api/routers/team/ensure-personal-agency";
+import {
+  auth,
+  registerPersonalAgencyOnUserCreate,
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+} from "@orch/auth";
 import { db } from "@orch/db";
 import { dashboardWorkspace, user, workspaceMarketplaceItem } from "@orch/db/schema";
 import { env, primaryCorsOrigin } from "@orch/env/server";
@@ -73,7 +79,15 @@ import {
 } from "@orch/workspace";
 import { eq, inArray } from "drizzle-orm";
 
+import { registerTeamPolarBillingHandlers } from "../../lib/register-team-polar-billing";
+
 const DEFAULT_SEED_PASSWORD = "orch1234";
+
+registerPersonalAgencyOnUserCreate(ensurePersonalAgency);
+registerTeamPolarBillingHandlers({
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+});
 
 type SeedUserKey = "founder" | "ops" | "analyst";
 

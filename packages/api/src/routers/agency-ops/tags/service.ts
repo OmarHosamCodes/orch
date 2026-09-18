@@ -3,7 +3,7 @@ import { db } from "@orch/db";
 import { agencyOpsTag } from "@orch/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { createWorkspaceId } from "@orch/workspace";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 
 type AgencyTagRecord = {
   id: string;
@@ -30,7 +30,7 @@ function mapAgencyTagRow(row: {
 }
 
 export async function listAgencyTags(actorUserId: string, input: { teamId: string }) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const rows = await db
     .select({
@@ -51,7 +51,7 @@ export async function createAgencyTag(
   actorUserId: string,
   input: { teamId: string; name: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const now = new Date();
   const [created] = await db
@@ -80,7 +80,7 @@ export async function deleteAgencyTag(
   actorUserId: string,
   input: { teamId: string; tagId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const [tag] = await db
     .select({ id: agencyOpsTag.id })

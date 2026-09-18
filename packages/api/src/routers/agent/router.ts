@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ORPCError } from "@orpc/server";
 import { protectedProcedure } from "../../procedures";
 import { toInternalServerError } from "../../dev-errors";
 import { approveAgencyProposal, confirmAgentPlan, rejectAgencyProposal } from "./agency-proposals";
@@ -7,13 +8,23 @@ import {
   agentChatTurnInputSchema,
   agentChatTurnResponseSchema,
   agentChatTurnStreamEventSchema,
+  agentRunCancelInputSchema,
+  agentRunCancelResponseSchema,
+  agentRunGetInputSchema,
+  agentRunRecordSchema,
+  agentRunSubscribeInputSchema,
   agentToolCatalogInputSchema,
   agentToolCatalogResponseSchema,
+  dashboardConversationCompactResponseSchema,
   dashboardConversationDeleteInputSchema,
   dashboardConversationDetailSchema,
+  dashboardConversationForTaskInputSchema,
   dashboardConversationGetInputSchema,
+  dashboardConversationListInputSchema,
   dashboardConversationListResponseSchema,
+  dashboardConversationMarkReadInputSchema,
   dashboardConversationRenameInputSchema,
+  dashboardConversationSettleInputSchema,
   openRouterAccountStatusSchema,
   openRouterModelCatalogResponseSchema,
   openRouterFreeModelsResponseSchema,
@@ -33,14 +44,22 @@ import {
 } from "./composer-draft-service";
 import {
   appendDashboardConversationTurn,
-  assertCanCreateDashboardConversation,
   deleteDashboardConversation,
   getAgentToolsCatalog,
   getDashboardConversation,
+  getOrCreateTaskConversation,
   listDashboardConversations,
   renameDashboardConversation,
   streamDashboardConversationTurn,
 } from "./service";
+import {
+  listCompactDashboardConversations,
+  markDashboardConversationRead,
+  settleDashboardConversation,
+  unsettleDashboardConversation,
+} from "./conversation-hygiene";
+import { cancelRun, getAgentRun, subscribeRun } from "./run-service";
+import { listInbox, markInboxRead } from "./memory-service";
 
 export const agentRouter = {
   freeModels: protectedProcedure.handler(async () => {
@@ -79,6 +98,78 @@ export const agentRouter = {
           });
         }
       }),
+  },
+  inbox: {
+    list: protectedProcedure
+      .input(z.object({ unreadOnly: z.boolean().optional() }))
+      .handler(async ({ input, context }) => {
+        try {
+          return z
+            .object({
+              notes: z.array(
+                z.object({
+                  id: z.string(),
+                  runId: z.string().nullable(),
+                  kind: z.string(),
+                  title: z.string(),
+                  body: z.string(),
+                  readAt: z.string().nullable(),
+                  createdAt: z.string(),
+                }),
+              ),
+            })
+            .parse(await listInbox(context.session.user.id, input));
+        } catch (error) {
+          throw toInternalServerError("agent.inbox.list", error);
+        }
+      }),
+    markRead: protectedProcedure
+      .input(z.object({ noteId: z.string().min(1) }))
+      .handler(async ({ input, context }) => {
+        try {
+          return z
+            .object({ noteId: z.string(), readAt: z.string() })
+            .parse(await markInboxRead(context.session.user.id, input));
+        } catch (error) {
+          throw toInternalServerError("agent.inbox.markRead", error, { noteId: input.noteId });
+        }
+      }),
+  },
+  runs: {
+    get: protectedProcedure.input(agentRunGetInputSchema).handler(async ({ input, context }) => {
+      try {
+        return agentRunRecordSchema.parse(await getAgentRun(context.session.user.id, input));
+      } catch (error) {
+        throw toInternalServerError("agent.runs.get", error, { runId: input.runId });
+      }
+    }),
+    cancel: protectedProcedure
+      .input(agentRunCancelInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return agentRunCancelResponseSchema.parse(
+            await cancelRun(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.runs.cancel", error, { runId: input.runId });
+        }
+      }),
+    subscribe: protectedProcedure.input(agentRunSubscribeInputSchema).handler(async function* ({
+      input,
+      context,
+      signal,
+    }) {
+      try {
+        for await (const event of subscribeRun(context.session.user.id, {
+          ...input,
+          signal,
+        })) {
+          yield agentChatTurnStreamEventSchema.parse(event);
+        }
+      } catch (error) {
+        throw toInternalServerError("agent.runs.subscribe", error, { runId: input.runId });
+      }
+    }),
   },
   proposals: {
     confirmPlan: protectedProcedure
@@ -177,10 +268,6 @@ export const agentRouter = {
   chat: {
     turn: protectedProcedure.input(agentChatTurnInputSchema).handler(async ({ input, context }) => {
       try {
-        if (!input.conversationId) {
-          await assertCanCreateDashboardConversation(context.session.user.id, {});
-        }
-
         return agentChatTurnResponseSchema.parse(
           await appendDashboardConversationTurn(context.session.user.id, {
             actorUserName: context.session.user.name,
@@ -188,6 +275,9 @@ export const agentRouter = {
           }),
         );
       } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
         throw toInternalServerError("agent.chat.turn", error, {
           conversationId: input.conversationId ?? null,
           requestedNodesCount: input.nodes?.length,
@@ -204,10 +294,6 @@ export const agentRouter = {
       signal,
     }) {
       try {
-        if (!input.conversationId) {
-          await assertCanCreateDashboardConversation(context.session.user.id, {});
-        }
-
         for await (const event of streamDashboardConversationTurn(context.session.user.id, {
           actorUserName: context.session.user.name,
           turn: input,
@@ -216,6 +302,9 @@ export const agentRouter = {
           yield agentChatTurnStreamEventSchema.parse(event);
         }
       } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
         throw toInternalServerError("agent.chat.turnStream", error, {
           conversationId: input.conversationId ?? null,
           requestedNodesCount: input.nodes?.length,
@@ -228,15 +317,65 @@ export const agentRouter = {
     }),
   },
   conversations: {
-    list: protectedProcedure.handler(async ({ context }) => {
+    list: protectedProcedure
+      .input(dashboardConversationListInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationListResponseSchema.parse(
+            await listDashboardConversations(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.list", error);
+        }
+      }),
+    compact: protectedProcedure.handler(async ({ context }) => {
       try {
-        return dashboardConversationListResponseSchema.parse(
-          await listDashboardConversations(context.session.user.id, {}),
+        return dashboardConversationCompactResponseSchema.parse(
+          await listCompactDashboardConversations(context.session.user.id, {}),
         );
       } catch (error) {
-        throw toInternalServerError("agent.conversations.list", error);
+        throw toInternalServerError("agent.conversations.compact", error);
       }
     }),
+    settle: protectedProcedure
+      .input(dashboardConversationSettleInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await settleDashboardConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.settle", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
+    unsettle: protectedProcedure
+      .input(dashboardConversationSettleInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await unsettleDashboardConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.unsettle", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
+    markRead: protectedProcedure
+      .input(dashboardConversationMarkReadInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await markDashboardConversationRead(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.markRead", error, {
+            conversationId: input.conversationId,
+          });
+        }
+      }),
     get: protectedProcedure
       .input(dashboardConversationGetInputSchema)
       .handler(async ({ input, context }) => {
@@ -247,6 +386,19 @@ export const agentRouter = {
         } catch (error) {
           throw toInternalServerError("agent.conversations.get", error, {
             conversationId: input.conversationId,
+          });
+        }
+      }),
+    forTask: protectedProcedure
+      .input(dashboardConversationForTaskInputSchema)
+      .handler(async ({ input, context }) => {
+        try {
+          return dashboardConversationDetailSchema.parse(
+            await getOrCreateTaskConversation(context.session.user.id, input),
+          );
+        } catch (error) {
+          throw toInternalServerError("agent.conversations.forTask", error, {
+            taskId: input.taskId,
           });
         }
       }),

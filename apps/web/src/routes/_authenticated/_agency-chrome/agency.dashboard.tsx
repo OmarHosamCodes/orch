@@ -7,6 +7,6 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/dash
   validateSearch: validatePeriodSearch,
   component: AgencyDashboardPage,
   head: () => ({
-    meta: [{ title: "Dashboard — Orch" }],
+    meta: [{ title: "Dashboard | Orch" }],
   }),
 });

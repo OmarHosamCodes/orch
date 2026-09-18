@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import {
   agencyFocusRingClass,
@@ -16,7 +16,7 @@ import { Checkbox } from "@/ui/checkbox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { Textarea } from "@/ui/textarea";
 
 import type { PeopleConfigStepId } from "./people-config-completion";
@@ -260,16 +260,7 @@ export function AgencyPeopleGuidedMember({
 
         <div className={cn(agencyPanelClass, "space-y-5 p-5 sm:p-6")}>
           {isLoading ? (
-            <div className="space-y-4" aria-busy="true" aria-label="Loading member configuration">
-              <Skeleton className="h-4 w-40 rounded-md" />
-              <Skeleton className="h-3 w-64 rounded-md" />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Skeleton className="h-10 w-full rounded-xl" />
-                <Skeleton className="h-10 w-full rounded-xl" />
-                <Skeleton className="h-10 w-full rounded-xl" />
-                <Skeleton className="h-10 w-full rounded-xl" />
-              </div>
-            </div>
+            <SurfaceShimmer className="min-h-48" label="Loading member configuration" />
           ) : (
             <>
               {activeStepId === "identity" ? (
@@ -322,7 +313,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-hr-dob">
                         Date of birth
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-hr-dob"
                         value={hrDraft.dateOfBirth}
                         disabled={!canEditHr}
@@ -618,7 +609,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-rate-effective">
                         Effective from
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-rate-effective"
                         value={rateDraft.effectiveFrom}
                         disabled={!canEditRates}
@@ -645,7 +636,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-tenure-intern-start">
                         Intern start
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-tenure-intern-start"
                         value={tenureDraft.internStart}
                         disabled={!canEditTenure}
@@ -659,7 +650,7 @@ export function AgencyPeopleGuidedMember({
                       <Label className={agencyFormLabelClass} htmlFor="people-tenure-intern-end">
                         Intern end
                       </Label>
-                      <MemberProfileDatePicker
+                      <AgencyDateField
                         id="people-tenure-intern-end"
                         value={tenureDraft.internEnd}
                         disabled={!canEditTenure}

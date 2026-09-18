@@ -114,6 +114,9 @@ function FeedActivityRow({
               projectName={item.projectName}
               clientName={item.clientName ?? undefined}
               taskTitle={item.taskTitle ?? item.title}
+              colorHueId={item.colorHueId}
+              taskIconKey={item.taskIconKey}
+              projectIconKey={item.projectIconKey}
               format="task-client"
               className="min-w-0"
             />
@@ -284,7 +287,7 @@ export function MemberProfileActivityRails({
 
   return (
     <>
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-surface border border-default bg-default">
         <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
           <h2 className="text-sm font-semibold tracking-tight text-foreground">
             Activity & reviews
@@ -311,9 +314,8 @@ export function MemberProfileActivityRails({
           ref={feedRef}
           tabIndex={0}
           className={cn(
-            "relative min-w-0 overscroll-contain",
-            "max-xl:overflow-visible max-xl:pb-2",
-            "xl:max-h-[min(28rem,calc(100vh-12rem))] xl:overflow-x-hidden xl:overflow-y-auto",
+            "relative min-h-0 min-w-0 flex-1 overscroll-contain",
+            "overflow-x-hidden overflow-y-auto",
             "scroll-smooth motion-reduce:scroll-auto",
             "[scrollbar-gutter:stable]",
           )}

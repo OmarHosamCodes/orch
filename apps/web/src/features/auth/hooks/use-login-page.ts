@@ -1,155 +1,62 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "@/lib/navigation";
-import { toast } from "sonner";
-
-import { authModeFromSearchParam, type AuthMode } from "@/features/auth/auth-mode-from-search";
-import {
-  signInFormSchema,
-  signUpFormSchema,
-  type SignInFormValues,
-  type SignUpFormValues,
-} from "@/features/auth/auth-schemas";
 import { authClient } from "@/lib/auth-client";
 import { safeRedirectPath } from "@/lib/safe-redirect-path";
-import { getErrorMessage } from "@/lib/utils/get-error-message";
-
-export type { AuthMode };
-
-const OAUTH_ERROR_MESSAGES: Record<string, string> = {
-  state_mismatch: "Sign-in expired or was interrupted. Try again.",
-  please_restart_the_process: "Sign-in could not be completed. Try again.",
-  invalid_callback_request: "Invalid sign-in response. Try again.",
-};
-
-function formatOAuthError(code: string): string {
-  return OAUTH_ERROR_MESSAGES[code] ?? "Sign in failed. Try again.";
-}
 
 export function useLoginPage() {
   const session = authClient.useSession();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [mode, setMode] = useState<AuthMode>(() =>
-    authModeFromSearchParam(searchParams.get("mode")),
-  );
+  const [searchParams] = useSearchParams();
+  const oauthError = searchParams.get("error");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const submitting = useRef(false);
+  const [lastUsedEmail, setLastUsedEmail] = useState<string | null>(null);
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
 
   useEffect(() => {
-    setMode(authModeFromSearchParam(searchParams.get("mode")));
-  }, [searchParams]);
-  const [error, setError] = useState<string | null>(() => {
-    const oauthError = searchParams.get("error");
-    return oauthError ? formatOAuthError(oauthError) : null;
-  });
-  const [pending, setPending] = useState(false);
-  const [emailAuthOpen, setEmailAuthOpen] = useState(false);
-  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
-  const signInForm = useForm<SignInFormValues>({
-    resolver: zodResolver(signInFormSchema),
-    defaultValues: { email: "", password: "" },
-  });
-  const signUpForm = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpFormSchema),
-    defaultValues: { email: "", password: "", name: "" },
-  });
-  const isSignUp = mode === "sign-up";
-
-  async function handleSignIn(values: SignInFormValues) {
-    setPending(true);
-    setError(null);
-    try {
-      const result = await authClient.signIn.email({
-        email: values.email.trim(),
-        password: values.password,
+    const controller = new AbortController();
+    void authClient
+      .$fetch<{ email: string | null }>("/remembered-account", {
+        signal: controller.signal,
+      })
+      .then(({ data }) => {
+        if (!controller.signal.aborted) setLastUsedEmail(data?.email ?? null);
+      })
+      .catch(() => {
+        // Account recall is optional; Google authentication remains available.
       });
-      if (result.error) setError(result.error.message ?? "Sign in failed. Try again.");
-    } catch (submitError) {
-      setError(getErrorMessage(submitError, "Sign in failed. Try again."));
-    } finally {
-      setPending(false);
-    }
-  }
+    return () => controller.abort();
+  }, []);
 
-  async function handleSignUp(values: SignUpFormValues) {
+  async function handleGoogleSignIn(emailHint: string | null = null) {
+    if (submitting.current) return;
+    submitting.current = true;
     setPending(true);
     setError(null);
     try {
-      const result = await authClient.signUp.email({
-        name: values.name?.trim() || values.email.trim().split("@")[0] || "User",
-        email: values.email.trim(),
-        password: values.password,
-      });
-      if (result.error) {
-        setError(result.error.message ?? "Could not create account. Try again.");
-        return;
-      }
-      toast.success("Welcome to Orch", { description: "Your workspace is ready." });
-    } catch (submitError) {
-      setError(getErrorMessage(submitError, "Could not create account. Try again."));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setPending(true);
-    setError(null);
-    try {
-      const loginUrl = new URL("/login", window.location.origin).href;
+      const loginUrl = new URL("/login", window.location.origin);
+      loginUrl.searchParams.set("redirect", redirectTo);
       const result = await authClient.signIn.social({
         provider: "google",
+        loginHint: emailHint ?? undefined,
         callbackURL: new URL(redirectTo, window.location.origin).href,
-        errorCallbackURL: loginUrl,
+        errorCallbackURL: loginUrl.href,
       });
-      if (result.error) setError(result.error.message ?? "Google sign in failed.");
-    } catch (submitError) {
-      setError(getErrorMessage(submitError, "Google sign in failed."));
-    } finally {
-      setPending(false);
+      if (!result.error) return;
+    } catch {
+      // Transport and provider failures share the recovery action below.
     }
-  }
-
-  function switchMode(nextMode: AuthMode) {
-    setMode(nextMode);
-    setError(null);
-    setEmailAuthOpen(true);
-    signInForm.reset();
-    signUpForm.reset();
-    setSearchParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        if (nextMode === "sign-up") {
-          next.set("mode", "sign-up");
-        } else {
-          next.delete("mode");
-        }
-        return next;
-      },
-      { replace: true },
-    );
-  }
-
-  function toggleEmailAuth() {
-    setEmailAuthOpen((open) => {
-      if (open) setError(null);
-      return !open;
-    });
+    setError("We couldn't sign you in with Google. Try again.");
+    submitting.current = false;
+    setPending(false);
   }
 
   return {
     session,
     redirectTo,
-    isSignUp,
-    error,
+    error: error ?? (oauthError ? "We couldn't sign you in. Try again." : null),
     pending,
-    emailAuthOpen,
-    form: isSignUp ? signUpForm : signInForm,
-    signInForm,
-    signUpForm,
-    handleSignIn,
-    handleSignUp,
+    lastUsedEmail,
     handleGoogleSignIn,
-    switchMode,
-    toggleEmailAuth,
   };
 }

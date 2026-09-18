@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 import type { AgencyTaskMessage } from "@orch/api/routers/agency-ops/task-messages/schemas";
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 
 import { findProjectTaskInCache } from "@/features/shared/agency-query-cache";
 import { toAgencyMemberOption } from "@/features/shared/agency-member-option";
@@ -17,7 +18,6 @@ import {
   contentMentionsOrch,
   ensureOrchMentionInDraft,
 } from "@/features/task-management/task-thread/agency-task-thread-message-actions";
-import { runAgencyTaskThreadOrchAsk } from "@/features/task-management/task-thread/agency-task-thread-orch-ask";
 import { resolveTaskThreadProjectLabel } from "@/features/task-management/task-thread/agency-task-thread-project-label";
 import { buildAgencyTaskThreadTimeline } from "@/features/task-management/task-thread/agency-task-thread-timeline";
 import { teamDetailQueryOptions } from "@/features/team/team-queries";
@@ -59,20 +59,12 @@ export function useAgencyTaskThread({
   const [titleSaving, setTitleSaving] = useState(false);
   const [assigneeSaving, setAssigneeSaving] = useState(false);
   const [replyTo, setReplyTo] = useState<AgencyTaskMessage | null>(null);
-  const [localAgentMessages, setLocalAgentMessages] = useState<AgencyTaskMessage[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const orchAskAbortRef = useRef<AbortController | null>(null);
 
   const updateProjectTask = useAgencyOpsStore((s) => s.updateProjectTask);
   const taskPending = useAgencyOpsStore((s) => s.pendingTaskIds.includes(taskId));
   const orchPresenceActive = useWorkspaceAgentStore((s) => s.orchPresence === "thread");
-
-  useEffect(() => {
-    return () => {
-      orchAskAbortRef.current?.abort();
-    };
-  }, []);
 
   const messagesQuery = useAgencyTaskMessagesInfiniteQuery(teamId, taskId);
   const projectsQuery = useAgencyProjectsQuery(teamId);
@@ -139,34 +131,16 @@ export function useAgencyTaskThread({
 
   const messages = useMemo(() => {
     const pages = messagesQuery.data?.pages;
-    const server = pages?.length
+    return pages?.length
       ? pages
           .slice()
           .reverse()
           .flatMap((page) => page.items)
       : [];
-    if (localAgentMessages.length === 0) return server;
-    const byId = new Map(server.map((item) => [item.id, item]));
-    for (const agentMessage of localAgentMessages) {
-      byId.set(agentMessage.id, agentMessage);
-    }
-    return Array.from(byId.values()).sort((left, right) =>
-      left.createdAt.localeCompare(right.createdAt),
-    );
-  }, [localAgentMessages, messagesQuery.data?.pages]);
+  }, [messagesQuery.data?.pages]);
 
   const timeline = useMemo(() => buildAgencyTaskThreadTimeline(messages), [messages]);
   const orchMentioned = contentMentionsOrch(composerContent);
-
-  function upsertLocalAgentMessage(message: AgencyTaskMessage) {
-    setLocalAgentMessages((prev) => {
-      const index = prev.findIndex((item) => item.id === message.id);
-      if (index < 0) return [...prev, message];
-      const next = prev.slice();
-      next[index] = message;
-      return next;
-    });
-  }
 
   function onMentionOrch(message: AgencyTaskMessage) {
     if (!canPost) return;
@@ -273,7 +247,6 @@ export function useAgencyTaskThread({
     if ((!trimmed && composerFiles.length === 0) || sendPending) return;
     const files = composerFiles;
     const replyTarget = replyTo;
-    const askOrch = contentMentionsOrch(trimmed);
     const content = replyTarget
       ? composeTaskMessageWithReply({ content: trimmed, replyTo: replyTarget })
       : trimmed;
@@ -294,21 +267,6 @@ export function useAgencyTaskThread({
           userAvatar: user.image ?? null,
         },
       });
-
-      if (askOrch) {
-        orchAskAbortRef.current?.abort();
-        const controller = new AbortController();
-        orchAskAbortRef.current = controller;
-        await runAgencyTaskThreadOrchAsk({
-          teamId,
-          taskId,
-          taskTitle: title,
-          userContent: trimmed,
-          replyTo: replyTarget,
-          signal: controller.signal,
-          onAgentMessage: upsertLocalAgentMessage,
-        });
-      }
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -318,6 +276,9 @@ export function useAgencyTaskThread({
 
   return {
     title,
+    projectId,
+    colorHueId: resolvedProject?.colorHueId ?? null,
+    iconKey: cachedTask?.iconKey ?? null,
     projectLabel,
     assignedToTeam,
     assignees,
@@ -354,6 +315,13 @@ export function useAgencyTaskThread({
     onTitleCancel,
     onAssignedToTeamChange,
     onAssigneeUserIdsChange,
+    onChangeIcon: (iconKey: AgencyEntityIconKey | null) => {
+      void updateProjectTask({
+        teamId,
+        taskId,
+        iconKey,
+      });
+    },
     onComposerContentChange: setComposerContent,
     onComposerPickFiles: (files: File[]) => {
       setComposerFiles((prev) => [...prev, ...files].slice(0, 10));
@@ -366,6 +334,7 @@ export function useAgencyTaskThread({
           ? prev.replace(/(^|[\s([{])@orch\b/gi, "$1").replace(/[ \t]{2,}/g, " ")
           : ensureOrchMentionInDraft(prev),
       );
+      useWorkspaceAgentStore.getState().setExpanded(true);
     },
     onLoadOlder: () => {
       if (!messagesQuery.hasNextPage || messagesQuery.isFetchingNextPage) return;

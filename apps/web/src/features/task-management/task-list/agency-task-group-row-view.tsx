@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 import type { AgencyTaskGroupRowViewModel } from "@/features/task-management/hooks/use-agency-task-group-row";
 import type { RenderAgencyTaskRow } from "@/features/task-management/hooks/use-agency-task-row";
 import {
+  agencyAvatarStackRingClass,
   agencyFocusRingClass,
   agencyTaskRowCheckboxCheckedClass,
   agencyTaskRowCheckboxClass,
 } from "@/features/shared/agency-ui";
+import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import { Button } from "@/ui/button";
 import { cn } from "@/lib/utils";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
@@ -164,31 +166,38 @@ export function AgencyTaskGroupRowView({
             }
 
             return (
-              <li key={instance.id} className="border-b border-default px-3 py-2 last:border-b-0">
-                <div className="flex items-start justify-between gap-2">
+              <li
+                key={instance.id}
+                className="group/task-instance border-b border-default px-3 py-2 last:border-b-0"
+              >
+                <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-muted">{createdLabel}</p>
-                    <ul className="mt-1 space-y-1">
-                      {instance.assignedToTeam ? (
-                        <li className="text-xs text-highlighted">Entire team</li>
-                      ) : instance.assignees.length === 0 ? (
-                        <li className="text-xs text-muted">Unassigned</li>
-                      ) : (
-                        instance.assignees.map((assignee) => (
-                          <li
-                            key={assignee.userId}
-                            className="flex items-center justify-between gap-2 text-xs"
-                          >
-                            <span className="truncate font-medium text-highlighted">
+                    {instance.assignedToTeam ? (
+                      <p className="mt-1 text-xs text-highlighted">Entire team</p>
+                    ) : instance.assignees.length === 0 ? (
+                      <p className="mt-1 text-xs text-muted">Unassigned</p>
+                    ) : (
+                      <ul className="mt-1.5 flex flex-wrap items-center gap-2">
+                        {instance.assignees.map((assignee) => (
+                          <li key={assignee.userId} className="flex min-w-0 items-center gap-1.5">
+                            <AgencyMemberAvatar
+                              name={assignee.userName}
+                              userId={assignee.userId}
+                              avatarUrl={assignee.userAvatar}
+                              size="sm"
+                              className={cn("size-5 rounded-full", agencyAvatarStackRingClass)}
+                            />
+                            <span className="truncate text-xs font-medium text-highlighted">
                               {assignee.userName}
                             </span>
                             <span className="shrink-0 text-[10px] font-semibold capitalize text-muted">
                               {memberStatusLabel(assignee.status)}
                             </span>
                           </li>
-                        ))
-                      )}
-                    </ul>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     {!singleInstance ? rateControl(instance) : null}
@@ -198,6 +207,7 @@ export function AgencyTaskGroupRowView({
                         size="sm"
                         aria-label="Delete task"
                         disabled={deleting}
+                        className="opacity-0 transition-opacity group-hover/task-instance:opacity-100 group-focus-within/task-instance:opacity-100"
                         onClick={() => onDeleteInstance(instance)}
                       >
                         <Trash2 />

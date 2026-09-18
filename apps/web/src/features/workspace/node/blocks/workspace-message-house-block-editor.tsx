@@ -106,7 +106,7 @@ export function WorkspaceMessageHouseBlockEditor({
         </div>
       </div>
 
-      <section className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+      <section className="rounded-surface border border-primary/20 bg-primary/5 p-surface">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">Brand Promise</h2>
@@ -146,7 +146,10 @@ export function WorkspaceMessageHouseBlockEditor({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {block.pillars.map((pillar) => (
-          <article key={pillar.id} className="rounded-xl border border-muted bg-background p-4">
+          <article
+            key={pillar.id}
+            className="rounded-surface border border-muted bg-background p-surface"
+          >
             <div className="mb-3">
               <Label
                 htmlFor={`pillar-title-${pillar.id}`}
@@ -205,7 +208,10 @@ export function WorkspaceMessageHouseBlockEditor({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {bottomSections.map((section) => (
-          <article key={section.key} className="rounded-xl border border-muted bg-background p-4">
+          <article
+            key={section.key}
+            className="rounded-surface border border-muted bg-background p-surface"
+          >
             <Label
               htmlFor={section.key}
               className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.2em] text-toned"
@@ -231,7 +237,7 @@ export function WorkspaceMessageHouseBlockEditor({
         ))}
       </div>
 
-      <section className="rounded-xl border border-warning/20 bg-warning/5 p-4">
+      <section className="rounded-surface border border-warning/20 bg-warning/5 p-surface">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
@@ -247,7 +253,7 @@ export function WorkspaceMessageHouseBlockEditor({
           ) : null}
         </div>
 
-        <div className="min-h-[80px] rounded-xl border border-muted bg-background p-4 text-sm leading-relaxed text-toned">
+        <div className="min-h-[80px] rounded-surface border border-muted bg-background p-surface text-sm leading-relaxed text-toned">
           {block.latestStressTest ? (
             <div
               className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-toned"

@@ -13,7 +13,7 @@ export function AgencyManagementLayoutPage() {
 
   return (
     <div
-      className="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-auto px-5 py-6 sm:px-8 sm:py-7"
+      className="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-auto"
       aria-label={agencyManagementPaneLabel(pane)}
     >
       <Outlet />

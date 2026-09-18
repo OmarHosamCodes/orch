@@ -13,6 +13,7 @@ import {
 } from "@/features/shared/agency-query-cache";
 import { orpcClient } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
+import { formatDuration } from "@/lib/utils/format-duration";
 import {
   getAgencyTimerStartBlockedMessage,
   getAgencyTimerStopBlockedMessage,
@@ -1355,7 +1356,23 @@ function createAgencyTimeTrackingActions(
         void refetchAgencyTimeEntriesListQueries(activeTimer.teamId);
       }
 
-      toast.success(payload.discard ? "Timer discarded" : "Timer stopped");
+      if (payload.discard) {
+        toast.success("Timer discarded");
+      } else if (result.createdEntry) {
+        const sessionLabel = formatDuration(result.createdEntry.durationSeconds, "units");
+        const dayTotalSeconds = readCachedDayTotalSeconds(
+          activeTimer.teamId,
+          result.createdEntry,
+        );
+        toast.success("Timer stopped", {
+          description:
+            dayTotalSeconds != null
+              ? `${sessionLabel} logged · ${formatDuration(dayTotalSeconds, "units")} today`
+              : `${sessionLabel} logged`,
+        });
+      } else {
+        toast.success("Timer stopped");
+      }
     } catch (error) {
       if (isQueryCancelRejection(error)) {
         return;
@@ -1662,6 +1679,25 @@ function createAgencyTimeTrackingActions(
     return [...logQueryRegistry.values()]
       .map((entry) => entry.payload)
       .filter((registeredQuery) => teamIds.has(registeredQuery.teamId));
+  }
+
+  /**
+   * Day total for the entry's own date bucket (same keying as updateWeekSummary),
+   * read after reconcile so it already includes the just-saved entry. Null when
+   * the list cache isn't hydrated — callers fall back to the session line alone.
+   */
+  function readCachedDayTotalSeconds(teamId: string, entry: AgencyTimeEntry): number | null {
+    const dateKey = entry.startedAt.slice(0, 10);
+    for (const registeredQuery of getRegisteredLogQueries(new Set([teamId]))) {
+      const cached = getQueryClient().getQueryData<AgencyTimeEntriesListQueryData>(
+        registeredQuery.queryKey,
+      );
+      const day = cached?.weekSummary.daily.find((dailyEntry) => dailyEntry.date === dateKey);
+      if (!day) continue;
+      const alreadyCounted = cached?.items.some((item) => item.id === entry.id) ?? false;
+      return day.totalSeconds + (alreadyCounted ? 0 : entry.durationSeconds);
+    }
+    return null;
   }
 
   function patchActiveTimerCaches(timer: AgencyActiveTimer | null, targetTeamId?: string) {

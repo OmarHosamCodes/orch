@@ -19,53 +19,72 @@ const DEFAULT_BILLING_LIMITS: TierLimits = {
 
 type BillingState = Awaited<ReturnType<typeof orpcClient.billing.state>>;
 
-function billingStateQueryOptions(authEnabled: boolean) {
+function billingStateQueryOptions(teamId: string | null | undefined, enabled: boolean) {
+  const resolvedTeamId = teamId ?? "";
   return {
-    ...orpc.billing.state.queryOptions(),
-    enabled: authEnabled,
+    ...orpc.billing.state.queryOptions({ input: { teamId: resolvedTeamId } }),
+    enabled: enabled && Boolean(resolvedTeamId),
     staleTime: 5 * 60 * 1000,
   };
 }
 
-function billingStateQueryKey() {
-  return orpc.billing.state.queryOptions().queryKey;
+function billingStateQueryKey(teamId: string | null | undefined) {
+  return orpc.billing.state.queryOptions({ input: { teamId: teamId ?? "" } }).queryKey;
 }
 
-function deriveBillingState(data: BillingState | undefined) {
+export function deriveBillingState(data: BillingState | undefined) {
+  const plan = data?.plan;
   const tier = data?.tier ?? "free";
   return {
+    plan,
     tier,
     isPro: tier === "pro",
+    agencyEnabled: data?.agencyEnabled ?? false,
     limits: data?.limits ?? DEFAULT_BILLING_LIMITS,
     subscription: data?.subscription ?? null,
   };
 }
 
-async function checkoutBilling(slug = "pro") {
+async function checkoutBilling(slug: "agency" | "agency-unlimited" = "agency") {
   await authClient.checkout({ slug });
+}
+
+async function checkoutSeats(teamId: string, seats: number) {
+  const { url } = await orpcClient.billing.createSeatCheckout({ teamId, seats });
+  window.location.assign(url);
+}
+
+async function checkoutCredits(teamId: string) {
+  const { url } = await orpcClient.billing.createCreditCheckout({ teamId });
+  window.location.assign(url);
 }
 
 async function openBillingPortal() {
   await authClient.customer.portal();
 }
 
-function refreshBillingState(queryClient: QueryClient) {
-  queryClient.invalidateQueries({ queryKey: billingStateQueryKey() });
+function refreshBillingState(queryClient: QueryClient, teamId: string | null | undefined) {
+  if (!teamId) return;
+  queryClient.invalidateQueries({ queryKey: billingStateQueryKey(teamId) });
 }
 
-export function useBilling(enabled = true) {
+export function useBilling(teamId?: string | null, enabled = true) {
   const queryClient = useQueryClient();
   const { user } = useAuthSession();
-  const authEnabled = enabled && Boolean(user);
+  const queryEnabled = enabled && Boolean(user);
 
-  const billingQuery = useQuery(billingStateQueryOptions(authEnabled));
+  const billingQuery = useQuery(billingStateQueryOptions(teamId, queryEnabled));
   const derived = deriveBillingState(billingQuery.data);
 
   return {
     billingQuery,
     ...derived,
     checkout: checkoutBilling,
+    checkoutSeats: (seats: number) => checkoutSeats(teamId ?? "", seats),
+    checkoutCredits: () => checkoutCredits(teamId ?? ""),
     openPortal: openBillingPortal,
-    refreshBillingState: () => refreshBillingState(queryClient),
+    refreshBillingState: () => refreshBillingState(queryClient, teamId),
   };
 }
+
+export { billingStateQueryKey, checkoutSeats };

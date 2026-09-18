@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useId } from "react";
 
-import { MemberProfileDatePicker } from "@/features/shared/date/member-profile-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { FISCAL_MONTHS, type FiscalMonth } from "@/features/resourcing/tenure-utils";
 import {
   agencyFormFieldClass,
@@ -264,7 +264,7 @@ export function AgencySettingsTenurePolicy({
             <Label htmlFor={effectiveFromId} className={agencyFormLabelClass}>
               Effective from
             </Label>
-            <MemberProfileDatePicker
+            <AgencyDateField
               id={effectiveFromId}
               value={policyDraft.policyEffectiveFrom}
               className="h-8 max-w-[14rem]"

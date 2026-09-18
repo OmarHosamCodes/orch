@@ -34,6 +34,8 @@ function makeTask(id: string, overrides: Record<string, unknown> = {}) {
     teamId,
     projectId: "project-1",
     title: `Task ${id}`,
+    iconKey: null,
+    iconSource: "auto" as const,
     status: "open" as const,
     taskKind: "standard" as const,
     assignedToTeam: true,

@@ -16,7 +16,7 @@ export function AgencyPlaceholderSurface({
   hints,
 }: AgencyPlaceholderSurfaceProps) {
   return (
-    <div className="rounded-2xl border border-dashed border-default bg-muted/20 px-6 py-12 text-center">
+    <div className="rounded-surface border border-dashed border-default bg-card px-surface py-12 text-center">
       <LucideIcon name={icon} className="mx-auto size-7 text-muted" />
       <p className="mt-4 text-sm font-bold text-highlighted">{title}</p>
       <p className="mx-auto mt-1 max-w-md text-xs text-muted">{body}</p>

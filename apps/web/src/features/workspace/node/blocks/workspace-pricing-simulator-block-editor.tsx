@@ -2,6 +2,7 @@ import { getPricingSimulatorSummary, type WorkspacePricingSimulatorBlock } from 
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -73,7 +74,7 @@ export function WorkspacePricingSimulatorBlockEditor({
 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-      <section className="space-y-4 rounded-xl border border-muted bg-background p-4">
+      <section className="space-y-4 rounded-surface border border-muted bg-background p-surface">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
@@ -82,7 +83,7 @@ export function WorkspacePricingSimulatorBlockEditor({
             <p className="text-xs text-toned">Monthly retainer model for executive decisions.</p>
           </div>
 
-          <div className="rounded-xl border border-muted bg-background px-4 py-2.5 text-right">
+          <div className="rounded-surface border border-muted bg-background px-surface py-2.5 text-right">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
               Active Clients
             </p>
@@ -127,7 +128,10 @@ export function WorkspacePricingSimulatorBlockEditor({
         </div>
 
         {controls.map((control) => (
-          <article key={control.key} className="rounded-xl border border-muted bg-muted p-3">
+          <article
+            key={control.key}
+            className="rounded-surface border border-muted bg-muted p-surface"
+          >
             <div className="mb-2 flex items-center justify-between gap-3">
               <label
                 htmlFor={control.key}
@@ -148,13 +152,12 @@ export function WorkspacePricingSimulatorBlockEditor({
             </div>
 
             <div className="flex items-center gap-3">
-              <input
+              <BlockSlider
                 id={control.key}
                 value={block[control.key]}
                 min={control.min}
                 max={control.max}
-                type="range"
-                className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-muted/35 accent-primary"
+                className="w-auto flex-1"
                 onChange={(event) =>
                   updateControl(
                     control.key,
@@ -189,7 +192,7 @@ export function WorkspacePricingSimulatorBlockEditor({
 
       <section className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-muted bg-background p-4">
+          <div className="rounded-surface border border-muted bg-background p-surface">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
               Projected Revenue
             </p>
@@ -198,7 +201,7 @@ export function WorkspacePricingSimulatorBlockEditor({
             </p>
           </div>
 
-          <div className="rounded-xl border border-muted bg-background p-4">
+          <div className="rounded-surface border border-muted bg-background p-surface">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
               Min Retainer / Client
             </p>
@@ -207,7 +210,7 @@ export function WorkspacePricingSimulatorBlockEditor({
             </p>
           </div>
 
-          <div className="rounded-xl border border-muted bg-background p-4">
+          <div className="rounded-surface border border-muted bg-background p-surface">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
               Projected Profit
             </p>
@@ -221,7 +224,7 @@ export function WorkspacePricingSimulatorBlockEditor({
             </p>
           </div>
 
-          <div className="rounded-xl border border-muted bg-background p-4">
+          <div className="rounded-surface border border-muted bg-background p-surface">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-toned">
               Required Revenue
             </p>
@@ -231,7 +234,7 @@ export function WorkspacePricingSimulatorBlockEditor({
           </div>
         </div>
 
-        <div className="rounded-xl border border-muted bg-background p-4">
+        <div className="rounded-surface border border-muted bg-background p-surface">
           <h3 className="text-sm font-semibold tracking-tight text-foreground">Scenario Readout</h3>
           <div className="mt-3 space-y-2 text-sm text-toned">
             <p>

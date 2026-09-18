@@ -6,7 +6,7 @@ import {
 } from "@orch/db/schema";
 import { eq } from "drizzle-orm";
 
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   normalizeNumberRecord,
   normalizeStringArrayRecord,
@@ -99,7 +99,7 @@ export async function getMoneySettings(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<AgencyMoneySettingsRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const cached = getCachedMoneySettings(input.teamId);
   if (cached) return cached;
@@ -143,7 +143,7 @@ export async function upsertMoneySettings(
     calcOptions: AgencyOpsMoneyCalcOptionsJson;
   },
 ): Promise<AgencyMoneySettingsRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const rules = normalizeRules(input.rules);
   const calcOptions = normalizeCalc(input.calcOptions);

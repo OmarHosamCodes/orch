@@ -1,11 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource/lato";
-@import "@fontsource-variable/merriweather";
-@import "@fontsource-variable/roboto-mono";
-@import "@fontsource-variable/ibm-plex-sans";
-@import "@fontsource-variable/roboto";
 @import "tw-shimmer";
 
 /* Poppins: everything except Arabic (latin glyphs only) */
@@ -95,6 +90,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --surface-radius: min(var(--radius-4xl), 24px);
+  --surface-gutter: 1.25rem;
+  --orch-grain-image: none;
+  --orch-grain-size: 256px 256px;
   --motion-duration-fast: 120ms;
   --motion-duration-base: 180ms;
   --motion-duration-panel: 220ms;
@@ -107,48 +106,46 @@
   --motion-ease-rail: cubic-bezier(0.32, 0.72, 0, 1);
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Vercel theme (tweakcn) — light */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(0.99 0 0);
-  --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0 0 0);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0 0);
-  --secondary-foreground: oklch(0 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.44 0 0);
-  --accent: oklch(0.94 0 0);
-  --accent-foreground: oklch(0 0 0);
-  --destructive: oklch(0.63 0.19 23.03);
-  --destructive-foreground: oklch(1 0 0);
-  /* State colors darkened for light mode: they render as small text (chips,
-   * billable markers) and must hold ~4.5:1 on white. Dark mode keeps brighter values. */
-  --success: oklch(0.55 0.15 150);
-  --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.56 0.15 55);
-  --warning-foreground: oklch(0.99 0 0);
-  --info: oklch(0.55 0.21 255);
-  --info-foreground: oklch(0.99 0 0);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.94 0 0);
-  --ring: oklch(0 0 0);
+  /* Vercel theme (tweakcn) — dark only */
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.14 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.23 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.32 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.69 0.2 23.91);
+  --destructive-foreground: oklch(0 0 0);
+  --success: oklch(0.72 0.17 145);
+  --success-foreground: oklch(0.14 0 0);
+  --warning: oklch(0.79 0.15 70);
+  --warning-foreground: oklch(0.14 0 0);
+  --info: oklch(0.68 0.16 252);
+  --info-foreground: oklch(0.14 0 0);
+  --border: oklch(0.26 0 0);
+  --input: oklch(0.32 0 0);
+  --ring: oklch(0.72 0 0);
   --chart-1: oklch(0.81 0.17 75.35);
-  --chart-2: oklch(0.55 0.22 264.53);
-  --chart-3: oklch(0.72 0 0);
-  --chart-4: oklch(0.92 0 0);
-  --chart-5: oklch(0.56 0 0);
+  --chart-2: oklch(0.58 0.21 260.84);
+  --chart-3: oklch(0.56 0 0);
+  --chart-4: oklch(0.44 0 0);
+  --chart-5: oklch(0.92 0 0);
   --radius: 0.5rem;
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(0 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.94 0 0);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0 0 0);
+  --sidebar: oklch(0.18 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.32 0 0);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.32 0 0);
+  --sidebar-ring: oklch(0.72 0 0);
 
   --font-sans: "Poppins", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "IBM Plex Serif", ui-serif, serif;
@@ -171,7 +168,7 @@
   --letter-spacing: 0em;
   --spacing: 0.25rem;
 
-  /* Custom tokens alias base theme (follow light/dark automatically). */
+  /* Custom tokens alias the dark theme. */
   --inverted: var(--foreground);
   --inverted-foreground: var(--background);
   --marketing-ink: var(--background);
@@ -181,13 +178,13 @@
   --marketing-paper: var(--background);
   --marketing-surface: var(--card);
   --marketing-surface-elevated: var(--secondary);
-  --marketing-accent-glow: color-mix(in oklab, var(--chart-2) 12%, transparent);
+  --marketing-accent-glow: color-mix(in oklab, var(--chart-2) 18%, transparent);
 
-  --agency-search-highlight-bg: color-mix(in oklab, var(--primary) 24%, transparent);
-  --agency-search-highlight-ring: color-mix(in oklab, var(--primary) 20%, transparent);
-  --agency-search-highlight-glow: color-mix(in oklab, var(--primary) 16%, transparent);
-  --aui-success: oklch(0.6 0.15 149);
-  --aui-warning: oklch(0.68 0.16 70);
+  --agency-search-highlight-bg: color-mix(in oklab, var(--chart-1) 50%, transparent);
+  --agency-search-highlight-ring: color-mix(in oklab, var(--chart-1) 40%, transparent);
+  --agency-search-highlight-glow: color-mix(in oklab, var(--chart-1) 34%, transparent);
+  --aui-success: oklch(0.72 0.17 149);
+  --aui-warning: oklch(0.8 0.17 75);
 }
 
 .dark {
@@ -260,7 +257,10 @@
   --aui-success: oklch(0.72 0.17 149);
   --aui-warning: oklch(0.8 0.17 75);
 }
+
 @theme inline {
+  --radius-surface: var(--surface-radius);
+  --spacing-surface: var(--surface-gutter);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -336,9 +336,9 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-  --font-lato: Lato, sans-serif;
-  --font-merriweather: Merriweather, serif;
-  --font-roboto-mono: Roboto Mono, monospace;
+  --font-lato: var(--font-sans);
+  --font-merriweather: var(--font-sans);
+  --font-roboto-mono: var(--font-mono);
   --shadow-blur: var(--shadow-blur);
   --shadow-offset-x: var(--shadow-offset-x);
   --shadow-opacity: var(--shadow-opacity);
@@ -346,7 +346,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-heading: "Roboto Variable", sans-serif;
+  --font-heading: var(--font-sans);
   --radius: 0.5rem;
   --spacing: var(--spacing);
   --letter-spacing: var(--letter-spacing);
@@ -522,9 +522,8 @@ body {
     @apply h-full min-h-0 overflow-hidden;
   }
   :root {
-    --font-heading: var(--font-lato);
-    --font-body: var(--font-merriweather);
-    --font-mono: var(--font-roboto-mono);
+    --font-heading: var(--font-sans);
+    --font-body: var(--font-sans);
   }
   h1 {
     font-family: var(--font-heading);
@@ -579,113 +578,162 @@ body {
   }
 }
 
+body:has(.app-shell) {
+  --background: var(--card);
+  --popover: var(--card);
+  --surface-radius: 1rem;
+}
+
+@media (max-width: 767px) {
+  body:has(.app-shell) {
+    --surface-gutter: 0.75rem;
+  }
+}
+
 .app-shell {
-  --app-shell-topbar-inset: 1rem;
-  --app-shell-rail-collapsed: 3.25rem;
   --app-shell-rail-expanded: 15.5rem;
-  --app-shell-rail-width: var(--app-shell-rail-collapsed);
-  --app-shell-context-bar-height: 2.75rem;
-  --app-shell-chrome-rail: var(--app-shell-rail-collapsed);
+  --app-shell-rail-width: var(--app-shell-rail-expanded);
+  --shell-chrome-inset: 0.75rem;
+  /* Rail + context-bar top band — matches .app-shell__rail padding and team block. */
+  --shell-chrome-band-padding: 0.5rem;
+  /* Two-line team card + avatar (natural rendered height ~3.625rem). */
+  --shell-chrome-band-block: 3.625rem;
+  /* Quiet gap between header band and primary nav / page well (matches rail flex gap). */
+  --shell-chrome-band-gap: 0.25rem;
+  /* Compact Current Title row — not stretched to the taller team card. */
+  --app-shell-context-bar-padding: 0.375rem;
+  --app-shell-context-bar-row: 1.875rem;
+  --app-shell-context-bar-height: calc(
+    var(--app-shell-context-bar-padding) + var(--app-shell-context-bar-row)
+  );
+  /* Page-well outer edge (main inset) plus inner p-surface gutter. */
+  --shell-content-inline: calc(var(--shell-chrome-inset) + var(--surface-gutter));
   position: relative;
   display: grid;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  transition: grid-template-columns var(--motion-duration-rail) var(--motion-ease-rail);
-}
-
-.app-shell--rail-pinned {
-  --app-shell-rail-width: var(--app-shell-rail-expanded);
-  --app-shell-chrome-rail: var(--app-shell-rail-expanded);
-}
-
-.app-shell--execution {
-  --shell-chrome-inset: 0;
-  --shell-nest-pad: var(--app-shell-topbar-inset);
-  --shell-inner-radius: 1rem;
-  --shell-outer-radius: calc(var(--shell-inner-radius) + var(--shell-nest-pad));
+  grid-template-rows:
+    var(--app-shell-context-bar-height)
+    minmax(0, 1fr);
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-shell {
-    transition: none;
-  }
   [data-aui="carousel"] {
     scroll-behavior: auto;
   }
 }
 
-/* Quiet opaque chrome panel on the shadcn sidebar ladder; hairline ring instead of glass. */
-.app-shell__chrome-surface {
+/* Connected L-frame shield: left rail + top context bar, page sits in inset well. */
+.app-shell__rail {
+  display: none;
+  flex-direction: column;
+  gap: var(--shell-chrome-band-gap);
+  width: 100%;
+  min-height: 0;
+  padding: var(--shell-chrome-band-padding);
+  overflow: visible;
   background: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
-  box-shadow: 0 0 0 1px var(--color-sidebar-border);
-}
-
-/* Spatial: drop the L-ring so the top bar can flush into the canvas surface. */
-.app-shell--spatial .app-shell__chrome-surface {
-  box-shadow: none;
-}
-
-.app-shell--spatial .app-shell__rail {
-  box-shadow: 1px 0 0 0 var(--color-sidebar-border);
-}
-
-/* One L-shaped nest: rail column + context row share border/shadow. Flush to viewport. */
-.app-shell__chrome {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  display: none;
-  grid-template-columns: var(--app-shell-chrome-rail) minmax(0, 1fr);
-  grid-template-rows: var(--app-shell-context-bar-height) minmax(0, 1fr);
-  pointer-events: none;
-  transition:
-    grid-template-columns var(--motion-duration-rail) var(--motion-ease-rail),
-    clip-path var(--motion-duration-rail) var(--motion-ease-rail);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% var(--app-shell-context-bar-height),
-    var(--app-shell-chrome-rail) var(--app-shell-context-bar-height),
-    var(--app-shell-chrome-rail) 100%,
-    0 100%
-  );
 }
 
 @media (min-width: 768px) {
-  .app-shell__chrome {
-    display: grid;
+  .app-shell__rail {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    z-index: 2;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-shell__chrome {
-    transition: none;
-  }
-}
-
-.app-shell__rail {
-  grid-column: 1;
-  grid-row: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 100%;
-  min-height: 0;
-  padding: 0.5rem;
-  overflow: hidden;
-  pointer-events: auto;
 }
 
 /* Taller two-line rows: team header at the top, profile row in the footer. */
 .app-shell__rail-header {
   flex: none;
-  height: 2.75rem;
+  height: var(--shell-chrome-band-block);
+}
+
+.app-shell__team-card {
+  display: flex;
+  width: 100%;
+  min-height: var(--shell-chrome-band-block);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 10%, transparent);
+  border-radius: 0.875rem;
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 4%, transparent);
+  color: var(--color-sidebar-foreground);
+  cursor: pointer;
+  text-align: start;
+  text-decoration: none;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    background-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__team-card:hover {
+  border-color: color-mix(in oklab, var(--color-sidebar-foreground) 16%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 7%, transparent);
+}
+
+.app-shell__team-card[data-state="open"],
+.app-shell__team-card[aria-expanded="true"] {
+  border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.app-shell__team-card-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.app-shell__team-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-sidebar-accent-foreground);
+  text-decoration: none;
+}
+
+.app-shell__team-card-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 58%, transparent);
+  text-decoration: none;
+}
+
+.app-shell__team-card-mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.app-shell__team-card-indicator {
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__team-card,
+  .app-shell__team-card-indicator,
+  .app-shell__team-card-indicator svg {
+    transition: none;
+  }
 }
 
 .app-shell__rail-nav {
@@ -697,6 +745,182 @@ body {
   overflow-y: auto;
 }
 
+.app-shell__rail-destinations {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0;
+  padding-block: 0.375rem 0.25rem;
+}
+
+.app-shell__rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.app-shell__rail-section + .app-shell__rail-section {
+  margin-top: 1.125rem;
+}
+
+.app-shell__rail-section-label {
+  padding-inline: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 56%, transparent);
+}
+
+.app-shell__rail-section-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.app-shell__rail-row {
+  display: flex;
+  width: 100%;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.375rem;
+  border: none;
+  border-radius: 0.625rem;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 72%, transparent);
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  text-align: start;
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-out),
+    opacity var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__rail-row:hover {
+  color: var(--color-sidebar-accent-foreground);
+}
+
+.app-shell__rail-row:hover .app-shell__rail-icon-tile:not(.app-shell__rail-icon-tile--active) {
+  border-color: color-mix(in oklab, var(--color-sidebar-foreground) 18%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 9%, transparent);
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 88%, transparent);
+}
+
+.app-shell__rail-row:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__rail-row {
+    transition: none;
+  }
+
+  .app-shell__rail-row:active {
+    transform: none;
+  }
+}
+
+.app-shell__rail-row--nested {
+  min-height: 2.125rem;
+  padding-inline: 0.25rem;
+}
+
+.app-shell__rail-row--parent-active {
+  color: var(--color-sidebar-accent-foreground);
+  opacity: 0.92;
+}
+
+.app-shell__rail-row-label {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.011em;
+}
+
+.app-shell__rail-row.app-shell__rail-link-active .app-shell__rail-row-label,
+.app-shell__rail-row.text-sidebar-accent-foreground .app-shell__rail-row-label {
+  color: var(--color-sidebar-accent-foreground);
+  font-weight: 600;
+}
+
+.app-shell__rail-icon-tile {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 6%, transparent);
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 78%, transparent);
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out),
+    color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.app-shell__rail-icon-tile--nested {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4375rem;
+}
+
+.app-shell__rail-icon-tile--active {
+  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  color: var(--color-sidebar-accent-foreground);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+
+.app-shell__rail-icon-tile-glyph {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.app-shell__rail-icon-tile--nested .app-shell__rail-icon-tile-glyph {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.app-shell__rail-shortcuts {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+  margin-inline-start: 0.125rem;
+}
+
+.app-shell__rail-shortcut {
+  display: inline-flex;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.1875rem;
+  border-radius: 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--color-sidebar-foreground) 12%, transparent);
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 5%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 52%, transparent);
+}
+
 .app-shell__rail-group {
   display: flex;
   flex-direction: column;
@@ -704,7 +928,7 @@ body {
 }
 
 /* Nested-route subnav: Clean indent with single continuous inset rail guide line (shadcn / Linear pattern) */
-.app-shell--rail-pinned .app-shell__rail-subnav,
+.app-shell .app-shell__rail-subnav,
 .app-shell__drawer-static .app-shell__rail-subnav {
   position: relative;
   border-left: 1px solid var(--color-sidebar-border);
@@ -715,56 +939,32 @@ body {
   width: 100%;
   height: 2.25rem;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border-radius: 0.625rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-/* Compact rail: Back reads as chrome, not another mute nav icon. */
-.app-shell__rail-back {
-  background: color-mix(in oklab, var(--color-sidebar-accent) 55%, transparent);
-  box-shadow: inset 0 0 0 1px var(--color-sidebar-border);
-}
-
-.app-shell__rail-back:hover,
-.app-shell__rail-back:focus-visible {
-  background: var(--color-sidebar-accent);
-  color: var(--color-sidebar-accent-foreground);
-  box-shadow: inset 0 0 0 1px var(--color-sidebar-border);
-}
-
-.app-shell--rail-pinned .app-shell__rail-back {
   justify-content: flex-start;
   gap: 0.625rem;
   padding-inline: 0.625rem;
+  border-radius: 0.625rem;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
 }
 
 .rail-label {
   min-width: 0;
-  max-width: 0;
+  max-width: 11.5rem;
   overflow: hidden;
-  opacity: 0;
+  opacity: 1;
   white-space: nowrap;
   font-size: 0.8125rem;
   font-weight: 500;
-  transition:
-    max-width var(--motion-duration-rail) var(--motion-ease-rail),
-    opacity var(--motion-duration-rail) var(--motion-ease-rail);
 }
 
 .app-shell__rail-subnav {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  max-height: 0;
+  max-height: none;
   overflow: hidden;
-  opacity: 0;
-  transition:
-    max-height var(--motion-duration-rail) var(--motion-ease-rail),
-    opacity var(--motion-duration-rail) var(--motion-ease-rail);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -782,6 +982,7 @@ body {
   padding-inline: 0.5rem;
   border-radius: 0.5rem;
   white-space: nowrap;
+  background: transparent;
 }
 
 .app-shell__rail-footer {
@@ -793,23 +994,32 @@ body {
   padding-top: 0.5rem;
 }
 
-.app-shell--rail-pinned .app-shell__rail-link {
-  justify-content: flex-start;
-  gap: 0.625rem;
-  padding-inline: 0.625rem;
-}
-
-.app-shell--rail-pinned .rail-label {
-  max-width: 11.5rem;
-  opacity: 1;
-}
-
-.app-shell--rail-pinned .app-shell__rail-subnav {
-  max-height: 18rem;
+.app-shell .app-shell__rail-subnav {
+  max-height: none;
   margin-top: 0.25rem;
   margin-left: 1.125rem;
   padding-left: 0.625rem;
   opacity: 1;
+}
+
+.app-shell__rail-subnav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.app-shell .app-shell__rail-subnav--nested,
+.app-shell__drawer-static .app-shell__rail-subnav--nested {
+  max-height: none;
+  margin-top: 0.125rem;
+  margin-left: 1.625rem;
+  padding-left: 0.625rem;
+  border-left: 1px solid color-mix(in oklab, var(--color-sidebar-border) 85%, transparent);
+  opacity: 1;
+}
+
+.app-shell__rail-sublink--nested {
+  height: 1.75rem;
 }
 
 /* Static drawer (mobile sheet): rail rows render expanded, no width animation. */
@@ -833,30 +1043,51 @@ body {
 }
 
 .app-shell__mobile-nav-trigger {
-  position: fixed;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 44;
-  border-radius: 9999px;
+  flex: none;
 }
 
 .app-shell__context-bar {
-  grid-column: 2;
-  grid-row: 1;
   display: flex;
+  box-sizing: border-box;
   min-width: 0;
+  height: var(--app-shell-context-bar-height);
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 2;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-inline: 0.75rem;
-  pointer-events: auto;
-  background: var(--color-background);
-  color: var(--color-foreground);
+  padding-top: var(--app-shell-context-bar-padding);
+  padding-inline: var(--shell-content-inline);
+  background: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
 }
 
-/* Canvas / spatial: top bar shares the workspace surface (bg-default), not sidebar chrome. */
-.app-shell--spatial .app-shell__context-bar {
-  background: var(--color-default);
+@media (max-width: 767px) {
+  .app-shell {
+    grid-template-rows:
+      calc(var(--app-shell-context-bar-height) + env(safe-area-inset-top, 0px))
+      minmax(0, 1fr);
+  }
+
+  .app-shell__context-bar {
+    height: 100%;
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--app-shell-context-bar-padding));
+  }
+
+  .app-shell__main {
+    padding-top: var(--shell-chrome-inset);
+  }
+}
+
+/* Only the connected shell carries grain. Content and overlays stay solid. */
+.app-shell,
+.app-shell__rail,
+.app-shell__context-bar,
+.app-shell__drawer-static {
+  background-image: var(--orch-grain-image);
+  background-repeat: repeat;
+  background-size: var(--orch-grain-size);
 }
 
 .app-shell__context-bar-left {
@@ -866,12 +1097,101 @@ body {
   align-items: center;
 }
 
+.app-shell__context-bar [data-slot="breadcrumb-list"] {
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+.app-shell__context-bar [data-slot="breadcrumb-separator"] {
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 42%, transparent);
+}
+
+.app-shell__context-bar [data-slot="breadcrumb-separator"] svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.app-shell__context-crumb {
+  display: inline-flex;
+  height: 1.75rem;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.app-shell__context-crumb--parent {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-sidebar-foreground) 62%, transparent);
+}
+
+.app-shell__context-crumb--parent:hover {
+  color: var(--color-sidebar-accent-foreground);
+  text-decoration: none;
+}
+
+.app-shell__context-crumb--current {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--color-sidebar-accent-foreground);
+}
+
+.app-shell__context-crumb--switcher {
+  height: var(--app-shell-context-bar-row);
+  padding-inline: 0.5rem;
+}
+
+.app-shell__context-crumb--switcher:hover,
+.app-shell__context-crumb--switcher[aria-expanded="true"] {
+  background: color-mix(in oklab, var(--color-sidebar-foreground) 8%, transparent);
+}
+
+.app-shell__context-crumb--current [data-slot="breadcrumb-page"] {
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.app-shell__context-bar .app-shell__utilities {
+  height: auto;
+  align-self: center;
+}
+
 .app-shell__main {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 2;
+  display: flex;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  padding: max(var(--shell-chrome-inset), env(safe-area-inset-top))
+    max(var(--shell-chrome-inset), env(safe-area-inset-right))
+    max(var(--shell-chrome-inset), env(safe-area-inset-bottom))
+    max(var(--shell-chrome-inset), env(safe-area-inset-left));
+  z-index: 1;
+}
+
+/* Zen-style inset page container: distinct surface inside the chrome shield. */
+.app-shell__page-well {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--surface-radius);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 @media (min-width: 768px) {
@@ -882,20 +1202,147 @@ body {
       minmax(0, 1fr);
   }
 
+  .app-shell__context-bar {
+    grid-column: 2;
+    grid-row: 1;
+    /* Content container = page-well outer edge; inner p-surface gutter stays in the well. */
+    padding-inline: var(--shell-chrome-inset);
+  }
+
   .app-shell__main {
     grid-column: 2;
     grid-row: 2;
+    /* Quiet breath between the title bar and page well. */
+    padding-top: var(--shell-chrome-band-gap);
+    padding-right: max(var(--shell-chrome-inset), env(safe-area-inset-right));
+    padding-bottom: max(var(--shell-chrome-inset), env(safe-area-inset-bottom));
+    padding-left: max(var(--shell-chrome-inset), env(safe-area-inset-left));
   }
-}
-
-.app-shell--execution .app-shell__main {
-  padding: var(--shell-chrome-inset) 0 0 var(--shell-chrome-inset);
 }
 
 .app-shell__mobile-backdrop {
   position: fixed;
   inset: 0;
   z-index: 45;
+}
+
+@container tracker (max-width: 52rem) {
+  .agency-tracker-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding-block: 0.5rem;
+  }
+
+  .agency-tracker-card > :first-child {
+    min-height: 2.75rem;
+    padding-right: 0;
+  }
+
+  .agency-tracker-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.5rem;
+    height: auto;
+  }
+
+  .agency-tracker-controls > :first-child {
+    display: none;
+  }
+
+  .agency-tracker-controls > :nth-child(2) {
+    flex: 1;
+    min-width: 0;
+    padding-left: 0;
+  }
+}
+
+@container tracker (max-width: 34rem) {
+  .agency-tracker-controls > [data-orientation="vertical"] {
+    display: none;
+  }
+
+  .agency-tracker-controls > :nth-child(2) {
+    flex-basis: 100%;
+  }
+
+  .agency-tracker-controls > div {
+    padding-inline: 0.25rem;
+  }
+}
+
+@container entries (max-width: 52rem) {
+  .agency-entry-row {
+    flex-direction: column;
+  }
+
+  .agency-entry-main {
+    min-height: 2.75rem;
+  }
+
+  .agency-entry-controls {
+    min-height: 2.75rem;
+    justify-content: flex-end;
+    /* Column mode leaves the rail height indefinite, so stretch collapses and
+       cells top-align at ragged content heights. Center instead. */
+    align-items: center;
+  }
+
+  .agency-entry-controls::before {
+    display: none;
+  }
+
+  .agency-entry-controls > div {
+    padding-inline: 0.25rem;
+  }
+
+  .agency-entry-link,
+  .agency-entry-calendar,
+  .agency-entry-play,
+  .agency-entry-more {
+    width: 2.5rem;
+  }
+
+  .agency-entry-time {
+    width: 11rem;
+  }
+
+  .agency-entry-duration {
+    width: 6.25rem;
+  }
+}
+
+@container entries (max-width: 30rem) {
+  .agency-entry-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem 2.5rem;
+    grid-template-areas: "time link calendar" "duration play more";
+  }
+
+  .agency-entry-controls > div {
+    width: auto;
+    min-width: 0;
+    min-height: 2.5rem;
+  }
+
+  .agency-entry-link {
+    grid-area: link;
+  }
+  .agency-entry-time {
+    grid-area: time;
+    justify-content: center;
+  }
+  .agency-entry-calendar {
+    grid-area: calendar;
+  }
+  .agency-entry-duration {
+    grid-area: duration;
+  }
+  .agency-entry-play {
+    grid-area: play;
+  }
+  .agency-entry-more {
+    grid-area: more;
+  }
 }
 
 html[data-agent-scope-mode="true"] {
@@ -911,20 +1358,6 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="true"] {
     outline-width: 2px;
   }
-}
-
-@keyframes logo-loader-indeterminate {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(320%);
-  }
-}
-
-.logo-loader-bar {
-  animation: logo-loader-indeterminate 1.2s var(--motion-ease-out) infinite;
 }
 
 @keyframes shell-page-enter {
@@ -1146,10 +1579,100 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   animation: orch-presence-land var(--motion-duration-flash) var(--motion-ease-emphasized) both;
 }
 
+@keyframes eclipse-pet-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--chart-2) 42%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@keyframes eclipse-pet-done {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.eclipse-pet--working {
+  animation: eclipse-pet-working 1.4s ease-in-out infinite;
+}
+
+.eclipse-pet--needs-you {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--chart-2) 55%, transparent);
+}
+
+.eclipse-pet--done {
+  animation: eclipse-pet-done 0.6s var(--motion-ease-out, ease-out) both;
+}
+
+/* metal-fx hides its root until the first WebGL frame lands. Never let the
+   Orch trigger depend on that: the button stays usable instantly and the
+   ring fades in over it when the shared loop delivers. */
+.metal-fx-root {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@keyframes orch-compact-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.orch-compact-rise {
+  animation: orch-compact-rise var(--motion-duration-panel) var(--motion-ease-emphasized)
+    both;
+}
+
+@keyframes orch-compact-morph {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.72);
+    border-radius: 999px;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    border-radius: 20.8px;
+  }
+}
+
+/* Scoped to the Orch compact: the panel grows out of the Eclipse trigger
+   (origin-aware via Radix transform-origin) instead of fading in place.
+   Unlayered so it wins over the base popover enter utilities on open only;
+   exit keeps the shared fast fade. */
+.orch-compact-morph[data-state="open"] {
+  animation: orch-compact-morph 380ms var(--motion-ease-emphasized) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .project-share-panel-in,
   .project-share-legend-in,
-  .orch-presence-land {
+  .orch-presence-land,
+  .orch-compact-rise,
+  .orch-compact-morph[data-state="open"],
+  .eclipse-pet--working,
+  .eclipse-pet--done {
     animation: none;
   }
 }
@@ -1227,12 +1750,6 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo-loader-bar {
-    animation: none;
-    width: 40%;
-    opacity: 0.45;
-  }
-
   .shell-page-enter,
   .shell-content-in,
   .shell-stagger-item,
@@ -1286,8 +1803,8 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 }
 /*
  * Same collision for `default`: it is a surface token (bg-default = card).
- * Without this pin, `text-default` paints in the card fill color — white-on-white
- * in light mode and near-black-on-black in dark mode — which washes out every
+ * Without this pin, `text-default` paints in the card fill color against the
+ * dark card surface, which washes out every
  * inherited label and input inside the app shell.
  */
 :where(html) .text-default {
@@ -1296,7 +1813,7 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 /*
  * Same collision for `default`: it is a surface token (bg-default = card), but
  * border-default / divide-default mean the default hairline. Without this pin the
- * borders paint in the card color: invisible white-on-white in the light theme.
+ * borders paint in the card color: invisible against the dark surface.
  */
 :where(html) .border-default {
   border-color: var(--color-border);
@@ -1467,6 +1984,42 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
   z-index: 1;
 }
 
+.member-profile-cal-day--present::after,
+.member-profile-cal-day--leave::after,
+.member-profile-cal-day--holiday::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.member-profile-cal-day--present::after {
+  inset-inline: 18%;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--success);
+}
+
+.member-profile-cal-day--leave::after {
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--warning);
+}
+
+.member-profile-cal-day--holiday::after {
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--chart-1);
+}
+
 .member-profile-cal-day--today:not(:disabled) {
   box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--foreground) 16%, transparent);
 }
@@ -1477,12 +2030,10 @@ html[data-agent-scope-mode="true"] [data-agent-scope][data-agent-scope-hover="tr
 
 .member-profile-cal-day--holiday[data-state="open"] {
   border-color: color-mix(in oklch, var(--chart-1) 50%, transparent);
-  background-color: color-mix(in oklch, var(--chart-1) 24%, transparent);
 }
 
 .member-profile-cal-day--holiday:not(:disabled):hover {
-  filter: saturate(1.06) brightness(1.03);
-  border-color: color-mix(in oklch, var(--chart-1) 50%, transparent);
+  filter: brightness(1.04);
 }
 
 .member-profile-cal-day--holiday:not(:disabled):hover .member-profile-cal-party {

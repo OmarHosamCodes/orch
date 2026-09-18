@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import { listAgencyFavorites, toggleAgencyFavorite } from "./service";
 
@@ -10,10 +10,10 @@ const agencyFavoritesSchema = z.object({
 
 export const favoritesRouter = {
   favorites: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return agencyFavoritesSchema.parse(await listAgencyFavorites(context.session.user.id, input));
     }),
-    toggle: protectedProProcedure
+    toggle: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           kind: z.enum(["project", "task"]),

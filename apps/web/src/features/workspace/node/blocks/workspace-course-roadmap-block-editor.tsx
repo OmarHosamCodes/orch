@@ -141,7 +141,7 @@ export function WorkspaceCourseRoadmapBlockEditor({
             return (
               <article
                 key={course.id}
-                className={cn("rounded-xl border p-5", getCourseClasses(course.status))}
+                className={cn("rounded-surface border p-surface", getCourseClasses(course.status))}
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1 space-y-3">

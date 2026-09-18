@@ -1,8 +1,10 @@
 import { Link2 } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 
 import { AgencyTimeEntryLinksDialog } from "@/features/time-tracking/agency-time-entry-links-dialog";
 import type { TimeEntryLinkRecord } from "@/features/shared/agency-time-entry-links";
+import { agencyTapScale } from "@/features/shared/agency-motion";
 import { agencyFocusRingClass, agencyTimeEntryIconButtonClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 
@@ -37,16 +39,18 @@ export function AgencyTimeEntryLinkHoverTrigger({
 
   return (
     <div className={cn("flex shrink-0 items-center", className)}>
-      <button
+      <motion.button
         type="button"
         className={cn(
           agencyTimeEntryIconButtonClass,
-          "inline-flex size-8 items-center justify-center transition-opacity motion-reduce:transition-none",
+          "inline-flex size-8 items-center justify-center",
           revealClass,
           hasLinks ? "text-foreground" : "text-muted-foreground",
           agencyFocusRingClass,
           buttonClassName,
         )}
+        inherit={false}
+        whileTap={agencyTapScale}
         aria-label={hasLinks ? `Edit ${links.length} links` : "Add link"}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -57,7 +61,7 @@ export function AgencyTimeEntryLinkHoverTrigger({
         }}
       >
         <Link2 className="size-3.5" aria-hidden />
-      </button>
+      </motion.button>
       <AgencyTimeEntryLinksDialog
         open={open}
         onOpenChange={setOpen}

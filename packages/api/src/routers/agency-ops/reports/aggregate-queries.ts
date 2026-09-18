@@ -68,11 +68,45 @@ export async function querySecondsByClient(filters: ReturnType<typeof buildRepor
     .orderBy(desc(sql`sum(${agencyOpsTimeEntry.durationSeconds})`));
 }
 
+export async function queryClientPreviewStats(filters: ReturnType<typeof buildReportEntryFilters>) {
+  return db
+    .select({
+      clientId: agencyOpsClient.id,
+      clientName: agencyOpsClient.name,
+      category: agencyOpsClient.category,
+      billableRateAmount: agencyOpsClient.billableRateAmount,
+      sourceBillableRateAmount: agencyOpsClient.sourceBillableRateAmount,
+      currency: agencyOpsClient.currency,
+      seconds: sql<number>`coalesce(sum(${agencyOpsTimeEntry.durationSeconds}), 0)`.mapWith(Number),
+      wasteSeconds:
+        sql<number>`coalesce(sum(case when ${reportEntryIsWasteSql} then ${agencyOpsTimeEntry.durationSeconds} else 0 end), 0)`.mapWith(
+          Number,
+        ),
+      entryCount: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(agencyOpsTimeEntry)
+    .innerJoin(agencyOpsProject, eq(agencyOpsProject.id, agencyOpsTimeEntry.projectId))
+    .innerJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
+    .leftJoin(agencyOpsProjectTask, eq(agencyOpsProjectTask.id, agencyOpsTimeEntry.taskId))
+    .where(and(...filters))
+    .groupBy(
+      agencyOpsClient.id,
+      agencyOpsClient.name,
+      agencyOpsClient.category,
+      agencyOpsClient.billableRateAmount,
+      agencyOpsClient.sourceBillableRateAmount,
+      agencyOpsClient.currency,
+    )
+    .orderBy(asc(agencyOpsClient.name));
+}
+
 export async function querySecondsByProject(filters: ReturnType<typeof buildReportEntryFilters>) {
   return db
     .select({
       projectId: agencyOpsProject.id,
       projectName: agencyOpsProject.name,
+      colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
       clientId: agencyOpsClient.id,
       clientName: agencyOpsClient.name,
       seconds: sql<number>`coalesce(sum(${agencyOpsTimeEntry.durationSeconds}), 0)`.mapWith(Number),
@@ -86,7 +120,14 @@ export async function querySecondsByProject(filters: ReturnType<typeof buildRepo
     .innerJoin(agencyOpsClient, eq(agencyOpsClient.id, agencyOpsProject.clientId))
     .leftJoin(agencyOpsProjectTask, eq(agencyOpsProjectTask.id, agencyOpsTimeEntry.taskId))
     .where(and(...filters))
-    .groupBy(agencyOpsProject.id, agencyOpsProject.name, agencyOpsClient.id, agencyOpsClient.name)
+    .groupBy(
+      agencyOpsProject.id,
+      agencyOpsProject.name,
+      agencyOpsProject.colorHueId,
+      agencyOpsProject.iconKey,
+      agencyOpsClient.id,
+      agencyOpsClient.name,
+    )
     .orderBy(desc(sql`sum(${agencyOpsTimeEntry.durationSeconds})`));
 }
 

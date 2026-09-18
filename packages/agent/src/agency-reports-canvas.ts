@@ -7,41 +7,21 @@ export function shouldBootstrapAgencyMonthReports(toolPreset: DashboardAgentTool
 }
 
 /** Mode-specific nudge when Agency tools were available but unused. */
-export function agencyToolRetryNote(toolPreset: DashboardAgentToolPreset): string {
-  switch (toolPreset) {
-    case "ask":
-      return "You answered without calling Agency tools. Call get_agency_reports_summary or get_agency_time_summary with {from,to} for this month, then ui_present a schema canvas. Do not invent hours or narrate tool calls.";
-    case "plan":
-      return "You answered without calling Agency tools. Use get_agency_* reads if needed, call draft_agency_plan, then ui_present a schema plan overview. Do not invent data or dump a hours canvas.";
-    case "agent":
-      return "You answered without calling Agency tools. Use get_agency_* reads if needed, then propose_agency_action and ui_present before/after. Do not invent data or dump a hours canvas.";
-    default: {
-      const _exhaustive: never = toolPreset;
-      return _exhaustive;
-    }
-  }
+export function agencyToolRetryNote(_toolPreset: DashboardAgentToolPreset): string {
+  void _toolPreset;
+  return "You answered without calling Agency tools. Call get_agency_reports_summary or get_agency_time_summary with {from,to} for this month. Do not invent hours or narrate tool calls.";
 }
 
 /** Nudge when tools ran but the model skipped the canvas. */
-export function agencyUiPresentRetryNote(toolPreset: DashboardAgentToolPreset): string {
-  switch (toolPreset) {
-    case "ask":
-      return "You already called Agency tools but did not call ui_present. Call ui_present now with a schema canvas of the results, then reply with one short line. Do not dump JSON or markdown tables.";
-    case "plan":
-      return "You already called Agency tools but did not call ui_present. Call ui_present now with a schema overview of the plan or findings, then one short line asking the user to Confirm. Do not dump JSON or markdown tables.";
-    case "agent":
-      return "You already called Agency tools but did not call ui_present. Call ui_present now with a before/after schema canvas, then one short line. Do not dump JSON or markdown tables.";
-    default: {
-      const _exhaustive: never = toolPreset;
-      return _exhaustive;
-    }
-  }
+export function agencyUiPresentRetryNote(_toolPreset: DashboardAgentToolPreset): string {
+  void _toolPreset;
+  return "You already called Agency tools. Reply with one short line about what you found. Do not dump JSON or markdown tables.";
 }
 
-/** Plan-only: force ask_agency_question before drafting. */
-export function agencyQuestionRetryNote(toolPreset: DashboardAgentToolPreset): string | null {
-  if (toolPreset !== "plan") return null;
-  return "Plan mode requires ask_agency_question before draft_agency_plan. Call ask_agency_question now to clarify assumptions (single/multi/text). Prefer ui_present for supporting context. Do not ask only in prose and do not draft yet.";
+/** Retired: Plan mode question retries are gone. */
+export function agencyQuestionRetryNote(_toolPreset: DashboardAgentToolPreset): string | null {
+  void _toolPreset;
+  return null;
 }
 
 function hoursLabel(seconds: number): string {

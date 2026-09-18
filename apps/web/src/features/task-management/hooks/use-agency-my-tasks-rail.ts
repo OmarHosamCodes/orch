@@ -23,7 +23,6 @@ import {
 } from "@/features/task-management/agency-my-tasks-add";
 import type { AgencyProjectTask } from "@/features/task-management/agency-work";
 import { groupTasksByClient } from "@/features/task-management/agency-task-utils";
-import { useAgencyMyTasksRailStore } from "@/features/task-management/stores/agency-my-tasks-rail";
 import { RAIL_HOLD_MS } from "@/features/task-management/my-tasks-rail/agency-my-tasks-rail-motion";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
@@ -38,27 +37,6 @@ export function useAgencyMyTasksRail({ teamId }: UseAgencyMyTasksRailOptions) {
   const { user } = useAuthSession();
   const actorUserId = user?.id ?? "";
 
-  const hydrate = useAgencyMyTasksRailStore((s) => s.hydrate);
-  const collapsed = useAgencyMyTasksRailStore((s) => s.collapsed);
-  const setCollapsed = useAgencyMyTasksRailStore((s) => s.setCollapsed);
-  const toggleCollapsed = useAgencyMyTasksRailStore((s) => s.toggleCollapsed);
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    function onViewportChange() {
-      const nextDocked = media.matches;
-      setIsDocked(nextDocked);
-      if (nextDocked) setSheetOpen(false);
-    }
-    onViewportChange();
-    media.addEventListener("change", onViewportChange);
-    return () => media.removeEventListener("change", onViewportChange);
-  }, []);
-
   const [pills, setPills] = useState<Set<MyTasksFilterPill>>(() => new Set(["open"]));
   const [assigneeUserIds, setAssigneeUserIds] = useState<string[]>(() =>
     actorUserId ? [actorUserId] : [],
@@ -68,11 +46,6 @@ export function useAgencyMyTasksRail({ teamId }: UseAgencyMyTasksRailOptions) {
   const [estimateMinutes, setEstimateMinutes] = useState<number | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [isDocked, setIsDocked] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.matchMedia("(min-width: 1024px)").matches;
-  });
   const [createError, setCreateError] = useState<string | null>(null);
   const [composerStatus, setComposerStatus] = useState<string | null>(null);
   const [justCompletedTaskId, setJustCompletedTaskId] = useState<string | null>(null);
@@ -478,12 +451,6 @@ export function useAgencyMyTasksRail({ teamId }: UseAgencyMyTasksRailOptions) {
   return {
     teamId,
     actorUserId,
-    collapsed,
-    setCollapsed,
-    toggleCollapsed,
-    sheetOpen,
-    setSheetOpen,
-    isDocked,
     pills,
     togglePill,
     composerTaskId,

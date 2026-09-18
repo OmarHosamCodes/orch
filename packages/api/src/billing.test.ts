@@ -1,8 +1,18 @@
+Bun.env.POLAR_PRODUCT_PRO = "polar-pro";
+Bun.env.POLAR_PRODUCT_AGENCY_UNLIMITED = "polar-unlimited";
+
 import { describe, expect, test } from "bun:test";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate.js";
 import { TIER_LIMITS } from "@orch/workspace/tiers";
 
+import { resolvePolarCatalog } from "@orch/env/server";
+
 import { normalizeBillingState } from "./billing";
+
+const testCatalog = resolvePolarCatalog({
+  POLAR_PRODUCT_PRO: "polar-pro",
+  POLAR_PRODUCT_AGENCY_UNLIMITED: "polar-unlimited",
+});
 
 function createCustomerState(productId = "polar-pro"): CustomerState {
   return {
@@ -40,7 +50,7 @@ describe("normalizeBillingState", () => {
   });
 
   test("returns polar-backed pro state for active subscriptions", () => {
-    const result = normalizeBillingState(createCustomerState());
+    const result = normalizeBillingState(createCustomerState(), { catalog: testCatalog });
 
     expect(result.tier).toBe("pro");
     expect(result.limits).toEqual(TIER_LIMITS.pro);
@@ -53,13 +63,29 @@ describe("normalizeBillingState", () => {
     });
   });
 
-  test("prefers an active Polar subscription over the lifetime override", () => {
-    const result = normalizeBillingState(createCustomerState("polar-paid"), {
-      lifetimePro: true,
+  test("an unknown Polar product does not grant Pro", () => {
+    const result = normalizeBillingState(createCustomerState("polar-credits"), {
+      lifetimePro: false,
+      catalog: testCatalog,
     });
+    expect(result.tier).toBe("free");
+    expect(result.subscription).toBeNull();
+  });
 
-    expect(result.subscription?.source).toBe("polar");
-    expect(result.subscription?.isLifetime).toBe(false);
-    expect(result.subscription?.productId).toBe("polar-paid");
+  test("Unlimited Polar product still maps to the polar-backed overlay", () => {
+    const result = normalizeBillingState(createCustomerState("polar-unlimited"), {
+      catalog: testCatalog,
+    });
+    expect(result.tier).toBe("pro");
+    expect(result.subscription?.productId).toBe("polar-unlimited");
+  });
+
+  test("lifetime still applies when the only Polar product is not Pro", () => {
+    const result = normalizeBillingState(createCustomerState("polar-credits"), {
+      lifetimePro: true,
+      catalog: testCatalog,
+    });
+    expect(result.tier).toBe("pro");
+    expect(result.subscription?.source).toBe("lifetime");
   });
 });

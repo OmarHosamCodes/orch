@@ -1,4 +1,4 @@
-import { env } from "@orch/env/server";
+import { env, planForPolarProductId, resolvePolarCatalog } from "@orch/env/server";
 import { type Tier, TIER_LIMITS } from "@orch/workspace/tiers";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate.js";
 
@@ -18,6 +18,7 @@ export type BillingState = {
 
 type BillingStateOptions = {
   lifetimePro?: boolean;
+  catalog?: ReturnType<typeof resolvePolarCatalog>;
 };
 
 type ActiveSubscription = NonNullable<CustomerState["activeSubscriptions"]>[number];
@@ -64,25 +65,13 @@ export function normalizeBillingState(
     return fallbackBilling;
   }
 
-  const proProductIds = (env.POLAR_PRODUCT_PRO ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-
-  // First try to match configured Pro product IDs
-  const proSubscription = customerState.activeSubscriptions.find((sub) =>
-    proProductIds.includes(sub.productId),
+  const catalog = options.catalog ?? resolvePolarCatalog(env);
+  const proSubscription = customerState.activeSubscriptions.find(
+    (sub) => planForPolarProductId(catalog, sub.productId) !== null,
   );
 
   if (proSubscription) {
     return getPolarProBillingState(proSubscription);
-  }
-
-  // Fallback: any active subscription counts as Pro
-  const anyActive = customerState.activeSubscriptions[0];
-
-  if (anyActive) {
-    return getPolarProBillingState(anyActive);
   }
 
   return fallbackBilling;

@@ -1,14 +1,17 @@
 import { AlertTriangle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { AgencyTimeEntryDayGroupView } from "@/features/time-tracking/entries/agency-time-entry-day-group-view";
 import { AgencyTimeEntryWeekHeaderView } from "@/features/time-tracking/entries/agency-time-entry-week-group-view";
+import { timeEntryOverlayVariants } from "@/features/time-tracking/agency-time-entry-motion";
 import { AgencyWorkSurfacePaginationFooter } from "@/features/task-management/work-surface/agency-work-surface-pagination-footer";
 import { Button } from "@/ui/button";
+import { Skeleton } from "@/ui/skeleton";
 import type { AgencyTimeEntriesLogViewModel } from "@/features/time-tracking/hooks/use-agency-time-entries-log";
 import type { AgencyTimeEntryGroupRowRenderer } from "@/features/time-tracking/entries/agency-time-entry-row-renderer";
 import {
-  agencyMetricClass,
-  agencyTimeLogSkeletonClass,
+  agencyTimeEntryDayGroupClass,
+  agencyTimeEntryDayHeadClass,
   agencyWorkTableBodyScrollClass,
 } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
@@ -17,6 +20,82 @@ type AgencyTimeEntriesLogViewProps = {
   view: AgencyTimeEntriesLogViewModel;
   renderGroupRow: AgencyTimeEntryGroupRowRenderer;
 };
+
+function AgencyTimeEntriesLogDayBlock({
+  view,
+  renderGroupRow,
+  item,
+  measureRef,
+  index,
+  offset,
+}: {
+  view: AgencyTimeEntriesLogViewModel;
+  renderGroupRow: AgencyTimeEntryGroupRowRenderer;
+  item: AgencyTimeEntriesLogViewModel["virtualDays"][number];
+  measureRef?: (element: HTMLDivElement | null) => void;
+  index?: number;
+  offset?: number;
+}) {
+  return (
+    <div
+      ref={measureRef}
+      data-index={index}
+      className={offset == null ? "w-full pb-[20px]" : "absolute top-0 left-0 w-full pb-[20px]"}
+      style={offset == null ? undefined : { transform: `translateY(${offset}px)` }}
+    >
+      {item.week ? (
+        <AgencyTimeEntryWeekHeaderView
+          label={item.week.label}
+          totalSeconds={item.week.totalSeconds}
+          weekStartKey={item.week.weekStartKey}
+        />
+      ) : null}
+      <AgencyTimeEntryDayGroupView
+        teamId={view.teamId}
+        day={item.day}
+        renderGroupRow={renderGroupRow}
+        selectedEntryIds={view.selectedEntryIds}
+        bulkEditActive={view.bulkEditDayKey === item.day.dateKey}
+        bulkFieldEditOpen={view.bulkFieldEditOpen && view.bulkEditDayKey === item.day.dateKey}
+        bulkDraft={view.bulkDraft}
+        onBulkDraftChange={view.onBulkDraftChange}
+        onToggleEntrySelected={view.onToggleEntrySelected}
+        onToggleDayBulkEdit={view.onToggleDayBulkEdit}
+        onToggleBulkFieldEdit={view.onToggleBulkFieldEdit}
+        onDeleteSelected={view.onDeleteSelected}
+        onMarkSelectedAsWaste={view.onMarkSelectedAsWaste}
+        onApplyBulk={view.onApplyBulk}
+        onCreateTag={view.onCreateTag}
+        tagCreatePending={view.tagCreatePending}
+        tags={view.tags}
+        projects={view.projects}
+        tasks={view.tasks}
+        wastePending={view.wastePending}
+      />
+    </div>
+  );
+}
+
+function AgencyTimeEntriesLogSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true" aria-label="Loading time entries">
+      {["a", "b", "c"].map((key) => (
+        <section key={key} className={agencyTimeEntryDayGroupClass}>
+          <div className={agencyTimeEntryDayHeadClass}>
+            <Skeleton className="h-4 w-28 rounded-md" />
+            <Skeleton className="h-4 w-16 rounded-md" />
+          </div>
+          <div className="border-b border-border/40 px-4 py-3">
+            <Skeleton className="h-4 w-2/3 rounded-md" />
+          </div>
+          <div className="px-4 py-3">
+            <Skeleton className="h-4 w-1/2 rounded-md" />
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
 
 export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEntriesLogViewProps) {
   return (
@@ -37,42 +116,39 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
       ) : null}
 
       <div ref={view.scrollContainerRef} className={agencyWorkTableBodyScrollClass}>
+        <AnimatePresence initial={false}>
+          {view.pinnedWeekOverlay ? (
+            <motion.div
+              key={view.pinnedWeekOverlay.weekStartKey}
+              className="sticky top-0 z-20 h-0 overflow-visible"
+              inherit={false}
+              layout={false}
+              variants={timeEntryOverlayVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+            >
+              <AgencyTimeEntryWeekHeaderView
+                label={view.pinnedWeekOverlay.label}
+                totalSeconds={view.pinnedWeekOverlay.totalSeconds}
+                weekStartKey={view.pinnedWeekOverlay.weekStartKey}
+              />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
         {view.isLoading ? (
-          <div className="overflow-hidden">
-            {[1, 2, 3, 4, 5].map((rowIndex) => (
-              <div key={rowIndex} className={agencyTimeLogSkeletonClass} />
-            ))}
-          </div>
+          <AgencyTimeEntriesLogSkeleton />
         ) : view.entriesEmpty ? (
           <div className="border-b border-dashed border-default bg-elevated/25 px-4 py-10 text-center">
             <p className="text-sm font-semibold text-highlighted">No time logged yet</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
-              Start the tracker, write a short description, and choose a task before stopping.
+              Start a timer above to capture your first entry.
             </p>
-            <ol className="mx-auto mt-4 max-w-xs space-y-2 text-left text-sm text-muted">
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>1.</span>
-                <span>Press Start</span>
-              </li>
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>2.</span>
-                <span>Describe your work</span>
-              </li>
-              <li className="flex gap-2">
-                <span className={cn(agencyMetricClass, "text-xs")}>3.</span>
-                <span>Choose a task</span>
-              </li>
-            </ol>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-5"
-              onClick={view.onRequestOpenTaskChooser}
-            >
-              Choose task
+            <Button type="button" size="sm" className="mt-4" onClick={view.onStartTimer}>
+              Start timer
             </Button>
           </div>
-        ) : (
+        ) : view.virtualize ? (
           <div
             className="relative min-h-full bg-background"
             style={{ height: `${view.virtualTotalSize}px` }}
@@ -81,46 +157,28 @@ export function AgencyTimeEntriesLogView({ view, renderGroupRow }: AgencyTimeEnt
               const item = view.virtualDays[virtualItem.index];
               if (!item) return null;
               return (
-                <div
+                <AgencyTimeEntriesLogDayBlock
                   key={virtualItem.key}
-                  ref={view.measureVirtualDay}
-                  data-index={virtualItem.index}
-                  className="absolute top-0 left-0 w-full pb-[20px]"
-                  style={{ transform: `translateY(${virtualItem.start}px)` }}
-                >
-                  {item.week ? (
-                    <AgencyTimeEntryWeekHeaderView
-                      label={item.week.label}
-                      totalSeconds={item.week.totalSeconds}
-                    />
-                  ) : null}
-                  <AgencyTimeEntryDayGroupView
-                    teamId={view.teamId}
-                    day={item.day}
-                    renderGroupRow={renderGroupRow}
-                    selectedEntryIds={view.selectedEntryIds}
-                    bulkEditActive={view.bulkEditDayKey === item.day.dateKey}
-                    bulkFieldEditOpen={
-                      view.bulkFieldEditOpen && view.bulkEditDayKey === item.day.dateKey
-                    }
-                    bulkDraft={view.bulkDraft}
-                    onBulkDraftChange={view.onBulkDraftChange}
-                    onToggleEntrySelected={view.onToggleEntrySelected}
-                    onToggleDayBulkEdit={view.onToggleDayBulkEdit}
-                    onToggleBulkFieldEdit={view.onToggleBulkFieldEdit}
-                    onDeleteSelected={view.onDeleteSelected}
-                    onMarkSelectedAsWaste={view.onMarkSelectedAsWaste}
-                    onApplyBulk={view.onApplyBulk}
-                    onCreateTag={view.onCreateTag}
-                    tagCreatePending={view.tagCreatePending}
-                    tags={view.tags}
-                    projects={view.projects}
-                    tasks={view.tasks}
-                    wastePending={view.wastePending}
-                  />
-                </div>
+                  view={view}
+                  renderGroupRow={renderGroupRow}
+                  item={item}
+                  measureRef={view.measureVirtualDay}
+                  index={virtualItem.index}
+                  offset={virtualItem.start}
+                />
               );
             })}
+          </div>
+        ) : (
+          <div className="min-h-full bg-background">
+            {view.virtualDays.map((item) => (
+              <AgencyTimeEntriesLogDayBlock
+                key={item.key}
+                view={view}
+                renderGroupRow={renderGroupRow}
+                item={item}
+              />
+            ))}
           </div>
         )}
         {view.showPagination ? (

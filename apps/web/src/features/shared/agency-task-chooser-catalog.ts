@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 
@@ -13,6 +13,7 @@ import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 import { orpc, orpcClient } from "@/lib/orpc";
 
 const PAGE_SIZE = 100;
+export const CHOOSER_HYDRATE_CONCURRENCY = 3;
 
 /**
  * Catalog TTL stays 15s until create/update/delete, project/client
@@ -38,10 +39,26 @@ export type ChooserDrainActive = {
   queryKey: readonly unknown[];
 };
 
+type ChooserListPage = {
+  items: Array<{ id: string }>;
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+type ChooserInfiniteData = {
+  pages: ChooserListPage[];
+  pageParams: number[];
+};
+
+const chooserHydrateInflight = new Map<string, Promise<void>>();
+const chooserHydrateFailed = new Set<string>();
+
 function chooserListInput(teamId: string, search?: string) {
   return {
     teamId,
     pageSize: PAGE_SIZE,
+    detail: "chooser" as const,
     ...(search ? { search } : {}),
   };
 }
@@ -76,6 +93,41 @@ export function chooserPrefetchPageCount(existingPageCount: number): number {
   return Math.max(1, existingPageCount);
 }
 
+export function chooserRemainderPageNumbers(input: {
+  total: number;
+  pageSize: number;
+  loadedPageCount: number;
+}): number[] {
+  if (input.pageSize <= 0 || input.total <= 0 || input.loadedPageCount < 0) return [];
+  const totalPages = Math.ceil(input.total / input.pageSize);
+  const pages: number[] = [];
+  for (let page = input.loadedPageCount + 1; page <= totalPages; page++) {
+    pages.push(page);
+  }
+  return pages;
+}
+
+export async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        results[index] = await mapper(items[index]!, index);
+      }
+    }),
+  );
+  return results;
+}
+
 export function shouldDrainChooserNextPage(
   request: ChooserDrainRequest,
   active: ChooserDrainActive,
@@ -85,6 +137,60 @@ export function shouldDrainChooserNextPage(
   if (!request.hasNextPage || request.isFetchingNextPage) return false;
   if (request.isError || request.isFetchNextPageError) return false;
   return true;
+}
+
+export async function hydrateRemainingChooserPages(
+  queryClient: QueryClient,
+  teamId: string,
+  kind: ChooserListKind = "catalog",
+  search?: string,
+) {
+  if (!teamId) return;
+  const options = agencyTaskChooserInfiniteQueryOptions(teamId, kind, search);
+  const cacheKey = JSON.stringify(options.queryKey);
+  if (chooserHydrateFailed.has(cacheKey)) return;
+  const inflight = chooserHydrateInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const work = (async () => {
+    const current = queryClient.getQueryData<ChooserInfiniteData>(options.queryKey);
+    const loadedPages = current?.pages ?? [];
+    const lastPage = loadedPages.at(-1);
+    if (!lastPage) return;
+    const remainder = chooserRemainderPageNumbers({
+      total: lastPage.total,
+      pageSize: lastPage.pageSize,
+      loadedPageCount: loadedPages.length,
+    });
+    if (remainder.length === 0) return;
+    try {
+      const extraPages = await mapWithConcurrency(remainder, CHOOSER_HYDRATE_CONCURRENCY, (page) =>
+        orpcClient.agencyOps.projectTasks.list({
+          ...chooserListInput(teamId, search),
+          page,
+        }),
+      );
+      queryClient.setQueryData<ChooserInfiniteData>(options.queryKey, (previous) => {
+        const prevPages = previous?.pages ?? loadedPages;
+        if (prevPages.length >= loadedPages.length + extraPages.length) return previous;
+        return {
+          pages: [...prevPages.slice(0, loadedPages.length), ...extraPages],
+          pageParams: [
+            ...(previous?.pageParams ?? current?.pageParams ?? []).slice(0, loadedPages.length),
+            ...remainder,
+          ],
+        };
+      });
+      chooserHydrateFailed.delete(cacheKey);
+    } catch {
+      chooserHydrateFailed.add(cacheKey);
+    }
+  })().finally(() => {
+    chooserHydrateInflight.delete(cacheKey);
+  });
+
+  chooserHydrateInflight.set(cacheKey, work);
+  return work;
 }
 
 export function flattenChooserPages<T extends { id: string }>(
@@ -164,6 +270,7 @@ function useChooserTaskPages(
 ) {
   const search = options.search?.trim() || undefined;
   const queryEnabled = Boolean(teamId) && (options.enabled === undefined || options.enabled);
+  const queryClient = useQueryClient();
   const queryOptions = useMemo(
     () => agencyTaskChooserInfiniteQueryOptions(teamId, kind, search),
     [teamId, kind, search],
@@ -206,7 +313,7 @@ function useChooserTaskPages(
     ) {
       return;
     }
-    void query.fetchNextPage({ cancelRefetch: false });
+    void hydrateRemainingChooserPages(queryClient, teamId, kind, search);
   }, [
     queryEnabled,
     queryOptions.queryKey,
@@ -214,7 +321,10 @@ function useChooserTaskPages(
     query.isFetchingNextPage,
     query.isError,
     query.isFetchNextPageError,
-    query.fetchNextPage,
+    queryClient,
+    teamId,
+    kind,
+    search,
   ]);
 
   const overlay = useAgencyOptimisticStore((state) => state.tasks[teamId] ?? EMPTY_LIST_OVERLAY);

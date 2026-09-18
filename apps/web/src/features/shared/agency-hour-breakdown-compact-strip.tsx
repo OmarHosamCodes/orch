@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/t
 import {
   buildHourBreakdownSegments,
   type AgencyHourBreakdownMetrics,
-} from "./agency-hour-breakdown-flow";
+} from "./agency-hour-breakdown-metrics";
 
 export type CompactHourCompositionItem = {
   id: "paid" | "waste" | "internal";

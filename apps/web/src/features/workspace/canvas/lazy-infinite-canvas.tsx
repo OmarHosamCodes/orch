@@ -1,6 +1,6 @@
 import { forwardRef, lazy, Suspense } from "react";
 
-import { LogoLoader } from "@/features/app-shell/components/logo-loader";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import type {
   InfiniteCanvasHandle,
   InfiniteCanvasProps,
@@ -15,7 +15,7 @@ const InfiniteCanvasLazy = lazy(async () => {
 export const LazyInfiniteCanvas = forwardRef<InfiniteCanvasHandle, InfiniteCanvasProps>(
   function LazyInfiniteCanvas(props, ref) {
     return (
-      <Suspense fallback={<LogoLoader placement="slot" label="Opening canvas" />}>
+      <Suspense fallback={<SurfaceShimmer className="h-full min-h-0" label="Opening canvas" />}>
         <InfiniteCanvasLazy {...props} ref={ref} />
       </Suspense>
     );

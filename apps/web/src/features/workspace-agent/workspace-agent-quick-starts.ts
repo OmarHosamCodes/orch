@@ -34,13 +34,13 @@ function buildAgencyMemberQuickStarts(hasActiveTimer: boolean): WorkspaceAgentQu
         id: "timer",
         label: "What's on my timer?",
         prompt:
-          "What's on my active timer right now? Summarize project, task, and how long I've been tracking.",
+          "What's on my active timer right now? Summarize project, task, and how long so far.",
       }
     : {
         id: "log-time",
         label: "Log missing time",
         prompt:
-          "Help me add missing time entries for yesterday. Propose each entry for my approval. Do not write anything until I approve.",
+          "Help me find and fill my untracked time. Propose each entry for my approval. Do not write anything until I approve.",
         toolPreset: "agent",
       };
 
@@ -48,18 +48,18 @@ function buildAgencyMemberQuickStarts(hasActiveTimer: boolean): WorkspaceAgentQu
     contextual,
     {
       id: "hours",
-      label: "My hours this month",
+      label: "Summarize my hours",
       prompt:
         "Summarize my tracked hours this calendar month with paid, waste, and internal breakdown. Show a canvas.",
     },
     {
       id: "waste",
-      label: "Where is my waste?",
+      label: "Where's my waste?",
       prompt: "Where is my waste this week? List the waste entries and total waste hours.",
     },
     {
       id: "team",
-      label: "Who's tracking?",
+      label: "Who's tracking now?",
       prompt: "Who on the team is actively tracking right now?",
     },
   ];

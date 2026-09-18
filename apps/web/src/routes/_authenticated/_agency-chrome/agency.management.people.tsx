@@ -5,6 +5,6 @@ import { AgencyManagementPeoplePage } from "@/pages/agency-management-people-pag
 export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/management/people")({
   component: AgencyManagementPeoplePage,
   head: () => ({
-    meta: [{ title: "People — Orch" }],
+    meta: [{ title: "People | Orch" }],
   }),
 });

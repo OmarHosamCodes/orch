@@ -4,7 +4,7 @@ import { agencyOpsProjectTemplate } from "@orch/db/schema";
 import type { AgencyOpsProjectTemplateMilestone } from "@orch/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { createWorkspaceId } from "@orch/workspace";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 
 export type AgencyProjectTemplateRecord = {
   id: string;
@@ -46,7 +46,7 @@ function normalizeMilestones(
 }
 
 export async function listAgencyProjectTemplates(actorUserId: string, input: { teamId: string }) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const rows = await db
     .select({
@@ -68,7 +68,7 @@ export async function getAgencyProjectTemplateForTeam(
   actorUserId: string,
   input: { teamId: string; templateId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const [row] = await db
     .select({
@@ -103,7 +103,7 @@ export async function createAgencyProjectTemplate(
     milestones: Array<{ title: string; assigneeUserIds?: string[] }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
 
   const name = input.name.trim();
   if (!name) {
@@ -149,7 +149,7 @@ export async function updateAgencyProjectTemplate(
     milestones?: Array<{ title: string; assigneeUserIds?: string[] }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getAgencyProjectTemplateForTeam(actorUserId, {
     teamId: input.teamId,
     templateId: input.templateId,
@@ -203,7 +203,7 @@ export async function deleteAgencyProjectTemplate(
   actorUserId: string,
   input: { teamId: string; templateId: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getAgencyProjectTemplateForTeam(actorUserId, {
     teamId: input.teamId,
     templateId: input.templateId,

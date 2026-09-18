@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import {
   listMemberCapacity,
@@ -38,7 +38,7 @@ const tenurePolicySchema = z.object({
 
 export const resourcingRouter = {
   leave: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -52,7 +52,7 @@ export const resourcingRouter = {
       }),
   },
   activityHeat: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -77,7 +77,7 @@ export const resourcingRouter = {
       }),
   },
   capacity: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           weekStart: z.string().datetime(),
@@ -104,7 +104,7 @@ export const resourcingRouter = {
           })
           .parse(await listMemberCapacity(context.session.user.id, input));
       }),
-    set: protectedProProcedure
+    set: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           userId: z.string().min(1),
@@ -126,16 +126,14 @@ export const resourcingRouter = {
 
   tenure: {
     policy: {
-      get: protectedProProcedure
-        .input(teamScopedInputSchema)
-        .handler(async ({ context, input }) => {
-          return z
-            .object({
-              policy: tenurePolicySchema.nullable(),
-            })
-            .parse(await getTenurePolicy(context.session.user.id, input));
-        }),
-      upsert: protectedProProcedure
+      get: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+        return z
+          .object({
+            policy: tenurePolicySchema.nullable(),
+          })
+          .parse(await getTenurePolicy(context.session.user.id, input));
+      }),
+      upsert: protectedProcedure
         .input(teamScopedInputSchema.extend(tenurePolicySchema.shape))
         .handler(async ({ context, input }) => {
           return z
@@ -146,28 +144,26 @@ export const resourcingRouter = {
         }),
     },
     profiles: {
-      list: protectedProProcedure
-        .input(teamScopedInputSchema)
-        .handler(async ({ context, input }) => {
-          return z
-            .object({
-              items: z.array(
-                z.object({
-                  userId: z.string().min(1),
-                  userName: z.string().min(1),
-                  userEmail: z.email(),
-                  joinedAt: z.string().datetime(),
-                  internStart: z.string().datetime().nullable(),
-                  internEnd: z.string().datetime().nullable(),
-                  internCountsTowardTenure: z.boolean(),
-                  internExemptFromQuarterMin: z.boolean(),
-                  notes: z.string().nullable(),
-                }),
-              ),
-            })
-            .parse(await listTenureProfiles(context.session.user.id, input));
-        }),
-      upsert: protectedProProcedure
+      list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+        return z
+          .object({
+            items: z.array(
+              z.object({
+                userId: z.string().min(1),
+                userName: z.string().min(1),
+                userEmail: z.email(),
+                joinedAt: z.string().datetime(),
+                internStart: z.string().datetime().nullable(),
+                internEnd: z.string().datetime().nullable(),
+                internCountsTowardTenure: z.boolean(),
+                internExemptFromQuarterMin: z.boolean(),
+                notes: z.string().nullable(),
+              }),
+            ),
+          })
+          .parse(await listTenureProfiles(context.session.user.id, input));
+      }),
+      upsert: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),
@@ -197,7 +193,7 @@ export const resourcingRouter = {
         }),
     },
     exemptions: {
-      list: protectedProProcedure
+      list: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             fiscalYear: z.number().int().optional(),
@@ -228,7 +224,7 @@ export const resourcingRouter = {
             })
             .parse(await listTenureExemptions(context.session.user.id, input));
         }),
-      upsert: protectedProProcedure
+      upsert: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             id: z.string().min(1).optional(),
@@ -269,7 +265,7 @@ export const resourcingRouter = {
             })
             .parse(await upsertTenureExemption(context.session.user.id, input));
         }),
-      delete: protectedProProcedure
+      delete: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             exemptionId: z.string().min(1),
@@ -282,68 +278,66 @@ export const resourcingRouter = {
         }),
     },
     summary: {
-      list: protectedProProcedure
-        .input(teamScopedInputSchema)
-        .handler(async ({ context, input }) => {
-          return z
-            .object({
-              policyEnabled: z.boolean(),
-              items: z.array(
-                z.object({
-                  userId: z.string().min(1),
-                  userName: z.string().min(1),
-                  userEmail: z.email(),
-                  joinedAt: z.string().datetime(),
-                  departmentId: z.string().nullable(),
-                  departmentName: z.string().nullable(),
-                  employmentType: z.string().nullable(),
-                  workModel: z.string().nullable(),
-                  status: z.enum(["active", "inactive"]).nullable(),
-                  hasContact: z.boolean(),
-                  internStart: z.string().datetime().nullable(),
-                  internEnd: z.string().datetime().nullable(),
-                  internDerived: z.boolean(),
-                  rawTenureMonths: z.number().int().nonnegative(),
-                  rawTenureLabel: z.string().min(1),
-                  penaltyMonths: z.number().int().nonnegative(),
-                  netTenureMonths: z.number().int().nonnegative(),
-                  netTenureLabel: z.string().min(1),
-                  failedQuarterCount: z.number().int().nonnegative(),
-                  awaitingFirstEntry: z.boolean(),
-                  currentQuarter: z
-                    .object({
-                      fiscalYear: z.number().int(),
-                      fiscalQuarter: z.union([
-                        z.literal(1),
-                        z.literal(2),
-                        z.literal(3),
-                        z.literal(4),
-                      ]),
-                      label: z.string().min(1),
-                      requiredHours: z.number().nonnegative(),
-                      loggedHours: z.number().nonnegative(),
-                      status: z.enum([
-                        "intern",
-                        "waived",
-                        "met",
-                        "missed",
-                        "on-track",
-                        "at-risk",
-                        "in-progress",
-                        "skipped",
-                      ]),
-                      penaltyMonthsApplied: z.number().int().nonnegative(),
-                      prorated: z.boolean(),
-                    })
-                    .nullable(),
-                }),
-              ),
-            })
-            .parse(await listTenureSummary(context.session.user.id, input));
-        }),
+      list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+        return z
+          .object({
+            policyEnabled: z.boolean(),
+            items: z.array(
+              z.object({
+                userId: z.string().min(1),
+                userName: z.string().min(1),
+                userEmail: z.email(),
+                joinedAt: z.string().datetime(),
+                departmentId: z.string().nullable(),
+                departmentName: z.string().nullable(),
+                employmentType: z.string().nullable(),
+                workModel: z.string().nullable(),
+                status: z.enum(["active", "inactive"]).nullable(),
+                hasContact: z.boolean(),
+                internStart: z.string().datetime().nullable(),
+                internEnd: z.string().datetime().nullable(),
+                internDerived: z.boolean(),
+                rawTenureMonths: z.number().int().nonnegative(),
+                rawTenureLabel: z.string().min(1),
+                penaltyMonths: z.number().int().nonnegative(),
+                netTenureMonths: z.number().int().nonnegative(),
+                netTenureLabel: z.string().min(1),
+                failedQuarterCount: z.number().int().nonnegative(),
+                awaitingFirstEntry: z.boolean(),
+                currentQuarter: z
+                  .object({
+                    fiscalYear: z.number().int(),
+                    fiscalQuarter: z.union([
+                      z.literal(1),
+                      z.literal(2),
+                      z.literal(3),
+                      z.literal(4),
+                    ]),
+                    label: z.string().min(1),
+                    requiredHours: z.number().nonnegative(),
+                    loggedHours: z.number().nonnegative(),
+                    status: z.enum([
+                      "intern",
+                      "waived",
+                      "met",
+                      "missed",
+                      "on-track",
+                      "at-risk",
+                      "in-progress",
+                      "skipped",
+                    ]),
+                    penaltyMonthsApplied: z.number().int().nonnegative(),
+                    prorated: z.boolean(),
+                  })
+                  .nullable(),
+              }),
+            ),
+          })
+          .parse(await listTenureSummary(context.session.user.id, input));
+      }),
     },
     member: {
-      get: protectedProProcedure
+      get: protectedProcedure
         .input(
           teamScopedInputSchema.extend({
             userId: z.string().min(1),

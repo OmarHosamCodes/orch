@@ -16,6 +16,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
@@ -212,7 +213,7 @@ export function WorkspaceCollectionsTrackerBlockEditor({
             onClick={addInvoice}
           >
             <Plus />
-            Add Invoice
+            Add invoice
           </Button>
         </div>
       </div>
@@ -231,7 +232,7 @@ export function WorkspaceCollectionsTrackerBlockEditor({
             onClick={addInvoice}
           >
             <Plus />
-            Add
+            Add invoice
           </Button>
         </div>
       ) : (
@@ -284,14 +285,19 @@ export function WorkspaceCollectionsTrackerBlockEditor({
                   </div>
 
                   <div className="bg-background p-3">
-                    <Input
-                      type="date"
+                    <AgencyDateField
                       value={invoice.dueDate ?? ""}
-                      className="rounded-2xl"
+                      displayStyle="short"
+                      className="h-8 rounded-2xl"
                       aria-label={`Due date for ${invoice.clientName || "invoice"}`}
-                      onChange={(event) =>
+                      onChange={(next) =>
                         mutateInvoice(invoice.id, (entry) => {
-                          entry.dueDate = event.target.value || null;
+                          entry.dueDate = next || null;
+                        })
+                      }
+                      onClear={() =>
+                        mutateInvoice(invoice.id, (entry) => {
+                          entry.dueDate = null;
                         })
                       }
                     />
@@ -325,14 +331,19 @@ export function WorkspaceCollectionsTrackerBlockEditor({
                   </div>
 
                   <div className="bg-background p-3">
-                    <Input
-                      type="date"
+                    <AgencyDateField
                       value={invoice.nextFollowUpDate ?? ""}
-                      className="rounded-2xl"
+                      displayStyle="short"
+                      className="h-8 rounded-2xl"
                       aria-label={`Next follow-up date for ${invoice.clientName || "invoice"}`}
-                      onChange={(event) =>
+                      onChange={(next) =>
                         mutateInvoice(invoice.id, (entry) => {
-                          entry.nextFollowUpDate = event.target.value || null;
+                          entry.nextFollowUpDate = next || null;
+                        })
+                      }
+                      onClear={() =>
+                        mutateInvoice(invoice.id, (entry) => {
+                          entry.nextFollowUpDate = null;
                         })
                       }
                     />
@@ -354,14 +365,19 @@ export function WorkspaceCollectionsTrackerBlockEditor({
                     </Badge>
 
                     {invoice.status === "paid" ? (
-                      <Input
-                        type="date"
+                      <AgencyDateField
                         value={invoice.paidAt ?? ""}
-                        className="mt-2 rounded-2xl"
+                        displayStyle="short"
+                        className="mt-2 h-8 rounded-2xl"
                         aria-label={`Paid date for ${invoice.clientName || "invoice"}`}
-                        onChange={(event) =>
+                        onChange={(next) =>
                           mutateInvoice(invoice.id, (entry) => {
-                            entry.paidAt = event.target.value || null;
+                            entry.paidAt = next || null;
+                          })
+                        }
+                        onClear={() =>
+                          mutateInvoice(invoice.id, (entry) => {
+                            entry.paidAt = null;
                           })
                         }
                       />

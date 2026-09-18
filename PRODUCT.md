@@ -14,19 +14,19 @@ The Canvas surface is for spatial knowledge work — the user is exploring, orga
 
 ## Product Purpose
 
-Orch is a spatial knowledge workspace where every piece of work has a place on an infinite canvas. Nodes hold tabs, tabs hold blocks (task lists, notes, kanban boards, decision matrices, AI prompts, and more). An embedded AI agent can read and mutate the workspace through tools, turning conversation into structural changes the user can see appear on the canvas in real time.
+Orch is a you-only Eclipse companion. Agency and Canvas are tools it drives — time and operations on Agency, spatial knowledge on Canvas — while Orch keeps working after you leave the tab, remembers you, and asks you to confirm Agency writes.
 
-Success looks like a user thinking out loud to the agent, watching their workspace reshape itself, and ending the session with a more structured, more useful map of what they're working on than they could have built by clicking alone.
+Success looks like leaving a turn mid-flight, coming back to Eclipse in a needs-you mood with a one-liner, and opening the same run — Canvas already applied, Agency still waiting for Approve.
 
 ## Positioning
 
-Orch unifies spatial knowledge work and agency operations under one product with an embedded agent above both surfaces. Canvas is the spatial knowledge plane; Agency is Clockify-adjacent time, reports, and management. The same workspace agent proposes structural changes for human Approve/Reject rather than applying writes silently — conversation becomes inspectable workspace change, not a side chat bolted onto either surface alone.
+Orch unifies spatial knowledge work and agency operations under one product with a you-only Eclipse companion above both surfaces. Canvas is the spatial knowledge plane; Agency is Clockify-adjacent time, reports, and management. Canvas and knowledge writes apply immediately. Agency writes stay confirm-only. Conversation becomes inspectable work, not a side chat bolted onto either surface alone.
 
 ## Operating Context
 
 - **Canvas** (`/canvas`): MagicBento-style spatial board; workspaces are user-scoped with team-sharable nodes as the Agency bridge; node pages (`/node/:id`) are the polished block editors; board cards stay summaries.
 - **Agency**: Tracker (time entries, My Tasks rail), Reports (live and created), Management (Resourcing, People, Money), member profiles, and related ops — absolute path URLs with filter/protocol search params retained.
-- **Workspace agent**: Global bottom-docked composer shared by Agency and Canvas (Ask / Plan / Agent); custom transport over oRPC; streamed answers plus generative UI artifacts; route-default tool catalogs with intent-unlock across surfaces; writes go through pending proposals.
+- **Workspace agent:** Top-bar Eclipse companion. Click opens a compact glance (composer, unread/running threads, Open Orch); Open Orch expands over the current Agency/Canvas page. Settle archives threads. No Ask/Plan/Agent tags. No tools dump in `+`. `/` commands and `@` mentions. Durable server-owned runs. Canvas/knowledge apply immediately; Agency confirms in-thread.
 - **Authenticated shell**: Shared left sidebar rail plus connected top bar for Canvas and Agency.
 - **Production**: Hosted on Railway (Postgres; Redis for server-side persistence/cache).
 
@@ -35,10 +35,10 @@ Orch unifies spatial knowledge work and agency operations under one product with
 - Bun monorepo (`apps/web`, `apps/server`, shared packages); product features follow the golden-file layer pattern (Agency Time Tracking is the exemplar).
 - Timer and time-entry state persist on the server (DB/Redis), survive refresh, and stay editable mid-tracking with durable saves — not browser/device storage.
 - Agency Tracker/Reports aim for Clockify UI/UX and action parity unless explicitly directed otherwise; waste marks apply only to the targeted entry.
-- Agent writes never apply directly: propose or confirm-plan into pending proposals with before/after illustration, then human Approve/Reject.
+- Agent Canvas/knowledge writes apply immediately. Agency writes go through pending proposals, then human Approve/Reject.
 - Browser/Vite code must not import the `@orch/agent` barrel (use `@orch/agent/types` or `@orch/agent/model-routing`); Hono server remains the API for auth, oRPC, uploads, and live WS.
 - Environment access goes through `@orch/env` / web helpers — never raw `process.env` in app code.
-- Canvas chrome stays off the plane; Agency and Canvas share one composer/runtime with route-scoped tools.
+- Canvas chrome stays off the plane; Agency and Canvas share one Eclipse companion.
 
 ## Brand Commitments
 
@@ -49,7 +49,7 @@ Emotionally: confidence without strain. Users should feel in control of a powerf
 Brand constraints (anti-references):
 
 - **SaaS-cream cliché.** No purple gradient heroes, hero-metric-with-sparkline cards, identical icon-and-heading card grids, or "Built for modern teams" template energy.
-- **AI-product slop.** No neon glows, gradient text, sparkle-everywhere decoration, robot mascot avatars, animated orbs, or breathless "AI-powered" copy. The agent is a tool, not a personality.
+- **AI-product slop.** No neon glows, gradient text, sparkle-everywhere decoration, robot mascot avatars, or animated orbs. Orch is a you-only Eclipse companion — disc + bite-dot from the favicon — not a robot personality.
 - **Enterprise heaviness.** No Salesforce/Jira density, no nested tabs of nested tabs, no dropdowns with 30 options, no chrome-heavy navigation that competes with the canvas.
 - **Flat zinc-only UI.** No paper-thin hairline-only surfaces with zero tonal depth. Premium depth comes from a surface ladder and photographic light, not decorative drop shadows on every card.
 - **Violet-as-wallpaper.** Operator Violet is the brand accent for selection and chrome, used sparingly. Primary CTAs stay monochrome. Do not flood surfaces with violet.
@@ -73,5 +73,5 @@ No customer testimonials, case studies, press quotes, or fabricated metrics are 
 
 - WCAG 2.1 AA across all product surfaces. Contrast, focus visibility, keyboard navigation are non-negotiable.
 - Full keyboard control of the agent rail, canvas pan/zoom, and node interactions. Spatial tools must not become unusable for keyboard-only users.
-- Respect `prefers-reduced-motion` for the rail expand/collapse, streaming animations, marketing motion (aurora, blur text, magnet), and any canvas transitions.
+- Respect `prefers-reduced-motion` for shell destination chrome (instant snap, no filter animation), streaming animations, marketing motion (aurora, blur text, magnet), and any canvas transitions.
 - Text in tool traces and agent messages must remain selectable and screen-reader-readable. Tool call summaries should make sense as plain prose, not just visual badges.

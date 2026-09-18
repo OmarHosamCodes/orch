@@ -46,7 +46,7 @@ export function AgencyReportHistoryMenu({
           ) : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" size="chooser">
         <div className="border-b border-default/55 px-3 py-2.5">
           <p className="text-sm font-semibold text-highlighted">Saved reports</p>
           <p className="text-xs text-muted">Open a report you saved.</p>

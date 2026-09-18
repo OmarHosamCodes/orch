@@ -5,6 +5,7 @@ import {
   useState,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
 } from "react";
 
 import { setTrackingFavicon } from "@/lib/favicon";
@@ -66,6 +67,14 @@ import {
   useAgencyTagsQuery,
 } from "@/features/time-tracking/hooks/use-agency-tags";
 import type { AgencyTagOption } from "@/features/time-tracking/choosers/agency-tag-chooser";
+import { shouldBlockTrackerChrome } from "@/features/time-tracking/tracker-chrome-ready";
+import {
+  fireTrackerStopCelebration,
+  isTrackerStopCelebrationEnabled,
+  originFromStopButtonElement,
+  resolveStopCelebrationBurst,
+  type TrackerStopConfettiOrigin,
+} from "@/features/time-tracking/tracker-stop-celebration";
 
 const emptyElapsedDraft = "";
 
@@ -141,7 +150,7 @@ export type AgencyTimeTrackerViewModel = {
   onProjectChange: (projectId: string) => void;
   onTaskChange: (taskId: string, projectId?: string) => void;
   onTagIdsChange: (tagIds: string[]) => void;
-  onCreateTag: (name: string) => void;
+  onCreateTag?: (name: string) => void;
   onIsBillableChange: (isBillable: boolean) => void;
   onTaskChooserOpenChange: (open: boolean) => void;
   onElapsedFocus: () => void;
@@ -160,7 +169,7 @@ export type AgencyTimeTrackerViewModel = {
   onManualTimeKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   onManualDateChange: (date: string) => void;
   onStartTimer: () => void;
-  onStopTimer: () => void;
+  onStopTimer: (event?: MouseEvent<HTMLButtonElement>) => void;
   onDiscardTimer: () => void;
   onAddManual: () => void;
 };
@@ -448,6 +457,9 @@ export function useAgencyTimeTracker({
           projectName: entry.projectName,
           clientName: entry.clientName,
           startedAt: entry.startedAt,
+          taskIconKey: entry.taskIconKey,
+          colorHueId: entry.colorHueId,
+          projectIconKey: entry.projectIconKey,
         })),
       ),
     [recentEntriesQuery.data?.items],
@@ -543,8 +555,10 @@ export function useAgencyTimeTracker({
     setDescriptionFocused(false);
   }
 
-  async function stopTimer(discard = false) {
+  async function stopTimer(discard = false, origin?: TrackerStopConfettiOrigin) {
     if (!teamId || !activeTimer) return;
+
+    const startedAtMs = new Date(activeTimer.startedAt).getTime();
 
     await flushActiveTimerDescription(teamId);
 
@@ -557,6 +571,18 @@ export function useAgencyTimeTracker({
       tagIds: trackerDraft?.tagIds,
       isBillable: trackerDraft?.isBillable,
     });
+
+    if (!discard && isTrackerStopCelebrationEnabled()) {
+      const stopTaskId = resolvedTimerTask?.id ?? activeTimer.taskId;
+      const stopTask = stopTaskId ? tasks.find((task) => task.id === stopTaskId) : undefined;
+      const burst = resolveStopCelebrationBurst({
+        durationSeconds: (Date.now() - startedAtMs) / 1000,
+        taskIsWaste: stopTask?.isWaste,
+        taskTitle: resolvedTimerTask?.title ?? activeTimer.taskTitle,
+        projectName: trackerProject?.name ?? activeTimer.projectName,
+      });
+      if (burst) fireTrackerStopCelebration(origin, burst);
+    }
   }
 
   const taskChooserLabel =
@@ -774,7 +800,12 @@ export function useAgencyTimeTracker({
     tasks,
     projectsLoading: projectsQuery.isPending,
     tasksLoading: tasksQuery.isPending,
-    isTrackerLoading: projectsQuery.isPending || (tasksQuery.isPending && tasks.length === 0),
+    isTrackerLoading: shouldBlockTrackerChrome({
+      hasTeam: Boolean(teamId),
+      projectsPending: projectsQuery.isPending,
+      tasksPending: tasksQuery.isPending,
+      taskCount: tasks.length,
+    }),
     activeTimer,
     elapsedLabel,
     canStartTimer,
@@ -835,15 +866,17 @@ export function useAgencyTimeTracker({
       setTrackerTaskId(teamId, value || "");
     },
     onTagIdsChange: (tagIds) => setTrackerTagIds(teamId, tagIds),
-    onCreateTag: (name) => {
-      if (!teamId || tagCreatePending) return;
-      setTagCreatePending(true);
-      void createAgencyTag(teamId, name)
-        .then((created) => {
-          setTrackerTagIds(teamId, [...new Set([...selectedTagIds, created.id])]);
-        })
-        .finally(() => setTagCreatePending(false));
-    },
+    onCreateTag: tagsQuery.canEditRecords
+      ? (name) => {
+          if (!teamId || tagCreatePending) return;
+          setTagCreatePending(true);
+          void createAgencyTag(teamId, name)
+            .then((created) => {
+              setTrackerTagIds(teamId, [...new Set([...selectedTagIds, created.id])]);
+            })
+            .finally(() => setTagCreatePending(false));
+        }
+      : undefined,
     onIsBillableChange: (next) => setTrackerIsBillable(teamId, next),
     onTaskChooserOpenChange: setTaskChooserOpen,
     onElapsedFocus,
@@ -862,7 +895,8 @@ export function useAgencyTimeTracker({
     onManualTimeKeyDown,
     onManualDateChange,
     onStartTimer: () => void startTimer(),
-    onStopTimer: () => void stopTimer(),
+    onStopTimer: (event?: MouseEvent<HTMLButtonElement>) =>
+      void stopTimer(false, originFromStopButtonElement(event?.currentTarget)),
     onDiscardTimer: () => void stopTimer(true),
     onAddManual: () => void addManual(),
   };

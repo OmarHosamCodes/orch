@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, Plus, Settings2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
@@ -234,13 +235,19 @@ export function WorkspaceTimelineBlockEditor({
                         <Label className="text-xs font-semibold text-muted-foreground">
                           Milestone date
                         </Label>
-                        <Input
-                          type="date"
+                        <AgencyDateField
                           value={milestone.date ?? ""}
-                          className="rounded-xl"
-                          onChange={(event) =>
+                          displayStyle="short"
+                          className="h-8 rounded-xl"
+                          aria-label="Milestone date"
+                          onChange={(next) =>
                             mutateTimelineMilestone(tabId, block.id, milestone.id, (entry) => {
-                              entry.date = event.target.value || null;
+                              entry.date = next || null;
+                            })
+                          }
+                          onClear={() =>
+                            mutateTimelineMilestone(tabId, block.id, milestone.id, (entry) => {
+                              entry.date = null;
                             })
                           }
                         />

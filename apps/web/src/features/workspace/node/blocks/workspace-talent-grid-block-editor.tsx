@@ -10,6 +10,7 @@ import { Trash2, UserPlus } from "lucide-react";
 import { Fragment, useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -296,7 +297,7 @@ export function WorkspaceTalentGridBlockEditor({
             onClick={addMember}
           >
             <UserPlus />
-            Add
+            Add member
           </Button>
         </div>
       ) : (
@@ -306,7 +307,10 @@ export function WorkspaceTalentGridBlockEditor({
             const boxDescription = getBoxDescription(boxKey);
 
             return (
-              <article key={member.id} className="rounded-xl border border-muted bg-background p-4">
+              <article
+                key={member.id}
+                className="rounded-surface border border-muted bg-background p-surface"
+              >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <Input
@@ -353,14 +357,12 @@ export function WorkspaceTalentGridBlockEditor({
                         {member.performance}/5
                       </span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`performance-${member.id}`}
                       value={member.performance}
-                      type="range"
                       min={1}
                       max={5}
                       step={1}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) => updateMemberPerformance(member.id, event.target.value)}
                     />
                   </div>
@@ -377,14 +379,12 @@ export function WorkspaceTalentGridBlockEditor({
                         {member.potential}/5
                       </span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`potential-${member.id}`}
                       value={member.potential}
-                      type="range"
                       min={1}
                       max={5}
                       step={1}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) => updateMemberPotential(member.id, event.target.value)}
                     />
                   </div>

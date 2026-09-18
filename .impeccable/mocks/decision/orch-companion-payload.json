@@ -1,0 +1,196 @@
+{
+  "title": "Choose the companion composition",
+  "question": "Glance-then-expand stays. Which composition should Orch use?",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Side hinge",
+      "kicker": "THE ROLL",
+      "lineage": "Eclipse as a hinge on the top-bar, not a second app",
+      "thesis": "The glance hangs from Eclipse; Open Orch slides a workbench from that same hinge.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc", "hairline rail"],
+      "viewport": "Agency Tracker with Eclipse needs-you. Glance card docks under the disc: status, composer with / and @, two live threads, Open Orch. Expand is a right-hinged panel: Search + Settle, thread with CoT, activity Inspect, todos, citations, collapse.",
+      "risk": "Reads as a generic right chat drawer if the hinge from Eclipse is weak.",
+      "raised": [
+        {
+          "from": "challenger-variable-font-specimen",
+          "raise": "Glance and expand are two named instances of one panel, not two layouts."
+        },
+        {
+          "from": "challenger-kinetic-sculpture-automata-tensegrity-breathing-column",
+          "raise": "Eclipse moods stay slack, balanced, stressed, and failed as distinct states."
+        },
+        {
+          "from": "challenger-clouds-storms-auroras-iridescent-cloud-edge",
+          "raise": "Operator Violet stays on the bite-dot and live status only."
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/orch-companion-assigned.png",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "rail", "x": 0, "y": 0, "w": 1, "h": 10 },
+          { "label": "top bar + Eclipse", "x": 1, "y": 0, "w": 11, "h": 1, "accent": true },
+          { "label": "Agency page", "x": 1, "y": 1, "w": 7, "h": 9 },
+          { "label": "glance / right hinge", "x": 8, "y": 1, "w": 4, "h": 9, "accent": true }
+        ]
+      }
+    },
+    {
+      "id": "two-lane",
+      "label": "Two-lane glance",
+      "lineage": "Needs-you and running as separate lanes",
+      "thesis": "The glance splits live work into Needs you and Running, then Open Orch keeps those lanes.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc", "hairline rail"],
+      "viewport": "Glance composer on top, two columns of threads, Open Orch. Expand keeps Needs you / Running / Settled as stacked lanes beside the thread interiors.",
+      "risk": "Empty lanes look unfinished when nothing is running.",
+      "comp": ".impeccable/mocks/decision/orch-companion-two-lane.png",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "rail", "x": 0, "y": 0, "w": 1, "h": 10 },
+          { "label": "top bar + Eclipse", "x": 1, "y": 0, "w": 11, "h": 1, "accent": true },
+          { "label": "composer", "x": 7, "y": 1, "w": 5, "h": 2 },
+          { "label": "needs you", "x": 7, "y": 3, "w": 2, "h": 5, "accent": true },
+          { "label": "running", "x": 9, "y": 3, "w": 3, "h": 5 },
+          { "label": "Open Orch", "x": 7, "y": 8, "w": 5, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "spotlight",
+      "label": "Composer spotlight",
+      "lineage": "Linear Ask / command field that grows into a thread",
+      "thesis": "The glance is a command field; live threads are results under the query.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc", "hairline rail"],
+      "viewport": "Large composer first, mono hint for / and @, thread results, Open Orch. Expand docks that same composer under a full thread with Settle in a slim rail.",
+      "risk": "Inbox status is easy to miss if the field eats the glance.",
+      "comp": ".impeccable/mocks/decision/orch-companion-spotlight.png",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "rail", "x": 0, "y": 0, "w": 1, "h": 10 },
+          { "label": "top bar + Eclipse", "x": 1, "y": 0, "w": 11, "h": 1 },
+          { "label": "composer", "x": 6, "y": 1, "w": 6, "h": 3, "accent": true },
+          { "label": "results", "x": 6, "y": 4, "w": 6, "h": 4 },
+          { "label": "Open Orch", "x": 6, "y": 8, "w": 6, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "challenger-variable-font-specimen",
+      "label": "Named instances",
+      "verdict": "competitive",
+      "lineage": "variable-font specimen: one face, two named weights",
+      "thesis": "Glance and expand are the same card at two named sizes, interpolating in place.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc", "hairline rail"],
+      "viewport": "Compact instance hangs from Eclipse. Open Orch grows that exact card over the page; Settle, thread, CoT, activity, todos, citations stay in the same object.",
+      "case": "Beats a two-chrome model on clarity: one object, two instances. Narrower on glance scan if the compact instance is still a mini-chat.",
+      "risk": "The morph can feel like a window resize instead of a companion.",
+      "comp": ".impeccable/mocks/decision/orch-companion-instance-morph.png",
+      "hero": "https://impeccable.style/worlds/cards/variable-font-specimen-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/variable-font-specimen.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "rail", "x": 0, "y": 0, "w": 1, "h": 10 },
+          { "label": "top bar + Eclipse", "x": 1, "y": 0, "w": 11, "h": 1, "accent": true },
+          { "label": "same card grows", "x": 2, "y": 1, "w": 10, "h": 9, "accent": true }
+        ]
+      }
+    },
+    {
+      "id": "challenger-aww2-zoo-gardens-guide-map",
+      "label": "Swelling lobe",
+      "verdict": "competitive",
+      "lineage": "zoo guide map: one lobe swells until its coast leaves the frame",
+      "thesis": "Orch is one lobe hanging from Eclipse that swells to own the page; Settled is a hole the Agency page shows through.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc", "hairline rail"],
+      "viewport": "Rounded glance lobe under Eclipse with status, composer, threads, Open Orch. Expand swells that lobe across the Tracker; a window of the page remains as Settled.",
+      "case": "Strong on the grow ritual. Risks novelty against Agency’s rectangular chrome.",
+      "risk": "Organic corners can fight the shell if they become decoration.",
+      "comp": ".impeccable/mocks/decision/orch-companion-swelling-lobe.png",
+      "hero": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "rail", "x": 0, "y": 0, "w": 1, "h": 10 },
+          { "label": "top bar + Eclipse", "x": 1, "y": 0, "w": 11, "h": 1, "accent": true },
+          { "label": "Agency through-hole", "x": 1, "y": 6, "w": 2, "h": 4 },
+          { "label": "swelling lobe", "x": 3, "y": 1, "w": 9, "h": 9, "accent": true }
+        ]
+      }
+    },
+    {
+      "id": "challenger-broadcast-programming-teletext-service",
+      "label": "Keyed pages",
+      "verdict": "declined",
+      "lineage": "broadcast teletext",
+      "thesis": "Threads as numbered pages with a HOLD flag.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card", "Eclipse disc"],
+      "viewport": "Not shown. Teletext paging fights a quiet instrument.",
+      "case": "Loses identification and clarity. Kept: running as a designed HOLD flag, not a missing row.",
+      "kept": "Running is a designed HOLD flag, not a missing row.",
+      "risk": "Novelty chrome.",
+      "hero": "https://impeccable.style/worlds/cards/broadcast-programming-teletext-service-hero.webp"
+    },
+    {
+      "id": "challenger-kinetic-sculpture-automata-tensegrity-breathing-column",
+      "label": "Tension states",
+      "verdict": "declined",
+      "lineage": "tensegrity column",
+      "thesis": "Settle as releasing tension in a sculpture.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card"],
+      "viewport": "Not shown as a layout.",
+      "case": "Operators do not identify with sculpture. Kept mood states raised onto Side hinge.",
+      "kept": "Slack, balanced, stressed, failed Eclipse moods.",
+      "risk": "Metaphor over task.",
+      "hero": "https://impeccable.style/worlds/cards/kinetic-sculpture-automata-tensegrity-breathing-column-hero.webp"
+    },
+    {
+      "id": "challenger-clouds-storms-auroras-iridescent-cloud-edge",
+      "label": "Edge color",
+      "verdict": "declined",
+      "lineage": "iridescent cloud edge",
+      "thesis": "Color only at the fringe.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card"],
+      "viewport": "Not a composition.",
+      "case": "Already DESIGN.md. Kept as a raise, not a layout.",
+      "kept": "Violet only on the Eclipse bite-dot and live status.",
+      "risk": "No structure.",
+      "hero": "https://impeccable.style/worlds/cards/clouds-storms-auroras-iridescent-cloud-edge-hero.webp"
+    },
+    {
+      "id": "challenger-pop-culture-shelf-anime-command-center",
+      "label": "Crisis wall",
+      "verdict": "declined",
+      "lineage": "mecha command center",
+      "thesis": "Hazard chrome and monumental countdowns.",
+      "palette": ["#0a0a0a", "#fafafa", "#5b5bd6", "#6b6b6b"],
+      "materials": ["quiet instrument card"],
+      "viewport": "Rejected by brand: no neon, no hazard bands.",
+      "case": "Loses both axes against a quiet instrument.",
+      "kept": "Status must be readable at a glance without a second app.",
+      "risk": "AI-product slop.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-anime-command-center-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "comp", "toggle": true },
+  "canon": false,
+  "steer": true
+}

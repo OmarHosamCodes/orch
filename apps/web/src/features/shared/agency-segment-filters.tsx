@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
   startTransition,
@@ -11,9 +12,19 @@ import {
 import { useNavigate } from "@/lib/navigation";
 import { toast } from "sonner";
 
-import { AgencyTimeRangeCommandBar } from "@/features/shared/command-bar/agency-time-range-command-bar";
-import { AgencyListFilterCommandBar } from "@/features/shared/command-bar/agency-list-filter-command-bar";
+import {
+  AgencyCommandBar,
+  agencyCommandBarCustomRangeTriggerClass,
+} from "@/features/shared/command-bar/agency-command-bar";
+import { RangePresetChooser } from "@/features/shared/command-bar/range-preset-chooser";
+import { AgencyMultiSelectFilter } from "@/features/shared/filters/agency-multi-select-filter";
+import { MemberProfileLeaveRangePicker } from "@/features/shared/date/member-profile-leave-range-picker";
 import { AgencyProjectCreateDialog } from "@/features/projects/agency-project-create-dialog";
+import { AgencyClientCreateDialog } from "@/features/clients/agency-client-create-dialog";
+import {
+  ensureInternalClientId,
+  pickDefaultProjectClientId,
+} from "@/features/clients/internal-client";
 import { AgencyReportHistoryMenu } from "@/features/reports/creator/agency-report-history-menu";
 import {
   allAgencyReportFieldIds,
@@ -34,6 +45,7 @@ import {
 } from "@/features/reports/agency-report-merge-tasks";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
+import { Label } from "@/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
@@ -44,21 +56,19 @@ import { useAgencyListFilters } from "@/features/shared/use-agency-list-filters"
 import type { AgencyTimeRangeFilters } from "@/features/shared/use-agency-time-range-filters";
 import { useAgencyTimeRangeFilters } from "@/features/shared/use-agency-time-range-filters";
 import { agencyReportHref, type AgencySegmentId } from "@/features/shared/agency-segments";
-import {
-  buildAgencyMoneyPeriodHref,
-  buildAgencyReportsPeriodHref,
-  parseAgencyPeriodQuery,
-} from "@/features/shared/agency-period-query";
+import { parseAgencyPeriodQuery } from "@/features/shared/agency-period-query";
 import { orpcClient } from "@/lib/orpc";
 import { getErrorMessage } from "@/lib/utils/get-error-message";
 import { AGENCY_CURRENCY_OPTIONS, parseBillableRateAmount } from "@/features/shared/format-rate";
+import { agencyTeamCapabilities } from "@/features/shared/agency-team-capabilities";
+import { teamDetailQueryOptions } from "@/features/team/team-queries";
 import {
   selectIsClientMutationPending,
   useAgencyOpsStore,
 } from "@/features/shared/stores/agency-ops";
 
 type AgencySegmentSurfaceFilters =
-  | { kind: "timeRange"; applied: AgencyTimeRangeFilters }
+  | { kind: "timeRange"; applied: AgencyTimeRangeFilters; isTenurePolicyPending: boolean }
   | { kind: "list"; applied: AgencyListFiltersApplied }
   | { kind: "none"; applied: null };
 
@@ -82,6 +92,146 @@ function CommandBarSkeleton() {
   return <Skeleton className="h-[4.25rem] w-full rounded-2xl" />;
 }
 
+function TimeRangeCommandBar({
+  timeRange,
+  className,
+  customRangeTriggerId,
+  children,
+}: {
+  timeRange: ReturnType<typeof useAgencyTimeRangeFilters>;
+  className?: string;
+  customRangeTriggerId: string;
+  children?: ReactNode;
+}) {
+  return (
+    <AgencyCommandBar.Root
+      className={className}
+      busy={timeRange.isRefreshing}
+      busyLabel="Refreshing"
+    >
+      <AgencyCommandBar.Start>
+        {timeRange.showClientFilter ? (
+          <AgencyMultiSelectFilter
+            label="All Clients"
+            values={timeRange.clientIds}
+            options={timeRange.clientOptions}
+            onValuesChange={timeRange.onClientIdsChange}
+            disabled={timeRange.clientsLoading}
+            searchPlaceholder="Search clients"
+          />
+        ) : null}
+        <AgencyMultiSelectFilter
+          label="All Projects"
+          values={timeRange.projectIds}
+          groups={timeRange.projectFilterGroups}
+          onValuesChange={timeRange.onProjectIdsChange}
+          disabled={timeRange.projectsLoading}
+          searchPlaceholder="Search projects or clients"
+        />
+        <AgencyMultiSelectFilter
+          label="Team"
+          values={timeRange.memberUserIds}
+          options={timeRange.memberOptions}
+          onValuesChange={timeRange.onMemberUserIdsChange}
+          searchPlaceholder="Search people"
+        />
+        <RangePresetChooser
+          value={timeRange.rangePreset}
+          onChange={timeRange.onRangePresetChange}
+          tenureAvailable={timeRange.tenureAvailable}
+          tenurePeriodLabel={timeRange.tenurePeriodLabel}
+          tenureQuarterLabel={timeRange.tenureQuarterLabel}
+          tenureQuarterMonths={timeRange.tenureQuarterMonths}
+          tenureMonthIndexes={timeRange.tenureMonthIndexes}
+          onTenureMonthIndexesChange={timeRange.onTenureMonthIndexesChange}
+        />
+        {timeRange.rangePreset === "custom" ? (
+          <MemberProfileLeaveRangePicker
+            triggerId={customRangeTriggerId}
+            startDate={timeRange.customFromDate}
+            endDate={timeRange.customToDate}
+            emptyLabel="Select dates"
+            ariaLabel="Custom date range"
+            triggerClassName={agencyCommandBarCustomRangeTriggerClass}
+            onRangeChange={(next) => {
+              timeRange.onCustomFromChange(next.startDate);
+              timeRange.onCustomToChange(next.endDate);
+            }}
+          />
+        ) : null}
+      </AgencyCommandBar.Start>
+      <AgencyCommandBar.End>
+        <AgencyCommandBar.Apply
+          disabled={!timeRange.hasPendingChanges}
+          onClick={timeRange.onApply}
+        />
+        {timeRange.canReset ? <AgencyCommandBar.Reset onClick={timeRange.onReset} /> : null}
+        {children}
+      </AgencyCommandBar.End>
+    </AgencyCommandBar.Root>
+  );
+}
+
+type ListFilterSegment = "clients" | "projects";
+
+function ListFilterCommandBar({
+  listFilters,
+  searchPlaceholder,
+  segment,
+  showArchiveFilter = false,
+  showTrashFilter = false,
+  children,
+}: {
+  listFilters: ReturnType<typeof useAgencyListFilters>;
+  searchPlaceholder: string;
+  segment: ListFilterSegment;
+  showArchiveFilter?: boolean;
+  showTrashFilter?: boolean;
+  children?: ReactNode;
+}) {
+  const showProjects = segment === "projects";
+
+  return (
+    <AgencyCommandBar.Root busy={listFilters.isRefreshing} busyLabel="Refreshing list">
+      <AgencyCommandBar.Start>
+        <AgencyCommandBar.Search
+          value={listFilters.filterTerm}
+          onValueChange={listFilters.onFilterTermChange}
+          placeholder={searchPlaceholder}
+        />
+        <AgencyMultiSelectFilter
+          label="All Clients"
+          values={listFilters.selectedClientIds}
+          options={listFilters.clientOptions}
+          onValuesChange={listFilters.onSelectedClientIdsChange}
+          disabled={listFilters.clientsLoading}
+          searchPlaceholder="Search clients"
+          statusFilter={showArchiveFilter ? listFilters.archiveStatusFilter : undefined}
+        />
+        {showProjects ? (
+          <AgencyMultiSelectFilter
+            label="All Projects"
+            values={listFilters.selectedProjectIds}
+            groups={listFilters.projectFilterGroups}
+            onValuesChange={listFilters.onSelectedProjectIdsChange}
+            disabled={listFilters.projectsLoading}
+            searchPlaceholder="Search projects or clients"
+            statusFilter={showTrashFilter ? listFilters.trashStatusFilter : undefined}
+          />
+        ) : null}
+      </AgencyCommandBar.Start>
+      <AgencyCommandBar.End>
+        <AgencyCommandBar.Apply
+          disabled={!listFilters.hasPendingChanges}
+          onClick={listFilters.onApply}
+        />
+        {listFilters.canReset ? <AgencyCommandBar.Reset onClick={listFilters.onReset} /> : null}
+        {children}
+      </AgencyCommandBar.End>
+    </AgencyCommandBar.Root>
+  );
+}
+
 function DashboardFiltersRoot({
   teamId,
   showBar,
@@ -91,45 +241,28 @@ function DashboardFiltersRoot({
   showBar: boolean;
   children: ReactNode;
 }) {
-  const navigate = useNavigate();
   const timeRange = useAgencyTimeRangeFilters({
     teamId,
     includeClientFilter: true,
+    fetchDashboard: true,
   });
 
   return (
-    <AgencySegmentFiltersContext.Provider value={{ kind: "timeRange", applied: timeRange.applied }}>
+    <AgencySegmentFiltersContext.Provider
+      value={{
+        kind: "timeRange",
+        applied: timeRange.applied,
+        isTenurePolicyPending: timeRange.isTenurePolicyPending,
+      }}
+    >
       <div className="space-y-4">
         {showBar ? (
           timeRange.isLoading ? (
             <CommandBarSkeleton />
           ) : (
-            <AgencyTimeRangeCommandBar
-              {...timeRange.barProps}
-              trailingActions={
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      navigate(buildAgencyReportsPeriodHref(timeRange.applied.range));
-                    }}
-                  >
-                    Open Reports
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      navigate(buildAgencyMoneyPeriodHref(timeRange.applied.range));
-                    }}
-                  >
-                    Open Money
-                  </Button>
-                </>
-              }
+            <TimeRangeCommandBar
+              timeRange={timeRange}
+              customRangeTriggerId="agency-dashboard-custom-range"
             />
           )
         ) : null}
@@ -224,7 +357,7 @@ function ReportsFiltersRoot({
     teamId,
     includeClientFilter: true,
     includeFieldsFilter: true,
-    fetchEntries: true,
+    fetchEntries: false,
     initialCustomRange,
     initialFieldIds,
     initialShowWaste,
@@ -307,51 +440,55 @@ function ReportsFiltersRoot({
   }
 
   return (
-    <AgencySegmentFiltersContext.Provider value={{ kind: "timeRange", applied: timeRange.applied }}>
+    <AgencySegmentFiltersContext.Provider
+      value={{
+        kind: "timeRange",
+        applied: timeRange.applied,
+        isTenurePolicyPending: timeRange.isTenurePolicyPending,
+      }}
+    >
       <div className="space-y-4">
         {showBar ? (
           timeRange.isLoading ? (
             <CommandBarSkeleton />
           ) : (
-            <AgencyTimeRangeCommandBar
-              {...timeRange.barProps}
-              shellClassName="rounded-dense"
-              trailingActions={
-                <>
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="inline-flex">
-                          <Button
-                            size="sm"
-                            disabled={
-                              timeRange.entriesCount === 0 ||
-                              timeRange.entriesFetching ||
-                              creatingReport
-                            }
-                            onClick={() => void openReportCreator()}
-                          >
-                            {creatingReport ? "Creating report…" : "Create report"}
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      {timeRange.entriesCount === 0 || timeRange.entriesFetching ? (
-                        <TooltipContent side="bottom">
-                          {timeRange.entriesFetching
-                            ? "Still loading hours…"
-                            : "No hours in this range. Widen dates or reset filters."}
-                        </TooltipContent>
-                      ) : null}
-                    </Tooltip>
-                  </TooltipProvider>
-                  <AgencyReportHistoryMenu
-                    teamId={teamId}
-                    searchContext={searchContext}
-                    onSelectReport={openSavedReport}
-                  />
-                </>
-              }
-            />
+            <TimeRangeCommandBar
+              timeRange={timeRange}
+              className="rounded-dense"
+              customRangeTriggerId="agency-reports-custom-range"
+            >
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        size="sm"
+                        disabled={
+                          timeRange.entriesCount === 0 ||
+                          timeRange.entriesFetching ||
+                          creatingReport
+                        }
+                        onClick={() => void openReportCreator()}
+                      >
+                        {creatingReport ? "Creating report…" : "Create report"}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {timeRange.entriesCount === 0 || timeRange.entriesFetching ? (
+                    <TooltipContent side="bottom">
+                      {timeRange.entriesFetching
+                        ? "Still loading hours…"
+                        : "No hours in this range. Widen dates or reset filters."}
+                    </TooltipContent>
+                  ) : null}
+                </Tooltip>
+              </TooltipProvider>
+              <AgencyReportHistoryMenu
+                teamId={teamId}
+                searchContext={searchContext}
+                onSelectReport={openSavedReport}
+              />
+            </TimeRangeCommandBar>
           )
         ) : null}
         {children}
@@ -380,6 +517,11 @@ function ClientsFiltersRoot({
   const agencyOps = useAgencyOpsStore();
   const isClientMutationPending = useAgencyOpsStore(selectIsClientMutationPending);
   const listFilters = useAgencyListFilters({ teamId });
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
   const [newClientCategory, setNewClientCategory] = useState<"internal" | "external">("external");
@@ -395,35 +537,47 @@ function ClientsFiltersRoot({
 
   async function createClient() {
     const name = newClientName.trim();
-    if (!name || !teamId) return;
+    if (!name || !teamId || !canEditRecords) return;
 
     const billableRateAmount = parseBillableRateAmount(newClientBillableRate);
-    if (newClientBillableRate.trim() && billableRateAmount === null) return;
+    if (canEditRates && newClientBillableRate.trim() && billableRateAmount === null) return;
 
     resetNewClientForm();
     setNewClientOpen(false);
     await agencyOps.createClient({
       teamId,
       name,
-      category: newClientCategory,
-      billableRateAmount,
-      currency: newClientCurrency,
+      ...(canEditRates
+        ? {
+            category: newClientCategory,
+            billableRateAmount,
+            currency: newClientCurrency,
+          }
+        : {}),
     });
   }
 
   return (
     <AgencySegmentFiltersContext.Provider value={{ kind: "list", applied: listFilters.applied }}>
-      <AgencyClientsActionsContext.Provider value={{ openNewClient: () => setNewClientOpen(true) }}>
+      <AgencyClientsActionsContext.Provider
+        value={{
+          openNewClient: () => {
+            if (canEditRecords) setNewClientOpen(true);
+          },
+        }}
+      >
         <div className="space-y-4">
           {showBar ? (
             listFilters.isLoading ? (
               <CommandBarSkeleton />
             ) : (
-              <AgencyListFilterCommandBar
-                {...listFilters.barProps}
-                showArchiveFilter
+              <ListFilterCommandBar
+                listFilters={listFilters}
                 searchPlaceholder="Filter clients"
-                trailingActions={
+                segment="clients"
+                showArchiveFilter
+              >
+                {canEditRecords ? (
                   <Popover open={newClientOpen} onOpenChange={setNewClientOpen}>
                     <PopoverTrigger asChild>
                       <Button size="sm" disabled={!teamId}>
@@ -431,75 +585,91 @@ function ClientsFiltersRoot({
                         New client
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" className="w-72 space-y-2 p-3">
+                    <PopoverContent align="end" size="form" tone="morph" className="p-4">
                       <form
                         onSubmit={(event) => {
                           event.preventDefault();
                           void createClient();
                         }}
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
-                          New client
-                        </p>
+                        <p className="text-sm font-medium text-foreground">New client</p>
                         <Input
                           value={newClientName}
                           onChange={(event) => setNewClientName(event.target.value)}
                           placeholder="Client name"
-                          className="mt-2"
+                          aria-label="Client name"
+                          className="mt-3"
                           autoFocus
                         />
-                        <div className="mt-2">
-                          <label className="text-[11px] font-bold text-muted">Category</label>
-                          <select
-                            value={newClientCategory}
-                            onChange={(event) =>
-                              setNewClientCategory(event.target.value as "internal" | "external")
-                            }
-                            className="mt-1 flex h-9 w-full rounded-md border border-default bg-default px-3 text-sm text-highlighted"
-                          >
-                            <option value="external">External</option>
-                            <option value="internal">Internal</option>
-                          </select>
-                        </div>
-                        <div className="mt-2">
-                          <label className="text-[11px] font-bold text-muted">
-                            Billable rate / hour
-                          </label>
-                          <div className="mt-1 flex gap-2">
-                            <Input
-                              value={newClientBillableRate}
-                              onChange={(event) => setNewClientBillableRate(event.target.value)}
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="Optional"
-                              className="min-w-0 flex-1"
-                            />
-                            <Select value={newClientCurrency} onValueChange={setNewClientCurrency}>
-                              <SelectTrigger
-                                aria-label="Rate currency"
-                                className="w-[5.5rem] shrink-0"
+                        {canEditRates ? (
+                          <>
+                            <div className="mt-3 space-y-1.5">
+                              <Label htmlFor="new-client-category" className="text-xs font-medium">
+                                Category
+                              </Label>
+                              <Select
+                                value={newClientCategory}
+                                onValueChange={(value) =>
+                                  setNewClientCategory(
+                                    value === "internal" ? "internal" : "external",
+                                  )
+                                }
                               >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {AGENCY_CURRENCY_OPTIONS.map((code) => (
-                                  <SelectItem key={code} value={code}>
-                                    {code}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+                                <SelectTrigger id="new-client-category" className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="external">External</SelectItem>
+                                  <SelectItem value="internal">Internal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="mt-3">
+                              <Label htmlFor="new-client-rate" className="text-xs font-medium">
+                                Billable rate / hour
+                              </Label>
+                              <div className="mt-1.5 flex gap-2">
+                                <Input
+                                  id="new-client-rate"
+                                  value={newClientBillableRate}
+                                  onChange={(event) => setNewClientBillableRate(event.target.value)}
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="Optional"
+                                  className="min-w-0 flex-1"
+                                />
+                                <Select
+                                  value={newClientCurrency}
+                                  onValueChange={setNewClientCurrency}
+                                >
+                                  <SelectTrigger
+                                    aria-label="Rate currency"
+                                    className="w-[5.5rem] shrink-0"
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {AGENCY_CURRENCY_OPTIONS.map((code) => (
+                                      <SelectItem key={code} value={code}>
+                                        {code}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
                         <Button
                           type="submit"
                           size="sm"
-                          className="mt-2 w-full"
+                          className="mt-4 w-full"
                           disabled={
                             !newClientName.trim() ||
                             isClientMutationPending ||
                             Boolean(
+                              canEditRates &&
                               newClientBillableRate.trim() &&
                               parseBillableRateAmount(newClientBillableRate) === null,
                             )
@@ -510,8 +680,8 @@ function ClientsFiltersRoot({
                       </form>
                     </PopoverContent>
                   </Popover>
-                }
-              />
+                ) : null}
+              </ListFilterCommandBar>
             )
           ) : null}
           {children}
@@ -521,8 +691,12 @@ function ClientsFiltersRoot({
   );
 }
 
-const AgencyProjectsActionsContext = createContext<{ openNewProject: () => void }>({
+const AgencyProjectsActionsContext = createContext<{
+  openNewProject: () => void;
+  openNewClient: () => void;
+}>({
   openNewProject: () => {},
+  openNewClient: () => {},
 });
 
 export function useAgencyProjectsActions() {
@@ -539,42 +713,103 @@ function ProjectsFiltersRoot({
   children: ReactNode;
 }) {
   const listFilters = useAgencyListFilters({ teamId });
+  const teamQuery = useQuery({
+    ...teamDetailQueryOptions(teamId),
+    enabled: Boolean(teamId),
+  });
+  const { canEditRecords, canEditRates } = agencyTeamCapabilities(teamQuery.data?.role);
+  const createClient = useAgencyOpsStore((state) => state.createClient);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [defaultClientId, setDefaultClientId] = useState<string | undefined>(undefined);
+  const [ensuringClient, setEnsuringClient] = useState(false);
+  const projectClients = listFilters.clients.map((client) => ({
+    id: client.id,
+    name: client.name,
+    category: client.category,
+  }));
+
+  async function handleOpenNewProject() {
+    if (!canEditRecords || !teamId || ensuringClient) return;
+    const existingId = pickDefaultProjectClientId(projectClients);
+    if (existingId) {
+      setDefaultClientId(existingId);
+      setNewProjectOpen(true);
+      return;
+    }
+
+    setEnsuringClient(true);
+    try {
+      const clientId = await ensureInternalClientId({
+        teamId,
+        clients: projectClients,
+        createClient,
+        asInternalCategory: canEditRates,
+      });
+      if (!clientId) return;
+      setDefaultClientId(clientId);
+      setNewProjectOpen(true);
+    } finally {
+      setEnsuringClient(false);
+    }
+  }
 
   return (
     <AgencySegmentFiltersContext.Provider value={{ kind: "list", applied: listFilters.applied }}>
       <AgencyProjectsActionsContext.Provider
-        value={{ openNewProject: () => setNewProjectOpen(true) }}
+        value={{
+          openNewProject: () => {
+            void handleOpenNewProject();
+          },
+          openNewClient: () => {
+            if (canEditRecords) setNewClientOpen(true);
+          },
+        }}
       >
         <div className="space-y-4">
           {showBar ? (
             listFilters.isLoading ? (
               <CommandBarSkeleton />
             ) : (
-              <AgencyListFilterCommandBar
-                {...listFilters.barProps}
-                showArchiveFilter
-                showTrashFilter
+              <ListFilterCommandBar
+                listFilters={listFilters}
                 searchPlaceholder="Search projects"
-                trailingActions={
+                segment="projects"
+                showTrashFilter
+              >
+                {canEditRecords ? (
                   <Button
                     size="sm"
-                    disabled={!teamId || listFilters.clients.length === 0}
-                    onClick={() => setNewProjectOpen(true)}
+                    disabled={!teamId || ensuringClient}
+                    onClick={() => void handleOpenNewProject()}
                   >
                     <Plus />
                     New project
                   </Button>
-                }
-              />
+                ) : null}
+              </ListFilterCommandBar>
             )
           ) : null}
-          <AgencyProjectCreateDialog
-            open={newProjectOpen}
-            onOpenChange={setNewProjectOpen}
-            teamId={teamId}
-            clients={listFilters.clients}
-          />
+          {canEditRecords ? (
+            <>
+              <AgencyClientCreateDialog
+                open={newClientOpen}
+                onOpenChange={setNewClientOpen}
+                teamId={teamId}
+                onCreated={(clientId) => {
+                  setDefaultClientId(clientId);
+                  setNewProjectOpen(true);
+                }}
+              />
+              <AgencyProjectCreateDialog
+                open={newProjectOpen}
+                onOpenChange={setNewProjectOpen}
+                teamId={teamId}
+                clients={listFilters.clients}
+                defaultClientId={defaultClientId}
+              />
+            </>
+          ) : null}
           {children}
         </div>
       </AgencyProjectsActionsContext.Provider>

@@ -1,5 +1,6 @@
 import type { ReactNode, RefObject } from "react";
 
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import type { AgencyTaskMessage } from "@orch/api/routers/agency-ops/task-messages/schemas";
 
 import type { AgencyMemberOption } from "@/features/shared/agency-member-option";
@@ -14,6 +15,9 @@ import type { AgencyTaskThreadTimelineItem } from "@/features/task-management/ta
 
 type AgencyTaskThreadViewProps = {
   title: string;
+  projectId: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   projectLabel: string | null;
   assignedToTeam: boolean;
   assignees: AgencyTaskThreadHeaderAssignee[];
@@ -47,6 +51,7 @@ type AgencyTaskThreadViewProps = {
   onTitleCancel: () => void;
   onAssignedToTeamChange: (assignedToTeam: boolean) => void;
   onAssigneeUserIdsChange: (userIds: string[]) => void;
+  onChangeIcon: (iconKey: AgencyEntityIconKey | null) => void;
   onLoadOlder: () => void;
   onComposerContentChange: (value: string) => void;
   onComposerPickFiles: (files: File[]) => void;
@@ -61,6 +66,9 @@ type AgencyTaskThreadViewProps = {
 
 export function AgencyTaskThreadView({
   title,
+  projectId,
+  colorHueId,
+  iconKey,
   projectLabel,
   assignedToTeam,
   assignees,
@@ -94,6 +102,7 @@ export function AgencyTaskThreadView({
   onTitleCancel,
   onAssignedToTeamChange,
   onAssigneeUserIdsChange,
+  onChangeIcon,
   onLoadOlder,
   onComposerContentChange,
   onComposerPickFiles,
@@ -113,6 +122,9 @@ export function AgencyTaskThreadView({
     >
       <AgencyTaskThreadHeaderView
         title={title}
+        projectId={projectId}
+        colorHueId={colorHueId}
+        iconKey={iconKey}
         projectLabel={projectLabel}
         assignedToTeam={assignedToTeam}
         assignees={assignees}
@@ -132,6 +144,7 @@ export function AgencyTaskThreadView({
         onTitleCancel={onTitleCancel}
         onAssignedToTeamChange={onAssignedToTeamChange}
         onAssigneeUserIdsChange={onAssigneeUserIdsChange}
+        onChangeIcon={onChangeIcon}
         miniTimer={miniTimer}
       />
 

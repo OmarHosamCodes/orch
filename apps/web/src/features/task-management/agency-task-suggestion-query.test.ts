@@ -14,6 +14,8 @@ function makeTask(
 ): AgencyProjectTask {
   return {
     teamId: "team-1",
+    iconKey: null,
+    iconSource: "auto",
     status: "open",
     taskKind: "standard",
     assignedToTeam: false,

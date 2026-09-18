@@ -141,8 +141,10 @@ export function countWorkingDaysInRange(
   schedule: Pick<WorkSchedule, "weekStartsOn" | "weekendDurationDays">,
   offDayKeys: ReadonlySet<string>,
 ): number {
-  return countWeekdaysInRange(fromKey, toKey, schedule) -
-    countOffDaysOnWeekdaysInRange(fromKey, toKey, schedule, offDayKeys);
+  return (
+    countWeekdaysInRange(fromKey, toKey, schedule) -
+    countOffDaysOnWeekdaysInRange(fromKey, toKey, schedule, offDayKeys)
+  );
 }
 
 export function computeAdjustedExpectations(input: {
@@ -155,10 +157,7 @@ export function computeAdjustedExpectations(input: {
   const reduction = input.offDaysOnWeekdays * input.offDayReduceHours;
   return {
     adjustedMinHours: Math.max(0, input.baseMinHours - reduction),
-    adjustedTargetHours: Math.max(
-      0,
-      input.weekdaysInRange * input.requiredDailyHours - reduction,
-    ),
+    adjustedTargetHours: Math.max(0, input.weekdaysInRange * input.requiredDailyHours - reduction),
   };
 }
 

@@ -34,7 +34,7 @@ const AGENCY_REPORT_DEFAULT_FIELDS = [
 
 const fieldIdSet = new Set<string>(AGENCY_REPORT_FIELDS);
 
-export function isAgencyReportFieldId(value: string): value is AgencyReportFieldId {
+function isAgencyReportFieldId(value: string): value is AgencyReportFieldId {
   return fieldIdSet.has(value);
 }
 

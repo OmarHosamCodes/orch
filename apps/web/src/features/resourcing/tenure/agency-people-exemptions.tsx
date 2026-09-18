@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { FISCAL_MONTHS, type FiscalMonth } from "@/features/resourcing/tenure-utils";
 import {
@@ -66,6 +66,7 @@ export function AgencyPeopleExemptions({
   onRemove,
 }: AgencyPeopleExemptionsProps) {
   const [formOpen, setFormOpen] = useState(false);
+  const fieldId = useId();
 
   return (
     <div className="space-y-3 border-border border-t pt-4">
@@ -84,7 +85,7 @@ export function AgencyPeopleExemptions({
                 Add exemption
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-80">
+            <PopoverContent align="end" size="form" tone="morph" className="p-surface">
               <form
                 className="space-y-4"
                 onSubmit={(event) => {
@@ -98,9 +99,11 @@ export function AgencyPeopleExemptions({
                     });
                 }}
               >
-                <p className="text-sm font-bold text-highlighted">New exemption</p>
+                <p className="text-sm font-medium text-foreground">New exemption</p>
                 <div className={agencyFormFieldClass}>
-                  <Label className={agencyFormLabelClass}>Type</Label>
+                  <Label htmlFor={`${fieldId}-type`} className={agencyFormLabelClass}>
+                    Type
+                  </Label>
                   <Select
                     value={draft.type}
                     onValueChange={(value) =>
@@ -110,7 +113,7 @@ export function AgencyPeopleExemptions({
                       })
                     }
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger id={`${fieldId}-type`} className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -129,8 +132,11 @@ export function AgencyPeopleExemptions({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className={agencyFormFieldClass}>
-                    <Label className={agencyFormLabelClass}>Fiscal year</Label>
+                    <Label htmlFor={`${fieldId}-year`} className={agencyFormLabelClass}>
+                      Fiscal year
+                    </Label>
                     <Input
+                      id={`${fieldId}-year`}
                       type="number"
                       value={draft.fiscalYear}
                       onChange={(event) =>
@@ -139,7 +145,9 @@ export function AgencyPeopleExemptions({
                     />
                   </div>
                   <div className={agencyFormFieldClass}>
-                    <Label className={agencyFormLabelClass}>Quarter</Label>
+                    <Label htmlFor={`${fieldId}-quarter`} className={agencyFormLabelClass}>
+                      Quarter
+                    </Label>
                     <Select
                       value={draft.fiscalQuarter}
                       onValueChange={(value) =>
@@ -149,7 +157,7 @@ export function AgencyPeopleExemptions({
                         })
                       }
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id={`${fieldId}-quarter`} className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -163,8 +171,11 @@ export function AgencyPeopleExemptions({
                 </div>
                 {draft.type === "member_reduced_min" ? (
                   <div className={agencyFormFieldClass}>
-                    <Label className={agencyFormLabelClass}>Reduced min hours</Label>
+                    <Label htmlFor={`${fieldId}-hours`} className={agencyFormLabelClass}>
+                      Reduced min hours
+                    </Label>
                     <Input
+                      id={`${fieldId}-hours`}
                       type="number"
                       min={1}
                       value={draft.reducedMinHours}
@@ -176,7 +187,9 @@ export function AgencyPeopleExemptions({
                 ) : null}
                 {draft.type === "member_frozen_month" ? (
                   <div className={agencyFormFieldClass}>
-                    <Label className={agencyFormLabelClass}>Frozen month</Label>
+                    <Label htmlFor={`${fieldId}-month`} className={agencyFormLabelClass}>
+                      Frozen month
+                    </Label>
                     <Select
                       value={String(draft.frozenMonth)}
                       onValueChange={(value) =>
@@ -186,7 +199,7 @@ export function AgencyPeopleExemptions({
                         })
                       }
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id={`${fieldId}-month`} className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -200,8 +213,11 @@ export function AgencyPeopleExemptions({
                   </div>
                 ) : null}
                 <div className={agencyFormFieldClass}>
-                  <Label className={agencyFormLabelClass}>Reason</Label>
+                  <Label htmlFor={`${fieldId}-reason`} className={agencyFormLabelClass}>
+                    Reason
+                  </Label>
                   <Input
+                    id={`${fieldId}-reason`}
                     value={draft.reason}
                     onChange={(event) => onDraftChange({ ...draft, reason: event.target.value })}
                   />

@@ -37,9 +37,42 @@ import {
   syncJourneyStepStatuses,
   applyJourneySyncNotifications,
 } from "../shared/journey-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { getAgencyProjectTemplateForTeam } from "../project-templates/service";
 import { loadMoneyResolveContext } from "../billing/money-fx-service";
+import {
+  assignEntityIconOnWrite,
+  readStoredEntityIcon,
+  type AgencyEntityIconKey,
+} from "../shared/entity-icon-catalog";
+import { assertWithinLimit } from "../../../billing-team";
+
+type AgencyProjectCommercialInput = {
+  billableRateAmount?: number | null;
+  currency?: string;
+};
+
+function projectInputTouchesCommercialFields(input: AgencyProjectCommercialInput): boolean {
+  if ("billableRateAmount" in input && input.billableRateAmount !== undefined) {
+    return true;
+  }
+  if ("currency" in input && input.currency !== undefined) {
+    return true;
+  }
+  return false;
+}
+
+async function requireAgencyProjectWriteRole(
+  actorUserId: string,
+  teamId: string,
+  input: AgencyProjectCommercialInput,
+) {
+  if (projectInputTouchesCommercialFields(input)) {
+    await requireAgencyRole(actorUserId, teamId, "owner");
+  } else {
+    await requireAgencyRole(actorUserId, teamId, "editor");
+  }
+}
 
 type AgencyProjectRecord = {
   id: string;
@@ -48,6 +81,8 @@ type AgencyProjectRecord = {
   clientName: string;
   name: string;
   colorHueId: number | null;
+  iconKey: AgencyEntityIconKey | null;
+  iconSource: "auto" | "manual";
   billableRateAmount: number | null;
   sourceBillableRateAmount: number | null;
   currency: string;
@@ -90,6 +125,8 @@ function mapProjectRow(row: {
   clientName: string;
   name: string;
   colorHueId: number | null;
+  iconKey: string | null;
+  iconSource: string;
   billableRateAmount: number | null;
   sourceBillableRateAmount: number | null;
   currency: string;
@@ -107,6 +144,7 @@ function mapProjectRow(row: {
     clientName: row.clientName,
     name: row.name,
     colorHueId: row.colorHueId,
+    ...readStoredEntityIcon(row),
     billableRateAmount: row.billableRateAmount,
     sourceBillableRateAmount: row.sourceBillableRateAmount,
     currency: row.currency,
@@ -136,7 +174,7 @@ export async function listAgencyProjects(
     trashFilter?: AgencyProjectTrashFilter;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const archiveFilter = input.archiveFilter ?? "nonarchived";
   const trashFilter = input.trashFilter ?? "active";
@@ -162,6 +200,8 @@ export async function listAgencyProjects(
       clientName: agencyOpsClient.name,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,
@@ -196,10 +236,16 @@ export async function createAgencyProject(
     clientId: string;
     name: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     templateId?: string;
   },
 ) {
   const colorHueId = normalizeColorHueId(input.colorHueId);
+  const icon = assignEntityIconOnWrite({
+    name: input.name.trim(),
+    iconKeyProvided: input.iconKey !== undefined,
+    requestedIconKey: input.iconKey,
+  });
 
   if (input.templateId) {
     const template = await getAgencyProjectTemplateForTeam(actorUserId, {
@@ -220,37 +266,45 @@ export async function createAgencyProject(
       clientId: input.clientId,
       name: input.name,
       colorHueId,
+      iconKey: input.iconKey,
       milestones,
     });
     return created.project;
   }
 
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   const now = new Date();
-  const [created] = await db
-    .insert(agencyOpsProject)
-    .values({
-      id: createWorkspaceId("agency-project"),
-      teamId: input.teamId,
-      clientId: input.clientId,
-      name: input.name.trim(),
-      colorHueId,
-      createdByUserId: actorUserId,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning({
-      id: agencyOpsProject.id,
-      teamId: agencyOpsProject.teamId,
-      clientId: agencyOpsProject.clientId,
-      name: agencyOpsProject.name,
-      colorHueId: agencyOpsProject.colorHueId,
-      deletedAt: agencyOpsProject.deletedAt,
-      createdAt: agencyOpsProject.createdAt,
-      updatedAt: agencyOpsProject.updatedAt,
-    });
+  const [created] = await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "projects", { tx });
+    return tx
+      .insert(agencyOpsProject)
+      .values({
+        id: createWorkspaceId("agency-project"),
+        teamId: input.teamId,
+        clientId: input.clientId,
+        name: input.name.trim(),
+        colorHueId,
+        iconKey: icon.iconKey,
+        iconSource: icon.iconSource,
+        createdByUserId: actorUserId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning({
+        id: agencyOpsProject.id,
+        teamId: agencyOpsProject.teamId,
+        clientId: agencyOpsProject.clientId,
+        name: agencyOpsProject.name,
+        colorHueId: agencyOpsProject.colorHueId,
+        iconKey: agencyOpsProject.iconKey,
+        iconSource: agencyOpsProject.iconSource,
+        deletedAt: agencyOpsProject.deletedAt,
+        createdAt: agencyOpsProject.createdAt,
+        updatedAt: agencyOpsProject.updatedAt,
+      });
+  });
 
   if (!created) {
     throw new ORPCError("INTERNAL_SERVER_ERROR");
@@ -415,6 +469,7 @@ async function insertJourneyLinkedTask(
       teamId: args.teamId,
       projectId: args.projectId,
       title: args.title,
+      ...assignEntityIconOnWrite({ name: args.title }),
       status: "open",
       taskKind: args.taskKind,
       assignedToTeam: false,
@@ -442,13 +497,14 @@ export async function createAgencyProjectWithJourney(
     clientId: string;
     name: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     milestones: Array<{
       title: string;
       assigneeUserIds: string[];
     }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getClientByIdForTeam(input.teamId, input.clientId);
 
   if (input.milestones.length === 0) {
@@ -459,6 +515,11 @@ export async function createAgencyProjectWithJourney(
 
   const colorHueId = normalizeColorHueId(input.colorHueId);
   const projectName = input.name.trim();
+  const icon = assignEntityIconOnWrite({
+    name: projectName,
+    iconKeyProvided: input.iconKey !== undefined,
+    requestedIconKey: input.iconKey,
+  });
   const now = new Date();
   const projectId = createWorkspaceId("agency-project");
   const journeyId = createWorkspaceId("agency-project-journey");
@@ -478,12 +539,20 @@ export async function createAgencyProjectWithJourney(
   }
 
   await db.transaction(async (tx) => {
+    await assertWithinLimit(input.teamId, "projects", { tx });
+    await assertWithinLimit(input.teamId, "tasksPerProject", {
+      projectId,
+      adding: input.milestones.length + 1,
+      tx,
+    });
     await tx.insert(agencyOpsProject).values({
       id: projectId,
       teamId: input.teamId,
       clientId: input.clientId,
       name: projectName,
       colorHueId,
+      iconKey: icon.iconKey,
+      iconSource: icon.iconSource,
       createdByUserId: actorUserId,
       createdAt: now,
       updatedAt: now,
@@ -576,6 +645,8 @@ export async function createAgencyProjectWithJourney(
       clientId: agencyOpsProject.clientId,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,
@@ -610,7 +681,7 @@ export async function getAgencyProjectJourney(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   await getProjectByIdForTeam(input.teamId, input.projectId, { includeDeleted: true });
   return buildAgencyProjectJourneyRecord(input.teamId, input.projectId, actorUserId);
 }
@@ -627,7 +698,7 @@ export async function updateAgencyProjectJourneySteps(
     }>;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -701,7 +772,7 @@ export async function addAgencyProjectJourneyStep(
     stepKind?: "milestone" | "checkpoint";
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -791,7 +862,7 @@ export async function previewRemoveAgencyProjectJourneyStep(
     stepId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -844,7 +915,7 @@ export async function removeAgencyProjectJourneyStep(
     stepId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId);
   const journey = await getJourneyRowForProject(input.teamId, input.projectId);
 
@@ -910,11 +981,12 @@ export async function updateAgencyProject(
     clientId?: string;
     name?: string;
     colorHueId?: number | null;
+    iconKey?: AgencyEntityIconKey | null;
     billableRateAmount?: number | null;
     currency?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyProjectWriteRole(actorUserId, input.teamId, input);
   await getProjectByIdForTeam(input.teamId, input.projectId);
 
   if (input.clientId) {
@@ -923,6 +995,9 @@ export async function updateAgencyProject(
 
   const [current] = await db
     .select({
+      name: agencyOpsProject.name,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       currency: agencyOpsProject.currency,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
@@ -946,6 +1021,8 @@ export async function updateAgencyProject(
     clientId?: string;
     name?: string;
     colorHueId?: number | null;
+    iconKey?: string | null;
+    iconSource?: "auto" | "manual";
     billableRateAmount?: number | null;
     currency?: string;
     sourceBillableRateAmount?: number | null;
@@ -956,6 +1033,16 @@ export async function updateAgencyProject(
   if (input.clientId !== undefined) patch.clientId = input.clientId;
   if (input.name !== undefined) patch.name = input.name.trim();
   if (input.colorHueId !== undefined) patch.colorHueId = normalizeColorHueId(input.colorHueId);
+  if (input.iconKey !== undefined || input.name !== undefined) {
+    const icon = assignEntityIconOnWrite({
+      name: patch.name ?? current.name,
+      iconKeyProvided: input.iconKey !== undefined,
+      requestedIconKey: input.iconKey,
+      existing: readStoredEntityIcon(current),
+    });
+    patch.iconKey = icon.iconKey;
+    patch.iconSource = icon.iconSource;
+  }
 
   if (input.billableRateAmount !== undefined || input.currency !== undefined) {
     if (input.billableRateAmount === null) {
@@ -966,12 +1053,12 @@ export async function updateAgencyProject(
     } else {
       const moneyCtx = await loadMoneyResolveContext(actorUserId, { teamId: input.teamId });
       const sourceCurrency = (
-        input.currency ?? current.currency ?? moneyCtx.agencyCurrency
+        input.currency ??
+        current.currency ??
+        moneyCtx.agencyCurrency
       ).toUpperCase();
       const sourceAmount =
-        input.billableRateAmount ??
-        current.sourceBillableRateAmount ??
-        current.billableRateAmount;
+        input.billableRateAmount ?? current.sourceBillableRateAmount ?? current.billableRateAmount;
       if (sourceAmount == null) {
         throw new ORPCError("BAD_REQUEST", { message: "Project rate amount is required." });
       }
@@ -1001,6 +1088,8 @@ export async function updateAgencyProject(
       clientId: agencyOpsProject.clientId,
       name: agencyOpsProject.name,
       colorHueId: agencyOpsProject.colorHueId,
+      iconKey: agencyOpsProject.iconKey,
+      iconSource: agencyOpsProject.iconSource,
       billableRateAmount: agencyOpsProject.billableRateAmount,
       sourceBillableRateAmount: agencyOpsProject.sourceBillableRateAmount,
       currency: agencyOpsProject.currency,
@@ -1040,7 +1129,7 @@ export async function deleteAgencyProject(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   const project = await getProjectByIdForTeam(input.teamId, input.projectId, {
     includeDeleted: true,
   });
@@ -1084,7 +1173,7 @@ export async function restoreAgencyProject(
     projectId: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "editor");
   await getProjectByIdForTeam(input.teamId, input.projectId, { includeDeleted: true });
 
   const now = new Date();

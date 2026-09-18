@@ -31,10 +31,12 @@ export {
   type UiSchemaNode,
 } from "./ui-artifact";
 
-export const DEFAULT_AGENT_MODEL = "openai/gpt-5-nano";
+export const DEFAULT_AGENT_MODEL = "openrouter/auto-beta";
 export const DASHBOARD_CONVERSATION_TITLE_LIMIT = 80;
 export const DASHBOARD_CONVERSATION_HISTORY_LIMIT = 50;
+export const DASHBOARD_CONVERSATION_COMPACT_LIMIT = 20;
 export const DASHBOARD_CONVERSATION_MESSAGE_WINDOW = 20;
+export const dashboardConversationListFilterSchema = z.enum(["open", "settled"]);
 
 export const dashboardConversationUsageLatestSchema = z.object({
   modelId: z.string().trim().min(1),
@@ -193,7 +195,12 @@ export const dashboardConversationSummarySchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   lastMessageAt: z.string().datetime(),
+  lastReadAt: z.string().datetime().nullable().default(null),
+  archivedAt: z.string().datetime().nullable().default(null),
   lastMessagePreview: z.string().max(280).nullable(),
+  taskId: z.string().trim().min(1).nullable().default(null),
+  activeRunId: z.string().nullable().default(null),
+  unread: z.boolean().default(false),
 });
 
 export const dashboardConversationMessageSchema = z.object({
@@ -210,6 +217,8 @@ export const dashboardConversationMessageSchema = z.object({
 
 export const dashboardConversationDetailSchema = dashboardConversationSummarySchema.extend({
   messages: z.array(dashboardConversationMessageSchema).default([]),
+  activeRunId: z.string().nullable().default(null),
+  activeRunLastSeq: z.number().int().nonnegative().default(0),
 });
 
 export const dashboardConversationListResponseSchema = z.object({
@@ -219,8 +228,30 @@ export const dashboardConversationListResponseSchema = z.object({
     .default([]),
 });
 
+export const dashboardConversationListInputSchema = z.object({
+  filter: dashboardConversationListFilterSchema.optional(),
+});
+
+export const dashboardConversationCompactResponseSchema = z.object({
+  conversations: z
+    .array(dashboardConversationSummarySchema)
+    .max(DASHBOARD_CONVERSATION_COMPACT_LIMIT)
+    .default([]),
+});
+
+export const dashboardConversationSettleInputSchema = z.object({
+  conversationId: z.string().trim().min(1),
+});
+
+export const dashboardConversationMarkReadInputSchema = dashboardConversationSettleInputSchema;
+
 export const dashboardConversationGetInputSchema = z.object({
   conversationId: z.string().trim().min(1),
+});
+
+export const dashboardConversationForTaskInputSchema = z.object({
+  taskId: z.string().trim().min(1),
+  title: z.string().trim().min(1).max(DASHBOARD_CONVERSATION_TITLE_LIMIT).optional(),
 });
 
 export const dashboardConversationRenameInputSchema = z.object({
@@ -242,6 +273,7 @@ export const agentScopeRefKindSchema = z.enum([
   "task",
   "taskMessage",
   "member",
+  "client",
   "surface",
 ]);
 
@@ -309,6 +341,7 @@ export const agentChatTurnResponseSchema = z.object({
 
 export const agentChatTurnStreamStartedEventSchema = z.object({
   type: z.literal("started"),
+  runId: z.string().trim().min(1),
   conversationId: z.string().trim().min(1),
   createdConversation: z.boolean(),
   userMessageId: z.string().trim().min(1),
@@ -346,6 +379,30 @@ export const agentChatTurnStreamPlanEventSchema = z.object({
       )
       .min(1)
       .max(20),
+  }),
+});
+
+export const agentChatTurnStreamTodoEventSchema = z.object({
+  type: z.literal("todo"),
+  items: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1).max(80),
+        title: z.string().trim().min(1).max(160),
+        status: z.enum(["pending", "in-progress", "completed"]),
+      }),
+    )
+    .min(1)
+    .max(12),
+});
+
+export const agentChatTurnStreamCreatedObjectEventSchema = z.object({
+  type: z.literal("created_object"),
+  object: z.object({
+    kind: z.enum(["node", "block", "knowledge"]),
+    id: z.string().trim().min(1),
+    title: z.string().trim().min(1).max(200),
+    href: z.string().trim().min(1),
   }),
 });
 
@@ -404,11 +461,55 @@ export const agentChatTurnStreamEventSchema = z.discriminatedUnion("type", [
   agentChatTurnStreamToolEventSchema,
   agentChatTurnStreamArtifactEventSchema,
   agentChatTurnStreamPlanEventSchema,
+  agentChatTurnStreamTodoEventSchema,
+  agentChatTurnStreamCreatedObjectEventSchema,
   agentChatTurnStreamProposalEventSchema,
   agentChatTurnStreamQuestionEventSchema,
   agentChatTurnStreamErrorEventSchema,
   agentChatTurnStreamCompletedEventSchema,
 ]);
+
+export const AGENT_BUDGET_MODELS = ["openrouter/auto-beta", "openrouter/free"] as const;
+export type AgentBudgetModel = (typeof AGENT_BUDGET_MODELS)[number];
+
+export const agentRunKindSchema = z.enum(["chat", "detection"]);
+export const agentRunStatusSchema = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+
+export const agentRunRecordSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  kind: agentRunKindSchema,
+  status: agentRunStatusSchema,
+  model: z.string(),
+  lastSeq: z.number().int().nonnegative(),
+  error: z.string().nullable(),
+  startedAt: z.string().datetime(),
+  heartbeatAt: z.string().datetime(),
+  finishedAt: z.string().datetime().nullable(),
+});
+
+export const agentRunGetInputSchema = z.object({
+  runId: z.string().trim().min(1),
+});
+export const agentRunCancelInputSchema = agentRunGetInputSchema;
+export const agentRunSubscribeInputSchema = z.object({
+  runId: z.string().trim().min(1),
+  afterSeq: z.number().int().nonnegative(),
+});
+export const agentRunCancelResponseSchema = z.object({
+  status: z.literal("cancelled"),
+});
+
+export type AgentRunKind = z.infer<typeof agentRunKindSchema>;
+export type AgentRunStatus = z.infer<typeof agentRunStatusSchema>;
+export type AgentRunRecord = z.infer<typeof agentRunRecordSchema>;
+export type AgentWriteClass = "immediate" | "confirm";
 
 export type AgentMessage = z.infer<typeof agentMessageSchema>;
 export type AgentTextAttachment = z.infer<typeof agentTextAttachmentSchema>;
@@ -471,6 +572,11 @@ export type DashboardAgentConfig = {
   toolPreset?: DashboardAgentToolPreset;
   agencyRuntime?: AgencyAgentRuntime | null;
   canvasRuntime?: CanvasAgentRuntime | null;
+  memoryRuntime?: MemoryAgentRuntime | null;
+};
+
+export type MemoryAgentRuntime = {
+  rememberFact: (input: { key: string; value: string }) => Promise<{ key: string }>;
 };
 
 export type AgencyAgentRuntime = {
@@ -646,18 +752,17 @@ export type AgencyAgentRuntime = {
 };
 
 export type CanvasAgentRuntime = {
-  createProposal: (input: {
+  applyCanvasAction: (input: {
     action: unknown;
     label?: string;
     conversationId?: string | null;
   }) => Promise<{
-    proposalId: string;
-    status: "pending";
-    action: unknown;
-    before: unknown;
-    after: unknown;
+    applied: true;
+    nodeId: string | null;
+    blockId: string | null;
     label: string;
-    boardHref?: string | null;
+    boardHref: string;
+    after: unknown;
   }>;
   queryKnowledge?: (input: {
     teamId?: string;
@@ -671,17 +776,15 @@ export type CanvasAgentRuntime = {
     objectType?: KnowledgeObjectType;
     teamId?: string;
   }) => Promise<unknown>;
-  createKnowledgeProposal?: (input: {
+  applyKnowledgeAction?: (input: {
     action: unknown;
     label?: string;
     conversationId?: string | null;
   }) => Promise<{
-    proposalId: string;
-    status: "pending";
-    action: unknown;
-    before: unknown;
-    after: unknown;
+    applied: true;
+    objectId: string | null;
+    objectType: string | null;
     label: string;
-    boardHref?: string | null;
+    boardHref: string;
   }>;
 };

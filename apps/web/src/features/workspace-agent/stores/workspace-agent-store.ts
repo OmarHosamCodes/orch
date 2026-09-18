@@ -5,13 +5,18 @@ type OrchPresence = "dock" | "thread";
 
 type WorkspaceAgentUiState = {
   expanded: boolean;
-  /** Where the Orch presence chrome lives: global dock vs task-thread composer badge. */
+  compactOpen: boolean;
+  /** Where the Orch presence chrome lives: top-bar Eclipse vs task-thread composer badge. */
   orchPresence: OrchPresence;
   scopeModeActive: boolean;
   scopeHintSeen: boolean;
   draft: string;
   scopeChips: AgentScopeRef[];
+  boundTaskId: string | null;
+  boundTaskTitle: string | null;
   pendingComposerSeed: { text: string; toolPreset: "ask" | "plan" | "agent" } | null;
+  setBoundTask: (task: { id: string; title: string } | null) => void;
+  setCompactOpen: (open: boolean) => void;
   setExpanded: (expanded: boolean) => void;
   toggleExpanded: () => void;
   setOrchPresence: (presence: OrchPresence) => void;
@@ -35,16 +40,26 @@ function readScopeHintSeen() {
 
 export const useWorkspaceAgentStore = create<WorkspaceAgentUiState>((set, get) => ({
   expanded: false,
+  compactOpen: false,
   orchPresence: "dock",
   scopeModeActive: false,
   scopeHintSeen: readScopeHintSeen(),
   draft: "",
   scopeChips: [],
+  boundTaskId: null,
+  boundTaskTitle: null,
   pendingComposerSeed: null,
+  setBoundTask: (task) =>
+    set({
+      boundTaskId: task?.id ?? null,
+      boundTaskTitle: task?.title ?? null,
+    }),
+  setCompactOpen: (compactOpen) =>
+    set({ compactOpen, expanded: compactOpen ? false : get().expanded }),
   setExpanded: (expanded) => {
-    if (get().orchPresence === "thread") return;
     set({
       expanded,
+      compactOpen: expanded ? false : get().compactOpen,
       scopeModeActive: expanded ? get().scopeModeActive : false,
     });
   },
@@ -52,8 +67,8 @@ export const useWorkspaceAgentStore = create<WorkspaceAgentUiState>((set, get) =
   setOrchPresence: (presence) =>
     set({
       orchPresence: presence,
-      expanded: false,
       scopeModeActive: presence === "thread" ? false : get().scopeModeActive,
+      ...(presence === "thread" ? { expanded: false, compactOpen: false } : {}),
     }),
   setScopeModeActive: (active) => {
     if (get().orchPresence === "thread") return;
@@ -75,11 +90,7 @@ export const useWorkspaceAgentStore = create<WorkspaceAgentUiState>((set, get) =
   },
   setDraft: (draft) => set({ draft }),
   seedComposer: (input) => {
-    if (get().orchPresence === "thread") {
-      set({ pendingComposerSeed: input });
-      return;
-    }
-    set({ pendingComposerSeed: input, expanded: true });
+    set({ pendingComposerSeed: input, expanded: true, compactOpen: false });
   },
   clearComposerSeed: () => set({ pendingComposerSeed: null }),
   addScopeChip: (chip) =>

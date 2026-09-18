@@ -230,7 +230,14 @@ function tenureMonthAtIndex(
     monthIndex + 1,
     calendar.fiscalYearStartDay,
   );
-  return buildTenureMonthRange(start, endExclusive, fiscalYear, fiscalQuarter, monthIndex, calendar);
+  return buildTenureMonthRange(
+    start,
+    endExclusive,
+    fiscalYear,
+    fiscalQuarter,
+    monthIndex,
+    calendar,
+  );
 }
 
 export function getTenureMonthForDate(date: Date, calendar: FiscalCalendar): TenureMonthRange {

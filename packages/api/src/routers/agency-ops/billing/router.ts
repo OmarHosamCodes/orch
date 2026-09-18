@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProProcedure } from "../../../procedures";
+import { protectedProcedure } from "../../../procedures";
 import { teamScopedInputSchema } from "../shared/schemas";
 import {
   listMemberRates,
@@ -90,7 +90,7 @@ import {
 
 export const billingRouter = {
   budgets: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           projectId: z.string().min(1).optional(),
@@ -117,7 +117,7 @@ export const billingRouter = {
   },
 
   rates: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return z
         .object({
           items: z.array(
@@ -134,7 +134,7 @@ export const billingRouter = {
         })
         .parse(await listMemberRates(context.session.user.id, input));
     }),
-    upsert: protectedProProcedure
+    upsert: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           userId: z.string().min(1),
@@ -160,7 +160,7 @@ export const billingRouter = {
   },
 
   invoices: {
-    summary: protectedProProcedure
+    summary: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime().optional(),
@@ -184,7 +184,7 @@ export const billingRouter = {
           })
           .parse(await getInvoiceSummary(context.session.user.id, input));
       }),
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           status: invoiceStatusSchema.optional(),
@@ -206,7 +206,7 @@ export const billingRouter = {
           })
           .parse(await listInvoices(context.session.user.id, input));
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           clientId: z.string().min(1),
@@ -218,7 +218,7 @@ export const billingRouter = {
       .handler(async ({ context, input }) => {
         return invoiceRecordSchema.parse(await createInvoice(context.session.user.id, input));
       }),
-    updateStatus: protectedProProcedure
+    updateStatus: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           invoiceId: z.string().min(1),
@@ -228,7 +228,7 @@ export const billingRouter = {
       .handler(async ({ context, input }) => {
         return invoiceRecordSchema.parse(await updateInvoiceStatus(context.session.user.id, input));
       }),
-    recordPayment: protectedProProcedure
+    recordPayment: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           invoiceId: z.string().min(1),
@@ -240,7 +240,7 @@ export const billingRouter = {
           await recordInvoicePayment(context.session.user.id, input),
         );
       }),
-    periodActivity: protectedProProcedure
+    periodActivity: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -278,7 +278,7 @@ export const billingRouter = {
   },
 
   payouts: {
-    ensurePeriod: protectedProProcedure
+    ensurePeriod: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -291,7 +291,7 @@ export const billingRouter = {
           await ensurePayoutPeriod(context.session.user.id, input),
         );
       }),
-    summary: protectedProProcedure
+    summary: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -308,7 +308,7 @@ export const billingRouter = {
           })
           .parse(await getPayoutSummary(context.session.user.id, input));
       }),
-    getRun: protectedProProcedure
+    getRun: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -340,7 +340,7 @@ export const billingRouter = {
           })
           .parse(await getPayoutRun(context.session.user.id, input));
       }),
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -363,7 +363,7 @@ export const billingRouter = {
           })
           .parse(await listPayoutLines(context.session.user.id, input));
       }),
-    createLine: protectedProProcedure
+    createLine: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -379,7 +379,7 @@ export const billingRouter = {
       .handler(async ({ context, input }) => {
         return payoutLineRecordSchema.parse(await createPayoutLine(context.session.user.id, input));
       }),
-    createFromMember: protectedProProcedure
+    createFromMember: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           userId: z.string().min(1),
@@ -393,7 +393,7 @@ export const billingRouter = {
           await createPayoutLineFromMember(context.session.user.id, input),
         );
       }),
-    recordPayment: protectedProProcedure
+    recordPayment: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           lineId: z.string().min(1),
@@ -405,7 +405,7 @@ export const billingRouter = {
           await recordPayoutPayment(context.session.user.id, input),
         );
       }),
-    updateStatus: protectedProProcedure
+    updateStatus: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           lineId: z.string().min(1),
@@ -417,7 +417,7 @@ export const billingRouter = {
           await updatePayoutLineStatus(context.session.user.id, input),
         );
       }),
-    deleteLine: protectedProProcedure
+    deleteLine: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           lineId: z.string().min(1),
@@ -428,7 +428,7 @@ export const billingRouter = {
           .object({ id: z.string().min(1) })
           .parse(await deletePayoutLine(context.session.user.id, input));
       }),
-    syncFormulaLines: protectedProProcedure
+    syncFormulaLines: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -447,7 +447,7 @@ export const billingRouter = {
   },
 
   salaryPool: {
-    get: protectedProProcedure
+    get: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -475,7 +475,7 @@ export const billingRouter = {
           })
           .parse(await getSalaryPool(context.session.user.id, input));
       }),
-    upsertTotal: protectedProProcedure
+    upsertTotal: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -501,7 +501,7 @@ export const billingRouter = {
           })
           .parse(await upsertSalaryPoolTotal(context.session.user.id, input));
       }),
-    recordPayment: protectedProProcedure
+    recordPayment: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -529,7 +529,7 @@ export const billingRouter = {
   },
 
   expenses: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime().optional(),
@@ -548,7 +548,7 @@ export const billingRouter = {
           })
           .parse(await listExpenses(context.session.user.id, input));
       }),
-    subscriptionCycles: protectedProProcedure
+    subscriptionCycles: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -560,7 +560,7 @@ export const billingRouter = {
           .array(subscriptionCycleRecordSchema)
           .parse(await listSubscriptionCycles(context.session.user.id, input));
       }),
-    create: protectedProProcedure
+    create: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           name: z.string().min(1),
@@ -579,7 +579,7 @@ export const billingRouter = {
       .handler(async ({ context, input }) => {
         return expenseRecordSchema.parse(await createExpense(context.session.user.id, input));
       }),
-    update: protectedProProcedure
+    update: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           expenseId: z.string().min(1),
@@ -599,7 +599,7 @@ export const billingRouter = {
       .handler(async ({ context, input }) => {
         return expenseRecordSchema.parse(await updateExpense(context.session.user.id, input));
       }),
-    recordPayment: protectedProProcedure
+    recordPayment: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           expenseId: z.string().min(1),
@@ -611,7 +611,7 @@ export const billingRouter = {
           await recordExpensePayment(context.session.user.id, input),
         );
       }),
-    remove: protectedProProcedure
+    remove: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           expenseId: z.string().min(1),
@@ -625,7 +625,7 @@ export const billingRouter = {
   },
 
   periodObligations: {
-    list: protectedProProcedure
+    list: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -647,7 +647,7 @@ export const billingRouter = {
   pendingAdjustments: pendingAdjustmentsRouter,
 
   money: {
-    periodScoreboard: protectedProProcedure
+    periodScoreboard: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -674,7 +674,7 @@ export const billingRouter = {
           })
           .parse(await getPeriodScoreboard(context.session.user.id, input));
       }),
-    settle: protectedProProcedure
+    settle: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           partyType: moneyPartyTypeSchema,
@@ -695,7 +695,7 @@ export const billingRouter = {
           })
           .parse(await settleMoneyObligation(context.session.user.id, input));
       }),
-    exportDocuments: protectedProProcedure
+    exportDocuments: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           partyType: moneyPartyTypeSchema,
@@ -729,12 +729,12 @@ export const billingRouter = {
   },
 
   moneySettings: {
-    get: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    get: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return moneySettingsRecordSchema.parse(
         await getMoneySettings(context.session.user.id, input),
       );
     }),
-    upsert: protectedProProcedure
+    upsert: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           rules: moneyRulesSchema,
@@ -746,7 +746,7 @@ export const billingRouter = {
           await upsertMoneySettings(context.session.user.id, input),
         );
       }),
-    setCurrency: protectedProProcedure
+    setCurrency: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           currency: z.string().length(3),
@@ -760,7 +760,7 @@ export const billingRouter = {
           })
           .parse(await setAgencyCurrency(context.session.user.id, input));
       }),
-    preview: protectedProProcedure
+    preview: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -783,7 +783,7 @@ export const billingRouter = {
   },
 
   fxRates: {
-    list: protectedProProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
+    list: protectedProcedure.input(teamScopedInputSchema).handler(async ({ context, input }) => {
       return z
         .object({
           items: z.array(
@@ -801,7 +801,7 @@ export const billingRouter = {
         })
         .parse(await listFxRates(context.session.user.id, input));
     }),
-    upsert: protectedProProcedure
+    upsert: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           fromCurrency: z.string().length(3),
@@ -822,14 +822,14 @@ export const billingRouter = {
           })
           .parse(await upsertFxRate(context.session.user.id, input));
       }),
-    delete: protectedProProcedure
+    delete: protectedProcedure
       .input(teamScopedInputSchema.extend({ id: z.string().min(1) }))
       .handler(async ({ context, input }) => {
         return z
           .object({ ok: z.literal(true) })
           .parse(await deleteFxRate(context.session.user.id, input));
       }),
-    suggest: protectedProProcedure
+    suggest: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           fromCurrency: z.string().length(3),
@@ -845,7 +845,7 @@ export const billingRouter = {
           })
           .parse(await suggestFxRate(context.session.user.id, input));
       }),
-    listPeriod: protectedProProcedure
+    listPeriod: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),
@@ -867,7 +867,7 @@ export const billingRouter = {
           })
           .parse(await listPeriodFx(context.session.user.id, input));
       }),
-    applyCurrentToPeriod: protectedProProcedure
+    applyCurrentToPeriod: protectedProcedure
       .input(
         teamScopedInputSchema.extend({
           periodStart: z.string().datetime(),

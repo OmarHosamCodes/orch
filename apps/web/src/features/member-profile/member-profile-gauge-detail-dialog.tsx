@@ -80,7 +80,7 @@ export function MemberProfileGaugeDetailDialog({
             <motion.div
               layoutId={layoutId}
               transition={memberProfileGaugeMorphTransition}
-              className="relative rounded-[min(var(--radius-4xl),24px)] border border-border bg-card shadow-xl ring-1 ring-foreground/5 dark:ring-foreground/10"
+              className="relative rounded-surface border border-border bg-card shadow-xl ring-1 ring-foreground/5 dark:ring-foreground/10"
             >
               <DialogHeader className="border-b border-border px-4 py-4 sm:px-5">
                 <div className="flex items-start gap-3">

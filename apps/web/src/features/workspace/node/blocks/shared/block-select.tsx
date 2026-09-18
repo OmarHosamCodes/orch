@@ -44,7 +44,7 @@ export function BlockSelect({
       <SelectTrigger
         id={id}
         aria-label={ariaLabel}
-        className={cn("h-10 w-full rounded-lg", className)}
+        className={cn("h-8 w-full rounded-2xl", className)}
       >
         <SelectValue />
       </SelectTrigger>

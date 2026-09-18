@@ -121,7 +121,10 @@ export type FeaturedNotificationCta = {
 };
 
 /** Newest unread Needs-action item first; count is the full Needs-action queue size. */
-export function pickFeaturedNeedsAction(items: NotificationRecord[]): {
+export function pickFeaturedNeedsAction(
+  items: NotificationRecord[],
+  offset = 0,
+): {
   featured: NotificationRecord | null;
   count: number;
 } {
@@ -129,8 +132,12 @@ export function pickFeaturedNeedsAction(items: NotificationRecord[]): {
     .filter(isNeedsActionNotification)
     .slice()
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  if (needsAction.length === 0) {
+    return { featured: null, count: 0 };
+  }
+  const index = ((offset % needsAction.length) + needsAction.length) % needsAction.length;
   return {
-    featured: needsAction[0] ?? null,
+    featured: needsAction[index] ?? null,
     count: needsAction.length,
   };
 }

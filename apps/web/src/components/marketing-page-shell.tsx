@@ -1,36 +1,17 @@
-import { Moon, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "@/lib/navigation";
 
 import { MarketingBrandLockup } from "@/components/marketing/marketing-brand-lockup";
+import { LANDING_BELOW_HERO_VISIBLE } from "@/components/marketing/landing-release";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/stores/theme";
-import { Button } from "@/ui/button";
 
 const footerLinks = [
   { label: "Canvas", to: "/canvas" },
   { label: "Agency", to: "/agency" },
-  { label: "Pricing", to: "/#pricing" },
+  ...(LANDING_BELOW_HERO_VISIBLE ? [{ label: "Pricing", to: "/#pricing" as const }] : []),
   { label: "Terms", to: "/terms" },
   { label: "Privacy", to: "/privacy" },
 ];
-
-function ThemeToggle() {
-  const { isDark, toggle } = useTheme();
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      className="rounded-full text-muted-foreground hover:text-foreground"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      onClick={toggle}
-    >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </Button>
-  );
-}
 
 export function MarketingPageShell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
@@ -71,7 +52,6 @@ export function MarketingPageShell({ children }: { children: ReactNode }) {
             <p className="text-xs text-muted-foreground">
               &copy; {year} Orch. All rights reserved.
             </p>
-            <ThemeToggle />
           </div>
         </div>
       </footer>

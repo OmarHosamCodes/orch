@@ -15,7 +15,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -253,7 +255,7 @@ export function WorkspaceAssumptionTrackerBlockEditor({
           {visibleAssumptions.map((assumption) => (
             <article
               key={assumption.id}
-              className="rounded-xl border border-muted bg-background p-4"
+              className="rounded-surface border border-muted bg-background p-surface"
             >
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -371,12 +373,13 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                   >
                     Review Date
                   </Label>
-                  <Input
+                  <AgencyDateField
                     id={`review-${assumption.id}`}
                     value={assumption.reviewDate ?? ""}
-                    type="date"
-                    className="rounded-xl"
-                    onChange={(event) =>
+                    displayStyle="short"
+                    className="h-8 rounded-xl"
+                    aria-label="Review date"
+                    onChange={(next) =>
                       mutateBlock(tabId, block.id, (entry) => {
                         if (entry.type !== "assumption-tracker") {
                           return;
@@ -387,7 +390,21 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                         if (!target) {
                           return;
                         }
-                        target.reviewDate = event.target.value || null;
+                        target.reviewDate = next || null;
+                      })
+                    }
+                    onClear={() =>
+                      mutateBlock(tabId, block.id, (entry) => {
+                        if (entry.type !== "assumption-tracker") {
+                          return;
+                        }
+                        const target = entry.assumptions.find(
+                          (candidate) => candidate.id === assumption.id,
+                        );
+                        if (!target) {
+                          return;
+                        }
+                        target.reviewDate = null;
                       })
                     }
                   />
@@ -401,13 +418,11 @@ export function WorkspaceAssumptionTrackerBlockEditor({
                       <Label htmlFor={`confidence-${assumption.id}`}>Confidence</Label>
                       <span>{assumption.confidence}/5</span>
                     </div>
-                    <input
+                    <BlockSlider
                       id={`confidence-${assumption.id}`}
                       value={assumption.confidence}
-                      type="range"
                       min={1}
                       max={5}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                       onChange={(event) =>
                         mutateBlock(tabId, block.id, (entry) => {
                           if (entry.type !== "assumption-tracker") {

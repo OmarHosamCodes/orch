@@ -31,6 +31,7 @@ import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context
 import type { WorkspaceSaveBadge } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { cn } from "@/lib/utils";
 
 type WorkspaceTeamSummary = { id: string; name: string; role: WorkspaceTeamRole };
@@ -85,6 +86,7 @@ export function WorkspaceNodeShell({
     deleteActiveTab,
     saveActiveTabToMarketplace,
     getDisplayTabTitle,
+    addBlockToActiveTab,
   } = useWorkspaceNodeEditorContext();
   const agencyHref = node.agencyRef ? agencyRefHref(node.agencyRef) : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -139,7 +141,7 @@ export function WorkspaceNodeShell({
           isSidebarOpen ? "w-80" : "w-0 opacity-0",
         )}
       >
-        <div className="flex flex-1 flex-col overflow-y-auto p-6">
+        <div className="flex flex-1 flex-col overflow-y-auto p-surface">
           <Button
             variant="ghost"
             className="justify-start px-0 text-highlighted hover:bg-elevated hover:text-highlighted"
@@ -160,7 +162,7 @@ export function WorkspaceNodeShell({
                 </Button>
               ) : null}
             </div>
-            <div className="rounded-2xl border border-default bg-default p-3">
+            <div className="rounded-surface border border-default bg-card p-surface">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
@@ -188,21 +190,31 @@ export function WorkspaceNodeShell({
               </div>
               {canManageNodeSharing ? (
                 <div className="mt-2.5 flex items-center gap-2">
-                  <select
-                    value={nodeShareTeamId}
-                    className="h-8 w-full rounded-xl border border-default bg-background px-2.5 text-xs text-foreground"
+                  <Select
+                    value={nodeShareTeamId || "__empty"}
                     disabled={teams.length === 0}
-                    onChange={(event) => onNodeShareTeamIdChange(event.target.value)}
+                    onValueChange={(next) =>
+                      onNodeShareTeamIdChange(next === "__empty" ? "" : next)
+                    }
                   >
-                    <option value="" disabled>
-                      Select team
-                    </option>
-                    {teams.map((team) => (
-                      <option key={team.id} value={team.id}>
-                        {team.name} ({team.role})
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger aria-label="Select team" className="w-full">
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      align="start"
+                      className="w-(--radix-select-trigger-width)"
+                    >
+                      <SelectItem value="__empty" disabled>
+                        Select team
+                      </SelectItem>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name} ({team.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     size="sm"
                     disabled={isShareTogglePending || (!isNodeSharedWithTeam && !nodeShareTeamId)}
@@ -276,7 +288,7 @@ export function WorkspaceNodeShell({
         </div>
       </aside>
       <main className="relative flex flex-1 flex-col overflow-hidden bg-background">
-        <header className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-b border-default bg-default px-4 py-4 sm:px-6">
+        <header className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-b border-default bg-default p-surface">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -312,7 +324,7 @@ export function WorkspaceNodeShell({
           onOpenChange={setAddBlockCommandOpen}
           onInserted={handleBlockInserted}
         />
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto p-surface">
           {saveError ? (
             <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {saveError}
@@ -331,6 +343,7 @@ export function WorkspaceNodeShell({
             {visibleBlocks.length === 0 ? (
               <WorkspaceNodeEmptyState
                 canEdit={canEditNodeContent}
+                onAddBlock={(type) => addBlockToActiveTab(type)}
                 onQuickAdd={(_type, blockId) => {
                   if (blockId) setPendingFocusBlockId(blockId);
                 }}

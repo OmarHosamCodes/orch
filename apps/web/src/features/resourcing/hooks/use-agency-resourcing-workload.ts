@@ -39,15 +39,6 @@ type ResourcingAbsenceAgendaItem = {
   daySpan: number;
 };
 
-type ResourcingFilmstripDay = {
-  date: string;
-  dayOfMonth: number;
-  weekdayShort: string;
-  workingCount: number;
-  memberCount: number;
-  weekend: boolean;
-};
-
 type ResourcingOutPerson = PresencePerson & {
   leaveType: string;
   leaveReason: string | null;
@@ -60,8 +51,6 @@ export type AgencyResourcingWorkloadViewModel = {
   activityRows: ResourcingActivityHeatMemberRow[];
   calendarDays: PresenceDayCell[];
   weekdayLabels: string[];
-  filmstripDays: ResourcingFilmstripDay[];
-  filmstripRangeLabel: string;
   selectedDate: string | null;
   selectedDay: PresenceDayCell | null;
   selectedOut: ResourcingOutPerson[];
@@ -77,13 +66,6 @@ export type AgencyResourcingWorkloadViewModel = {
   selectedDayLabel: string;
   selectedDaySummary: string;
   agenda: ResourcingAbsenceAgendaItem[];
-  selectedPersonId: string | null;
-  selectedPerson: ResourcingActivityHeatMemberRow | null;
-  selectedPersonOutDays: number;
-  selectedPersonMonthDays: Array<{
-    date: string;
-    off: { type: string; reason: string | null } | null;
-  }>;
   memberCount: number;
   hasActivityData: boolean;
   isActivityPending: boolean;
@@ -109,7 +91,6 @@ export type AgencyResourcingWorkloadViewModel = {
   goNextPeriod: () => void;
   selectDate: (date: string) => void;
   isWeekendDate: (date: string) => boolean;
-  selectPerson: (userId: string) => void;
   setSelectedOutExpanded: (expanded: boolean) => void;
   openLeaveRequest: () => void;
   closeLeaveRequest: () => void;
@@ -229,33 +210,6 @@ function defaultSelectedDate(
   return firstWeekday?.date ?? calendarDays.find((day) => day.date)?.date ?? null;
 }
 
-function buildFilmstrip(
-  selectedDate: string | null,
-  monthKey: string,
-  isWeekend: (dateKey: string) => boolean,
-): string[] {
-  if (!selectedDate) return [];
-  const monthStart = `${monthKey}-01`;
-  const monthEnd = monthWindowDateKeys(monthKey).toDate;
-  let cursor = selectedDate;
-  let weekdaysBack = 0;
-  while (weekdaysBack < 4) {
-    const prev = addDaysToDateKey(cursor, -1);
-    if (prev < monthStart) break;
-    cursor = prev;
-    if (!isWeekend(cursor)) weekdaysBack += 1;
-  }
-  while (cursor <= monthEnd && isWeekend(cursor)) {
-    cursor = addDaysToDateKey(cursor, 1);
-  }
-  const dates: string[] = [];
-  while (dates.length < 10 && cursor <= monthEnd) {
-    if (!isWeekend(cursor)) dates.push(cursor);
-    cursor = addDaysToDateKey(cursor, 1);
-  }
-  return dates;
-}
-
 export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWorkloadViewModel {
   const workSchedule = useTeamWorkSchedule(teamId);
   const isWeekend = (dateKey: string) =>
@@ -265,7 +219,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
 
   const [focusMonthKey, setFocusMonthKey] = useState(() => localDateKey().slice(0, 7));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedOutExpanded, setSelectedOutExpanded] = useState(false);
   const [leaveRequestOpen, setLeaveRequestOpen] = useState(false);
   const [leaveRequestError, setLeaveRequestError] = useState<string | null>(null);
@@ -344,18 +297,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
   }, [calendarDays, focusMonthKey, workSchedule.weekStartsOn, workSchedule.weekendDurationDays]);
 
   useEffect(() => {
-    if (activityRows.length === 0) {
-      setSelectedPersonId(null);
-      return;
-    }
-    setSelectedPersonId((current) =>
-      current && activityRows.some((row) => row.userId === current)
-        ? current
-        : (activityRows[0]?.userId ?? null),
-    );
-  }, [activityRows]);
-
-  useEffect(() => {
     setSelectedOutExpanded(false);
   }, [selectedDate]);
 
@@ -389,42 +330,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
   const memberCount = activityRows.length;
   const coveragePct = memberCount > 0 ? Math.round((selectedWorkingCount / memberCount) * 100) : 0;
 
-  const filmstripDays = useMemo<ResourcingFilmstripDay[]>(() => {
-    const dates = buildFilmstrip(selectedDate, focusMonthKey, isWeekend);
-    return dates.map((date) => {
-      const cell = calendarDays.find((day) => day.date === date);
-      const workingCount = cell?.working.length ?? 0;
-      return {
-        date,
-        dayOfMonth: Number(date.slice(8, 10)),
-        weekdayShort: weekdayShort(date),
-        workingCount,
-        memberCount,
-        weekend: isWeekend(date),
-      };
-    });
-  }, [
-    calendarDays,
-    focusMonthKey,
-    memberCount,
-    selectedDate,
-    workSchedule.weekStartsOn,
-    workSchedule.weekendDurationDays,
-  ]);
-
-  const filmstripRangeLabel = useMemo(() => {
-    const first = filmstripDays[0]?.date;
-    const last = filmstripDays[filmstripDays.length - 1]?.date;
-    if (!first || !last) return "";
-    const fmt = (dateKey: string) =>
-      new Date(`${dateKey}T00:00:00Z`).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      });
-    return `${fmt(first)} → ${fmt(last)}`;
-  }, [filmstripDays]);
-
   const nameByUserId = useMemo(() => {
     const map = new Map<string, string>();
     for (const row of activityRows) map.set(row.userId, row.userName);
@@ -452,18 +357,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
         daySpan: inclusiveDaySpan(item.startDate, item.endDate),
       }));
   }, [leaveQuery.data?.items, nameByUserId, presenceWindow.fromDate]);
-
-  const selectedPerson =
-    activityRows.find((row) => row.userId === selectedPersonId) ?? activityRows[0] ?? null;
-
-  const selectedPersonMonthDays = useMemo(() => {
-    if (!selectedPerson) return [];
-    return selectedPerson.heatMap.days
-      .filter((day) => day.date.startsWith(focusMonthKey))
-      .map((day) => ({ date: day.date, off: day.off }));
-  }, [focusMonthKey, selectedPerson]);
-
-  const selectedPersonOutDays = selectedPersonMonthDays.filter((day) => day.off).length;
 
   const selectedDayLabel = selectedDate
     ? new Date(`${selectedDate}T00:00:00Z`).toLocaleDateString(undefined, {
@@ -499,8 +392,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
     activityRows,
     calendarDays,
     weekdayLabels,
-    filmstripDays,
-    filmstripRangeLabel,
     selectedDate,
     selectedDay,
     selectedOut,
@@ -516,10 +407,6 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
     selectedDayLabel,
     selectedDaySummary,
     agenda,
-    selectedPersonId: selectedPerson?.userId ?? null,
-    selectedPerson,
-    selectedPersonOutDays,
-    selectedPersonMonthDays,
     memberCount,
     hasActivityData,
     isActivityPending: activityHeatQuery.isPending && !activityHeatQuery.data,
@@ -542,12 +429,11 @@ export function useAgencyResourcingWorkload(teamId: string): AgencyResourcingWor
       setSelectedDate(date);
     },
     isWeekendDate: isWeekend,
-    selectPerson: setSelectedPersonId,
     setSelectedOutExpanded,
     openLeaveRequest: () => {
       setLeaveRequestError(null);
       const defaultUserId = canManageOffDays
-        ? (selectedPersonId ?? activityRows[0]?.userId ?? actorUserId ?? "")
+        ? (activityRows[0]?.userId ?? actorUserId ?? "")
         : (actorUserId ?? "");
       setLeaveRequestDraftState({
         userId: defaultUserId,

@@ -132,6 +132,42 @@ describe("loadBootShellChrome", () => {
     expect(chrome.timer).toBeNull();
   });
 
+  test("starts team-scoped chrome with team.list when a preferred team is set", async () => {
+    let listReleased = false;
+    let unreadStartedBeforeListResolved = false;
+    const client = fakeChromeClient({
+      teams: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 40));
+        listReleased = true;
+        return teams;
+      },
+      unreadCount: async ({ teamId }) => {
+        unreadStartedBeforeListResolved = !listReleased;
+        expect(teamId).toBe("team-b");
+        return unread;
+      },
+    });
+
+    const chrome = await loadBootShellChrome(client, "team-b");
+    expect(chrome.teamId).toBe("team-b");
+    expect(unreadStartedBeforeListResolved).toBe(true);
+  });
+
+  test("discards speculative chrome when preferred team is not in the list", async () => {
+    const requested: string[] = [];
+    const client = fakeChromeClient({
+      unreadCount: async ({ teamId }) => {
+        requested.push(teamId);
+        return unread;
+      },
+    });
+
+    const chrome = await loadBootShellChrome(client, "team-missing");
+    expect(chrome.teamId).toBe("team-a");
+    expect(chrome.unread).toEqual(unread);
+    expect(requested.includes("team-a")).toBe(true);
+  });
+
   test("no-team accounts skip notification and timer fetches", async () => {
     let chromeCalls = 0;
     const client = fakeChromeClient({

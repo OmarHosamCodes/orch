@@ -31,7 +31,7 @@ describe("assistant-ui catalog", () => {
     expect(isAssistantUiLauncherMounted("assistant-modal")).toBe(false);
     expect(isAssistantUiLauncherMounted("launcher-bubble")).toBe(false);
     expect(isAssistantUiLauncherMounted("elements-launcher-bubble")).toBe(false);
-    expect(isAssistantUiLauncherMounted("thread")).toBe(true);
+    expect(isAssistantUiLauncherMounted("ai-elements-conversation")).toBe(true);
     expect(ASSISTANT_UI_UNMOUNTED_LAUNCHERS).toContain("assistant-modal");
     expect(listMountedAssistantUiItems()).not.toContain("assistant-modal");
     expect(listMountedAssistantUiItems()).not.toContain("elements-launcher-bubble");
@@ -39,12 +39,15 @@ describe("assistant-ui catalog", () => {
 
   test("installs live website-capable source files and does not keep demo chrome", () => {
     const webRoot = `${import.meta.dir}/../../`;
-    expect(existsSync(`${webRoot}components/assistant-ui/thread.tsx`)).toBe(true);
+    expect(existsSync(`${webRoot}components/assistant-ui/thread.tsx`)).toBe(false);
+    expect(existsSync(`${webRoot}components/ai-elements/conversation.tsx`)).toBe(true);
+    expect(existsSync(`${webRoot}components/ai-elements/message.tsx`)).toBe(true);
+    expect(existsSync(`${webRoot}components/ai-elements/prompt-input.tsx`)).toBe(true);
     expect(existsSync(`${webRoot}components/assistant-ui/assistant-modal.tsx`)).toBe(false);
     expect(existsSync(`${webRoot}components/elements/launcher-bubble.tsx`)).toBe(false);
     expect(existsSync(`${webRoot}components/elements/composer.tsx`)).toBe(true);
     expect(existsSync(`${webRoot}components/elements/computer-use.tsx`)).toBe(false);
-    expect(ASSISTANT_UI_WEBSITE_ITEMS).toContain("thread");
+    expect(ASSISTANT_UI_WEBSITE_ITEMS).toContain("ai-elements-conversation");
     expect(ASSISTANT_UI_WEBSITE_ITEMS).toContain("elements-composer");
     expect(ASSISTANT_UI_WEBSITE_ITEMS).not.toContain("elements-quota-banner");
     expect(ASSISTANT_UI_WEBSITE_ITEMS).not.toContain("follow-up-suggestions");

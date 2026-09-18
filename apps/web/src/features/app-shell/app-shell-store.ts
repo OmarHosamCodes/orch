@@ -1,44 +1,47 @@
 import { create } from "zustand";
 
 import { type AppShellMode, resolveShellMode } from "@/features/app-shell/app-navigation";
+import {
+  isAgencyManagementPaneId,
+  type AgencyManagementPaneId,
+} from "@/features/shared/agency-management-sections";
 
-const RAIL_PINNED_STORAGE_KEY = "orch.appShell.railPinned";
+const LAST_MANAGEMENT_PANE_KEY = "orch.appShell.lastManagementPane";
 
-function readRailPinned(): boolean {
-  if (typeof localStorage === "undefined") return false;
-  return localStorage.getItem(RAIL_PINNED_STORAGE_KEY) === "1";
+function readLastManagementPane(): AgencyManagementPaneId {
+  if (typeof localStorage === "undefined") return "resourcing";
+  const stored = localStorage.getItem(LAST_MANAGEMENT_PANE_KEY);
+  return isAgencyManagementPaneId(stored) ? stored : "resourcing";
 }
 
 type AppShellState = {
   commandPaletteOpen: boolean;
-  railPinned: boolean;
-  /** Agency Management drill-in: full rail shows Back + panes (URL stays on management). */
-  managementNavOpen: boolean;
+  /** Last visited Management pane — Management group label navigates here. */
+  lastManagementPane: AgencyManagementPaneId;
   currentPath: string;
+  mobileNavOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
   toggleCommandPalette: () => void;
-  setRailPinned: (pinned: boolean) => void;
-  toggleRailPinned: () => void;
-  setManagementNavOpen: (open: boolean) => void;
+  setLastManagementPane: (pane: AgencyManagementPaneId) => void;
   setCurrentPath: (path: string) => void;
+  setMobileNavOpen: (open: boolean) => void;
 };
 
 export const useAppShellStore = create<AppShellState>((set, get) => ({
   commandPaletteOpen: false,
-  railPinned: readRailPinned(),
-  managementNavOpen: false,
+  lastManagementPane: readLastManagementPane(),
   currentPath: "/",
+  mobileNavOpen: false,
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   toggleCommandPalette: () => set({ commandPaletteOpen: !get().commandPaletteOpen }),
-  setRailPinned: (pinned) => {
+  setLastManagementPane: (pane) => {
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem(RAIL_PINNED_STORAGE_KEY, pinned ? "1" : "0");
+      localStorage.setItem(LAST_MANAGEMENT_PANE_KEY, pane);
     }
-    set({ railPinned: pinned });
+    set({ lastManagementPane: pane });
   },
-  toggleRailPinned: () => get().setRailPinned(!get().railPinned),
-  setManagementNavOpen: (open) => set({ managementNavOpen: open }),
   setCurrentPath: (path) => set({ currentPath: path }),
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 }));
 
 export function useShellMode(): AppShellMode {

@@ -1,13 +1,4 @@
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import { AgencyTimeEntryProjectLabel } from "@/features/time-tracking/entries/agency-time-entry-project-label";
 import {
@@ -57,7 +48,6 @@ export function AgencyDescriptionDatalistField({
   const [focused, setFocused] = useState(false);
   const [suppressed, setSuppressed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [panelStyle, setPanelStyle] = useState<CSSProperties | undefined>();
 
   const rankedOptions = useMemo(
     () =>
@@ -82,32 +72,10 @@ export function AgencyDescriptionDatalistField({
     setSuppressed(false);
   }, [value]);
 
-  useLayoutEffect(() => {
-    if (!showSuggestions) {
-      setPanelStyle(undefined);
-      return;
-    }
-
-    function syncPanelBox() {
-      const wrap = wrapRef.current;
-      if (!wrap) return;
-      const card = wrap.closest("[data-agency-time-tracker]");
-      const wrapRect = wrap.getBoundingClientRect();
-      if (!(card instanceof HTMLElement)) {
-        setPanelStyle({ left: 0, width: wrapRect.width });
-        return;
-      }
-      const cardRect = card.getBoundingClientRect();
-      // Flush with the tracker card's outer left edge; keep the input's right edge.
-      const left = cardRect.left - wrapRect.left;
-      const width = wrapRect.right - cardRect.left;
-      setPanelStyle({ left, width });
-    }
-
-    syncPanelBox();
-    window.addEventListener("resize", syncPanelBox);
-    return () => window.removeEventListener("resize", syncPanelBox);
-  }, [showSuggestions, rankedOptions.length]);
+  useEffect(() => {
+    if (!activeOptionId) return;
+    document.getElementById(activeOptionId)?.scrollIntoView({ block: "nearest" });
+  }, [activeOptionId]);
 
   function handleFocus() {
     setFocused(true);
@@ -174,6 +142,7 @@ export function AgencyDescriptionDatalistField({
           onBlur={handleBlur}
           placeholder={placeholder}
           aria-label="Description"
+          role="combobox"
           aria-autocomplete="list"
           aria-controls={showSuggestions ? listboxId : undefined}
           aria-expanded={showSuggestions}
@@ -189,8 +158,7 @@ export function AgencyDescriptionDatalistField({
 
         {showSuggestions ? (
           <div
-            className="pointer-events-auto absolute top-full z-50 mt-1"
-            style={panelStyle}
+            className="pointer-events-auto absolute top-full left-0 z-50 mt-1 w-full"
             onMouseDown={(event) => event.preventDefault()}
           >
             <ul
@@ -235,6 +203,9 @@ export function AgencyDescriptionDatalistField({
                           projectName={option.projectName}
                           clientName={option.clientName || undefined}
                           taskTitle={option.taskTitle ?? undefined}
+                          colorHueId={option.colorHueId}
+                          taskIconKey={option.taskIconKey}
+                          projectIconKey={option.projectIconKey}
                           className="min-w-0 max-w-full"
                         />
                       </button>

@@ -1,17 +1,12 @@
 import { tool } from "@openrouter/sdk/lib/tool";
 import {
-  createWorkspaceId,
-  knowledgeObjectTypeSchema,
   knowledgeObjectViewSchema,
+  knowledgeObjectTypeSchema,
   knowledgeTargetSchema,
 } from "@orch/workspace";
 import { z } from "zod";
 
-import {
-  knowledgeActionLabel,
-  knowledgeActionSchema,
-  knowledgeDraftPlanSchema,
-} from "./knowledge-actions";
+import { knowledgeActionLabel, knowledgeActionSchema } from "./knowledge-actions";
 import type { CanvasAgentRuntime, DashboardAgentToolPreset } from "./types";
 
 function buildKnowledgeQueryTool(runtime: CanvasAgentRuntime) {
@@ -52,85 +47,43 @@ function buildKnowledgeGetTool(runtime: CanvasAgentRuntime) {
   });
 }
 
-function buildKnowledgePlanTool() {
+function buildKnowledgeApplyTool(runtime: CanvasAgentRuntime) {
   return tool({
-    name: "draft_knowledge_plan",
+    name: "apply_knowledge_action",
     description:
-      "Draft a multi-step knowledge plan (notes, decisions, sources, folders, in grouping, Agency links). Connect and group — do not mutate Agency records. Does not write. User must Confirm.",
-    inputSchema: z.object({
-      title: z.string().trim().min(1).max(160),
-      summary: z.string().trim().min(1).max(1_000),
-      steps: z
-        .array(
-          z.object({
-            label: z.string().trim().min(1).max(200),
-            action: knowledgeActionSchema,
-          }),
-        )
-        .min(1)
-        .max(20),
-    }),
-    outputSchema: knowledgeDraftPlanSchema,
-    execute: async ({ title, summary, steps }) =>
-      knowledgeDraftPlanSchema.parse({
-        planId: createWorkspaceId("kplan"),
-        title,
-        summary,
-        steps,
-      }),
-  });
-}
-
-function buildKnowledgeProposeTool(runtime: CanvasAgentRuntime) {
-  return tool({
-    name: "propose_knowledge_action",
-    description:
-      "Propose one knowledge write (object.create/update/delete, relation.create/delete including in to folders, placement.upsert for Agency pins). Does not apply. Cannot create or edit Agency projects/tasks/time. Link with about, group with in. Then ui_present and ask Approve.",
+      "Apply one knowledge write immediately (object.create/update/delete, relation.create/delete including in to folders, placement.upsert for Agency pins). Cannot create or edit Agency projects/tasks/time. Link with about, group with in.",
     inputSchema: z.object({
       action: knowledgeActionSchema,
       label: z.string().trim().min(1).max(200).optional(),
     }),
     outputSchema: z.object({
-      proposalId: z.string(),
-      status: z.literal("pending"),
-      action: knowledgeActionSchema,
-      before: z.unknown(),
-      after: z.unknown(),
+      applied: z.literal(true),
+      objectId: z.string().nullable(),
+      objectType: z.string().nullable(),
       label: z.string(),
-      note: z.string(),
-      boardHref: z.string().nullable(),
+      boardHref: z.string(),
     }),
     execute: async ({ action, label }) => {
       const parsed = knowledgeActionSchema.parse(action);
-      if (!runtime.createKnowledgeProposal) {
-        throw new Error("Knowledge proposals are unavailable.");
+      if (!runtime.applyKnowledgeAction) {
+        throw new Error("Knowledge writes are unavailable.");
       }
-      const proposal = await runtime.createKnowledgeProposal({
+      return runtime.applyKnowledgeAction({
         action: parsed,
         label: label ?? knowledgeActionLabel(parsed),
       });
-      return {
-        ...proposal,
-        action: knowledgeActionSchema.parse(proposal.action),
-        boardHref: proposal.boardHref ?? "/canvas",
-        note: "Pending approval. Call ui_present, then tell the user to Approve or Reject.",
-      };
     },
   });
 }
 
-export function buildKnowledgeTools(runtime: CanvasAgentRuntime, preset: DashboardAgentToolPreset) {
-  const reads = [buildKnowledgeQueryTool(runtime), buildKnowledgeGetTool(runtime)];
-  switch (preset) {
-    case "ask":
-      return reads;
-    case "plan":
-      return [...reads, buildKnowledgePlanTool()];
-    case "agent":
-      return [...reads, buildKnowledgeProposeTool(runtime)];
-    default: {
-      const _exhaustive: never = preset;
-      return _exhaustive;
-    }
-  }
+export function buildKnowledgeTools(
+  runtime: CanvasAgentRuntime,
+  _preset: DashboardAgentToolPreset,
+) {
+  void _preset;
+  return [
+    buildKnowledgeQueryTool(runtime),
+    buildKnowledgeGetTool(runtime),
+    buildKnowledgeApplyTool(runtime),
+  ];
 }

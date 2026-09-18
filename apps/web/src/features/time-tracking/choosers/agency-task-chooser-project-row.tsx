@@ -2,7 +2,7 @@ import { ChevronDown, Plus, Star } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 
-import { AgencyProjectHueDot } from "@/features/shared/agency-project-hue-dot";
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import {
   agencyFocusRingClass,
@@ -22,6 +22,7 @@ type AgencyTaskChooserProjectRowProps = {
   projectName: string;
   clientName: string;
   colorHueId?: number | null;
+  iconKey?: string | null;
   taskCount: number;
   expanded: boolean;
   favorited: boolean;
@@ -44,6 +45,7 @@ export function AgencyTaskChooserProjectRow({
   projectName,
   clientName,
   colorHueId,
+  iconKey,
   taskCount,
   expanded,
   favorited,
@@ -70,8 +72,11 @@ export function AgencyTaskChooserProjectRow({
       <motion.button
         type="button"
         id={optionId}
+        role="option"
+        aria-selected={active}
+        title={projectName}
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left",
+          "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-left",
           agencyFocusRingClass,
         )}
         whileTap={chooserTapScale}
@@ -79,7 +84,12 @@ export function AgencyTaskChooserProjectRow({
         onClick={onToggle}
         aria-expanded={pickMode ? undefined : expanded}
       >
-        <AgencyProjectHueDot projectId={projectId} colorHueId={colorHueId} className="size-2" />
+        <AgencyEntityMark
+          name={projectName}
+          projectId={projectId}
+          iconKey={iconKey}
+          colorHueId={colorHueId}
+        />
         <span className="min-w-0 flex-1 truncate text-sm leading-snug">
           <span
             className="font-semibold text-[var(--project-hue)] dark:text-[var(--project-hue-dark)]"
@@ -122,7 +132,7 @@ export function AgencyTaskChooserProjectRow({
         aria-label={favorited ? "Remove project from favorites" : "Add project to favorites"}
         className={cn(
           "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground",
-          "pointer-events-none opacity-0 transition-opacity",
+          "[@media(hover:hover)]:pointer-events-none [@media(hover:hover)]:opacity-0 transition-opacity",
           "group-hover:pointer-events-auto group-hover:opacity-100",
           "focus-visible:pointer-events-auto focus-visible:opacity-100",
           favorited && "pointer-events-auto text-warning opacity-100",

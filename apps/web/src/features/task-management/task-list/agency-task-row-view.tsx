@@ -1,6 +1,7 @@
 import { Check, Clock, CornerDownLeft, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencyMemberAvatar } from "@/features/shared/agency-member-avatar";
 import type { AgencyTaskRowViewModel } from "@/features/task-management/hooks/use-agency-task-row";
 import { Input } from "@/ui/input";
@@ -72,6 +73,7 @@ export function AgencyTaskRowView({ viewModel, miniTimer }: AgencyTaskRowViewPro
     nested,
     trackingState,
     projectName,
+    projectColorHueId,
     isSelected,
     completionCount,
     isDone,
@@ -211,6 +213,12 @@ export function AgencyTaskRowView({ viewModel, miniTimer }: AgencyTaskRowViewPro
           )}
         >
           <div className="flex min-w-0 items-center gap-1.5">
+            <AgencyEntityMark
+              name={task.title}
+              projectId={task.projectId}
+              iconKey={task.iconKey}
+              colorHueId={projectColorHueId}
+            />
             <span
               className={cn(
                 "min-w-0 flex-1 truncate text-sm leading-tight",

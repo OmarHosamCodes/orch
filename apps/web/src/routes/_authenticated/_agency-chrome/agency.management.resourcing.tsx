@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/mana
   {
     component: AgencyManagementResourcingPage,
     head: () => ({
-      meta: [{ title: "Resourcing — Orch" }],
+      meta: [{ title: "Resourcing | Orch" }],
     }),
   },
 );

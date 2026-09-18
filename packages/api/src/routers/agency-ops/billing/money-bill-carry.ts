@@ -296,9 +296,7 @@ export function readyAdjustmentMatchesExport(
   if (adj.obligationId) {
     return exported.some((item) => item.obligationId === adj.obligationId);
   }
-  return exported.some((item) =>
-    adjustmentPeriodOverlaps(adj, item.periodStart, item.periodEnd),
-  );
+  return exported.some((item) => adjustmentPeriodOverlaps(adj, item.periodStart, item.periodEnd));
 }
 
 export function buildClientObligations(input: {
@@ -499,11 +497,7 @@ export function buildMemberObligations(input: {
       )
       .reduce((sum, payout) => sum + payout.amount, 0);
     const residual = Math.max(0, slice.amount - paidOutAmount);
-    const obligationId = memberReadyObligationId(
-      slice.userId,
-      slice.periodStart,
-      slice.periodEnd,
-    );
+    const obligationId = memberReadyObligationId(slice.userId, slice.periodStart, slice.periodEnd);
     const matching = adjustmentsForReadyObligation(
       {
         partyId: slice.userId,

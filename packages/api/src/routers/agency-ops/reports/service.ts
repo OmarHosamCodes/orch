@@ -17,7 +17,8 @@ import {
 } from "../shared/report-helpers";
 import { parseIsoDateTime } from "../shared/date-helpers";
 import { formatAvatarUrl } from "../shared/avatar-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
+import { isAgencyEntityIconKey } from "../shared/entity-icon-catalog";
 import {
   buildReportEntryFilters,
   queryDailyProjectBuckets,
@@ -41,6 +42,8 @@ type AgencyReportSummary = {
   timeDistributionByProject: Array<{
     projectId: string;
     projectName: string;
+    colorHueId: number | null;
+    iconKey: string | null;
     clientId: string;
     clientName: string;
     hours: number;
@@ -131,7 +134,7 @@ async function getReportRows(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -227,7 +230,7 @@ export async function getAgencyReportsSummary(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -257,6 +260,8 @@ export async function getAgencyReportsSummary(
     timeDistributionByProject: byProject.map((entry) => ({
       projectId: entry.projectId,
       projectName: entry.projectName,
+      colorHueId: entry.colorHueId,
+      iconKey: isAgencyEntityIconKey(entry.iconKey) ? entry.iconKey : null,
       clientId: entry.clientId,
       clientName: entry.clientName,
       hours: Number((entry.seconds / 3_600).toFixed(2)),
@@ -304,7 +309,7 @@ export async function getAgencyDashboardSummary(
     to: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const from = parseIsoDateTime(input.from, "from");
   const to = parseIsoDateTime(input.to, "to");
@@ -455,6 +460,8 @@ export async function getAgencyDashboardSummary(
     timeDistributionByProject: byProject.map((entry) => ({
       projectId: entry.projectId,
       projectName: entry.projectName,
+      colorHueId: entry.colorHueId,
+      iconKey: isAgencyEntityIconKey(entry.iconKey) ? entry.iconKey : null,
       clientId: entry.clientId,
       clientName: entry.clientName,
       hours: Number((entry.seconds / 3_600).toFixed(2)),

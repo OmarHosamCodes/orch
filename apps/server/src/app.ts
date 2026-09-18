@@ -12,9 +12,14 @@
  */
 
 import { createContext } from "@orch/api/context";
+import { recoverStaleRuns } from "@orch/api/routers/agent/run-service";
 import { bootstrapAgencyLiveRedisSubscriber } from "@orch/api/routers/agency-ops/live/live";
 import { registerNotificationPushHandler } from "@orch/api/routers/notifications/delivery";
-import { auth } from "@orch/auth";
+import {
+  auth,
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+} from "@orch/auth";
 import { corsOrigins, env, primaryCorsOrigin, resolveSentryRelease } from "@orch/env/server";
 import { sentry } from "@sentry/hono/bun";
 import { Hono } from "hono";
@@ -33,7 +38,9 @@ import {
   handleWebSocketMessage,
   type AgencyWebSocketData,
 } from "./lib/ws-handler";
+import { startAgentDetectionScheduler } from "./lib/agent-detection";
 import { startNotificationDigestScheduler } from "./lib/notification-digest";
+import { registerTeamPolarBillingHandlers } from "./lib/register-team-polar-billing";
 import { sendWebPushForNotification } from "./lib/web-push";
 
 function getRpcDebugResponse(error: unknown, path: string) {
@@ -165,9 +172,15 @@ function createApp() {
 const app = createApp();
 const port = env.PORT ?? 7000;
 
+registerTeamPolarBillingHandlers({
+  registerPolarOrderPaid,
+  registerPolarSubscriptionActive,
+});
 await bootstrapAgencyLiveRedisSubscriber();
 registerNotificationPushHandler(sendWebPushForNotification);
 startNotificationDigestScheduler();
+startAgentDetectionScheduler();
+void recoverStaleRuns();
 
 // Log startup information in development
 if (env.NODE_ENV === "development") {

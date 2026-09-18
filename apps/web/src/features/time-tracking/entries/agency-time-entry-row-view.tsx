@@ -1,13 +1,18 @@
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { MoreVertical, Play, Trash2 } from "lucide-react";
 
+import { agencyTapScale } from "@/features/shared/agency-motion";
+import {
+  timeEntryHoverRevealVariants,
+  timeEntryWasteTransition,
+} from "@/features/time-tracking/agency-time-entry-motion";
 import { AgencyTaskChooser } from "@/features/time-tracking/choosers/agency-task-chooser";
 import {
   AgencyTimeEntryMoreAction,
   AgencyTimeEntryPlayAction,
 } from "@/features/time-tracking/entries/agency-time-entry-actions";
 import { AgencyBillableToggleMenuItem } from "@/features/time-tracking/entries/agency-billable-toggle-menu-item";
-import { AgencyTimeEntryDatePicker } from "@/features/time-tracking/entries/agency-time-entry-date-picker";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { AgencyTimeEntryLinkHoverTrigger } from "@/features/time-tracking/agency-time-entry-link-hover-trigger";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -37,6 +42,7 @@ import {
 import { reportEntryWasteTextClass } from "@/features/reports/agency-report-grouping";
 import { AgencyPartialWasteChip, AgencyWasteTag } from "@/features/shared/agency-waste-badge";
 import { agentScopeableProps } from "@/features/shared/agent-scopeable";
+import { entryDescriptionDisplayMode } from "@/features/time-tracking/entry-description-display";
 import { cn } from "@/lib/utils";
 
 const descriptionLeadingSlotClass = "flex w-8 shrink-0 items-center justify-start";
@@ -44,9 +50,15 @@ const descriptionLeadingSlotClass = "flex w-8 shrink-0 items-center justify-star
 type AgencyTimeEntryRowViewProps = {
   view: AgencyTimeEntryRowViewModel;
   className?: string;
+  /** Child row inside an expanded multi-entry group — keep actions fully visible. */
+  multiGroupChild?: boolean;
 };
 
-export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowViewProps) {
+export function AgencyTimeEntryRowView({
+  view,
+  className,
+  multiGroupChild = false,
+}: AgencyTimeEntryRowViewProps) {
   const {
     group,
     projects,
@@ -112,9 +124,11 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
     agencyTaskChooserTriggerClass,
     "h-auto min-h-0 w-auto max-w-full gap-1 px-2 py-0 text-xs shadow-none",
   );
+  const descriptionMode = entryDescriptionDisplayMode(descriptionDraft);
+  const showDescriptionField = descriptionMode === "visible" || editingDescription;
 
   return (
-    <div
+    <motion.div
       data-entry-id={primaryEntryId}
       tabIndex={0}
       className={cn(
@@ -122,6 +136,9 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
         (editingDescription || editingDuration || timeEditorOpen) && agencyTimeEntryRowEditingClass,
         className,
       )}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
       {...agentScopeableProps({
         kind: "timeEntry",
         id: primaryEntryId,
@@ -131,34 +148,53 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
       <div className={cn(agencyTimeEntryMainClass, "gap-3 pr-2")}>
         {isMulti ? (
           <div className={descriptionLeadingSlotClass}>
-            <button
+            <motion.button
               type="button"
               className={cn(agencyWorkCountBadgeClass, agencyFocusRingClass)}
+              inherit={false}
+              whileTap={agencyTapScale}
               aria-label={expanded ? "Collapse entries" : "Expand entries"}
               aria-expanded={expanded}
               onClick={onToggleExpand}
             >
               {group.entries.length}
-            </button>
+            </motion.button>
           </div>
         ) : null}
-        <Input
-          value={descriptionDraft}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          onFocus={() => onEditingDescriptionChange(true)}
-          onBlur={() => {
-            onDescriptionBlur();
-          }}
-          onKeyDown={onDescriptionKeyDown}
-          disabled={editSaving || rowUpdating}
-          placeholder="Add description"
-          className={cn(
-            agencyWorkTitleClass,
-            "field-sizing-content h-8 w-auto min-w-0 max-w-[14rem] shrink border-0 bg-transparent px-0 py-0 font-normal leading-8 shadow-none focus-visible:ring-0",
-            isWaste && reportEntryWasteTextClass,
-          )}
-          aria-label={isMulti ? "Edit description for all entries in group" : "Add description"}
-        />
+        {showDescriptionField ? (
+          <Input
+            autoFocus={descriptionMode === "omitted"}
+            value={descriptionDraft}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            onFocus={() => onEditingDescriptionChange(true)}
+            onBlur={() => {
+              onDescriptionBlur();
+              onEditingDescriptionChange(false);
+            }}
+            onKeyDown={onDescriptionKeyDown}
+            disabled={editSaving || rowUpdating}
+            placeholder="Add note"
+            className={cn(
+              agencyWorkTitleClass,
+              "field-sizing-content h-8 w-auto min-w-0 max-w-[14rem] shrink border-0 bg-transparent px-0 py-0 font-normal leading-8 shadow-none focus-visible:ring-0",
+              isWaste && reportEntryWasteTextClass,
+            )}
+            aria-label={isMulti ? "Edit description for all entries in group" : "Add description"}
+          />
+        ) : (
+          <motion.button
+            type="button"
+            className={cn("h-8 shrink-0 px-0 text-xs text-muted", agencyFocusRingClass)}
+            variants={timeEntryHoverRevealVariants}
+            initial={multiGroupChild ? "hover" : "rest"}
+            animate={multiGroupChild ? "hover" : undefined}
+            whileFocus="hover"
+            whileTap={agencyTapScale}
+            onClick={() => onEditingDescriptionChange(true)}
+          >
+            Add note
+          </motion.button>
+        )}
         <div
           className={cn(
             "flex h-8 min-w-0 max-w-[min(100%,18rem)] shrink items-center truncate",
@@ -183,10 +219,11 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
             className={cn(taskChooserTriggerClass, "h-8 max-w-full")}
           />
         </div>
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence initial={false}>
           {isWaste ? (
             <AgencyWasteTag
               key="waste-tag"
+              motionTransition={timeEntryWasteTransition}
               onDismiss={canDismissWaste ? onToggleWaste : undefined}
               dismissLabel={
                 isMulti && canDismissWaste ? `Unmark ${wasteCount} entries as waste` : undefined
@@ -273,10 +310,13 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
         </div>
 
         <div className={agencyTimeEntryRailCalendarClass}>
-          <AgencyTimeEntryDatePicker
-            date={editDraft.date}
+          <AgencyDateField
+            variant="icon"
+            value={editDraft.date}
             disabled={editSaving || rowUpdating}
-            onDateChange={onStartDateChange}
+            onChange={onStartDateChange}
+            align="center"
+            aria-label="Entry date"
           />
         </div>
 
@@ -313,15 +353,17 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
 
         <div className={agencyTimeEntryRailPlayClass}>
           {isMulti && !expanded ? (
-            <button
+            <motion.button
               type="button"
               className={cn(agencyTimeEntryIconButtonClass, !canRestart && "opacity-50")}
+              inherit={false}
+              whileTap={canRestart ? agencyTapScale : undefined}
               disabled={!canRestart}
               aria-label={`Restart timer for ${group.taskTitle || group.projectName}`}
               onClick={onRestart}
             >
               <Play className="size-3.5" />
-            </button>
+            </motion.button>
           ) : (
             <AgencyTimeEntryPlayAction
               entry={{
@@ -339,15 +381,17 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           {isMulti && !expanded ? (
             <Popover>
               <PopoverTrigger asChild>
-                <button
+                <motion.button
                   type="button"
                   className={agencyTimeEntryIconButtonClass}
+                  inherit={false}
+                  whileTap={agencyTapScale}
                   aria-label="Entry actions"
                 >
                   <MoreVertical className="size-3.5" />
-                </button>
+                </motion.button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-44 p-1">
+              <PopoverContent align="end" size="menu">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -411,6 +455,6 @@ export function AgencyTimeEntryRowView({ view, className }: AgencyTimeEntryRowVi
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

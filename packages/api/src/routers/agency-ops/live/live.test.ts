@@ -17,7 +17,10 @@ describe("agency timer live events", () => {
         projectId: "project-1",
         taskId: "task-1",
         taskTitle: "Ship live timer state",
+        taskIconKey: "flag",
         projectName: "Orch",
+        colorHueId: 1,
+        projectIconKey: "code",
         description: "Implement pub/sub reconciliation",
         isBillable: false,
         tags: [

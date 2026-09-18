@@ -251,7 +251,7 @@ export function WorkspaceOrchestratorSourcesModal({
                 return (
                   <li
                     key={source.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-muted bg-muted px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-surface border border-muted bg-card px-surface py-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Box className="size-4 shrink-0 text-toned" />

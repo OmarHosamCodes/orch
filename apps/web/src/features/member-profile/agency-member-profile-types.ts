@@ -47,6 +47,10 @@ export type AgencyMemberProfileViewModel = {
     onTenureMonthIndexesChange: (monthIndexes: number[]) => void;
     weekStartsOn: number;
     label: string;
+    hasPendingChanges: boolean;
+    onApply: () => void;
+    canReset: boolean;
+    onReset: () => void;
   };
   profile: {
     userName: string;
@@ -175,6 +179,9 @@ export type AgencyMemberProfileViewModel = {
             projectName: string | null;
             taskId: string | null;
             taskTitle: string | null;
+            taskIconKey: string | null;
+            colorHueId: number | null;
+            projectIconKey: string | null;
             clientId: string | null;
             clientName: string | null;
             description: string | null;

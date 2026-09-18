@@ -15,7 +15,7 @@ import { eq, asc, and, inArray, sql, desc, sum, isNull, gte, lte, or, ilike } fr
 import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   invoiceBillStatus,
   invoiceRemainingAmount,
@@ -53,7 +53,11 @@ type AgencyMemberRateRecord = {
 };
 
 function periodAgencyBillableRate(
-  task: { billableRateAmount: number | null; sourceBillableRateAmount: number | null; currency: string | null },
+  task: {
+    billableRateAmount: number | null;
+    sourceBillableRateAmount: number | null;
+    currency: string | null;
+  },
   project: {
     billableRateAmount: number | null;
     sourceBillableRateAmount: number | null;
@@ -81,7 +85,7 @@ export async function listMemberRates(
   actorUserId: string,
   input: { teamId: string },
 ): Promise<{ items: AgencyMemberRateRecord[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const members = await db
     .select({
@@ -137,7 +141,7 @@ export async function upsertMemberRate(
     effectiveFrom?: string;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [membership] = await db
     .select({ userId: workspaceTeamMember.userId })
@@ -333,7 +337,7 @@ export async function listInvoices(
     pageSize?: number;
   },
 ): Promise<PaginatedItems<AgencyInvoiceRecord>> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const filters = [eq(agencyOpsInvoice.teamId, input.teamId)];
 
@@ -376,7 +380,7 @@ export async function getInvoiceSummary(
   actorUserId: string,
   input: { teamId: string; periodStart?: string; periodEnd?: string },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const filters = [eq(agencyOpsInvoice.teamId, input.teamId)];
   if (input.periodStart && input.periodEnd) {
@@ -475,7 +479,7 @@ export async function createInvoice(
     currency?: string;
   },
 ): Promise<AgencyInvoiceRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [clientRow] = await db
     .select({
@@ -649,7 +653,7 @@ export async function updateInvoiceStatus(
   actorUserId: string,
   input: { teamId: string; invoiceId: string; status: "sent" | "paid" | "refunded" },
 ): Promise<AgencyInvoiceRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [existing] = await db
     .select({ invoice: agencyOpsInvoice, clientName: agencyOpsClient.name })
@@ -702,7 +706,7 @@ export async function recordInvoicePayment(
   actorUserId: string,
   input: { teamId: string; invoiceId: string; amount: number },
 ): Promise<AgencyInvoiceRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (input.amount <= 0) {
     throw new ORPCError("BAD_REQUEST", { message: "Payment amount must be greater than zero." });
@@ -873,7 +877,7 @@ export async function sumPeriodExternalBillablePool(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<{ billablePoolAmount: number; currency: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -900,7 +904,7 @@ export async function listPeriodBillActivity(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string; search?: string },
 ): Promise<{ clients: PeriodBillClientActivity[]; members: PeriodBillMemberActivity[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -991,6 +995,6 @@ export async function listPeriodBillActivity(
 
 /** Empty stub until project budgets ship; Projects UI still queries this. */
 export async function listBudgetsStub(actorUserId: string, input: { teamId: string }) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   return { items: [] as const };
 }

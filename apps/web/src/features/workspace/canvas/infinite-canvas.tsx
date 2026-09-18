@@ -30,7 +30,6 @@ import { WorkspaceFlowEdge } from "@/features/workspace/canvas/workspace-flow-ed
 import { WorkspaceFlowNode } from "@/features/workspace/canvas/workspace-flow-node";
 import { Button } from "@/ui/button";
 import { useCanvasKeyboard } from "@/features/workspace/canvas/use-canvas-keyboard";
-import { useTheme } from "@/stores/theme";
 import type { CanvasNodeModel } from "@/features/workspace/canvas/canvas-types";
 import {
   applyFlowChangesToWorkspaceNodes,
@@ -116,7 +115,6 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
   ) {
     const shellRef = useRef<HTMLDivElement | null>(null);
     const hasFittedRef = useRef(false);
-    const { isDark } = useTheme();
     const reactFlow = useReactFlow();
     const { zoomIn, zoomOut, fitView, screenToFlowPosition, getZoom } = reactFlow;
     const [zoomPercent, setZoomPercent] = useState(100);
@@ -363,7 +361,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
             edges={flowEdges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            colorMode={isDark ? "dark" : "light"}
+            colorMode="dark"
             onNodesChange={handleNodesChange}
             onSelectionChange={handleSelectionChange}
             onConnect={handleConnect}
@@ -416,14 +414,14 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
               variant={BackgroundVariant.Dots}
               gap={28}
               size={1}
-              color={isDark ? "oklch(0.55 0.01 285 / 0.35)" : "oklch(0.55 0.01 285 / 0.2)"}
+              color="oklch(0.55 0.01 285 / 0.35)"
             />
 
             <Panel position="bottom-left" className="!mb-8 !ml-4">
               <div
                 className={cn(
                   shellChromePanelClass,
-                  "flex flex-col items-center gap-1 rounded-[14px] p-1.5",
+                  "flex flex-col items-center gap-1 rounded-surface p-1.5",
                 )}
                 role="toolbar"
                 aria-label="Canvas zoom"
@@ -479,7 +477,7 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
                 aria-label="Board overview"
                 className={cn(
                   shellChromePanelClass,
-                  "!m-0 overflow-hidden !rounded-[14px] !border-0 !shadow-none",
+                  "!m-0 overflow-hidden !rounded-surface !border-0 !shadow-none",
                 )}
                 maskColor="color-mix(in oklab, var(--chart-2) 12%, transparent)"
                 nodeColor={minimapNodeColor}
@@ -504,16 +502,11 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
                 className={cn(dashboardEmptyPanelClass, "pointer-events-auto max-w-sm text-center")}
               >
                 <LayoutGrid className="mx-auto size-7 text-muted" />
-                <h3 className="mt-4 text-lg font-bold text-highlighted">No nodes yet</h3>
+                <h3 className="mt-4 text-lg font-semibold text-highlighted">Add a node to start</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Right-click the canvas to add knowledge, or add a node.
+                  Place a node on the canvas. Right-click anytime to add knowledge.
                 </p>
-                <Button
-                  className="mt-4"
-                  variant="secondary"
-                  size="sm"
-                  onClick={createNodeAtViewportCenter}
-                >
+                <Button className="mt-4" size="sm" onClick={createNodeAtViewportCenter}>
                   <Plus className="size-4" />
                   Add node
                 </Button>

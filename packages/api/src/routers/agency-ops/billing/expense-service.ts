@@ -12,7 +12,7 @@ import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import {
   type AgencySubscriptionCycleRecord,
   buildSubscriptionCycleRecords,
@@ -84,7 +84,7 @@ export async function listExpenses(
     pageSize?: number;
   },
 ): Promise<PaginatedItems<AgencyExpenseRecord>> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = input.periodStart ? parseIsoDateTime(input.periodStart, "periodStart") : null;
   const periodEnd = input.periodEnd ? parseIsoDateTime(input.periodEnd, "periodEnd") : null;
@@ -121,7 +121,7 @@ export async function listSubscriptionCycles(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<AgencySubscriptionCycleRecord[]> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");
@@ -200,7 +200,7 @@ export async function createExpense(
     occurredAt?: string | null;
   },
 ): Promise<AgencyExpenseRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const name = input.name.trim();
   if (!name) {
@@ -307,7 +307,7 @@ export async function updateExpense(
     occurredAt?: string | null;
   },
 ): Promise<AgencyExpenseRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const [existing] = await db
     .select()
@@ -446,7 +446,7 @@ export async function recordExpensePayment(
   actorUserId: string,
   input: { teamId: string; expenseId: string; amount: number },
 ): Promise<AgencyExpenseRecord> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   if (!Number.isInteger(input.amount) || input.amount <= 0) {
     throw new ORPCError("BAD_REQUEST", { message: "Payment amount must be a positive integer." });
@@ -535,7 +535,7 @@ export async function removeExpense(
   actorUserId: string,
   input: { teamId: string; expenseId: string },
 ): Promise<{ id: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const deleted = await db
     .delete(agencyOpsExpense)
@@ -553,7 +553,7 @@ export async function sumExpensesInPeriod(
   actorUserId: string,
   input: { teamId: string; periodStart: string; periodEnd: string },
 ): Promise<{ amount: number; paidAmount: number; currency: string }> {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const periodStart = parseIsoDateTime(input.periodStart, "periodStart");
   const periodEnd = parseIsoDateTime(input.periodEnd, "periodEnd");

@@ -2,7 +2,11 @@ import type { AgentChatTurnInput, AgentTextAttachment } from "@orch/agent/types"
 import type { ChatTransport } from "ai";
 
 import { filePartsToAgentAttachments } from "@/features/workspace-agent/agent-attachments";
-import { streamAgentChatTurn } from "@/features/workspace-agent/agent-turn-stream";
+import {
+  cancelAgentRun,
+  streamAgentChatTurn,
+  subscribeAgentRun,
+} from "@/features/workspace-agent/agent-turn-stream";
 import {
   createOrchEventToChunkMapper,
   getLastUserFileParts,
@@ -19,7 +23,25 @@ type OrchTurnTransportBody = Omit<AgentChatTurnInput, "content" | "attachments">
 export type OrchTurnSendContext = Partial<Omit<AgentChatTurnInput, "content" | "attachments">>;
 
 export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
+  private runId: string | null = null;
+  private lastSeq = 0;
+
+  subscribeRun: typeof subscribeAgentRun = subscribeAgentRun;
+  cancelRun: typeof cancelAgentRun = cancelAgentRun;
+
   constructor(private readonly getContext: () => OrchTurnSendContext = () => ({})) {}
+
+  rememberRun(runId: string, lastSeq = 0) {
+    this.runId = runId;
+    this.lastSeq = lastSeq;
+  }
+
+  async cancelActiveRun() {
+    if (!this.runId) {
+      return;
+    }
+    await this.cancelRun(this.runId);
+  }
 
   async sendMessages({
     messages,
@@ -55,6 +77,7 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
 
     const mapEvent = createOrchEventToChunkMapper();
     const signal = abortSignal ?? new AbortController().signal;
+    const transport = this;
 
     return new ReadableStream<OrchUIMessageChunk>({
       async start(controller) {
@@ -62,6 +85,10 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
           await streamAgentChatTurn(input, {
             signal,
             onEvent: (event) => {
+              if (event.type === "started") {
+                transport.rememberRun(event.runId, 0);
+              }
+              transport.lastSeq += 1;
               for (const chunk of mapEvent(event)) {
                 controller.enqueue(chunk);
               }
@@ -83,7 +110,44 @@ export class OrchTurnStreamTransport implements ChatTransport<OrchUIMessage> {
     });
   }
 
-  async reconnectToStream(): Promise<ReadableStream<OrchUIMessageChunk> | null> {
-    return null;
+  async reconnectToStream(options?: {
+    abortSignal?: AbortSignal;
+  }): Promise<ReadableStream<OrchUIMessageChunk> | null> {
+    if (!this.runId) {
+      return null;
+    }
+
+    const mapEvent = createOrchEventToChunkMapper();
+    const runId = this.runId;
+    const afterSeq = this.lastSeq;
+    const transport = this;
+    const signal = options?.abortSignal ?? new AbortController().signal;
+
+    return new ReadableStream<OrchUIMessageChunk>({
+      async start(controller) {
+        try {
+          await transport.subscribeRun(
+            { runId, afterSeq },
+            {
+              signal,
+              onEvent: (event) => {
+                transport.lastSeq += 1;
+                for (const chunk of mapEvent(event)) {
+                  controller.enqueue(chunk);
+                }
+              },
+            },
+          );
+          controller.close();
+        } catch (error) {
+          const errorText =
+            error instanceof Error && error.message.trim()
+              ? error.message.trim()
+              : "Failed to resume the agent.";
+          controller.enqueue({ type: "error", errorText });
+          controller.close();
+        }
+      },
+    });
   }
 }

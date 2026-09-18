@@ -10,7 +10,7 @@ import { eq, asc, and, inArray, gte, lte, sql, sum, isNull, lt } from "drizzle-o
 import { ORPCError } from "@orpc/server";
 import { createWorkspaceId } from "@orch/workspace";
 import { parseIsoDateTime } from "../shared/date-helpers";
-import { requireTeamMembership } from "../shared/membership";
+import { requireAgencyRole } from "../shared/membership";
 import { buildHeatDays, expandLeaveDays } from "../member-profile/member-profile-heat";
 import {
   localDateKeyFromInstant,
@@ -38,7 +38,7 @@ export async function listMemberCapacity(
   actorUserId: string,
   input: { teamId: string; weekStart: string; weeks: number },
 ): Promise<{ weeks: AgencyCapacityWeek[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   const weekStartRaw = parseIsoDateTime(input.weekStart, "weekStart");
   // Normalize to exact UTC midnight so map keys are consistent with date_trunc output.
@@ -142,7 +142,7 @@ export async function setMemberCapacity(
     capacitySeconds: number;
   },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "owner");
+  await requireAgencyRole(actorUserId, input.teamId, "owner");
 
   const weekStartDate = parseIsoDateTime(input.weekStart, "weekStart");
   const { weekStartsOn } = await loadTeamWorkSchedule(input.teamId);
@@ -216,7 +216,7 @@ export async function listTeamLeave(
   actorUserId: string,
   input: { teamId: string; fromDate: string; toDate: string },
 ): Promise<{ items: MemberLeave[] }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.fromDate) || !/^\d{4}-\d{2}-\d{2}$/.test(input.toDate)) {
     throw new ORPCError("BAD_REQUEST", { message: "fromDate and toDate must be YYYY-MM-DD." });
@@ -260,7 +260,7 @@ export async function listTeamActivityHeat(
   toDate: string;
   members: Array<{ userId: string; userName: string; days: HeatDay[] }>;
 }> {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   assertDateKey(input.fromDate, "fromDate");
   assertDateKey(input.toDate, "toDate");
   if (input.fromDate > input.toDate) {

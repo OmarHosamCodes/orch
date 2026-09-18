@@ -10,6 +10,7 @@ mock.module("@/features/shared/agency-live-rpc", () => ({
           turnStream: async function* () {
             yield {
               type: "started",
+              runId: "agent-run-1",
               conversationId: "c1",
               createdConversation: true,
               userMessageId: "u1",

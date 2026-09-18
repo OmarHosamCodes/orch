@@ -2,6 +2,7 @@ import { Star } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 
+import { AgencyEntityMark } from "@/features/shared/agency-entity-mark";
 import { AgencySearchHighlight } from "@/features/shared/agency-search-highlight";
 import {
   agencyFocusRingClass,
@@ -22,6 +23,9 @@ import { cn } from "@/lib/utils";
 type AgencyTaskChooserTaskRowProps = {
   taskId: string;
   title: string;
+  projectId: string;
+  colorHueId?: number | null;
+  iconKey?: string | null;
   selected: boolean;
   bestMatch?: boolean;
   active?: boolean;
@@ -42,6 +46,9 @@ function prefersReducedMotionNow(): boolean {
 export function AgencyTaskChooserTaskRow({
   taskId,
   title,
+  projectId,
+  colorHueId,
+  iconKey,
   selected,
   bestMatch = false,
   active = false,
@@ -96,17 +103,20 @@ export function AgencyTaskChooserTaskRow({
         selected && agencyTaskChooserRowSelectedClass,
         !selected && bestMatch && agencyTaskChooserRowBestMatchClass,
         !selected && active && agencyTaskChooserRowActiveClass,
-        selecting && "bg-primary/15 hover:bg-primary/15",
+        selecting && "bg-accent hover:bg-accent",
       )}
     >
       <motion.button
         type="button"
         id={optionId}
+        role="option"
+        aria-selected={selected}
+        title={title}
         data-selected-task={selected ? "true" : undefined}
         data-best-match-task={!selected && bestMatch ? "true" : undefined}
         data-task-id={taskId}
         className={cn(
-          "flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-left",
+          "flex min-w-0 flex-1 items-center rounded-lg px-2.5 py-2 text-start",
           agencyFocusRingClass,
         )}
         whileTap={chooserTapScale}
@@ -118,13 +128,22 @@ export function AgencyTaskChooserTaskRow({
         }}
       >
         <span
+          dir="auto"
           className={cn(
-            "min-w-0 flex-1 truncate text-sm font-normal leading-snug",
+            "flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-normal leading-snug",
             selected ? "font-medium text-primary" : "text-muted-foreground",
             !selected && bestMatch && "font-medium text-foreground",
           )}
         >
-          {highlightSearch ? <AgencySearchHighlight text={title} query={searchTerm} /> : title}
+          <AgencyEntityMark
+            name={title}
+            projectId={projectId}
+            iconKey={iconKey}
+            colorHueId={colorHueId}
+          />
+          <span className="min-w-0 truncate">
+            {highlightSearch ? <AgencySearchHighlight text={title} query={searchTerm} /> : title}
+          </span>
         </span>
       </motion.button>
       <motion.button
@@ -132,7 +151,7 @@ export function AgencyTaskChooserTaskRow({
         aria-label={favorited ? "Remove task from favorites" : "Add task to favorites"}
         className={cn(
           "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground",
-          "pointer-events-none opacity-0 transition-opacity",
+          "[@media(hover:hover)]:pointer-events-none [@media(hover:hover)]:opacity-0 transition-opacity",
           "group-hover:pointer-events-auto group-hover:opacity-100",
           "focus-visible:pointer-events-auto focus-visible:opacity-100",
           favorited && "pointer-events-auto text-warning opacity-100",

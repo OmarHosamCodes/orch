@@ -1,5 +1,7 @@
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
+import type { AgencyEntityIconKey } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
+import { useAgencyEntityIconDraft } from "@/features/shared/use-agency-entity-icon-draft";
 import { PROJECT_PALETTE } from "@/features/shared/project-palette";
 import { useAgencyOpsStore } from "@/features/shared/stores/agency-ops";
 
@@ -31,6 +33,8 @@ export type AgencyTaskChooserProjectCreateDialogViewModel = {
   setClientId: (value: string) => void;
   colorHueId: number;
   setColorHueId: (value: number) => void;
+  iconKey: AgencyEntityIconKey | null;
+  setIconKey: (value: AgencyEntityIconKey | null) => void;
   templateId: string;
   setTemplateId: (value: string) => void;
   palette: typeof PROJECT_PALETTE;
@@ -54,6 +58,7 @@ export function useAgencyTaskChooserProjectCreateDialog({
   const [clientId, setClientId] = useState("");
   const [colorHueId, setColorHueId] = useState(1);
   const [templateId, setTemplateId] = useState("");
+  const { displayIconKey, setIconKey, submitIconKey } = useAgencyEntityIconDraft(projectName, open);
   const createProject = useAgencyOpsStore((state) => state.createProject);
   const isPending = useAgencyOpsStore((state) => state.projectMutationCount > 0);
 
@@ -85,6 +90,7 @@ export function useAgencyTaskChooserProjectCreateDialog({
       clientName: client.name,
       name: projectName.trim(),
       colorHueId,
+      iconKey: submitIconKey,
       templateId: templateId || undefined,
     });
 
@@ -102,6 +108,8 @@ export function useAgencyTaskChooserProjectCreateDialog({
     setClientId,
     colorHueId,
     setColorHueId,
+    iconKey: displayIconKey,
+    setIconKey,
     templateId,
     setTemplateId,
     palette: PROJECT_PALETTE,

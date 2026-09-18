@@ -1,13 +1,12 @@
 import { Loader2 } from "lucide-react";
-import { Link } from "@/lib/navigation";
 
 import { AppShellPage } from "@/features/app-shell/app-shell-page";
 import { ShellBootSurface } from "@/features/app-shell/components/shell-boot-surface";
+import { NotFoundState } from "@/features/app-shell/route-status";
 import { useShellBootGate } from "@/features/app-shell/shell/use-shell-boot-gate";
 import { useWorkspaceNodePage } from "@/features/workspace/hooks/use-workspace-node-page";
 import { WorkspaceNodeEditorProvider } from "@/features/workspace/node/context";
 import { WorkspaceNodeShell } from "@/features/workspace/node/workspace-node-shell";
-import { Button } from "@/ui/button";
 
 export function NodePage() {
   const page = useWorkspaceNodePage();
@@ -54,14 +53,11 @@ export function NodePage() {
           ) : null}
 
           {!page.isWorkspaceInitialLoading && page.hasWorkspaceLoaded && !page.node ? (
-            <div className="mx-auto flex max-w-xl flex-col gap-4 px-6 py-16">
-              <div className="rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm">
-                Node not found. It may have been removed or the link is invalid.
-              </div>
-              <Button variant="secondary" asChild>
-                <Link to="/canvas">Return to canvas</Link>
-              </Button>
-            </div>
+            <NotFoundState
+              title="Node not found."
+              description="This node may have been removed or the link is no longer valid. Return to the canvas to continue working."
+              backLabel="Return to canvas"
+            />
           ) : null}
 
           {page.isWorkspaceRefreshing ? (

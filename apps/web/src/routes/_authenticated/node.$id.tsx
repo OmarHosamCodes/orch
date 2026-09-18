@@ -8,6 +8,6 @@ export const Route = createFileRoute("/_authenticated/node/$id")({
   component: NodePage,
   pendingComponent: () => <RoutePending label="Opening node" />,
   head: () => ({
-    meta: [{ title: "Node — Orch" }],
+    meta: [{ title: "Page | Orch" }],
   }),
 });

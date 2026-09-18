@@ -1,6 +1,23 @@
-import "dotenv/config";
+import { config as loadDotenv } from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+
+for (const envPath of [
+  path.join(repoRoot, "apps/server/.env"),
+  path.join(repoRoot, ".env"),
+]) {
+  loadDotenv({ path: envPath, override: false });
+}
+
+export {
+  planForPolarProductId,
+  polarCheckoutProducts,
+  resolvePolarCatalog,
+} from "./polar-catalog";
 
 /**
  * Server environment validation
@@ -36,7 +53,10 @@ export const env = createEnv({
       .string()
       .min(1, "POLAR_WEBHOOK_SECRET is required for payment features"),
     POLAR_SERVER: z.enum(["sandbox", "production"]).default("sandbox"),
-    POLAR_PRODUCT_PRO: z.string().min(1, "POLAR_PRODUCT_PRO is required for Pro tier billing"),
+    POLAR_PRODUCT_PRO: z.string().min(1, "POLAR_PRODUCT_PRO is required as the Agency product fallback"),
+    POLAR_PRODUCT_AGENCY: z.string().optional(),
+    POLAR_PRODUCT_AGENCY_UNLIMITED: z.string().optional(),
+    POLAR_PRODUCT_ORCH_CREDITS: z.string().optional(),
     S3_ENDPOINT: z.string().min(1, "S3_ENDPOINT is required for file storage"),
     S3_REGION: z.string().min(1, "S3_REGION is required for file storage"),
     S3_BUCKET: z.string().min(1, "S3_BUCKET is required for file storage"),

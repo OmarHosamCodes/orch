@@ -1,12 +1,17 @@
 import { z } from "zod";
 
-import { requireTeamMembership } from "../../../lib/team-membership";
+import { requireAgencyRole } from "../../../lib/team-membership";
 import { getRedisPublisher, getRedisSubscriber } from "../../../lib/redis";
 import {
   registerAgencyLiveUserConnection,
   unregisterAgencyLiveUserConnection,
 } from "../../notifications/live-bridge";
 import { notificationRecordSchema } from "../../../schemas/notifications";
+import {
+  agencyEntityIconKeySchema,
+  agencyProjectColorHueIdSchema,
+} from "../../../schemas/agency-ops";
+import type { AgencyEntityIconKey, AgencyEntityIconSource } from "../shared/entity-icon-catalog";
 
 const agencyActiveTimerLiveSchema = z.object({
   id: z.string().min(1),
@@ -16,7 +21,10 @@ const agencyActiveTimerLiveSchema = z.object({
   projectId: z.string(),
   taskId: z.string().nullable(),
   taskTitle: z.string().nullable(),
+  taskIconKey: agencyEntityIconKeySchema.nullable(),
   projectName: z.string(),
+  colorHueId: agencyProjectColorHueIdSchema.nullable(),
+  projectIconKey: agencyEntityIconKeySchema.nullable(),
   description: z.string(),
   isBillable: z.boolean(),
   tags: z.array(
@@ -51,6 +59,8 @@ const agencyProjectTaskLiveSchema = z.object({
   teamId: z.string().min(1),
   projectId: z.string().min(1),
   title: z.string().min(1),
+  iconKey: agencyEntityIconKeySchema.nullable(),
+  iconSource: z.enum(["auto", "manual"]),
   status: z.enum(["open", "in_progress", "done", "archived"]),
   taskKind: z.enum(["standard", "journey_anchor", "journey_milestone"]),
   assignedToTeam: z.boolean(),
@@ -266,7 +276,7 @@ export async function* subscribeAgencyLive(
   actorUserId: string,
   input: { teamId: string; signal?: AbortSignal },
 ) {
-  await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  await requireAgencyRole(actorUserId, input.teamId, "viewer");
   registerAgencyLiveUserConnection(actorUserId, input.teamId);
   try {
     for await (const event of agencyLivePublisher.subscribe(input.teamId, input.signal)) {
@@ -305,7 +315,10 @@ export async function publishAgencyTimerUpdated(
     projectId: string;
     taskId: string | null;
     taskTitle: string | null;
+    taskIconKey: AgencyEntityIconKey | null;
     projectName: string;
+    colorHueId: number | null;
+    projectIconKey: AgencyEntityIconKey | null;
     description: string;
     isBillable: boolean;
     tags: Array<{
@@ -340,6 +353,8 @@ export async function publishAgencyTaskUpdated(
     teamId: string;
     projectId: string;
     title: string;
+    iconKey: AgencyEntityIconKey | null;
+    iconSource: AgencyEntityIconSource;
     status: "open" | "in_progress" | "done" | "archived";
     taskKind: "standard" | "journey_anchor" | "journey_milestone";
     assignedToTeam: boolean;

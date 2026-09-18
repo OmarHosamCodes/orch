@@ -16,6 +16,7 @@ type AgencyMyTasksRailRowProps = {
   task: AgencyProjectTask;
   view: AgencyMyTasksRailViewModel;
   projectName: string;
+  colorHueId?: number | null;
   assignerMember: AgencyMemberOption | null;
   variants: Variants;
   stagger: number;
@@ -27,6 +28,7 @@ export function AgencyMyTasksRailRow({
   task,
   view,
   projectName,
+  colorHueId,
   assignerMember,
   variants,
   stagger,
@@ -63,7 +65,10 @@ export function AgencyMyTasksRailRow({
     <AgencyMyTasksRailRowView
       taskId={task.id}
       title={task.title}
+      projectId={task.projectId}
       projectName={projectName}
+      colorHueId={colorHueId}
+      iconKey={task.iconKey}
       assigner={assigner}
       timeConsumer={timeConsumer}
       isDone={isDone}

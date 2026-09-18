@@ -25,6 +25,7 @@ import {
 import { createWorkspaceId } from "@orch/workspace";
 import { env } from "@orch/env/server";
 import { standardWeekCapacitySeconds } from "@orch/api/routers/agency-ops/resourcing/work-schedule";
+import { assignEntityIconOnWrite } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
 import { and, eq } from "drizzle-orm";
 import { ensureCredentialAccount } from "../../lib/ensure-credential-account";
 import {
@@ -668,6 +669,7 @@ async function seedAgencyData(ctx: SeedContext, scale: AgencySeedScale = "defaul
       teamId,
       clientId: p.clientId,
       name: p.name,
+      ...assignEntityIconOnWrite({ name: p.name }),
       createdByUserId: ownerId,
       createdAt: now,
       updatedAt: now,
@@ -681,6 +683,7 @@ async function seedAgencyData(ctx: SeedContext, scale: AgencySeedScale = "defaul
       teamId,
       projectId: t.projectId,
       title: t.title,
+      ...assignEntityIconOnWrite({ name: t.title }),
       status: t.status,
       assignedToTeam: t.assignedToTeam ?? false,
       dueDate: t.dueDate,

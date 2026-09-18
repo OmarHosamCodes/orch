@@ -1,7 +1,9 @@
 import { Copy, Loader2, MoreVertical, Play, Trash2, TrashIcon } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 
 import { AgencyBillableToggleMenuItem } from "@/features/time-tracking/entries/agency-billable-toggle-menu-item";
+import { agencyTapScale } from "@/features/shared/agency-motion";
 import { Button } from "@/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { agencyTimeEntryIconButtonClass } from "@/features/shared/agency-ui";
@@ -34,15 +36,17 @@ export function AgencyTimeEntryPlayAction({
   const entryLabel = entry.taskTitle || entry.projectName;
 
   return (
-    <button
+    <motion.button
       type="button"
       className={cn(agencyTimeEntryIconButtonClass, !canRestart && "cursor-not-allowed opacity-50")}
       disabled={!canRestart}
+      inherit={false}
+      whileTap={canRestart ? agencyTapScale : undefined}
       aria-label={`Restart timer for ${entryLabel}`}
       onClick={onRestart}
     >
       <Play className="size-3.5" />
-    </button>
+    </motion.button>
   );
 }
 
@@ -76,10 +80,12 @@ export function AgencyTimeEntryMoreAction({
   return (
     <Popover open={menuOpen} onOpenChange={setMenuOpen}>
       <PopoverTrigger asChild>
-        <button
+        <motion.button
           type="button"
           className={agencyTimeEntryIconButtonClass}
           disabled={deleting || duplicating || wastePending}
+          inherit={false}
+          whileTap={agencyTapScale}
           aria-label={`Actions for ${entryLabel}`}
           onClick={() => setMenuOpen(true)}
         >
@@ -88,10 +94,10 @@ export function AgencyTimeEntryMoreAction({
           ) : (
             <MoreVertical className="size-3.5" />
           )}
-        </button>
+        </motion.button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-44 p-1">
+      <PopoverContent align="end" size="menu">
         {canToggleBillable ? (
           <AgencyBillableToggleMenuItem
             isBillable={isBillable}

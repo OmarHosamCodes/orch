@@ -13,8 +13,10 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
+import { AgencyDateField } from "@/features/shared/date/agency-date-field";
 import { BlockFieldLabel } from "@/features/workspace/node/blocks/shared/block-field-label";
 import { BlockSelect } from "@/features/workspace/node/blocks/shared/block-select";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -160,7 +162,10 @@ export function WorkspaceDealScoringMatrixBlockEditor({
       ) : (
         <div className="space-y-4">
           {sortedDeals.map((deal, index) => (
-            <article key={deal.id} className="rounded-xl border border-muted bg-background p-5">
+            <article
+              key={deal.id}
+              className="rounded-surface border border-muted bg-background p-surface"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <Input
@@ -264,13 +269,19 @@ export function WorkspaceDealScoringMatrixBlockEditor({
                   <Label>
                     <BlockFieldLabel>Due Date</BlockFieldLabel>
                   </Label>
-                  <Input
+                  <AgencyDateField
                     value={deal.dueDate ?? ""}
-                    type="date"
-                    className="w-full rounded-xl"
-                    onChange={(event) =>
+                    displayStyle="short"
+                    className="h-8 w-full rounded-xl"
+                    aria-label="Due date"
+                    onChange={(next) =>
                       mutateDeal(deal.id, (target) => {
-                        target.dueDate = event.target.value || null;
+                        target.dueDate = next || null;
+                      })
+                    }
+                    onClear={() =>
+                      mutateDeal(deal.id, (target) => {
+                        target.dueDate = null;
                       })
                     }
                   />
@@ -284,13 +295,11 @@ export function WorkspaceDealScoringMatrixBlockEditor({
                     {deal.score}
                   </span>
                 </div>
-                <input
+                <BlockSlider
                   value={deal.score}
-                  type="range"
                   min={0}
                   max={100}
                   step={1}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
                   aria-label={`Score for ${deal.clientName || "deal"}`}
                   onChange={(event) =>
                     mutateDeal(deal.id, (target) => {

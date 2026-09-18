@@ -2,7 +2,7 @@ import { Activity } from "lucide-react";
 
 import { Button } from "@/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Skeleton } from "@/ui/skeleton";
+import { SurfaceShimmer } from "@/ui/skeleton";
 import { agencyFocusRingClass } from "@/features/shared/agency-ui";
 import { cn } from "@/lib/utils";
 import type { AgencyReportActivityMenuViewModel } from "./hooks/use-agency-report-activity-menu";
@@ -29,17 +29,13 @@ export function AgencyReportActivityMenuView({
           <span className="hidden sm:inline">Activity</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className="w-80 p-0">
+      <PopoverContent align={align} size="chooser">
         <div className="border-b border-default px-3 py-2.5">
           <p className="text-sm font-semibold text-highlighted">Activity</p>
         </div>
         <div className="max-h-72 overflow-y-auto p-2">
           {vm.isPending ? (
-            <div className="space-y-2">
-              {Array.from({ length: 4 }, (_, index) => (
-                <Skeleton key={index} className="h-8 w-full rounded-dense" />
-              ))}
-            </div>
+            <SurfaceShimmer className="min-h-32" label="Loading activity" />
           ) : vm.isError ? (
             <p className="px-1 py-3 text-center text-xs text-muted">Couldn't load activity.</p>
           ) : vm.items.length === 0 ? (

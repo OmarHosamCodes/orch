@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 
 import type { WorkspaceBlockEditorProps } from "@/features/workspace/node/block-editor-props";
 import { BlockProgressBar } from "@/features/workspace/node/blocks/shared/block-progress-bar";
+import { BlockSlider } from "@/features/workspace/node/blocks/shared/block-slider";
 import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -240,7 +241,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
             onClick={addDeal}
           >
             <Plus />
-            Add Deal
+            Add deal
           </Button>
         </div>
       </div>
@@ -255,7 +256,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
               <section
                 key={bucket}
                 className={cn(
-                  "flex w-[320px] shrink-0 snap-start flex-col rounded-xl border p-4",
+                  "flex w-[320px] shrink-0 snap-start flex-col rounded-surface border p-surface",
                   bucketClasses.column,
                   dragOverBucket === bucket ? "ring-2 ring-primary/30" : "",
                 )}
@@ -332,7 +333,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                       key={deal.id}
                       draggable
                       className={cn(
-                        "group relative rounded-xl border border-muted bg-background p-5",
+                        "group relative rounded-surface border border-muted bg-background p-surface",
                         draggingDealId === deal.id
                           ? "pointer-events-none scale-95 opacity-40 grayscale"
                           : "cursor-grab active:cursor-grabbing",
@@ -469,13 +470,11 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                               {deal.confidence}%
                             </span>
                           </div>
-                          <input
-                            type="range"
+                          <BlockSlider
                             min={10}
                             max={100}
                             step={1}
                             value={deal.confidence}
-                            className="h-1.5 w-full appearance-none rounded-full bg-muted accent-primary"
                             aria-label={`Confidence for ${deal.clientName || "forecast deal"}`}
                             onChange={(event) =>
                               mutateDeal(deal.id, (entry) => {
@@ -510,10 +509,20 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                   ))}
 
                   {dealsByBucket[bucket].length === 0 ? (
-                    <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-muted bg-background p-8 text-center">
+                    <div className="flex h-full flex-col items-center justify-center rounded-surface border border-dashed border-muted bg-background p-surface text-center">
                       <p className="text-sm font-semibold text-muted-foreground">
                         No {workspaceSalesForecastBucketLabels[bucket]} deals yet.
                       </p>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3 rounded-full"
+                        onClick={addDeal}
+                      >
+                        <Plus />
+                        Add deal
+                      </Button>
                     </div>
                   ) : null}
                 </div>

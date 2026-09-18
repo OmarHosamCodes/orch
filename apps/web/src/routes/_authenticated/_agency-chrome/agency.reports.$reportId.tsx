@@ -10,6 +10,6 @@ export const Route = createFileRoute("/_authenticated/_agency-chrome/agency/repo
   component: AgencyReportDetailPage,
   pendingComponent: () => <RoutePending label="Opening report" />,
   head: () => ({
-    meta: [{ title: "Report — Orch" }],
+    meta: [{ title: "Report | Orch" }],
   }),
 });

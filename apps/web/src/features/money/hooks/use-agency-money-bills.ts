@@ -54,7 +54,6 @@ import { orpc } from "@/lib/orpc";
 
 import { useAgencyMoneyBillAdjust } from "./use-agency-money-bill-adjust";
 import { useAgencyMoneyBillPreview } from "./use-agency-money-bill-preview";
-import { useMoneyDetailSheetSide } from "./use-money-detail-sheet-side";
 
 const BILL_CREATE_FORM_ID = "agency-money-bill-create";
 const BILL_PAYMENT_FORM_ID = "agency-money-bill-payment";
@@ -123,7 +122,6 @@ export function useAgencyMoneyBills({
   const queryClient = useQueryClient();
   const agencyOps = useAgencyOpsStore();
   const isInvoiceMutationPending = useAgencyOpsStore(selectIsInvoiceMutationPending);
-  const sheetSide = useMoneyDetailSheetSide();
 
   const [clientCategoryFilter, setClientCategoryFilter] =
     useState<MoneyBillsClientCategoryFilter>("external");
@@ -149,6 +147,7 @@ export function useAgencyMoneyBills({
   const [markPaidTargetId, setMarkPaidTargetId] = useState<string | null>(null);
   const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
   const [composeActionPending, setComposeActionPending] = useState(false);
+  const [expandedLedgerIds, setExpandedLedgerIds] = useState<ReadonlySet<string>>(() => new Set());
   const [detailSelection, setDetailSelection] = useState<BillsDetailSelection>(null);
 
   const showsClientBills = moneyBillsPartyShowsClients(partyFilter);
@@ -208,7 +207,7 @@ export function useAgencyMoneyBills({
         periodEnd,
       },
     }),
-    enabled: Boolean(teamId) && isOwner && loadsSalaryPool,
+    enabled: Boolean(teamId) && isOwner,
   });
 
   const periodObligationsQuery = useQuery({
@@ -536,13 +535,12 @@ export function useAgencyMoneyBills({
       );
 
   function onPartyFilterChange(next: MoneyBillsPartyFilter) {
-    updateMoneySearch(
-      {
-        party: next === "all" ? null : next,
-        status: statusFilter && moneyBillsStatusAllowed(next, statusFilter) ? statusFilter : null,
-      },
-      false,
-    );
+    const updates: Partial<Record<"party" | "status" | "expense" | "q", string | null>> = {
+      party: next,
+      status: statusFilter && moneyBillsStatusAllowed(next, statusFilter) ? statusFilter : null,
+    };
+    if (next !== "expenses") updates.expense = null;
+    updateMoneySearch(updates, false);
     if (next === "all" || next === "client") {
       setClientCategoryFilter("external");
     }
@@ -886,10 +884,18 @@ export function useAgencyMoneyBills({
       visibleDetailSelection?.kind === "salary-pool"
         ? "salary-pool"
         : (visibleDetailSelection?.id ?? null),
+    expandedLedgerIds,
+    onToggleLedgerExpand: (rowId: string) => {
+      setExpandedLedgerIds((current) => {
+        const next = new Set(current);
+        if (next.has(rowId)) next.delete(rowId);
+        else next.add(rowId);
+        return next;
+      });
+    },
     onOpenRow,
     onOpenSalaryPool: () => setDetailSelection({ kind: "salary-pool" }),
     onCloseDetail: () => setDetailSelection(null),
-    sheetSide,
     isLoading: billsIsLoading,
     isError: billsIsError,
     errorMessage: billsErrorMessage,
@@ -949,6 +955,13 @@ export function useAgencyMoneyBills({
       },
     },
     salaryPool: salaryPoolViewModel,
+    queueSalaryPoolRemainingAmount: salaryPool?.remainingAmount ?? 0,
+    queueSalaryPoolQueryStatus:
+      salaryPoolQuery.isPending && isOwner
+        ? ("loading" as const)
+        : salaryPoolQuery.isError
+          ? ("error" as const)
+          : ("ready" as const),
     preview: billPreview.preview,
     adjust: billAdjust.adjust,
     create: {
