@@ -1,4 +1,4 @@
-export type FeaturedRailCardKind = "app-update" | "notification" | "alert";
+export type FeaturedRailCardKind = "app-update" | "notification" | "alert" | "invite";
 
 export type FeaturedRailCardTone = "update" | "action" | "alert";
 

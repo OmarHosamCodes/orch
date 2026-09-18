@@ -20,6 +20,8 @@ import {
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/lib/orpc";
+import { teamInvitesMineQueryOptions } from "@/features/team/team-queries";
+import { useTeamInvitesStore } from "@/features/team/stores/team-invites";
 import { useTeamStore } from "@/features/team/team-store";
 import { useAgencyTimeTrackingStore } from "@/features/time-tracking/stores/agency-time-tracking";
 import { useWorkspaceAgentStore } from "@/features/workspace-agent/stores/workspace-agent-store";
@@ -82,6 +84,10 @@ export function useFeaturedRailCardStack() {
   });
 
   const notificationsQuery = useAgencyNotificationsQuery(teamId, Boolean(teamId));
+  const invitesQuery = useQuery({
+    ...teamInvitesMineQueryOptions(),
+    enabled: Boolean(userId && session.data?.user),
+  });
   const markReadMutation = useMarkNotificationReadMutation(teamId);
   const [actionPendingId, setActionPendingId] = useState<string | null>(null);
   const [order, setOrder] = useState<string[]>([]);
@@ -91,6 +97,8 @@ export function useFeaturedRailCardStack() {
 
   const alertItems = alertsQuery.data?.items ?? [];
   const notificationItems = notificationsQuery.data?.items ?? [];
+  const inviteItems = invitesQuery.data?.items ?? [];
+  const openReview = useTeamInvitesStore((state) => state.openReview);
 
   const cards = useMemo(() => {
     const next: FeaturedRailCard[] = [];
@@ -105,6 +113,21 @@ export function useFeaturedRailCardStack() {
         ctaLabel: "Update now",
         tone: "update",
         dismissible: false,
+      });
+    }
+
+    for (const invite of inviteItems) {
+      next.push({
+        id: `invite:${invite.id}`,
+        kind: "invite",
+        sectionLabel: "Needs action",
+        title: `Join ${invite.teamName}`,
+        body: `${invite.invitedByName} invited you`,
+        ctaLabel: "Review",
+        tone: "action",
+        dismissible: false,
+        actorName: invite.invitedByName,
+        actorAvatar: invite.invitedByAvatar,
       });
     }
 
@@ -150,7 +173,7 @@ export function useFeaturedRailCardStack() {
     }
 
     return next.slice(0, MAX_STACK_CARDS);
-  }, [alertItems, notificationItems, updateAvailable]);
+  }, [alertItems, inviteItems, notificationItems, updateAvailable]);
 
   const priorityOrder = useMemo(() => cards.map((card) => card.id), [cards]);
 
@@ -172,14 +195,19 @@ export function useFeaturedRailCardStack() {
   const overflowCount = Math.max(
     0,
     (updateAvailable ? 1 : 0) +
+      inviteItems.length +
       notificationItems.filter(isNeedsActionNotification).length +
       alertItems.length -
       orderedCards.length,
   );
 
   const listPending =
-    (alertsQuery.isPending && !alertsQuery.data) ||
-    (!updateAvailable && notificationsQuery.isPending && !notificationsQuery.data);
+    (alertsQuery.isPending && !alertsQuery.data && Boolean(teamId)) ||
+    (invitesQuery.isPending && !invitesQuery.data) ||
+    (!updateAvailable &&
+      Boolean(teamId) &&
+      notificationsQuery.isPending &&
+      !notificationsQuery.data);
 
   async function markRead(notification: NotificationRecord) {
     await markReadMutation.mutateAsync(notification.id);
@@ -205,6 +233,13 @@ export function useFeaturedRailCardStack() {
       setActionPendingId(card.id);
       await beginRefresh();
       setActionPendingId(null);
+      return;
+    }
+
+    if (card.kind === "invite") {
+      const inviteId = card.id.replace(/^invite:/, "");
+      if (!inviteId) return;
+      openReview(inviteId);
       return;
     }
 

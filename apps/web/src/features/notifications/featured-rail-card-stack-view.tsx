@@ -74,7 +74,7 @@ function cardTransition(
 }
 
 function CardMark({ card }: { card: FeaturedRailCard }) {
-  if (card.kind === "notification") {
+  if (card.kind === "notification" || card.kind === "invite") {
     return (
       <AgencyMemberAvatar
         name={card.actorName?.trim() || "Team"}
@@ -227,9 +227,9 @@ function RailStackCard({
 }
 
 export function FeaturedRailCardStackView({ view }: FeaturedRailCardStackViewProps) {
-  if (!view.userId || !view.teamId) return null;
+  if (!view.userId) return null;
 
-  if (view.listPending) {
+  if (view.listPending && view.cards.length === 0) {
     return (
       <div className="relative mx-1 min-h-[8.5rem] overflow-hidden rounded-xl border border-sidebar-border bg-sidebar">
         <SurfaceShimmer overlay label="Loading notifications" />
