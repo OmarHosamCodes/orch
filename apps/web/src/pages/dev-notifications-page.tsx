@@ -1698,9 +1698,9 @@ export function DevNotificationsPage() {
   const teamId = selectedTeamId || teams[0]?.id || "";
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      {/* Top Header & Dev Navigation Switcher */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+    <div className="space-y-8">
+        {/* Top Header & Dev Navigation Switcher */}
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary uppercase">
@@ -1808,6 +1808,6 @@ export function DevNotificationsPage() {
           <DevNotificationsRealGallery teamId={teamId} />
         )}
       </div>
-    </main>
+    </div>
   );
 }

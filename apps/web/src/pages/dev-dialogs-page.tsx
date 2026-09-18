@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ArrowRight, Bell, Layers, Settings, Users } from "lucide-react";
+import { Settings, Users } from "lucide-react";
 
 import { AgencyProjectCreateDialogView } from "@/features/projects/agency-project-create-dialog-view";
 import { AgencyTaskCreateDialogView } from "@/features/time-tracking/agency-task-create-dialog-view";
@@ -756,44 +756,23 @@ export function DevDialogsPage() {
   const teamId = selectedTeamId || teams[0]?.id || "";
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-default pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary uppercase">
-              DEV BENCHMARK
-            </span>
-            <h1 className="text-2xl font-semibold tracking-tight text-highlighted">Dialogs</h1>
+    <div className="space-y-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary uppercase">
+                DEV BENCHMARK
+              </span>
+              <h1 className="text-2xl font-semibold tracking-tight text-highlighted">Dialogs</h1>
+            </div>
+            <p className="mt-2 max-w-prose text-sm text-muted">
+              Shared smart inputs, then every production dialog. Sample mode uses mock props; real-data
+              mode reads your team. Payloads stay the same.
+            </p>
           </div>
-          <p className="mt-2 max-w-prose text-sm text-muted">
-            Shared smart inputs, then every production dialog. Sample mode uses mock props; real-data
-            mode reads your team. Payloads stay the same.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="default" size="sm" className="h-8 text-xs" asChild>
-            <a href="/dev/dialogs">
-              <Layers className="mr-1.5 size-3.5" />
-              Dialogs
-            </a>
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
-            <a href="/dev/notifications">
-              <Bell className="mr-1.5 size-3.5" />
-              Notifications
-            </a>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 text-xs" asChild>
-            <a href="/agency">
-              Tracker
-              <ArrowRight className="ml-1.5 size-3.5" />
-            </a>
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
         <Tabs value={mode} onValueChange={(value) => setMode(value as "sample" | "real")}>
           <TabsList>
             <TabsTrigger value="sample">Sample</TabsTrigger>
@@ -825,7 +804,7 @@ export function DevDialogsPage() {
           </p>
         ) : null}
       </section>
-    </main>
+    </div>
   );
 }
 
