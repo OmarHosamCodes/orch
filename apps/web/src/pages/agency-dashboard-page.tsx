@@ -9,6 +9,7 @@ import {
   agencyClientHref,
   agencyMemberHref,
   agencyProjectHref,
+  agencySegmentHref,
 } from "@/features/shared/agency-segments";
 import { useTeamStore } from "@/features/team/team-store";
 
@@ -25,6 +26,7 @@ function AgencyDashboardBody({ teamId }: { teamId: string }) {
       onSelectProject={(projectId) => navigate(agencyProjectHref(projectId))}
       onSelectClient={(clientId) => navigate(agencyClientHref(clientId))}
       onSelectMember={(userId) => navigate(agencyMemberHref(userId))}
+      onGoToTracker={() => navigate(agencySegmentHref("work"))}
     />
   );
 }
