@@ -254,7 +254,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
               onClick={addClient}
             >
               <Plus />
-              Add Client
+              Add client
             </Button>
           </div>
 
@@ -425,7 +425,7 @@ export function WorkspaceProfitabilityCashFlowBlockEditor({
               <p className="mt-3 text-xs font-bold text-muted-foreground">No overhead costs yet.</p>
               <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={addExpense}>
                 <Plus />
-                Add
+                Add cost
               </Button>
             </div>
           ) : (

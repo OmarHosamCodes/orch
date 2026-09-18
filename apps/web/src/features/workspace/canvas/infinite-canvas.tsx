@@ -502,16 +502,11 @@ const InfiniteCanvasInner = forwardRef<InfiniteCanvasHandle, InfiniteCanvasInner
                 className={cn(dashboardEmptyPanelClass, "pointer-events-auto max-w-sm text-center")}
               >
                 <LayoutGrid className="mx-auto size-7 text-muted" />
-                <h3 className="mt-4 text-lg font-bold text-highlighted">No nodes yet</h3>
+                <h3 className="mt-4 text-lg font-semibold text-highlighted">Add a node to start</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Right-click the canvas to add knowledge, or add a node.
+                  Place a node on the canvas. Right-click anytime to add knowledge.
                 </p>
-                <Button
-                  className="mt-4"
-                  variant="secondary"
-                  size="sm"
-                  onClick={createNodeAtViewportCenter}
-                >
+                <Button className="mt-4" size="sm" onClick={createNodeAtViewportCenter}>
                   <Plus className="size-4" />
                   Add node
                 </Button>

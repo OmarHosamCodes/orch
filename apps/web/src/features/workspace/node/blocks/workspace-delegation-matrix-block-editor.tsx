@@ -295,7 +295,7 @@ export function WorkspaceDelegationMatrixBlockEditor({
             onClick={addItem}
           >
             <Plus />
-            Add
+            Add task
           </Button>
         </div>
       ) : filteredItems.length === 0 ? (

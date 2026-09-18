@@ -5,11 +5,22 @@ import {
   type WorkspaceNodeTint,
   type WorkspaceNodeType,
 } from "@orch/workspace";
-import { Check, Plus, Save } from "lucide-react";
+import { Check, GitBranch, Layers, Plus, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { shellFocusRingClass, shellLabelClass } from "@/features/app-shell/app-shell-ui";
 import { AgencyIdentityField } from "@/features/shared/dialog-kit/agency-identity-field";
-import { AgencyModeSegment } from "@/features/shared/dialog-kit/agency-mode-segment";
+import {
+  AgencySettingsField,
+  AgencySettingsPaneSection,
+} from "@/features/shared/views/agency-settings-pane-section";
+import { getWorkspaceBlockRegistryEntry } from "@/features/workspace/utils/workspace-block-registry";
+import {
+  getWorkspaceNodeTintOption,
+  getWorkspaceNodeTintStyle,
+  workspaceNodeTintOptions,
+} from "@/features/workspace/utils/workspace-node-dashboard";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import {
@@ -20,16 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog";
-import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
-import { shellFocusRingClass, shellLabelClass } from "@/features/app-shell/app-shell-ui";
-import { getWorkspaceBlockRegistryEntry } from "@/features/workspace/utils/workspace-block-registry";
-import {
-  getWorkspaceNodeTintOption,
-  getWorkspaceNodeTintStyle,
-  workspaceNodeTintOptions,
-} from "@/features/workspace/utils/workspace-node-dashboard";
-import { cn } from "@/lib/utils";
 
 type WorkspaceEditorModalProps = {
   availableBlocks: WorkspaceNodeDashboardSelectableBlock[];
@@ -50,10 +52,93 @@ type WorkspaceEditorModalProps = {
   onTitleChange: (value: string) => void;
 };
 
-const nodeTypeOptions: Array<{ value: WorkspaceNodeType; label: string }> = [
-  { value: "standard", label: "Standard" },
-  { value: "orchestrator", label: "Orchestrator" },
+const nodeTypeChoices: Array<{
+  value: WorkspaceNodeType;
+  label: string;
+  description: string;
+  icon: typeof Layers;
+}> = [
+  {
+    value: "standard",
+    label: "Standard",
+    description: "Standalone node for focused work, notes, and blocks.",
+    icon: Layers,
+  },
+  {
+    value: "orchestrator",
+    label: "Orchestrator",
+    description: "Coordinates linked nodes and shared context on the canvas.",
+    icon: GitBranch,
+  },
 ];
+
+function NodeCanvasPreview({
+  title,
+  content,
+  tint,
+  nodeType,
+}: {
+  title: string;
+  content: string;
+  tint: WorkspaceNodeTint;
+  nodeType: WorkspaceNodeType;
+}) {
+  const tintMeta = getWorkspaceNodeTintOption(tint);
+  const displayTitle = title.trim() || "Untitled node";
+  const displaySummary = content.trim() || "Summary appears on the board card.";
+
+  return (
+    <div
+      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+      style={getWorkspaceNodeTintStyle(tint)}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className="size-2.5 rounded-full border border-[rgb(var(--workspace-node-rgb)/0.35)] bg-[rgb(var(--workspace-node-rgb)/0.85)]"
+        />
+        <Badge variant="secondary" className="text-[10px]">
+          {nodeType === "orchestrator" ? "Orchestrator" : "Standard"}
+        </Badge>
+        <span className="text-[10px] text-muted-foreground">{tintMeta.label}</span>
+      </div>
+      <p className="mt-3 truncate text-sm font-semibold text-highlighted">{displayTitle}</p>
+      <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-muted">{displaySummary}</p>
+    </div>
+  );
+}
+
+function NodeTypeChoiceCard({
+  choice,
+  selected,
+  onSelect,
+}: {
+  choice: (typeof nodeTypeChoices)[number];
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const Icon = choice.icon;
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      className={cn(
+        "flex min-w-0 flex-1 flex-col gap-2 rounded-xl border p-3.5 text-left transition-colors",
+        shellFocusRingClass,
+        selected
+          ? "border-primary/50 bg-primary/5 ring-1 ring-primary/25"
+          : "border-border bg-background hover:bg-muted/30",
+      )}
+      onClick={onSelect}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className={cn("size-4 shrink-0", selected ? "text-primary" : "text-muted")} />
+        <span className="text-sm font-semibold text-foreground">{choice.label}</span>
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">{choice.description}</p>
+    </button>
+  );
+}
 
 export function WorkspaceEditorModal({
   availableBlocks,
@@ -77,6 +162,7 @@ export function WorkspaceEditorModal({
   useEffect(() => {
     if (open) setSubmitAttempted(false);
   }, [open]);
+
   const selectedBlockKeys = useMemo(
     () => new Set(featuredBlocks.map((entry) => `${entry.tabId}:${entry.blockId}`)),
     [featuredBlocks],
@@ -87,6 +173,7 @@ export function WorkspaceEditorModal({
     availableBlocks.length === 0
       ? "No blocks"
       : `${selectedCount}/${WORKSPACE_NODE_DASHBOARD_DETAIL_LIMIT}`;
+
   const groupedBlockOptions = useMemo(() => {
     const groups: Array<{
       tabId: string;
@@ -103,13 +190,11 @@ export function WorkspaceEditorModal({
     }
     return groups;
   }, [availableBlocks]);
+
   const titleFieldError =
     submitAttempted && !valid && !title.trim() ? "Title is required" : undefined;
-  const nodeTypeDescription =
-    nodeType === "orchestrator"
-      ? "Coordinates linked nodes on the canvas."
-      : "Standalone node for focused work.";
   const selectedTintMeta = getWorkspaceNodeTintOption(tint);
+
   function toggleFeaturedBlock(option: WorkspaceNodeDashboardSelectableBlock) {
     const key = `${option.tabId}:${option.blockId}`;
     const isSelected = selectedBlockKeys.has(key);
@@ -124,72 +209,90 @@ export function WorkspaceEditorModal({
     if (selectionLimitReached) return;
     onFeaturedBlocksChange([...featuredBlocks, { tabId: option.tabId, blockId: option.blockId }]);
   }
+
   function handleSubmitClick() {
     setSubmitAttempted(true);
     if (valid) onSubmit();
   }
+
+  const isCreate = mode === "create";
+
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Create node" : "Edit node"}</DialogTitle>
+      <DialogContent
+        className={cn(
+          "flex max-h-[min(36rem,90vh)] flex-col gap-0 overflow-hidden p-0",
+          isCreate ? "sm:max-w-2xl" : "sm:max-w-3xl",
+        )}
+      >
+        <DialogHeader className="shrink-0 space-y-1 border-b border-border px-6 py-5 text-left">
+          <DialogTitle>{isCreate ? "Create node" : "Edit node"}</DialogTitle>
           <DialogDescription>
-            {mode === "create"
-              ? "Name the node and set how it appears on the canvas."
-              : "Update the node and choose what shows on its dashboard card."}
+            {isCreate
+              ? "Name the node, pick a type, and preview how it will read on the canvas."
+              : "Update the node and choose what shows on its board card."}
           </DialogDescription>
         </DialogHeader>
+
         <div
           className={cn(
-            mode === "edit"
-              ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]"
-              : "space-y-6",
+            "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain",
+            isCreate
+              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_14rem] lg:overflow-hidden"
+              : "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:overflow-hidden",
           )}
         >
-          <div className="space-y-6">
-            <section className="space-y-4">
-              <div className="space-y-2">
-                <AgencyIdentityField
-                  id="node-title"
-                  value={title}
-                  autoFocus
-                  placeholder="Strategy lane"
-                  onChange={onTitleChange}
-                  error={titleFieldError}
-                  aria-label="Title"
-                />
+          <div className="space-y-8 p-6">
+            <AgencySettingsPaneSection title="Basics" className="border-t-0 pt-0">
+              <div className="space-y-4">
+                <AgencySettingsField label="Title" htmlFor="node-title">
+                  <AgencyIdentityField
+                    id="node-title"
+                    value={title}
+                    autoFocus
+                    placeholder="Strategy lane"
+                    onChange={onTitleChange}
+                    error={titleFieldError}
+                    aria-label="Title"
+                  />
+                </AgencySettingsField>
+                <AgencySettingsField label="Summary" htmlFor="node-content">
+                  <Textarea
+                    id="node-content"
+                    value={content}
+                    rows={3}
+                    placeholder="Short line for the board card."
+                    className="min-h-[4.5rem] resize-none"
+                    onChange={(event) => onContentChange(event.target.value)}
+                  />
+                </AgencySettingsField>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="node-content">Summary</Label>
-                <Textarea
-                  id="node-content"
-                  value={content}
-                  rows={3}
-                  placeholder="Add a short summary for the canvas card."
-                  onChange={(event) => onContentChange(event.target.value)}
-                />
-              </div>
-            </section>
-            <section className="space-y-3">
-              <div>
-                <p className="text-sm font-semibold text-highlighted">Node type</p>
-                <p className="mt-1 text-sm text-muted">
-                  Standard for focused work, or orchestrator to coordinate linked nodes.
-                </p>
-              </div>
-              <AgencyModeSegment
+            </AgencySettingsPaneSection>
+
+            <AgencySettingsPaneSection
+              title="Node type"
+              description="Choose how this node behaves on the canvas."
+            >
+              <div
+                className="flex flex-col gap-2 sm:flex-row"
+                role="radiogroup"
                 aria-label="Node type"
-                value={nodeType}
-                options={nodeTypeOptions}
-                onChange={onNodeTypeChange}
-              />
-              <p className="text-sm text-muted">{nodeTypeDescription}</p>
-            </section>
-            <section className="space-y-3">
-              <div>
-                <p className="text-sm font-semibold text-highlighted">Tint</p>
-                <p className="mt-1 text-sm text-muted">Color accent for this node on the canvas.</p>
+              >
+                {nodeTypeChoices.map((choice) => (
+                  <NodeTypeChoiceCard
+                    key={choice.value}
+                    choice={choice}
+                    selected={nodeType === choice.value}
+                    onSelect={() => onNodeTypeChange(choice.value)}
+                  />
+                ))}
               </div>
+            </AgencySettingsPaneSection>
+
+            <AgencySettingsPaneSection
+              title="Tint"
+              description={`${selectedTintMeta.label} — ${selectedTintMeta.description}`}
+            >
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Node tint">
                 {workspaceNodeTintOptions.map((option) => (
                   <button
@@ -200,7 +303,7 @@ export function WorkspaceEditorModal({
                     aria-label={option.label}
                     title={option.label}
                     className={cn(
-                      "node-tint-option relative flex size-11 items-center justify-center rounded-full border transition-colors",
+                      "node-tint-option relative flex size-10 items-center justify-center rounded-full border transition-colors",
                       shellFocusRingClass,
                       tint === option.value
                         ? "border-primary/50 bg-default ring-2 ring-primary/40"
@@ -209,46 +312,51 @@ export function WorkspaceEditorModal({
                     style={getWorkspaceNodeTintStyle(option.value)}
                     onClick={() => onTintChange(option.value)}
                   >
-                    <span className="node-tint-swatch size-4 rounded-full border" />
+                    <span
+                      className="size-3.5 rounded-full border border-[rgb(var(--workspace-node-rgb)/0.35)] bg-[rgb(var(--workspace-node-rgb)/0.85)]"
+                    />
                     {tint === option.value ? (
-                      <Check className="absolute size-3.5 text-highlighted" />
+                      <Check className="absolute size-3 text-highlighted" />
                     ) : null}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-muted">
-                {selectedTintMeta.label} — {selectedTintMeta.description}
-              </p>
-            </section>
+            </AgencySettingsPaneSection>
           </div>
-          {mode === "edit" ? (
-            <div className="rounded-surface border border-muted/30 bg-card p-surface">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-highlighted">Dashboard card</p>
-                    <p className="mt-1 text-sm text-muted">
-                      Choose up to {WORKSPACE_NODE_DASHBOARD_DETAIL_LIMIT} block summaries to show
-                      on this node&apos;s dashboard card.
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="shrink-0">
-                    {selectionBadgeLabel}
-                  </Badge>
+
+          {isCreate ? (
+            <aside className="border-t border-border bg-muted/20 p-6 lg:overflow-y-auto lg:border-t-0 lg:border-l">
+              <p className="text-xs font-medium text-muted-foreground">Board preview</p>
+              <div className="mt-3">
+                <NodeCanvasPreview
+                  title={title}
+                  content={content}
+                  tint={tint}
+                  nodeType={nodeType}
+                />
+              </div>
+            </aside>
+          ) : (
+            <div className="border-t border-border bg-muted/15 p-6 lg:overflow-y-auto lg:border-t-0 lg:border-l">
+              <AgencySettingsPaneSection
+                title="Dashboard card"
+                description={`Choose up to ${WORKSPACE_NODE_DASHBOARD_DETAIL_LIMIT} block summaries for this node's board card.`}
+                className="border-t-0 pt-0"
+              >
+                <div className="mb-3 flex justify-end">
+                  <Badge variant="secondary">{selectionBadgeLabel}</Badge>
                 </div>
                 {selectionLimitReached && groupedBlockOptions.length > 0 ? (
-                  <p className="text-sm text-muted">
+                  <p className="mb-3 text-xs text-muted-foreground">
                     Limit reached. Deselect a block to choose another.
                   </p>
                 ) : null}
-              </div>
-              <div className="mt-4">
                 {groupedBlockOptions.length === 0 ? (
-                  <p className="rounded-surface border border-dashed border-muted/40 bg-card px-surface py-surface text-sm text-muted">
+                  <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                     Add blocks inside the node first, then return here to feature them on the card.
                   </p>
                 ) : (
-                  <div className="max-h-[24rem] space-y-4 overflow-y-auto overscroll-contain pr-1">
+                  <div className="max-h-[min(20rem,40vh)] space-y-4 overflow-y-auto overscroll-contain pr-1">
                     {groupedBlockOptions.map((group) => (
                       <section key={group.tabId}>
                         <p className={cn("mb-2", shellLabelClass)}>{group.tabTitle}</p>
@@ -271,7 +379,7 @@ export function WorkspaceEditorModal({
                                     ? "border-primary/40 bg-primary/10"
                                     : isDisabled
                                       ? "cursor-not-allowed border-muted/40 bg-elevated/20 opacity-60"
-                                      : "border-muted/60 bg-background/80 hover:border-primary/30 hover:bg-default",
+                                      : "border-border bg-background hover:border-primary/30 hover:bg-muted/30",
                                 )}
                                 aria-pressed={isSelected}
                                 disabled={isDisabled}
@@ -297,16 +405,17 @@ export function WorkspaceEditorModal({
                     ))}
                   </div>
                 )}
-              </div>
+              </AgencySettingsPaneSection>
             </div>
-          ) : null}
+          )}
         </div>
-        <DialogFooter className="gap-2 sm:gap-0">
+
+        <DialogFooter className="shrink-0 gap-2 border-t border-border px-6 py-4 sm:justify-end">
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="button" disabled={!valid} onClick={handleSubmitClick}>
-            {mode === "create" ? (
+          <Button type="button" disabled={!valid && submitAttempted} onClick={handleSubmitClick}>
+            {isCreate ? (
               <>
                 <Plus className="size-4" />
                 Create node

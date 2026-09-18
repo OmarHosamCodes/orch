@@ -241,7 +241,7 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
             onClick={addDeal}
           >
             <Plus />
-            Add Deal
+            Add deal
           </Button>
         </div>
       </div>
@@ -513,6 +513,16 @@ export function WorkspaceForecastConfidenceBoardBlockEditor({
                       <p className="text-sm font-semibold text-muted-foreground">
                         No {workspaceSalesForecastBucketLabels[bucket]} deals yet.
                       </p>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3 rounded-full"
+                        onClick={addDeal}
+                      >
+                        <Plus />
+                        Add deal
+                      </Button>
                     </div>
                   ) : null}
                 </div>

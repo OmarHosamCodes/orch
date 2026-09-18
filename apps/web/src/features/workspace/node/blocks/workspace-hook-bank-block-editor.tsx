@@ -208,7 +208,7 @@ export function WorkspaceHookBankBlockEditor({
             onClick={addHook}
           >
             <Plus />
-            Add Hook
+            Add hook
           </Button>
           <Button
             type="button"
@@ -238,7 +238,7 @@ export function WorkspaceHookBankBlockEditor({
             onClick={addHook}
           >
             <Plus />
-            Add
+            Add hook
           </Button>
         </div>
       ) : (

@@ -266,7 +266,7 @@ export function WorkspaceSkillsHeatMapBlockEditor({
             onClick={initializeDimensions}
           >
             <Plus />
-            Initialize Default Dimensions
+            Initialize defaults
           </Button>
         </div>
       ) : block.members.length === 0 ? (

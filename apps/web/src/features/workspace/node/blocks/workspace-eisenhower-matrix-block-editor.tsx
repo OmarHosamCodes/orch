@@ -844,10 +844,23 @@ export function WorkspaceEisenhowerMatrixBlockEditor({
         </div>
 
         {summary.prioritizedTasks.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-muted bg-background py-12 text-center text-sm font-medium text-toned">
-            {scopedCollectedTasks.length === 0
-              ? "No tasks to prioritize yet."
-              : "No tasks match the current filters."}
+          <div className="mt-6 rounded-xl border border-dashed border-muted bg-background py-12 text-center">
+            <p className="text-sm font-medium text-toned">
+              {scopedCollectedTasks.length === 0
+                ? "No tasks to prioritize yet."
+                : "No tasks match the current filters."}
+            </p>
+            {scopedCollectedTasks.length === 0 ? (
+              <Button
+                type="button"
+                size="sm"
+                className="mt-4 rounded-full px-4"
+                onClick={addTask}
+              >
+                <Plus />
+                Add task
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="mt-6 space-y-4">

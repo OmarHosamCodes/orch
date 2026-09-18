@@ -97,20 +97,35 @@ export function WorkspaceChecklistBlockEditor({
         ))}
 
         {block.items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">No checklist items yet.</p>
+          <div className="py-6 text-center">
+            <p className="text-sm text-muted-foreground">No checklist items yet.</p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="mt-3 rounded-full"
+              aria-label="Add checklist item"
+              onClick={addItem}
+            >
+              <Plus />
+              Add item
+            </Button>
+          </div>
         ) : null}
 
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="rounded-full"
-          aria-label="Add checklist item"
-          onClick={addItem}
-        >
-          <Plus />
-          Add item
-        </Button>
+        {block.items.length > 0 ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="rounded-full"
+            aria-label="Add checklist item"
+            onClick={addItem}
+          >
+            <Plus />
+            Add item
+          </Button>
+        ) : null}
       </div>
     </div>
   );

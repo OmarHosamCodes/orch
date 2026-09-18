@@ -247,29 +247,29 @@ export function WorkspaceKanbanBlockEditor({
                                   entry.assignee = event.target.value.slice(0, 120);
                                 })
                               }
-                          />
-                        </div>
+                            />
+                          </div>
 
-                        <div className="space-y-1">
-                          <label className="px-1 text-xs font-semibold text-muted-foreground">
-                            Due date
-                          </label>
-                          <AgencyDateField
-                            value={card.dueDate ?? ""}
-                            displayStyle="short"
-                            className="h-8 rounded-xl"
-                            aria-label="Due date"
-                            onChange={(next) =>
-                              mutateKanbanCard(tabId, block.id, card.id, (entry) => {
-                                entry.dueDate = next || null;
-                              })
-                            }
-                            onClear={() =>
-                              mutateKanbanCard(tabId, block.id, card.id, (entry) => {
-                                entry.dueDate = null;
-                              })
-                            }
-                          />
+                          <div className="space-y-1">
+                            <label className="px-1 text-xs font-semibold text-muted-foreground">
+                              Due date
+                            </label>
+                            <AgencyDateField
+                              value={card.dueDate ?? ""}
+                              displayStyle="short"
+                              className="h-8 rounded-xl"
+                              aria-label="Due date"
+                              onChange={(next) =>
+                                mutateKanbanCard(tabId, block.id, card.id, (entry) => {
+                                  entry.dueDate = next || null;
+                                })
+                              }
+                              onClear={() =>
+                                mutateKanbanCard(tabId, block.id, card.id, (entry) => {
+                                  entry.dueDate = null;
+                                })
+                              }
+                            />
                           </div>
                         </div>
                       </div>
@@ -315,10 +315,6 @@ export function WorkspaceKanbanBlockEditor({
                   ) : null}
                 </article>
               ))}
-
-              {(cardsByColumn[column.id] ?? []).length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">No cards yet.</p>
-              ) : null}
 
               <Button
                 type="button"

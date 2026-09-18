@@ -156,7 +156,7 @@ export function WorkspaceCohortHealthDashboardBlockEditor({
           <p className="mt-3 text-sm text-toned">No cohorts yet.</p>
           <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={addCohort}>
             <Plus />
-            Add
+            Add cohort
           </Button>
         </div>
       ) : (

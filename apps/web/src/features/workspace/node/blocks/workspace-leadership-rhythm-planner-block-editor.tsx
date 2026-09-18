@@ -208,7 +208,7 @@ export function WorkspaceLeadershipRhythmPlannerBlockEditor({
               <p className="mt-3 text-sm text-toned">No meetings yet.</p>
               <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={addMeeting}>
                 <Plus />
-                Add
+                Add meeting
               </Button>
             </>
           ) : (

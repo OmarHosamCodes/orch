@@ -297,7 +297,7 @@ export function WorkspaceTalentGridBlockEditor({
             onClick={addMember}
           >
             <UserPlus />
-            Add
+            Add member
           </Button>
         </div>
       ) : (

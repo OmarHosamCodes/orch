@@ -212,7 +212,7 @@ export function WorkspaceContentRoiTrackerBlockEditor({
               onClick={addItem}
             >
               <Plus />
-              Add
+              Add row
             </Button>
           </div>
         </div>
@@ -233,7 +233,7 @@ export function WorkspaceContentRoiTrackerBlockEditor({
             onClick={addItem}
           >
             <Plus />
-            Add
+            Add row
           </Button>
         </div>
       ) : (

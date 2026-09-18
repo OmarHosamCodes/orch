@@ -213,7 +213,7 @@ export function WorkspaceCollectionsTrackerBlockEditor({
             onClick={addInvoice}
           >
             <Plus />
-            Add Invoice
+            Add invoice
           </Button>
         </div>
       </div>
@@ -232,7 +232,7 @@ export function WorkspaceCollectionsTrackerBlockEditor({
             onClick={addInvoice}
           >
             <Plus />
-            Add
+            Add invoice
           </Button>
         </div>
       ) : (

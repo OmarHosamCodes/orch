@@ -31,13 +31,7 @@ import { useWorkspaceNodeEditorContext } from "@/features/workspace/node/context
 import type { WorkspaceSaveBadge } from "@/features/workspace/node/context";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { cn } from "@/lib/utils";
 
 type WorkspaceTeamSummary = { id: string; name: string; role: WorkspaceTeamRole };
@@ -92,6 +86,7 @@ export function WorkspaceNodeShell({
     deleteActiveTab,
     saveActiveTabToMarketplace,
     getDisplayTabTitle,
+    addBlockToActiveTab,
   } = useWorkspaceNodeEditorContext();
   const agencyHref = node.agencyRef ? agencyRefHref(node.agencyRef) : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -348,6 +343,7 @@ export function WorkspaceNodeShell({
             {visibleBlocks.length === 0 ? (
               <WorkspaceNodeEmptyState
                 canEdit={canEditNodeContent}
+                onAddBlock={(type) => addBlockToActiveTab(type)}
                 onQuickAdd={(_type, blockId) => {
                   if (blockId) setPendingFocusBlockId(blockId);
                 }}
