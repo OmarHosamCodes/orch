@@ -6,6 +6,7 @@ import {
   registerPolarSubscriptionActive,
 } from "@orch/auth";
 import { db } from "@orch/db";
+import { ensureDefaultCanvasWorkspace } from "@orch/api/routers/workspace/canvas-workspace-service";
 import { dashboardWorkspace, user, workspaceMarketplaceItem } from "@orch/db/schema";
 import { env, primaryCorsOrigin } from "@orch/env/server";
 import {
@@ -1682,16 +1683,18 @@ function buildExistingUserWorkspace(
 
 async function saveWorkspaceSnapshot(userId: string, nodes: WorkspaceNode[]) {
   const updatedAt = new Date();
+  const brain = await ensureDefaultCanvasWorkspace(userId);
 
   await db
     .insert(dashboardWorkspace)
     .values({
-      userId,
+      workspaceId: brain.id,
+      ownerUserId: userId,
       nodes,
       updatedAt,
     })
     .onConflictDoUpdate({
-      target: dashboardWorkspace.userId,
+      target: dashboardWorkspace.workspaceId,
       set: {
         nodes,
         updatedAt,

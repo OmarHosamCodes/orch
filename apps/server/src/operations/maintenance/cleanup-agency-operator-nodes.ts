@@ -111,7 +111,8 @@ function cleanupWorkspaceNodes(nodes: WorkspaceNodeRecord[]): {
 async function cleanupDashboardWorkspaces(dryRun: boolean): Promise<WorkspaceCleanupResult[]> {
   const rows = await db
     .select({
-      userId: dashboardWorkspace.userId,
+      userId: dashboardWorkspace.ownerUserId,
+      workspaceId: dashboardWorkspace.workspaceId,
       nodes: dashboardWorkspace.nodes,
     })
     .from(dashboardWorkspace);
@@ -141,7 +142,7 @@ async function cleanupDashboardWorkspaces(dryRun: boolean): Promise<WorkspaceCle
     await db
       .update(dashboardWorkspace)
       .set({ nodes: nextNodes })
-      .where(eq(dashboardWorkspace.userId, row.userId));
+      .where(eq(dashboardWorkspace.workspaceId, row.workspaceId));
   }
 
   return results;

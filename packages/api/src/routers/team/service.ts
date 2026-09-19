@@ -256,7 +256,8 @@ export async function updateTeam(
 async function cleanupSharedNodesForDeletedTeam(teamId: string, now: Date) {
   const workspaces = await db
     .select({
-      userId: dashboardWorkspace.userId,
+      workspaceId: dashboardWorkspace.workspaceId,
+      ownerUserId: dashboardWorkspace.ownerUserId,
       nodes: dashboardWorkspace.nodes,
     })
     .from(dashboardWorkspace);
@@ -265,7 +266,7 @@ async function cleanupSharedNodesForDeletedTeam(teamId: string, now: Date) {
     const normalized = (workspace.nodes ?? []).map((node) =>
       normalizeWorkspaceNode({
         ...(node as WorkspaceNode),
-        ownerUserId: (node as WorkspaceNode).ownerUserId ?? workspace.userId,
+        ownerUserId: (node as WorkspaceNode).ownerUserId ?? workspace.ownerUserId,
       }),
     );
 
@@ -295,7 +296,7 @@ async function cleanupSharedNodesForDeletedTeam(teamId: string, now: Date) {
         nodes: cleaned,
         updatedAt: now,
       })
-      .where(eq(dashboardWorkspace.userId, workspace.userId));
+      .where(eq(dashboardWorkspace.workspaceId, workspace.workspaceId));
   }
 }
 

@@ -23,6 +23,7 @@ import {
   workspaceTeamMember,
 } from "@orch/db/schema";
 import { assignEntityIconOnWrite } from "@orch/api/routers/agency-ops/shared/entity-icon-catalog";
+import { ensureDefaultCanvasWorkspace } from "@orch/api/routers/workspace/canvas-workspace-service";
 import { createWorkspaceId } from "@orch/workspace";
 import {
   createWorkspaceKanbanBlock,
@@ -86,7 +87,7 @@ const PROJECTS_BY_CLIENT: Record<string, string[]> = {
   "Meridian Studio": ["Brand system", "Campaign film", "Launch site"],
   "Slate & Partners": ["Pitch room", "Annual report", "Partner portal"],
   "North Sea Media": ["Paid social", "Always-on content", "Audience map"],
-  "Copperline": ["Commerce refresh", "Packaging suite"],
+  Copperline: ["Commerce refresh", "Packaging suite"],
   Fieldnote: ["Research desk", "Field app"],
   "Lumen Civic": ["Civic brief", "Workshop kit"],
   "Arc & Grain": ["Retail identity", "Lookbook"],
@@ -176,14 +177,18 @@ async function wipeTeamAgency(teamId: string) {
   `);
 
   const names = (tables.rows as Array<{ table_name: string }>).map((row) => row.table_name);
-  await db.execute(sql.raw(`
+  await db.execute(
+    sql.raw(`
     DELETE FROM agency_ops_invoice_line_item
     WHERE invoice_id IN (SELECT id FROM agency_ops_invoice WHERE team_id = '${teamId}')
-  `));
-  await db.execute(sql.raw(`
+  `),
+  );
+  await db.execute(
+    sql.raw(`
     DELETE FROM agency_ops_project_task_assignee
     WHERE task_id IN (SELECT id FROM agency_ops_project_task WHERE team_id = '${teamId}')
-  `));
+  `),
+  );
   const preferred = [
     "agency_ops_invoice",
     "agency_ops_time_entry",
@@ -205,7 +210,10 @@ async function wipeTeamAgency(teamId: string) {
     "agency_ops_member_leave",
     "agency_ops_department",
   ];
-  const ordered = [...preferred.filter((name) => names.includes(name)), ...names.filter((name) => !preferred.includes(name))];
+  const ordered = [
+    ...preferred.filter((name) => names.includes(name)),
+    ...names.filter((name) => !preferred.includes(name)),
+  ];
 
   for (const table of ordered) {
     await db.execute(sql.raw(`DELETE FROM "${table}" WHERE team_id = '${teamId}'`));
@@ -314,20 +322,50 @@ function buildCanvas(ownerUserId: string, now: Date): WorkspaceNode[] {
     },
     { title: "Campaign film", body: "30s cut, titles, and sound notes. Review Thursday." },
     { title: "Weekly ops", body: "Capacity, retainers, and what slips. Keep the log honest." },
-    { title: "Research desk", body: "Interviews this week: three clients, one prospect. Synthesis Friday." },
+    {
+      title: "Research desk",
+      body: "Interviews this week: three clients, one prospect. Synthesis Friday.",
+    },
     { title: "Support queue", body: "Macros, FAQ, and the two tickets that keep coming back." },
-    { title: "Studio finance", body: "Bills this period, outstanding Harbor and Meridian, expense cadence." },
-    { title: "Content pipeline", body: "Always-on for North Sea. Three posts in review, two in motion." },
-    { title: "Pitch room", body: "Slate & Partners annual. Room layout, leave-behind, and the film loop." },
+    {
+      title: "Studio finance",
+      body: "Bills this period, outstanding Harbor and Meridian, expense cadence.",
+    },
+    {
+      title: "Content pipeline",
+      body: "Always-on for North Sea. Three posts in review, two in motion.",
+    },
+    {
+      title: "Pitch room",
+      body: "Slate & Partners annual. Room layout, leave-behind, and the film loop.",
+    },
     { title: "Hiring board", body: "Motion designer and producer. Three conversations this week." },
     { title: "Client workshop", body: "Lumen Civic kit: agenda, boards, and the recap template." },
     { title: "QA lane", body: "Breakpoints, a11y, and the last copy lock before Harbor ships." },
-    { title: "Design critique", body: "Thursday 11:00. Bring the Meridian wordmark and Harbor nav." },
-    { title: "Delivery calendar", body: "What leaves the studio in the next ten days. No surprises." },
-    { title: "Knowledge index", body: "Where briefs, fonts, and film masters live. One link per client." },
-    { title: "Retainer pulse", body: "Kite & Co and Fieldnote hours vs the month. Flag overages early." },
-    { title: "Lookbook", body: "Arc & Grain print. Sequence, paper, and the stills from the shop." },
-    { title: "Trailer suite", body: "Velvet Room titles and the 15s cutdowns. Sound is still open." },
+    {
+      title: "Design critique",
+      body: "Thursday 11:00. Bring the Meridian wordmark and Harbor nav.",
+    },
+    {
+      title: "Delivery calendar",
+      body: "What leaves the studio in the next ten days. No surprises.",
+    },
+    {
+      title: "Knowledge index",
+      body: "Where briefs, fonts, and film masters live. One link per client.",
+    },
+    {
+      title: "Retainer pulse",
+      body: "Kite & Co and Fieldnote hours vs the month. Flag overages early.",
+    },
+    {
+      title: "Lookbook",
+      body: "Arc & Grain print. Sequence, paper, and the stills from the shop.",
+    },
+    {
+      title: "Trailer suite",
+      body: "Velvet Room titles and the 15s cutdowns. Sound is still open.",
+    },
   ];
 
   const cols = 5;
@@ -400,7 +438,11 @@ async function main() {
   const now = new Date();
   const rand = mulberry32(20260918);
 
-  const [team] = await db.select().from(workspaceTeam).where(eq(workspaceTeam.id, TEAM_ID)).limit(1);
+  const [team] = await db
+    .select()
+    .from(workspaceTeam)
+    .where(eq(workspaceTeam.id, TEAM_ID))
+    .limit(1);
   if (!team) throw new Error(`Team ${TEAM_ID} not found`);
 
   console.log(`Wiping agency data for ${team.name}...`);
@@ -593,7 +635,9 @@ async function main() {
         remainingMinutes -= durationMinutes;
         const startedAt = new Date(day);
         startedAt.setHours(hour, minute, Math.floor(rand() * 50), 0);
-        const endedAt = new Date(startedAt.getTime() + durationMinutes * 60_000 + extraSeconds * 1000);
+        const endedAt = new Date(
+          startedAt.getTime() + durationMinutes * 60_000 + extraSeconds * 1000,
+        );
         hour = endedAt.getHours();
         minute = endedAt.getMinutes() + 10;
         if (hour >= 18) break;
@@ -758,14 +802,22 @@ async function main() {
     },
   ]);
 
-  await db.delete(agencyOpsMemberProfileAlert).where(eq(agencyOpsMemberProfileAlert.teamId, TEAM_ID));
+  await db
+    .delete(agencyOpsMemberProfileAlert)
+    .where(eq(agencyOpsMemberProfileAlert.teamId, TEAM_ID));
 
   const nodes = buildCanvas(ownerId, now);
+  const brain = await ensureDefaultCanvasWorkspace(ownerId);
   await db
     .insert(dashboardWorkspace)
-    .values({ userId: ownerId, nodes, updatedAt: now })
+    .values({
+      workspaceId: brain.id,
+      ownerUserId: ownerId,
+      nodes,
+      updatedAt: now,
+    })
     .onConflictDoUpdate({
-      target: dashboardWorkspace.userId,
+      target: dashboardWorkspace.workspaceId,
       set: { nodes, updatedAt: now },
     });
 
