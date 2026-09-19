@@ -122,6 +122,7 @@ type AgencyEntityIconMarkPickerViewProps = {
   disabled?: boolean;
   ariaLabel?: string;
   onChange: (iconKey: AgencyEntityIconKey | null) => void;
+  onColorHueChange?: (hueId: number) => void;
 };
 
 export function AgencyEntityIconMarkPickerView({
@@ -133,6 +134,7 @@ export function AgencyEntityIconMarkPickerView({
   disabled = false,
   ariaLabel = "Change icon",
   onChange,
+  onColorHueChange,
 }: AgencyEntityIconMarkPickerViewProps) {
   const mark = (
     <AgencyEntityMark
@@ -176,6 +178,9 @@ export function AgencyEntityIconMarkPickerView({
               : null
           }
           onChange={onChange}
+          projectId={projectId}
+          colorHueId={colorHueId}
+          onColorHueChange={onColorHueChange}
         />
       </PopoverContent>
     </Popover>

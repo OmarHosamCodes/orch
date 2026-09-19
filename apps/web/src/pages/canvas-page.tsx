@@ -1,7 +1,7 @@
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "@/lib/navigation";
+import { useNavigate, useParams } from "@/lib/navigation";
 
 import { AppShellPage } from "@/features/app-shell/app-shell-page";
 import { ShellBootSurface } from "@/features/app-shell/components/shell-boot-surface";
@@ -49,6 +49,7 @@ function renderWorkspaceCard(
 export function CanvasPage() {
   const canvasRef = useRef<InfiniteCanvasHandle | null>(null);
   const navigate = useNavigate();
+  const { workspaceId = "" } = useParams<{ workspaceId: string }>();
   const [selectionArmed, setSelectionArmed] = useState(false);
   const session = authClient.useSession();
   const authEnabled = Boolean(session.data?.user);
@@ -56,8 +57,9 @@ export function CanvasPage() {
   const syncSelectedTeam = useTeamStore((s) => s.syncSelectedTeam);
   const selectedTeamId = useTeamStore((s) => s.selectedTeamId);
 
-  const board = useWorkspaceQuery();
+  const board = useWorkspaceQuery({ canvasWorkspaceId: workspaceId });
   const knowledge = useCanvasKnowledgeBoard({
+    canvasWorkspaceId: workspaceId,
     documents: board.nodes,
     teamId: selectedTeamId || null,
   });
@@ -181,11 +183,13 @@ export function CanvasPage() {
           </main>
 
           <CanvasKnowledgeCreateDialog
+            canvasWorkspaceId={workspaceId}
             teamId={selectedTeamId || null}
             resolveBoardPoint={resolveBoardPoint}
             onCreateDocument={handleCreateDocument}
           />
           <CanvasKnowledgeCreateMenuContainer
+            canvasWorkspaceId={workspaceId}
             teamId={selectedTeamId || null}
             onCreateDocument={handleCreateDocument}
           />

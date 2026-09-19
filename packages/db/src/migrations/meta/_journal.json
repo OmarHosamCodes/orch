@@ -519,6 +519,20 @@
       "when": 1787900000050,
       "tag": "0075_workspace_team_invite",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1787900000051,
+      "tag": "0076_canvas_named_brains",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1787900000052,
+      "tag": "0077_legacy_canvas_title",
+      "breakpoints": true
     }
   ]
 }

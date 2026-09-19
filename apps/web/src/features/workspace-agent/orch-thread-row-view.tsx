@@ -68,7 +68,9 @@ export function OrchThreadRowView({
             </span>
           ) : null}
         </span>
-        <span className={cn("shrink-0 text-foreground", isSettle ? "mt-0.5 size-6" : "mt-0.5 size-5")}>
+        <span
+          className={cn("shrink-0 text-foreground", isSettle ? "mt-0.5 size-6" : "mt-0.5 size-5")}
+        >
           <EclipseGlyph mood={orchThreadRowMood(thread.statusKind)} maskId={maskId} />
         </span>
       </span>

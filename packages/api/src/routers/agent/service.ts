@@ -81,6 +81,10 @@ import {
 } from "../workspace/service";
 import { getKnowledgeObject, queryKnowledgeObjects } from "../workspace/knowledge-service";
 import {
+  listCanvasWorkspaces,
+  requireOwnedCanvasWorkspace,
+} from "../workspace/canvas-workspace-service";
+import {
   createAgencyProposalRecord,
   applyCanvasForYou,
   applyKnowledgeForYou,
@@ -480,6 +484,7 @@ function createCanvasAgentRuntime(
   actorUserId: string,
   conversationId: string,
   teamId?: string | null,
+  canvasWorkspaceId?: string | null,
 ): CanvasAgentRuntime {
   return {
     applyCanvasAction: async (input) =>
@@ -488,9 +493,21 @@ function createCanvasAgentRuntime(
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
         teamId,
+        canvasWorkspaceId,
       }),
+    listWorkspaces: async () => {
+      const listed = await listCanvasWorkspaces(actorUserId, {});
+      return {
+        items: listed.items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          instructions: item.instructions,
+        })),
+      };
+    },
     queryKnowledge: async (input) =>
       queryKnowledgeObjects(actorUserId, {
+        canvasWorkspaceId: canvasWorkspaceId ?? input.canvasWorkspaceId ?? undefined,
         teamId: input.teamId ?? teamId ?? undefined,
         objectType: input.objectType,
         query: input.query,
@@ -509,6 +526,7 @@ function createCanvasAgentRuntime(
         label: input.label,
         conversationId: input.conversationId ?? conversationId,
         teamId,
+        canvasWorkspaceId,
       }),
   };
 }
@@ -562,6 +580,31 @@ function buildNextConversationUsageSummary(
       costUsd: current.totals.costUsd + (latestUsage.costUsd ?? 0),
     },
   });
+}
+
+async function resolveTurnCanvasWorkspaceId(
+  actorUserId: string,
+  turn: AgentChatTurnInput,
+): Promise<string | null> {
+  if (!turn.canvasWorkspaceId) return null;
+  await requireOwnedCanvasWorkspace(actorUserId, {
+    canvasWorkspaceId: turn.canvasWorkspaceId,
+  });
+  return turn.canvasWorkspaceId;
+}
+
+async function loadTurnWorkspaceSnapshot(
+  actorUserId: string,
+  canvasWorkspaceId: string | null,
+  turnNodes: AgentChatTurnInput["nodes"],
+) {
+  if (turnNodes) {
+    return { nodes: turnNodes, updatedAt: null as string | null };
+  }
+  if (!canvasWorkspaceId) {
+    return { nodes: [], updatedAt: null as string | null };
+  }
+  return getWorkspaceSnapshot(actorUserId, { canvasWorkspaceId });
 }
 
 function conversationIsUnread(row: { lastMessageAt: Date; lastReadAt: Date | null }): boolean {
@@ -657,9 +700,15 @@ async function getConversationPreviewMap(conversationIds: string[]) {
 
 export async function listDashboardConversations(
   actorUserId: string,
-  input: { filter?: "open" | "settled" },
+  input: { filter?: "open" | "settled"; canvasWorkspaceId?: string | null },
 ) {
   const filter = input.filter ?? "open";
+  const workspaceClause =
+    input.canvasWorkspaceId === undefined
+      ? undefined
+      : input.canvasWorkspaceId === null
+        ? isNull(dashboardConversation.canvasWorkspaceId)
+        : eq(dashboardConversation.canvasWorkspaceId, input.canvasWorkspaceId);
   const conversations = await db
     .select()
     .from(dashboardConversation)
@@ -669,6 +718,7 @@ export async function listDashboardConversations(
         filter === "settled"
           ? isNotNull(dashboardConversation.archivedAt)
           : isNull(dashboardConversation.archivedAt),
+        workspaceClause,
       ),
     )
     .orderBy(desc(dashboardConversation.updatedAt), desc(dashboardConversation.id))
@@ -731,6 +781,7 @@ export async function createDashboardConversation(
     model?: string | null;
     toolPreset: AgentChatTurnInput["toolPreset"];
     taskId?: string | null;
+    canvasWorkspaceId?: string | null;
   },
 ) {
   const now = new Date();
@@ -751,6 +802,7 @@ export async function createDashboardConversation(
     lastReadAt: now,
     archivedAt: null,
     taskId: input.taskId ?? null,
+    canvasWorkspaceId: input.canvasWorkspaceId ?? null,
   });
 
   return getConversationRecord(actorUserId, conversationId);
@@ -870,15 +922,11 @@ export async function appendDashboardConversationTurn(
 
   const now = new Date();
   await consumeOrchMessageForActor(userId, now);
+  const requestedWorkspaceId = await resolveTurnCanvasWorkspaceId(userId, turn);
 
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
-      ? turn.nodes
-        ? Promise.resolve({
-            nodes: turn.nodes,
-            updatedAt: null as string | null,
-          })
-        : getWorkspaceSnapshot(userId, {})
+      ? loadTurnWorkspaceSnapshot(userId, requestedWorkspaceId, turn.nodes)
       : Promise.resolve({ nodes: [], updatedAt: null as string | null }),
     needsCanvas
       ? getWorkspaceMarketplaceItems(userId, { limit: 200, kind: "all" })
@@ -909,8 +957,10 @@ export async function appendDashboardConversationTurn(
         attachments: turnAttachments,
         model: resolvedModelId,
         toolPreset,
+        canvasWorkspaceId: requestedWorkspaceId,
       });
   const createdConversation = !turn.conversationId;
+  const canvasWorkspaceId = requestedWorkspaceId ?? conversation.canvasWorkspaceId ?? null;
 
   const recentMessagesDesc = await db
     .select()
@@ -936,7 +986,7 @@ export async function appendDashboardConversationTurn(
       ? createAgencyAgentRuntime(userId, turn.teamId, conversation.id)
       : null;
   const canvasRuntime = needsCanvas
-    ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId)
+    ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId, canvasWorkspaceId)
     : null;
   const memoryRuntime = createMemoryAgentRuntime(userId);
   const memoryText = formatMemoryForPrompt(await getMemoryForPrompt(userId, {}));
@@ -978,13 +1028,17 @@ export async function appendDashboardConversationTurn(
     result.usage,
   );
   const workspaceSnapshot =
-    surface === "agency"
+    surface === "agency" || !canvasWorkspaceId
       ? null
       : result.workspaceSnapshot
         ? {
             nodes: result.workspaceSnapshot.nodes,
-            updatedAt: (await saveWorkspaceNodes(userId, { nodes: result.workspaceSnapshot.nodes }))
-              .updatedAt,
+            updatedAt: (
+              await saveWorkspaceNodes(userId, {
+                canvasWorkspaceId,
+                nodes: result.workspaceSnapshot.nodes,
+              })
+            ).updatedAt,
           }
         : null;
 
@@ -1077,15 +1131,11 @@ export async function* streamDashboardConversationTurn(
 
   const now = new Date();
   await consumeOrchMessageForActor(userId, now);
+  const requestedWorkspaceId = await resolveTurnCanvasWorkspaceId(userId, turn);
 
   const [fullWorkspaceSnapshot, marketplaceResult] = await Promise.all([
     needsCanvas
-      ? turn.nodes
-        ? Promise.resolve({
-            nodes: turn.nodes,
-            updatedAt: null as string | null,
-          })
-        : getWorkspaceSnapshot(userId, {})
+      ? loadTurnWorkspaceSnapshot(userId, requestedWorkspaceId, turn.nodes)
       : Promise.resolve({ nodes: [], updatedAt: null as string | null }),
     needsCanvas
       ? getWorkspaceMarketplaceItems(userId, { limit: 200, kind: "all" })
@@ -1116,8 +1166,10 @@ export async function* streamDashboardConversationTurn(
         attachments: turnAttachments,
         model: resolvedModelId,
         toolPreset,
+        canvasWorkspaceId: requestedWorkspaceId,
       });
   const createdConversation = !turn.conversationId;
+  const canvasWorkspaceId = requestedWorkspaceId ?? conversation.canvasWorkspaceId ?? null;
 
   const recentMessagesDesc = await db
     .select()
@@ -1147,7 +1199,7 @@ export async function* streamDashboardConversationTurn(
       ? createAgencyAgentRuntime(userId, turn.teamId, conversation.id)
       : null;
   const canvasRuntime = needsCanvas
-    ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId)
+    ? createCanvasAgentRuntime(userId, conversation.id, turn.teamId, canvasWorkspaceId)
     : null;
 
   const contextTitles = turn.contextNodeTitles ?? turn.scopeRefs?.map((ref) => ref.label) ?? [];
@@ -1217,6 +1269,7 @@ export async function* streamDashboardConversationTurn(
       resolvedModelId,
       modelPreset,
       recentMessages: messagesWithMemory,
+      canvasWorkspaceId,
     }),
   );
 
@@ -1260,6 +1313,7 @@ async function executeDashboardConversationRun(args: {
   resolvedModelId: string;
   modelPreset: NonNullable<AgentChatTurnInput["modelPreset"]> | typeof DEFAULT_AGENT_MODEL_PRESET;
   recentMessages: AgentModelInputMessage[];
+  canvasWorkspaceId: string | null;
 }) {
   const {
     actorUserId: userId,
@@ -1283,6 +1337,7 @@ async function executeDashboardConversationRun(args: {
     resolvedModelId,
     modelPreset,
     recentMessages,
+    canvasWorkspaceId,
   } = args;
 
   const persist = (event: AgentChatTurnStreamEvent) =>
@@ -1389,13 +1444,16 @@ async function executeDashboardConversationRun(args: {
           event.usage,
         );
         const workspaceSnapshot =
-          surface === "agency"
+          surface === "agency" || !canvasWorkspaceId
             ? null
             : event.workspaceSnapshot
               ? {
                   nodes: event.workspaceSnapshot.nodes,
                   updatedAt: (
-                    await saveWorkspaceNodes(userId, { nodes: event.workspaceSnapshot.nodes })
+                    await saveWorkspaceNodes(userId, {
+                      canvasWorkspaceId,
+                      nodes: event.workspaceSnapshot.nodes,
+                    })
                   ).updatedAt,
                 }
               : null;

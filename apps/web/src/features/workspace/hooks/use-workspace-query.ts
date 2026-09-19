@@ -99,15 +99,29 @@ function workspaceNodesSignature(nodes: WorkspaceNode[]): string {
     .join("\n");
 }
 
-export function useWorkspaceQuery() {
+export function useWorkspaceQuery(input: { canvasWorkspaceId?: string; nodeId?: string } = {}) {
   const session = authClient.useSession();
   const queryClient = useQueryClient();
-  const workspaceGetQueryOptions = useMemo(() => orpc.workspace.get.queryOptions(), []);
+  const forNodeQuery = useQuery({
+    ...orpc.workspace.brains.forNode.queryOptions({
+      input: { nodeId: input.nodeId ?? "" },
+    }),
+    enabled: !input.canvasWorkspaceId && Boolean(input.nodeId),
+  });
+  const canvasWorkspaceId = input.canvasWorkspaceId ?? forNodeQuery.data?.canvasWorkspaceId ?? null;
+  const workspaceGetQueryOptions = useMemo(
+    () =>
+      orpc.workspace.get.queryOptions({
+        input: { canvasWorkspaceId: canvasWorkspaceId ?? "" },
+      }),
+    [canvasWorkspaceId],
+  );
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedStateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousNodesRef = useRef<WorkspaceNode[] | null>(null);
   const previousUserIdRef = useRef<string | null>(null);
+  const previousWorkspaceIdRef = useRef<string | null>(null);
   const isApplyingRemoteRef = useRef(false);
   const scheduleWorkspaceSaveRef = useRef<(delay?: number) => void>(() => {});
 
@@ -147,7 +161,7 @@ export function useWorkspaceQuery() {
   const userId = session.data?.user?.id ?? null;
   const workspaceQuery = useQuery({
     ...workspaceGetQueryOptions,
-    enabled: authEnabled,
+    enabled: authEnabled && Boolean(canvasWorkspaceId),
     staleTime: 30_000,
     refetchOnReconnect: true,
     refetchOnWindowFocus: false,
@@ -178,7 +192,8 @@ export function useWorkspaceQuery() {
       }
     }, 2_000);
   }, [clearSavedStateTimer, setSaveState]);
-  const workspaceReadyForEdits = authEnabled && loadApplied && !isHydratingWorkspace;
+  const workspaceReadyForEdits =
+    authEnabled && Boolean(canvasWorkspaceId) && loadApplied && !isHydratingWorkspace;
   const isWorkspaceInitialLoading =
     authEnabled &&
     !loadApplied &&
@@ -223,9 +238,11 @@ export function useWorkspaceQuery() {
 
   const applyWorkspaceSnapshot = useCallback(
     (remoteNodes: WorkspaceNode[], updatedAt: string | null) => {
+      if (!canvasWorkspaceId) return;
       clearSaveTimer();
       clearRetryTimer();
       queryClient.setQueryData(workspaceGetQueryOptions.queryKey, {
+        canvasWorkspaceId,
         nodes: remoteNodes,
         updatedAt,
       });
@@ -233,6 +250,7 @@ export function useWorkspaceQuery() {
     },
     [
       applyRemoteSnapshot,
+      canvasWorkspaceId,
       clearRetryTimer,
       clearSaveTimer,
       queryClient,
@@ -242,8 +260,12 @@ export function useWorkspaceQuery() {
 
   const persistWorkspace = useCallback(
     async (snapshot: WorkspaceNode[], revision: number) => {
+      if (!canvasWorkspaceId) return;
       try {
-        const response = await saveWorkspace.mutateAsync({ nodes: snapshot });
+        const response = await saveWorkspace.mutateAsync({
+          canvasWorkspaceId,
+          nodes: snapshot,
+        });
         setSyncedRevision(Math.max(syncedRevision, revision));
         setSyncedAt(response.updatedAt);
         if (revision < useWorkspaceStore.getState().localRevision) {
@@ -253,6 +275,7 @@ export function useWorkspaceQuery() {
         setSaveState("saved");
         setSaveError(null);
         queryClient.setQueryData(workspaceGetQueryOptions.queryKey, {
+          canvasWorkspaceId,
           nodes: snapshot.map(normalizeWorkspaceNode),
           updatedAt: response.updatedAt,
         });
@@ -274,6 +297,7 @@ export function useWorkspaceQuery() {
     },
     [
       authEnabled,
+      canvasWorkspaceId,
       clearRetryTimer,
       queryClient,
       saveWorkspace,
@@ -518,7 +542,7 @@ export function useWorkspaceQuery() {
     closeEditor();
   }, [closeEditor, setNodes, setSelectedNodeIds, updateNodes]);
   const preloadWorkspace = useCallback(async () => {
-    if (!authEnabled) return;
+    if (!authEnabled || !canvasWorkspaceId) return;
     if (useWorkspaceStore.getState().isPreloadingWorkspace) return;
     setIsPreloadingWorkspace(true);
     try {
@@ -536,6 +560,7 @@ export function useWorkspaceQuery() {
   }, [
     applyRemoteSnapshot,
     authEnabled,
+    canvasWorkspaceId,
     queryClient,
     setIsPreloadingWorkspace,
     workspaceGetQueryOptions,
@@ -558,6 +583,17 @@ export function useWorkspaceQuery() {
     }
     previousUserIdRef.current = userId;
   }, [clearRetryTimer, clearSaveTimer, closeEditor, resetWorkspaceState, userId]);
+
+  useEffect(() => {
+    if (!canvasWorkspaceId) return;
+    if (previousWorkspaceIdRef.current && previousWorkspaceIdRef.current !== canvasWorkspaceId) {
+      clearSaveTimer();
+      clearRetryTimer();
+      closeEditor();
+      resetWorkspaceState();
+    }
+    previousWorkspaceIdRef.current = canvasWorkspaceId;
+  }, [canvasWorkspaceId, clearRetryTimer, clearSaveTimer, closeEditor, resetWorkspaceState]);
 
   useEffect(() => {
     const remoteWorkspace = workspaceQuery.data;
@@ -618,6 +654,7 @@ export function useWorkspaceQuery() {
   }, [applyWorkspaceSnapshot]);
 
   return {
+    canvasWorkspaceId,
     workspaceQuery,
     preloadWorkspace,
     workspaceReadyForEdits,

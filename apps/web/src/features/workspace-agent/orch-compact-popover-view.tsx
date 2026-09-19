@@ -47,12 +47,27 @@ export function OrchCompactPopoverView({
         className="orch-compact-morph w-[min(calc(100vw-1rem),22.5rem)] overflow-hidden rounded-[20.8px] p-0"
         data-workspace-agent-overlay
       >
-        <div className="orch-compact-rise border-b border-border px-3 py-2" style={{ animationDelay: "30ms" }}>{composer}</div>
-        <p className="orch-compact-rise px-3 py-1.5 font-mono text-[11px] leading-4 text-muted-foreground" style={{ animationDelay: "90ms" }}>{hint}</p>
+        <div
+          className="orch-compact-rise border-b border-border px-3 py-2"
+          style={{ animationDelay: "30ms" }}
+        >
+          {composer}
+        </div>
+        <p
+          className="orch-compact-rise px-3 py-1.5 font-mono text-[11px] leading-4 text-muted-foreground"
+          style={{ animationDelay: "90ms" }}
+        >
+          {hint}
+        </p>
 
         <div className="max-h-64 overflow-y-auto px-1.5 pb-1">
           {threads.length === 0 ? (
-            <p className="orch-compact-rise px-2 py-2.5 text-sm text-muted-foreground" style={{ animationDelay: "140ms" }}>Send to start a thread.</p>
+            <p
+              className="orch-compact-rise px-2 py-2.5 text-sm text-muted-foreground"
+              style={{ animationDelay: "140ms" }}
+            >
+              Send to start a thread.
+            </p>
           ) : (
             threads.map((thread, index) => (
               <div
@@ -66,7 +81,10 @@ export function OrchCompactPopoverView({
           )}
         </div>
 
-        <div className="orch-compact-rise border-t border-border p-2.5" style={{ animationDelay: `${ctaDelay}ms` }}>
+        <div
+          className="orch-compact-rise border-t border-border p-2.5"
+          style={{ animationDelay: `${ctaDelay}ms` }}
+        >
           <motion.button
             type="button"
             layoutId={ORCH_COMPANION_SCREEN_LAYOUT_ID}

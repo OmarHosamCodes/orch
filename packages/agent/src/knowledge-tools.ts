@@ -15,6 +15,7 @@ function buildKnowledgeQueryTool(runtime: CanvasAgentRuntime) {
     description:
       "Query the team brain: canvas notes, decisions, sources, folders, plus live Agency projects, tasks, members, clients, and time entries. Use about: { objectType, id } for backlinks. Folders use in relations. Never invent Agency ids.",
     inputSchema: z.object({
+      canvasWorkspaceId: z.string().trim().min(1).optional(),
       teamId: z.string().trim().min(1).optional(),
       objectType: knowledgeObjectTypeSchema.optional(),
       query: z.string().trim().min(1).optional(),
@@ -76,12 +77,35 @@ function buildKnowledgeApplyTool(runtime: CanvasAgentRuntime) {
   });
 }
 
+function buildListWorkspacesTool(runtime: CanvasAgentRuntime) {
+  return tool({
+    name: "list_workspaces",
+    description:
+      "List the user's named Canvas brains. Use this from the central nervous system before querying or writing a specific brain.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      items: z.array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          instructions: z.string(),
+        }),
+      ),
+    }),
+    execute: async () => {
+      if (!runtime.listWorkspaces) return { items: [] };
+      return runtime.listWorkspaces();
+    },
+  });
+}
+
 export function buildKnowledgeTools(
   runtime: CanvasAgentRuntime,
   _preset: DashboardAgentToolPreset,
 ) {
   void _preset;
   return [
+    buildListWorkspacesTool(runtime),
     buildKnowledgeQueryTool(runtime),
     buildKnowledgeGetTool(runtime),
     buildKnowledgeApplyTool(runtime),

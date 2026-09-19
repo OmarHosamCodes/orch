@@ -23,6 +23,10 @@ import { and, desc, eq, ilike, inArray, lt, or } from "drizzle-orm";
 import { assertWithinLimit, getTeamBilling } from "../../billing-team";
 import { requireAgencyRole, requireTeamMembership } from "../../lib/team-membership";
 import { deleteKnowledgeForNode, syncKnowledgeFromNodes } from "./knowledge-service";
+import {
+  ensureDefaultCanvasWorkspace,
+  requireOwnedCanvasWorkspace,
+} from "./canvas-workspace-service";
 
 async function resolveActorAgencyTeamId(actorUserId: string): Promise<string | null> {
   const [owned] = await db
@@ -132,41 +136,79 @@ async function getMembershipMapByUser(userId: string) {
   return new Map(memberships.map((membership) => [membership.teamId, membership.role]));
 }
 
-async function upsertWorkspaceNodes(userId: string, nodes: WorkspaceNode[], now: Date) {
+async function upsertWorkspaceNodes(
+  workspaceId: string,
+  ownerUserId: string,
+  nodes: WorkspaceNode[],
+  now: Date,
+) {
   await db
     .insert(dashboardWorkspace)
     .values({
-      userId,
+      workspaceId,
+      ownerUserId,
       nodes,
       updatedAt: now,
     })
     .onConflictDoUpdate({
-      target: dashboardWorkspace.userId,
+      target: dashboardWorkspace.workspaceId,
       set: {
         nodes,
         updatedAt: now,
       },
     });
-  await syncKnowledgeFromNodes(userId, { nodes });
+  await syncKnowledgeFromNodes(ownerUserId, { canvasWorkspaceId: workspaceId, nodes });
 }
 
-async function getWorkspaceRowsByUserIds(userIds: string[]) {
-  if (userIds.length === 0) {
+async function getWorkspaceRowsByOwnerUserIds(ownerUserIds: string[]) {
+  if (ownerUserIds.length === 0) {
     return [];
   }
 
   return db
     .select({
-      userId: dashboardWorkspace.userId,
+      workspaceId: dashboardWorkspace.workspaceId,
+      ownerUserId: dashboardWorkspace.ownerUserId,
       nodes: dashboardWorkspace.nodes,
       updatedAt: dashboardWorkspace.updatedAt,
     })
     .from(dashboardWorkspace)
-    .where(inArray(dashboardWorkspace.userId, userIds));
+    .where(inArray(dashboardWorkspace.ownerUserId, ownerUserIds));
+}
+
+async function findBoardContainingNode(ownerUserId: string, nodeId: string) {
+  const rows = await getWorkspaceRowsByOwnerUserIds([ownerUserId]);
+  for (const row of rows) {
+    const nodes = (row.nodes ?? []).map((node) =>
+      withOwnerDefaults(node as WorkspaceNode, ownerUserId),
+    );
+    if (nodes.some((node) => node.id === nodeId)) {
+      return { ...row, nodes };
+    }
+  }
+  return null;
 }
 
 function getNodeOwnerKey(node: WorkspaceNode) {
   return `${node.ownerUserId ?? ""}:${node.id}`;
+}
+
+export async function resolveCanvasWorkspaceForNode(
+  actorUserId: string,
+  input: { nodeId: string },
+) {
+  const owned = await findBoardContainingNode(actorUserId, input.nodeId);
+  if (owned) {
+    return { canvasWorkspaceId: owned.workspaceId };
+  }
+  const fallback = await ensureDefaultCanvasWorkspace(actorUserId);
+  const snapshot = await getWorkspaceSnapshot(actorUserId, {
+    canvasWorkspaceId: fallback.id,
+  });
+  if (snapshot.nodes.some((node) => node.id === input.nodeId)) {
+    return { canvasWorkspaceId: fallback.id };
+  }
+  throw new ORPCError("NOT_FOUND");
 }
 
 function getLatestUpdatedAtIso(rows: Array<{ updatedAt: Date }>) {
@@ -179,15 +221,19 @@ function getLatestUpdatedAtIso(rows: Array<{ updatedAt: Date }>) {
     .toISOString();
 }
 
-export async function getWorkspaceSnapshot(actorUserId: string, _input: Record<string, never>) {
+export async function getWorkspaceSnapshot(
+  actorUserId: string,
+  input: { canvasWorkspaceId: string },
+) {
   const userId = actorUserId;
+  await requireOwnedCanvasWorkspace(userId, { canvasWorkspaceId: input.canvasWorkspaceId });
   const [workspace] = await db
     .select({
       nodes: dashboardWorkspace.nodes,
       updatedAt: dashboardWorkspace.updatedAt,
     })
     .from(dashboardWorkspace)
-    .where(eq(dashboardWorkspace.userId, userId))
+    .where(eq(dashboardWorkspace.workspaceId, input.canvasWorkspaceId))
     .limit(1);
 
   const membershipMap = await getMembershipMapByUser(userId);
@@ -202,7 +248,7 @@ export async function getWorkspaceSnapshot(actorUserId: string, _input: Record<s
   const relatedUserIds = [
     ...new Set(memberRows.map((row) => row.userId).filter((id) => id !== userId)),
   ];
-  const relatedWorkspaces = await getWorkspaceRowsByUserIds(relatedUserIds);
+  const relatedWorkspaces = await getWorkspaceRowsByOwnerUserIds(relatedUserIds);
 
   const ownNodes = (workspace?.nodes ?? []).map((node) =>
     withOwnerDefaults(node as WorkspaceNode, userId),
@@ -210,7 +256,7 @@ export async function getWorkspaceSnapshot(actorUserId: string, _input: Record<s
   const visibleRelatedWorkspaces = relatedWorkspaces
     .map((relatedWorkspace) => ({
       nodes: (relatedWorkspace.nodes ?? [])
-        .map((node) => withOwnerDefaults(node as WorkspaceNode, relatedWorkspace.userId))
+        .map((node) => withOwnerDefaults(node as WorkspaceNode, relatedWorkspace.ownerUserId))
         .filter((node) => {
           if (node.visibility !== "team" || !node.teamId) {
             return false;
@@ -244,9 +290,13 @@ export async function getWorkspaceSnapshot(actorUserId: string, _input: Record<s
   };
 }
 
-export async function saveWorkspaceNodes(actorUserId: string, input: { nodes: WorkspaceNode[] }) {
+export async function saveWorkspaceNodes(
+  actorUserId: string,
+  input: { canvasWorkspaceId: string; nodes: WorkspaceNode[] },
+) {
   const userId = actorUserId;
-  const { nodes } = input;
+  const { nodes, canvasWorkspaceId } = input;
+  await requireOwnedCanvasWorkspace(userId, { canvasWorkspaceId });
   const now = new Date();
   const membershipMap = await getMembershipMapByUser(userId);
   const verifiedEditorTeams = new Set<string>();
@@ -314,21 +364,18 @@ export async function saveWorkspaceNodes(actorUserId: string, input: { nodes: Wo
       },
       ownerUserId,
     );
-    let existingById = sharedWorkspaceNodesByOwner.get(ownerUserId);
+    const ownerBoard = await findBoardContainingNode(ownerUserId, candidateSharedNode.id);
+    if (!ownerBoard) {
+      throw new ORPCError("NOT_FOUND");
+    }
+    const boardKey = `${ownerUserId}:${ownerBoard.workspaceId}`;
+    let existingById = sharedWorkspaceNodesByOwner.get(boardKey);
 
     if (!existingById) {
-      const [ownerWorkspace] = await db
-        .select({
-          nodes: dashboardWorkspace.nodes,
-        })
-        .from(dashboardWorkspace)
-        .where(eq(dashboardWorkspace.userId, ownerUserId))
-        .limit(1);
-      const existingNodes = (ownerWorkspace?.nodes ?? []).map((existingNode) =>
-        withOwnerDefaults(existingNode as WorkspaceNode, ownerUserId),
+      existingById = new Map(
+        ownerBoard.nodes.map((existingNode) => [existingNode.id, existingNode]),
       );
-      existingById = new Map(existingNodes.map((existingNode) => [existingNode.id, existingNode]));
-      sharedWorkspaceNodesByOwner.set(ownerUserId, existingById);
+      sharedWorkspaceNodesByOwner.set(boardKey, existingById);
     }
 
     const existingNode = existingById.get(candidateSharedNode.id);
@@ -355,10 +402,10 @@ export async function saveWorkspaceNodes(actorUserId: string, input: { nodes: Wo
       ownerUserId,
     );
     existingById.set(sharedNode.id, sharedNode);
-    const ownerNodes = sharedNodesByOwner.get(ownerUserId) ?? [];
+    const ownerNodes = sharedNodesByOwner.get(boardKey) ?? [];
     ownerNodes.push(sharedNode);
 
-    sharedNodesByOwner.set(ownerUserId, ownerNodes);
+    sharedNodesByOwner.set(boardKey, ownerNodes);
     accessibleNodesById.set(sharedNode.id, sharedNode);
   }
 
@@ -369,10 +416,13 @@ export async function saveWorkspaceNodes(actorUserId: string, input: { nodes: Wo
 
   assertValidNodeConnections(persistedNodes, accessibleNodesById);
 
-  await upsertWorkspaceNodes(userId, ownedNodes, now);
+  await upsertWorkspaceNodes(canvasWorkspaceId, userId, ownedNodes, now);
 
-  for (const [ownerUserId, existingById] of sharedWorkspaceNodesByOwner.entries()) {
-    await upsertWorkspaceNodes(ownerUserId, [...existingById.values()], now);
+  for (const [boardKey, existingById] of sharedWorkspaceNodesByOwner.entries()) {
+    const separator = boardKey.indexOf(":");
+    const ownerUserId = boardKey.slice(0, separator);
+    const workspaceId = boardKey.slice(separator + 1);
+    await upsertWorkspaceNodes(workspaceId, ownerUserId, [...existingById.values()], now);
   }
 
   return {
@@ -384,20 +434,37 @@ export async function saveWorkspaceNodes(actorUserId: string, input: { nodes: Wo
 
 export async function shareWorkspaceNode(
   actorUserId: string,
-  input: { nodeId: string; teamId: string },
+  input: { nodeId: string; teamId: string; canvasWorkspaceId?: string },
 ) {
   const userId = actorUserId;
   await requireTeamMembership(userId, input.teamId, "owner");
 
-  const [workspace] = await db
-    .select({ nodes: dashboardWorkspace.nodes })
-    .from(dashboardWorkspace)
-    .where(eq(dashboardWorkspace.userId, userId))
-    .limit(1);
+  const board = input.canvasWorkspaceId
+    ? await (async () => {
+        await requireOwnedCanvasWorkspace(userId, { canvasWorkspaceId: input.canvasWorkspaceId! });
+        const [row] = await db
+          .select({
+            workspaceId: dashboardWorkspace.workspaceId,
+            ownerUserId: dashboardWorkspace.ownerUserId,
+            nodes: dashboardWorkspace.nodes,
+            updatedAt: dashboardWorkspace.updatedAt,
+          })
+          .from(dashboardWorkspace)
+          .where(eq(dashboardWorkspace.workspaceId, input.canvasWorkspaceId!))
+          .limit(1);
+        if (!row) return null;
+        return {
+          ...row,
+          nodes: (row.nodes ?? []).map((node) => withOwnerDefaults(node as WorkspaceNode, userId)),
+        };
+      })()
+    : await findBoardContainingNode(userId, input.nodeId);
 
-  const nodes = (workspace?.nodes ?? []).map((node) =>
-    withOwnerDefaults(node as WorkspaceNode, userId),
-  );
+  if (!board) {
+    throw new ORPCError("NOT_FOUND");
+  }
+
+  const nodes = board.nodes;
   const targetNode = nodes.find((node) => node.id === input.nodeId);
 
   if (!targetNode) {
@@ -422,7 +489,7 @@ export async function shareWorkspaceNode(
     );
   });
 
-  await upsertWorkspaceNodes(userId, updatedNodes, now);
+  await upsertWorkspaceNodes(board.workspaceId, userId, updatedNodes, now);
 
   return {
     nodeId: input.nodeId,
@@ -433,15 +500,13 @@ export async function shareWorkspaceNode(
 
 export async function unshareWorkspaceNode(actorUserId: string, input: { nodeId: string }) {
   const userId = actorUserId;
-  const [workspace] = await db
-    .select({ nodes: dashboardWorkspace.nodes })
-    .from(dashboardWorkspace)
-    .where(eq(dashboardWorkspace.userId, userId))
-    .limit(1);
+  const board = await findBoardContainingNode(userId, input.nodeId);
 
-  const nodes = (workspace?.nodes ?? []).map((node) =>
-    withOwnerDefaults(node as WorkspaceNode, userId),
-  );
+  if (!board) {
+    throw new ORPCError("NOT_FOUND");
+  }
+
+  const nodes = board.nodes;
   const targetNode = nodes.find((node) => node.id === input.nodeId);
 
   if (!targetNode) {
@@ -470,7 +535,7 @@ export async function unshareWorkspaceNode(actorUserId: string, input: { nodeId:
     );
   });
 
-  await upsertWorkspaceNodes(userId, updatedNodes, now);
+  await upsertWorkspaceNodes(board.workspaceId, userId, updatedNodes, now);
 
   return {
     nodeId: input.nodeId,
@@ -484,61 +549,30 @@ export async function deleteWorkspaceNode(
 ) {
   const userId = actorUserId;
   const ownerUserId = input.ownerUserId ?? userId;
+  const board = await findBoardContainingNode(ownerUserId, input.nodeId);
 
-  if (ownerUserId !== userId) {
-    const [ownerWorkspace] = await db
-      .select({ nodes: dashboardWorkspace.nodes })
-      .from(dashboardWorkspace)
-      .where(eq(dashboardWorkspace.userId, ownerUserId))
-      .limit(1);
-
-    if (!ownerWorkspace) {
-      throw new ORPCError("NOT_FOUND");
-    }
-
-    const ownerNodes = (ownerWorkspace.nodes ?? []).map((node) =>
-      withOwnerDefaults(node as WorkspaceNode, ownerUserId),
-    );
-    const targetNode = ownerNodes.find((node) => node.id === input.nodeId);
-
-    if (!targetNode || targetNode.visibility !== "team" || !targetNode.teamId) {
-      throw new ORPCError("NOT_FOUND");
-    }
-
-    await requireTeamMembership(userId, targetNode.teamId, "editor");
-
-    const now = new Date();
-    await upsertWorkspaceNodes(
-      ownerUserId,
-      ownerNodes.filter((node) => node.id !== input.nodeId),
-      now,
-    );
-    await deleteKnowledgeForNode(userId, { objectId: input.nodeId });
-
-    return {
-      nodeId: input.nodeId,
-      ownerUserId,
-      deleted: true,
-    };
+  if (!board) {
+    throw new ORPCError("NOT_FOUND");
   }
 
-  const [workspace] = await db
-    .select({ nodes: dashboardWorkspace.nodes })
-    .from(dashboardWorkspace)
-    .where(eq(dashboardWorkspace.userId, userId))
-    .limit(1);
+  const nodes = board.nodes;
+  const targetNode = nodes.find((node) => node.id === input.nodeId);
 
-  const nodes = (workspace?.nodes ?? []).map((node) =>
-    withOwnerDefaults(node as WorkspaceNode, userId),
-  );
-
-  if (!nodes.some((node) => node.id === input.nodeId)) {
+  if (!targetNode) {
     throw new ORPCError("NOT_FOUND");
+  }
+
+  if (ownerUserId !== userId) {
+    if (targetNode.visibility !== "team" || !targetNode.teamId) {
+      throw new ORPCError("NOT_FOUND");
+    }
+    await requireTeamMembership(userId, targetNode.teamId, "editor");
   }
 
   const now = new Date();
   await upsertWorkspaceNodes(
-    userId,
+    board.workspaceId,
+    ownerUserId,
     nodes.filter((node) => node.id !== input.nodeId),
     now,
   );
@@ -546,7 +580,7 @@ export async function deleteWorkspaceNode(
 
   return {
     nodeId: input.nodeId,
-    ownerUserId: userId,
+    ownerUserId,
     deleted: true,
   };
 }

@@ -74,6 +74,7 @@ import {
 } from "../agency-ops/time-tracking/service";
 import { getWorkspaceSnapshot, saveWorkspaceNodes } from "../workspace/service";
 import { applyKnowledgeAction } from "../workspace/knowledge-service";
+import { ensureDefaultCanvasWorkspace } from "../workspace/canvas-workspace-service";
 
 const PROPOSAL_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -560,11 +561,18 @@ export async function applyCanvasForYou(
     label?: string;
     conversationId?: string | null;
     teamId?: string | null;
+    canvasWorkspaceId?: string | null;
     nodes?: WorkspaceNode[];
   },
 ) {
   if (input.teamId) {
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  }
+  const canvasWorkspaceId = input.canvasWorkspaceId ?? null;
+  if (!canvasWorkspaceId) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "Canvas writes require a brain. List workspaces first.",
+    });
   }
   const action = canvasActionSchema.parse(input.action);
   if (
@@ -575,10 +583,14 @@ export async function applyCanvasForYou(
   ) {
     throw new ORPCError("BAD_REQUEST", { message: "Team-shared nodes require a team." });
   }
-  const snapshotNodes = input.nodes ?? (await getWorkspaceSnapshot(actorUserId, {})).nodes;
+  const snapshotNodes =
+    input.nodes ?? (await getWorkspaceSnapshot(actorUserId, { canvasWorkspaceId })).nodes;
   const preview = await applyCanvasAction(snapshotNodes, action);
   const storedAction = stampCanvasCreateIds(action, preview.after);
-  const saved = await saveWorkspaceNodes(actorUserId, { nodes: preview.nextNodes });
+  const saved = await saveWorkspaceNodes(actorUserId, {
+    canvasWorkspaceId,
+    nodes: preview.nextNodes,
+  });
   const label = input.label?.trim() || canvasActionLabel(storedAction);
   const createdNodeId =
     storedAction.type === "node.create" && preview.after && typeof preview.after === "object"
@@ -594,7 +606,7 @@ export async function applyCanvasForYou(
     storedAction.type.startsWith("block.") && "blockId" in storedAction
       ? String(storedAction.blockId)
       : null;
-  const boardHref = createdNodeId ? `/node/${createdNodeId}` : "/canvas";
+  const boardHref = createdNodeId ? `/node/${createdNodeId}` : `/canvas/${canvasWorkspaceId}`;
   void saved;
   void input.conversationId;
   return {
@@ -615,10 +627,13 @@ export async function createCanvasProposalRecord(
     label?: string;
     conversationId?: string | null;
     teamId?: string | null;
+    canvasWorkspaceId?: string | null;
     nodes?: WorkspaceNode[];
   },
 ) {
-  return applyCanvasForYou(actorUserId, input);
+  const canvasWorkspaceId =
+    input.canvasWorkspaceId ?? (await ensureDefaultCanvasWorkspace(actorUserId)).id;
+  return applyCanvasForYou(actorUserId, { ...input, canvasWorkspaceId });
 }
 
 export async function applyKnowledgeForYou(
@@ -628,15 +643,23 @@ export async function applyKnowledgeForYou(
     label?: string;
     conversationId?: string | null;
     teamId?: string | null;
+    canvasWorkspaceId?: string | null;
   },
 ) {
   if (input.teamId) {
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
+  const canvasWorkspaceId = input.canvasWorkspaceId ?? null;
+  if (!canvasWorkspaceId) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "Knowledge writes require a brain. List workspaces first.",
+    });
+  }
   const action = knowledgeActionSchema.parse(input.action);
   const applied = await applyKnowledgeAction(actorUserId, {
     action,
     teamId: input.teamId,
+    canvasWorkspaceId,
   });
   const objectId =
     applied && typeof applied === "object" && "objectId" in applied
@@ -662,7 +685,7 @@ export async function applyKnowledgeForYou(
       ? parsedType.success
         ? knowledgeObjectHref(parsedType.data, objectId)
         : `/object/${objectId}`
-      : "/canvas",
+      : `/canvas/${canvasWorkspaceId}`,
   };
 }
 
@@ -673,21 +696,31 @@ export async function createKnowledgeProposalRecord(
     label?: string;
     conversationId?: string | null;
     teamId?: string | null;
+    canvasWorkspaceId?: string | null;
   },
 ) {
-  return applyKnowledgeForYou(actorUserId, input);
+  const canvasWorkspaceId =
+    input.canvasWorkspaceId ?? (await ensureDefaultCanvasWorkspace(actorUserId)).id;
+  return applyKnowledgeForYou(actorUserId, { ...input, canvasWorkspaceId });
 }
 
 export async function confirmCanvasPlan(
   actorUserId: string,
-  input: { conversationId?: string | null; teamId?: string | null; plan: unknown },
+  input: {
+    conversationId?: string | null;
+    teamId?: string | null;
+    canvasWorkspaceId?: string | null;
+    plan: unknown;
+  },
 ) {
   if (input.teamId) {
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
+  const canvasWorkspaceId =
+    input.canvasWorkspaceId ?? (await ensureDefaultCanvasWorkspace(actorUserId)).id;
   const plan = canvasDraftPlanSchema.parse(input.plan);
   const created = [];
-  let draftNodes = (await getWorkspaceSnapshot(actorUserId, {})).nodes;
+  let draftNodes = (await getWorkspaceSnapshot(actorUserId, { canvasWorkspaceId })).nodes;
   let lastCreated = null as ReturnType<typeof readLastCreatedCanvasTarget>;
   for (const step of plan.steps) {
     const boundAction = bindCanvasPlanStepAction(step.action, draftNodes, lastCreated);
@@ -696,6 +729,7 @@ export async function confirmCanvasPlan(
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
+      canvasWorkspaceId,
       nodes: draftNodes,
     });
     created.push(applied);
@@ -738,9 +772,13 @@ async function loadProposalForActor(
 }
 
 async function executeCanvasAction(actorUserId: string, action: CanvasAction) {
-  const snapshot = await getWorkspaceSnapshot(actorUserId, {});
+  const canvasWorkspaceId = (await ensureDefaultCanvasWorkspace(actorUserId)).id;
+  const snapshot = await getWorkspaceSnapshot(actorUserId, { canvasWorkspaceId });
   const applied = await applyCanvasAction(snapshot.nodes, action);
-  const saved = await saveWorkspaceNodes(actorUserId, { nodes: applied.nextNodes });
+  const saved = await saveWorkspaceNodes(actorUserId, {
+    canvasWorkspaceId,
+    nodes: applied.nextNodes,
+  });
   return {
     workspaceSnapshot: {
       nodes: applied.nextNodes,
@@ -768,12 +806,14 @@ export async function approveAgencyProposal(
 
   try {
     if (row.domain === "knowledge") {
+      const canvasWorkspaceId = (await ensureDefaultCanvasWorkspace(actorUserId)).id;
       const applied = await applyKnowledgeAction(actorUserId, {
         action: knowledgeActionSchema.parse(row.action),
         proposalId: row.id,
         teamId: input.teamId ?? row.teamId,
+        canvasWorkspaceId,
       });
-      const snapshot = await getWorkspaceSnapshot(actorUserId, {});
+      const snapshot = await getWorkspaceSnapshot(actorUserId, { canvasWorkspaceId });
       await db
         .update(agentAgencyProposal)
         .set({ status: "executed", updatedAt: new Date(), error: null })
@@ -857,11 +897,18 @@ export async function rejectAgencyProposal(
 
 export async function confirmKnowledgePlan(
   actorUserId: string,
-  input: { conversationId?: string | null; teamId?: string | null; plan: unknown },
+  input: {
+    conversationId?: string | null;
+    teamId?: string | null;
+    canvasWorkspaceId?: string | null;
+    plan: unknown;
+  },
 ) {
   if (input.teamId) {
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
   }
+  const canvasWorkspaceId =
+    input.canvasWorkspaceId ?? (await ensureDefaultCanvasWorkspace(actorUserId)).id;
   const plan = knowledgeDraftPlanSchema.parse(input.plan);
   const created = [];
   for (const step of plan.steps) {
@@ -870,6 +917,7 @@ export async function confirmKnowledgePlan(
       label: step.label,
       conversationId: input.conversationId,
       teamId: input.teamId,
+      canvasWorkspaceId,
     });
     created.push(applied);
   }

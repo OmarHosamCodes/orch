@@ -3,15 +3,23 @@ import { eq } from "drizzle-orm";
 
 Bun.env.DATABASE_URL ??= "postgresql://postgres:password@localhost:5440/orch";
 
-const [{ db }, { user }, { createWorkspaceNode }, teamService, workspaceService, billingTeam] =
-  await Promise.all([
-    import("@orch/db"),
-    import("@orch/db/schema/auth"),
-    import("@orch/workspace"),
-    import("../team/service"),
-    import("./service"),
-    import("../../billing-team"),
-  ]);
+const [
+  { db },
+  { user },
+  { createWorkspaceNode },
+  teamService,
+  workspaceService,
+  billingTeam,
+  canvasWorkspaceService,
+] = await Promise.all([
+  import("@orch/db"),
+  import("@orch/db/schema/auth"),
+  import("@orch/workspace"),
+  import("../team/service"),
+  import("./service"),
+  import("../../billing-team"),
+  import("./canvas-workspace-service"),
+]);
 
 const fixtureUsers: string[] = [];
 
@@ -32,6 +40,26 @@ async function createFixtureUser() {
   return id;
 }
 
+async function defaultWorkspaceId(userId: string) {
+  return (await canvasWorkspaceService.ensureDefaultCanvasWorkspace(userId)).id;
+}
+
+async function saveNodes(
+  userId: string,
+  input: { nodes: Parameters<typeof workspaceService.saveWorkspaceNodes>[1]["nodes"] },
+) {
+  return workspaceService.saveWorkspaceNodes(userId, {
+    canvasWorkspaceId: await defaultWorkspaceId(userId),
+    nodes: input.nodes,
+  });
+}
+
+async function snapshot(userId: string) {
+  return workspaceService.getWorkspaceSnapshot(userId, {
+    canvasWorkspaceId: await defaultWorkspaceId(userId),
+  });
+}
+
 describe("workspace service authorization", () => {
   test("does not expose or mutate another user's private or team-shared nodes", async () => {
     const ownerUserId = await createFixtureUser();
@@ -48,15 +76,15 @@ describe("workspace service authorization", () => {
       teamId: team.id,
     });
 
-    await workspaceService.saveWorkspaceNodes(ownerUserId, {
+    await saveNodes(ownerUserId, {
       nodes: [privateNode, sharedNode],
     });
 
-    const outsiderSnapshot = await workspaceService.getWorkspaceSnapshot(outsiderUserId, {});
+    const outsiderSnapshot = await snapshot(outsiderUserId);
     expect(outsiderSnapshot.nodes).toHaveLength(0);
 
     await expect(
-      workspaceService.saveWorkspaceNodes(outsiderUserId, {
+      saveNodes(outsiderUserId, {
         nodes: [{ ...privateNode, title: "Outsider Rename" }],
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
@@ -67,7 +95,7 @@ describe("workspace service authorization", () => {
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
 
-    const ownerSnapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const ownerSnapshot = await snapshot(ownerUserId);
     expect(ownerSnapshot.nodes.map(({ id, title }) => ({ id, title }))).toEqual([
       { id: privateNode.id, title: "Owner Private Node" },
       { id: sharedNode.id, title: "Owner Shared Node" },
@@ -90,10 +118,10 @@ describe("workspace service authorization", () => {
       nodeType: "orchestrator",
       connections: [{ targetNodeId: victimNode.id }],
     });
-    await workspaceService.saveWorkspaceNodes(victimUserId, { nodes: [victimNode] });
+    await saveNodes(victimUserId, { nodes: [victimNode] });
 
     await expect(
-      workspaceService.saveWorkspaceNodes(attackerUserId, {
+      saveNodes(attackerUserId, {
         nodes: [
           attackerOrchestrator,
           {
@@ -106,12 +134,11 @@ describe("workspace service authorization", () => {
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
 
-    expect(await workspaceService.getWorkspaceSnapshot(attackerUserId, {})).toEqual({
+    expect(await snapshot(attackerUserId)).toMatchObject({
       nodes: [],
-      updatedAt: null,
     });
 
-    const victimSnapshot = await workspaceService.getWorkspaceSnapshot(victimUserId, {});
+    const victimSnapshot = await snapshot(victimUserId);
     expect(victimSnapshot.nodes).toHaveLength(1);
     expect(victimSnapshot.nodes[0]).toMatchObject({
       id: victimNode.id,
@@ -132,15 +159,15 @@ describe("workspace service authorization", () => {
       visibility: "team",
       teamId: ownerTeam.id,
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, { nodes: [sharedNode] });
+    await saveNodes(ownerUserId, { nodes: [sharedNode] });
 
     await expect(
-      workspaceService.saveWorkspaceNodes(outsiderUserId, {
+      saveNodes(outsiderUserId, {
         nodes: [{ ...sharedNode, title: "Outsider Overwrite" }],
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
 
-    const ownerSnapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const ownerSnapshot = await snapshot(ownerUserId);
     expect(ownerSnapshot.nodes).toHaveLength(1);
     expect(ownerSnapshot.nodes[0]).toMatchObject({
       id: sharedNode.id,
@@ -167,13 +194,13 @@ describe("workspace service authorization", () => {
       visibility: "team",
       teamId: ownerTeam.id,
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, { nodes: [sharedNode] });
+    await saveNodes(ownerUserId, { nodes: [sharedNode] });
 
-    await workspaceService.saveWorkspaceNodes(editorUserId, {
+    await saveNodes(editorUserId, {
       nodes: [{ ...sharedNode, title: "Shared After Edit" }],
     });
 
-    const ownerSnapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const ownerSnapshot = await snapshot(ownerUserId);
     expect(ownerSnapshot.nodes).toHaveLength(1);
     expect(ownerSnapshot.nodes[0]).toMatchObject({
       id: sharedNode.id,
@@ -198,10 +225,10 @@ describe("workspace service authorization", () => {
       title: "Owner Private Node",
       ownerUserId,
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, { nodes: [privateNode] });
+    await saveNodes(ownerUserId, { nodes: [privateNode] });
 
-    const hiddenSnapshot = await workspaceService.getWorkspaceSnapshot(teammateUserId, {});
-    expect(hiddenSnapshot).toEqual({ nodes: [], updatedAt: null });
+    const hiddenSnapshot = await snapshot(teammateUserId);
+    expect(hiddenSnapshot.nodes).toEqual([]);
 
     const sharedNode = createWorkspaceNode({
       title: "Owner Shared Node",
@@ -209,11 +236,11 @@ describe("workspace service authorization", () => {
       visibility: "team",
       teamId: team.id,
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, {
+    await saveNodes(ownerUserId, {
       nodes: [privateNode, sharedNode],
     });
 
-    const visibleSnapshot = await workspaceService.getWorkspaceSnapshot(teammateUserId, {});
+    const visibleSnapshot = await snapshot(teammateUserId);
     expect(visibleSnapshot.nodes.map((node) => node.id)).toEqual([sharedNode.id]);
     expect(visibleSnapshot.updatedAt).not.toBeNull();
   });
@@ -234,7 +261,7 @@ describe("workspace service authorization", () => {
       visibility: "team",
       teamId: team.id,
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, { nodes: [sharedNode] });
+    await saveNodes(ownerUserId, { nodes: [sharedNode] });
     const teammateOrchestrator = createWorkspaceNode({
       title: "Teammate Orchestrator",
       ownerUserId: teammateUserId,
@@ -243,14 +270,12 @@ describe("workspace service authorization", () => {
     });
 
     await expect(
-      workspaceService.saveWorkspaceNodes(teammateUserId, {
+      saveNodes(teammateUserId, {
         nodes: [teammateOrchestrator, sharedNode],
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     expect(
-      (await workspaceService.getWorkspaceSnapshot(teammateUserId, {})).nodes.some(
-        (node) => node.id === teammateOrchestrator.id,
-      ),
+      (await snapshot(teammateUserId)).nodes.some((node) => node.id === teammateOrchestrator.id),
     ).toBe(false);
 
     await teamService.updateTeamMemberRole(ownerUserId, {
@@ -258,14 +283,12 @@ describe("workspace service authorization", () => {
       userId: teammateUserId,
       role: "editor",
     });
-    await workspaceService.saveWorkspaceNodes(teammateUserId, {
+    await saveNodes(teammateUserId, {
       nodes: [teammateOrchestrator, sharedNode],
     });
 
     expect(
-      (await workspaceService.getWorkspaceSnapshot(teammateUserId, {})).nodes.find(
-        (node) => node.id === teammateOrchestrator.id,
-      ),
+      (await snapshot(teammateUserId)).nodes.find((node) => node.id === teammateOrchestrator.id),
     ).toMatchObject({ connections: [{ targetNodeId: sharedNode.id }] });
   });
 });

@@ -5,12 +5,21 @@ import { applyKnowledgeAction } from "./knowledge-service";
 
 export async function captureKnowledgeAction(
   actorUserId: string,
-  input: { action: KnowledgeAction; teamId?: string | null; label?: string },
+  input: {
+    action: KnowledgeAction;
+    teamId?: string | null;
+    canvasWorkspaceId?: string | null;
+    label?: string;
+  },
 ) {
   const action = input.action;
   const teamId = input.teamId ?? null;
   const label = input.label?.trim() || knowledgeActionLabel(action);
-  const applied = await applyKnowledgeAction(actorUserId, { action, teamId });
+  const applied = await applyKnowledgeAction(actorUserId, {
+    action,
+    teamId,
+    canvasWorkspaceId: input.canvasWorkspaceId,
+  });
   return {
     status: "applied" as const,
     proposalId: null,

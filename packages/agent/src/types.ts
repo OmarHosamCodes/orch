@@ -230,6 +230,7 @@ export const dashboardConversationListResponseSchema = z.object({
 
 export const dashboardConversationListInputSchema = z.object({
   filter: dashboardConversationListFilterSchema.optional(),
+  canvasWorkspaceId: z.string().trim().min(1).nullable().optional(),
 });
 
 export const dashboardConversationCompactResponseSchema = z.object({
@@ -312,6 +313,7 @@ export const agentChatTurnInputSchema = z
     surface: agentSurfaceSchema.optional().default("canvas"),
     unlockedSurfaces: z.array(agentSurfaceSchema).max(2).optional(),
     teamId: z.string().trim().min(1).optional(),
+    canvasWorkspaceId: z.string().trim().min(1).optional(),
     nodes: z.array(workspaceNodeSchema).max(WORKSPACE_NODE_LIMIT).optional(),
     scopeNodes: z.array(workspaceNodeSchema).max(WORKSPACE_NODE_LIMIT).optional(),
     scopeRefs: z.array(agentScopeRefSchema).max(24).optional(),
@@ -764,7 +766,11 @@ export type CanvasAgentRuntime = {
     boardHref: string;
     after: unknown;
   }>;
+  listWorkspaces?: () => Promise<{
+    items: Array<{ id: string; title: string; instructions: string }>;
+  }>;
   queryKnowledge?: (input: {
+    canvasWorkspaceId?: string;
     teamId?: string;
     objectType?: KnowledgeObjectType;
     query?: string;

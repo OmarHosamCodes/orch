@@ -10,15 +10,26 @@ export function useWorkspaceAgentData(args: {
   unlockedSurfaces: AgentSurface[];
   toolPreset: DashboardAgentToolPreset;
   toolsMenuOpen: boolean;
+  canvasWorkspaceId?: string | null;
 }) {
   const session = authClient.useSession();
   const queryClient = useQueryClient();
   const authEnabled = Boolean(session.data?.user);
   const conversationsListQueryOptions = orpc.agent.conversations.list.queryOptions({
-    input: { filter: "open" },
+    input: {
+      filter: "open",
+      ...(args.canvasWorkspaceId !== undefined
+        ? { canvasWorkspaceId: args.canvasWorkspaceId }
+        : {}),
+    },
   });
   const conversationsSettledQueryOptions = orpc.agent.conversations.list.queryOptions({
-    input: { filter: "settled" },
+    input: {
+      filter: "settled",
+      ...(args.canvasWorkspaceId !== undefined
+        ? { canvasWorkspaceId: args.canvasWorkspaceId }
+        : {}),
+    },
   });
   const conversationsCompactQueryOptions = orpc.agent.conversations.compact.queryOptions();
   const conversationsQuery = useQuery({ ...conversationsListQueryOptions, enabled: authEnabled });

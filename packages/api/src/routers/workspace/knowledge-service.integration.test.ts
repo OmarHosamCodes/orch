@@ -13,6 +13,7 @@ const [
   knowledgeCapture,
   { createAgencyClient },
   { createAgencyProject },
+  canvasWorkspaceService,
 ] = await Promise.all([
   import("@orch/db"),
   import("@orch/db/schema"),
@@ -23,6 +24,7 @@ const [
   import("./knowledge-capture"),
   import("../agency-ops/clients/service"),
   import("../agency-ops/projects/service"),
+  import("./canvas-workspace-service"),
 ]);
 
 const fixtureUsers: string[] = [];
@@ -42,6 +44,53 @@ async function createFixtureUser() {
   });
   fixtureUsers.push(id);
   return id;
+}
+
+async function defaultWorkspaceId(userId: string) {
+  return (await canvasWorkspaceService.ensureDefaultCanvasWorkspace(userId)).id;
+}
+
+async function saveNodes(
+  userId: string,
+  input: { nodes: Parameters<typeof workspaceService.saveWorkspaceNodes>[1]["nodes"] },
+) {
+  return workspaceService.saveWorkspaceNodes(userId, {
+    canvasWorkspaceId: await defaultWorkspaceId(userId),
+    nodes: input.nodes,
+  });
+}
+
+async function getSnapshot(userId: string) {
+  return workspaceService.getWorkspaceSnapshot(userId, {
+    canvasWorkspaceId: await defaultWorkspaceId(userId),
+  });
+}
+
+async function applyKnowledge(
+  userId: string,
+  input: Parameters<typeof knowledgeService.applyKnowledgeAction>[1],
+) {
+  return knowledgeService.applyKnowledgeAction(userId, {
+    ...input,
+    canvasWorkspaceId: input.canvasWorkspaceId ?? (await defaultWorkspaceId(userId)),
+  });
+}
+
+async function captureKnowledge(
+  userId: string,
+  input: Parameters<typeof knowledgeCapture.captureKnowledgeAction>[1],
+) {
+  return knowledgeCapture.captureKnowledgeAction(userId, {
+    ...input,
+    canvasWorkspaceId: input.canvasWorkspaceId ?? (await defaultWorkspaceId(userId)),
+  });
+}
+
+async function getBoard(userId: string, input: { teamId?: string } = {}) {
+  return knowledgeService.listKnowledgeBoard(userId, {
+    canvasWorkspaceId: await defaultWorkspaceId(userId),
+    ...input,
+  });
 }
 
 describe("workspace knowledge dual-write", () => {
@@ -66,7 +115,7 @@ describe("workspace knowledge dual-write", () => {
       agencyRef: { teamId: team.id, projectId: "proj-missing" },
     });
 
-    await workspaceService.saveWorkspaceNodes(ownerUserId, {
+    await saveNodes(ownerUserId, {
       nodes: [target, orch, linked],
     });
 
@@ -96,7 +145,7 @@ describe("workspace knowledge dual-write", () => {
       .where(eq(workspaceRelation.fromObjectId, linked.id));
     expect(about.some((row) => row.toObjectType === "agency.project")).toBe(true);
 
-    const unplacedNote = await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    const unplacedNote = await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "note",
@@ -104,7 +153,7 @@ describe("workspace knowledge dual-write", () => {
         properties: { body: "keep me" },
       },
     });
-    await workspaceService.saveWorkspaceNodes(ownerUserId, {
+    await saveNodes(ownerUserId, {
       nodes: [target, orch, linked],
     });
     const stillThere = await knowledgeService.getKnowledgeObject(ownerUserId, {
@@ -129,7 +178,7 @@ describe("workspace knowledge dual-write", () => {
     });
 
     await expect(
-      knowledgeService.applyKnowledgeAction(ownerUserId, {
+      applyKnowledge(ownerUserId, {
         action: {
           type: "object.create",
           objectType: "decision",
@@ -141,7 +190,7 @@ describe("workspace knowledge dual-write", () => {
       }),
     ).rejects.toThrow();
 
-    const created = await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    const created = await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "decision",
@@ -179,7 +228,7 @@ describe("workspace knowledge dual-write", () => {
     const detail = await knowledgeService.getKnowledgeObject(ownerUserId, { id: created.objectId });
     expect(detail.revisions.length).toBeGreaterThan(0);
 
-    const snapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const snapshot = await getSnapshot(ownerUserId);
     const card = snapshot.nodes.find((node) => node.id === created.objectId);
     expect(card).toBeUndefined();
     expect(detail.relations.some((relation) => relation.relationType === "about")).toBe(true);
@@ -188,7 +237,7 @@ describe("workspace knowledge dual-write", () => {
   test("query hides private objects from outsiders", async () => {
     const ownerUserId = await createFixtureUser();
     const outsiderUserId = await createFixtureUser();
-    await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "note",
@@ -203,7 +252,7 @@ describe("workspace knowledge dual-write", () => {
 
   test("stores source upload id without projecting into the document blob", async () => {
     const ownerUserId = await createFixtureUser();
-    const created = await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    const created = await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "source",
@@ -219,13 +268,13 @@ describe("workspace knowledge dual-write", () => {
     });
     const detail = await knowledgeService.getKnowledgeObject(ownerUserId, { id: created.objectId });
     expect(detail.object?.properties.uploadId).toBe("ksrc-1");
-    const snapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const snapshot = await getSnapshot(ownerUserId);
     expect(snapshot.nodes.some((node) => node.id === created.objectId)).toBe(false);
   });
 
   test("folder in round-trip stays off board noodles and appears as parentId", async () => {
     const ownerUserId = await createFixtureUser();
-    const folder = await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    const folder = await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "folder",
@@ -233,7 +282,7 @@ describe("workspace knowledge dual-write", () => {
         placement: { x: 40, y: 80, width: 640, height: 420 },
       },
     });
-    const note = await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    const note = await applyKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "note",
@@ -242,7 +291,7 @@ describe("workspace knowledge dual-write", () => {
         placement: { x: 60, y: 120 },
       },
     });
-    await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    await applyKnowledge(ownerUserId, {
       action: {
         type: "relation.create",
         fromObjectId: note.objectId,
@@ -251,7 +300,7 @@ describe("workspace knowledge dual-write", () => {
       },
     });
     await expect(
-      knowledgeService.applyKnowledgeAction(ownerUserId, {
+      applyKnowledge(ownerUserId, {
         action: {
           type: "relation.create",
           fromObjectId: note.objectId,
@@ -261,11 +310,11 @@ describe("workspace knowledge dual-write", () => {
       }),
     ).rejects.toThrow(/folder/);
 
-    const board = await knowledgeService.listKnowledgeBoard(ownerUserId, {});
+    const board = await getBoard(ownerUserId);
     const child = board.items.find((item) => item.id === note.objectId);
     expect(child?.parentId).toBe(folder.objectId);
     expect(child?.kind).toBe("knowledge");
-    const snapshot = await workspaceService.getWorkspaceSnapshot(ownerUserId, {});
+    const snapshot = await getSnapshot(ownerUserId);
     expect(snapshot.nodes.some((node) => node.connections.length > 0)).toBe(false);
   });
 
@@ -278,7 +327,7 @@ describe("workspace knowledge dual-write", () => {
       clientId: client.id,
       name: "Launch",
     });
-    await knowledgeService.applyKnowledgeAction(ownerUserId, {
+    await applyKnowledge(ownerUserId, {
       action: {
         type: "placement.upsert",
         objectId: project.id,
@@ -300,14 +349,14 @@ describe("workspace knowledge dual-write", () => {
       .where(eq(workspacePlacement.objectId, project.id));
     expect(pins).toHaveLength(1);
     expect(pins[0]?.objectType).toBe("agency.project");
-    const board = await knowledgeService.listKnowledgeBoard(ownerUserId, { teamId: team.id });
+    const board = await getBoard(ownerUserId, { teamId: team.id });
     expect(board.items.some((item) => item.id === project.id && item.kind === "agency")).toBe(true);
   });
 
   test("private and team note capture apply immediately", async () => {
     const ownerUserId = await createFixtureUser();
     const team = await teamService.createTeam(ownerUserId, { name: "Capture Team" });
-    const privateNote = await knowledgeCapture.captureKnowledgeAction(ownerUserId, {
+    const privateNote = await captureKnowledge(ownerUserId, {
       action: { type: "object.create", objectType: "note", title: "Private thought" },
     });
     expect(privateNote.status).toBe("applied");
@@ -316,13 +365,13 @@ describe("workspace knowledge dual-write", () => {
       id: privateNote.objectId ?? "",
     });
     expect(stored.object?.title).toBe("Private thought");
-    const board = await knowledgeService.listKnowledgeBoard(ownerUserId, {});
+    const board = await getBoard(ownerUserId);
     expect(board.items.some((item) => item.kind === "inbox")).toBe(false);
     expect(board.unplaced.some((item) => item.id === privateNote.objectId && item.unplaced)).toBe(
       true,
     );
 
-    const teamNote = await knowledgeCapture.captureKnowledgeAction(ownerUserId, {
+    const teamNote = await captureKnowledge(ownerUserId, {
       action: {
         type: "object.create",
         objectType: "note",

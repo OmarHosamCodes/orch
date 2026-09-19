@@ -10,6 +10,7 @@ import {
 
 import { user } from "./auth";
 import { workspaceTeam } from "./team";
+import { canvasWorkspace } from "./workspace";
 
 export const workspaceObject = pgTable(
   "workspace_object",
@@ -18,6 +19,9 @@ export const workspaceObject = pgTable(
     ownerUserId: text("owner_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    canvasWorkspaceId: text("canvas_workspace_id")
+      .notNull()
+      .references(() => canvasWorkspace.id, { onDelete: "cascade" }),
     objectType: text("object_type").notNull(),
     title: text("title").notNull(),
     visibility: text("visibility").notNull().default("private"),
@@ -32,6 +36,7 @@ export const workspaceObject = pgTable(
   },
   (table) => [
     index("workspace_object_owner_updated_idx").on(table.ownerUserId, table.updatedAt),
+    index("workspace_object_workspace_updated_idx").on(table.canvasWorkspaceId, table.updatedAt),
     index("workspace_object_team_type_idx").on(table.teamId, table.objectType),
     index("workspace_object_type_idx").on(table.objectType),
   ],
@@ -44,6 +49,9 @@ export const workspaceRelation = pgTable(
     fromObjectId: text("from_object_id")
       .notNull()
       .references(() => workspaceObject.id, { onDelete: "cascade" }),
+    canvasWorkspaceId: text("canvas_workspace_id")
+      .notNull()
+      .references(() => canvasWorkspace.id, { onDelete: "cascade" }),
     fromObjectType: text("from_object_type").notNull(),
     toObjectType: text("to_object_type").notNull(),
     toObjectId: text("to_object_id").notNull(),
@@ -68,6 +76,7 @@ export const workspaceRelation = pgTable(
     ),
     index("workspace_relation_from_idx").on(table.fromObjectId),
     index("workspace_relation_to_idx").on(table.toObjectType, table.toObjectId),
+    index("workspace_relation_workspace_idx").on(table.canvasWorkspaceId),
     index("workspace_relation_team_type_idx").on(table.teamId, table.relationType),
     index("workspace_relation_type_idx").on(table.relationType),
   ],
@@ -78,6 +87,9 @@ export const workspacePlacement = pgTable(
   {
     id: text("id").primaryKey(),
     objectId: text("object_id").notNull(),
+    canvasWorkspaceId: text("canvas_workspace_id")
+      .notNull()
+      .references(() => canvasWorkspace.id, { onDelete: "cascade" }),
     objectType: text("object_type"),
     teamId: text("team_id").references(() => workspaceTeam.id, { onDelete: "cascade" }),
     viewId: text("view_id").notNull().default("board"),
@@ -101,6 +113,7 @@ export const workspacePlacement = pgTable(
       table.ownerUserId,
     ),
     index("workspace_placement_owner_view_idx").on(table.ownerUserId, table.viewId),
+    index("workspace_placement_workspace_view_idx").on(table.canvasWorkspaceId, table.viewId),
     index("workspace_placement_type_idx").on(table.objectType),
   ],
 );

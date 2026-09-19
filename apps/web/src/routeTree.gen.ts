@@ -25,6 +25,8 @@ import { Route as DevErrorRouteImport } from './routes/dev.error'
 import { Route as DevNotificationsRouteImport } from './routes/dev.notifications'
 import { Route as AuthenticatedAgencyMeRouteImport } from './routes/_authenticated/agency.me'
 import { Route as AuthenticatedBillingSuccessRouteImport } from './routes/_authenticated/billing.success'
+import { Route as AuthenticatedCanvasIndexRouteImport } from './routes/_authenticated/canvas.index'
+import { Route as AuthenticatedCanvasWorkspaceIdRouteImport } from './routes/_authenticated/canvas.$workspaceId'
 import { Route as AuthenticatedNodeIdRouteImport } from './routes/_authenticated/node.$id'
 import { Route as AuthenticatedObjectIdRouteImport } from './routes/_authenticated/object.$id'
 import { Route as AuthenticatedAgencyChromeAgencyIndexRouteImport } from './routes/_authenticated/_agency-chrome/agency.index'
@@ -120,6 +122,18 @@ const AuthenticatedBillingSuccessRoute =
     id: '/billing/success',
     path: '/billing/success',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCanvasIndexRoute =
+  AuthenticatedCanvasIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCanvasRoute,
+  } as any)
+const AuthenticatedCanvasWorkspaceIdRoute =
+  AuthenticatedCanvasWorkspaceIdRouteImport.update({
+    id: '/$workspaceId',
+    path: '/$workspaceId',
+    getParentRoute: () => AuthenticatedCanvasRoute,
   } as any)
 const AuthenticatedNodeIdRoute = AuthenticatedNodeIdRouteImport.update({
   id: '/node/$id',
@@ -217,7 +231,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/canvas': typeof AuthenticatedCanvasRoute
+  '/canvas': typeof AuthenticatedCanvasRouteWithChildren
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
   '/dev/error': typeof DevErrorRoute
@@ -225,8 +239,10 @@ export interface FileRoutesByFullPath {
   '/dev/': typeof DevIndexRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/canvas/$workspaceId': typeof AuthenticatedCanvasWorkspaceIdRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
   '/object/$id': typeof AuthenticatedObjectIdRoute
+  '/canvas/': typeof AuthenticatedCanvasIndexRoute
   '/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
   '/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
   '/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
@@ -247,7 +263,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/canvas': typeof AuthenticatedCanvasRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
   '/dev/error': typeof DevErrorRoute
@@ -255,8 +270,10 @@ export interface FileRoutesByTo {
   '/dev': typeof DevIndexRoute
   '/agency/me': typeof AuthenticatedAgencyMeRoute
   '/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/canvas/$workspaceId': typeof AuthenticatedCanvasWorkspaceIdRoute
   '/node/$id': typeof AuthenticatedNodeIdRoute
   '/object/$id': typeof AuthenticatedObjectIdRoute
+  '/canvas': typeof AuthenticatedCanvasIndexRoute
   '/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
   '/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
   '/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
@@ -281,7 +298,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/_agency-chrome': typeof AuthenticatedAgencyChromeRouteWithChildren
-  '/_authenticated/canvas': typeof AuthenticatedCanvasRoute
+  '/_authenticated/canvas': typeof AuthenticatedCanvasRouteWithChildren
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/dev/dialogs': typeof DevDialogsRoute
   '/dev/error': typeof DevErrorRoute
@@ -289,8 +306,10 @@ export interface FileRoutesById {
   '/dev/': typeof DevIndexRoute
   '/_authenticated/agency/me': typeof AuthenticatedAgencyMeRoute
   '/_authenticated/billing/success': typeof AuthenticatedBillingSuccessRoute
+  '/_authenticated/canvas/$workspaceId': typeof AuthenticatedCanvasWorkspaceIdRoute
   '/_authenticated/node/$id': typeof AuthenticatedNodeIdRoute
   '/_authenticated/object/$id': typeof AuthenticatedObjectIdRoute
+  '/_authenticated/canvas/': typeof AuthenticatedCanvasIndexRoute
   '/_authenticated/_agency-chrome/agency/dashboard': typeof AuthenticatedAgencyChromeAgencyDashboardRoute
   '/_authenticated/_agency-chrome/agency/management': typeof AuthenticatedAgencyChromeAgencyManagementRouteWithChildren
   '/_authenticated/agency/members/$userId': typeof AuthenticatedAgencyMembersUserIdRoute
@@ -322,8 +341,10 @@ export interface FileRouteTypes {
     | '/dev/'
     | '/agency/me'
     | '/billing/success'
+    | '/canvas/$workspaceId'
     | '/node/$id'
     | '/object/$id'
+    | '/canvas/'
     | '/agency/dashboard'
     | '/agency/management'
     | '/agency/members/$userId'
@@ -344,7 +365,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/terms'
-    | '/canvas'
     | '/welcome'
     | '/dev/dialogs'
     | '/dev/error'
@@ -352,8 +372,10 @@ export interface FileRouteTypes {
     | '/dev'
     | '/agency/me'
     | '/billing/success'
+    | '/canvas/$workspaceId'
     | '/node/$id'
     | '/object/$id'
+    | '/canvas'
     | '/agency/dashboard'
     | '/agency/management'
     | '/agency/members/$userId'
@@ -385,8 +407,10 @@ export interface FileRouteTypes {
     | '/dev/'
     | '/_authenticated/agency/me'
     | '/_authenticated/billing/success'
+    | '/_authenticated/canvas/$workspaceId'
     | '/_authenticated/node/$id'
     | '/_authenticated/object/$id'
+    | '/_authenticated/canvas/'
     | '/_authenticated/_agency-chrome/agency/dashboard'
     | '/_authenticated/_agency-chrome/agency/management'
     | '/_authenticated/agency/members/$userId'
@@ -525,6 +549,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/billing/success'
       preLoaderRoute: typeof AuthenticatedBillingSuccessRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/canvas/': {
+      id: '/_authenticated/canvas/'
+      path: '/'
+      fullPath: '/canvas/'
+      preLoaderRoute: typeof AuthenticatedCanvasIndexRouteImport
+      parentRoute: typeof AuthenticatedCanvasRoute
+    }
+    '/_authenticated/canvas/$workspaceId': {
+      id: '/_authenticated/canvas/$workspaceId'
+      path: '/$workspaceId'
+      fullPath: '/canvas/$workspaceId'
+      preLoaderRoute: typeof AuthenticatedCanvasWorkspaceIdRouteImport
+      parentRoute: typeof AuthenticatedCanvasRoute
     }
     '/_authenticated/node/$id': {
       id: '/_authenticated/node/$id'
@@ -694,9 +732,22 @@ const AuthenticatedAgencyChromeRouteWithChildren =
     AuthenticatedAgencyChromeRouteChildren,
   )
 
+interface AuthenticatedCanvasRouteChildren {
+  AuthenticatedCanvasWorkspaceIdRoute: typeof AuthenticatedCanvasWorkspaceIdRoute
+  AuthenticatedCanvasIndexRoute: typeof AuthenticatedCanvasIndexRoute
+}
+
+const AuthenticatedCanvasRouteChildren: AuthenticatedCanvasRouteChildren = {
+  AuthenticatedCanvasWorkspaceIdRoute: AuthenticatedCanvasWorkspaceIdRoute,
+  AuthenticatedCanvasIndexRoute: AuthenticatedCanvasIndexRoute,
+}
+
+const AuthenticatedCanvasRouteWithChildren =
+  AuthenticatedCanvasRoute._addFileChildren(AuthenticatedCanvasRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAgencyChromeRoute: typeof AuthenticatedAgencyChromeRouteWithChildren
-  AuthenticatedCanvasRoute: typeof AuthenticatedCanvasRoute
+  AuthenticatedCanvasRoute: typeof AuthenticatedCanvasRouteWithChildren
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedAgencyMeRoute: typeof AuthenticatedAgencyMeRoute
   AuthenticatedBillingSuccessRoute: typeof AuthenticatedBillingSuccessRoute
@@ -707,7 +758,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAgencyChromeRoute: AuthenticatedAgencyChromeRouteWithChildren,
-  AuthenticatedCanvasRoute: AuthenticatedCanvasRoute,
+  AuthenticatedCanvasRoute: AuthenticatedCanvasRouteWithChildren,
   AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedAgencyMeRoute: AuthenticatedAgencyMeRoute,
   AuthenticatedBillingSuccessRoute: AuthenticatedBillingSuccessRoute,

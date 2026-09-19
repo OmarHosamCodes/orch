@@ -1107,6 +1107,7 @@ export const workspaceNodeSchema = z
   });
 
 export const workspaceSaveInputSchema = z.object({
+  canvasWorkspaceId: z.string().min(1),
   nodes: z.array(workspaceNodeSchema).max(WORKSPACE_NODE_LIMIT),
 });
 

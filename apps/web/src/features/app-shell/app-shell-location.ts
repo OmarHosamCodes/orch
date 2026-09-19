@@ -46,6 +46,7 @@ export type ShellLocationOverlays = {
   clientName?: string | null;
   nodeTitle?: string | null;
   sessionName?: string | null;
+  canvasWorkspaceTitle?: string | null;
 };
 
 export type ShellLocationOptions = {
@@ -200,7 +201,7 @@ export function resolveShellLocation(
     return { title: "Profile", parent: null, destinations };
   }
 
-  if (pathname === "/canvas" || pathname.startsWith("/canvas/")) {
+  if (pathname === "/canvas") {
     return { title: "Canvas", parent: null, destinations };
   }
 
@@ -231,6 +232,14 @@ function resolveNestedLocation(
   if (pathname.startsWith("/node/")) {
     return {
       title: overlays.nodeTitle?.trim() || "Node",
+      parent: { href: "/canvas", label: "Canvas" },
+    };
+  }
+
+  const canvasWorkspaceId = shellEntityIdAfter(pathname, "/canvas");
+  if (canvasWorkspaceId) {
+    return {
+      title: overlays.canvasWorkspaceTitle?.trim() || "Brain",
       parent: { href: "/canvas", label: "Canvas" },
     };
   }

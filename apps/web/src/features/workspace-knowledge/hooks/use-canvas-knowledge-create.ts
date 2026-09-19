@@ -14,11 +14,13 @@ import { orpc } from "@/lib/orpc";
 import type { KnowledgeObjectType } from "@orch/workspace";
 
 export function useCanvasKnowledgeCreate(input: {
+  canvasWorkspaceId: string;
   teamId?: string | null;
   resolveBoardPoint: () => { x: number; y: number } | null;
   onCreateDocument: (point?: { x: number; y: number }) => void;
 }): CanvasKnowledgeCreateDialogViewProps {
   const teamId = input.teamId ?? null;
+  const canvasWorkspaceId = input.canvasWorkspaceId;
   const { resolveBoardPoint, onCreateDocument } = input;
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<"private" | "team">("private");
@@ -47,9 +49,9 @@ export function useCanvasKnowledgeCreate(input: {
 
   const boardQuery = useQuery({
     ...orpc.workspace.knowledge.board.queryOptions({
-      input: { teamId: teamId ?? undefined },
+      input: { canvasWorkspaceId, teamId: teamId ?? undefined },
     }),
-    enabled: createDialogOpen && surface === "unplaced",
+    enabled: Boolean(canvasWorkspaceId) && createDialogOpen && surface === "unplaced",
   });
 
   useEffect(() => {
@@ -161,6 +163,7 @@ export function useCanvasKnowledgeCreate(input: {
             x: point.x,
             y: point.y,
           }),
+          canvasWorkspaceId,
           teamId,
         })
           .then(() => {
@@ -207,6 +210,7 @@ export function useCanvasKnowledgeCreate(input: {
             : undefined,
           placement: point ?? undefined,
         }),
+        canvasWorkspaceId,
         teamId,
       });
       if (result.status === "applied" || result.status === "pending") {
@@ -217,6 +221,7 @@ export function useCanvasKnowledgeCreate(input: {
     aboutId,
     aboutOptions,
     captureKnowledge,
+    canvasWorkspaceId,
     closeDialog,
     recommendation,
     resolvePoint,
@@ -252,10 +257,11 @@ export function useCanvasKnowledgeCreate(input: {
           height: card.height,
         },
         teamId,
+        canvasWorkspaceId,
         silent: true,
       }).catch(() => undefined);
     },
-    [boardQuery.data?.unplaced, captureKnowledge, resolvePoint, teamId],
+    [boardQuery.data?.unplaced, captureKnowledge, canvasWorkspaceId, resolvePoint, teamId],
   );
 
   const onRemoveUnplaced = useCallback(
@@ -264,10 +270,11 @@ export function useCanvasKnowledgeCreate(input: {
       if (!card) return;
       void captureKnowledge({
         action: { type: "object.delete", objectId: id, objectType: card.objectType },
+        canvasWorkspaceId,
         teamId,
       }).catch(() => undefined);
     },
-    [boardQuery.data?.unplaced, captureKnowledge, teamId],
+    [boardQuery.data?.unplaced, captureKnowledge, canvasWorkspaceId, teamId],
   );
 
   return {

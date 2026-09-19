@@ -12,6 +12,7 @@ import { orpc } from "@/lib/orpc";
 const CLOSE_DURATION_MS = 260;
 
 export function useCanvasKnowledgeCreateMenu(input: {
+  canvasWorkspaceId: string;
   teamId?: string | null;
   onCreateDocument: (point: { x: number; y: number }) => void;
 }): CanvasKnowledgeCreateMenuViewProps {
@@ -21,9 +22,13 @@ export function useCanvasKnowledgeCreateMenu(input: {
   const openUnplacedDialog = useWorkspaceKnowledgeStore((state) => state.openUnplacedDialog);
   const setPendingPlacement = useWorkspaceKnowledgeStore((state) => state.setPendingPlacement);
   const teamId = input.teamId ?? undefined;
+  const canvasWorkspaceId = input.canvasWorkspaceId;
 
   const boardQuery = useQuery({
-    ...orpc.workspace.knowledge.board.queryOptions({ input: { teamId } }),
+    ...orpc.workspace.knowledge.board.queryOptions({
+      input: { canvasWorkspaceId, teamId },
+    }),
+    enabled: Boolean(canvasWorkspaceId),
   });
 
   const onSelect = useCallback(

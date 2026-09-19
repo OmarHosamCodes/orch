@@ -139,6 +139,7 @@ export function useKnowledgeObjectPage(): KnowledgeObjectPageViewProps {
         to: { objectType: target.objectType, id: target.id },
         relationType,
       },
+      canvasWorkspaceId: object?.canvasWorkspaceId ?? view?.canvasWorkspaceId ?? "",
       teamId,
     }).catch(() => undefined);
   }, [
@@ -147,6 +148,8 @@ export function useKnowledgeObjectPage(): KnowledgeObjectPageViewProps {
     linkRelationType,
     linkTargetId,
     linkTargets,
+    object,
+    view,
     teamId,
     targetsQuery.data?.items,
   ]);

@@ -1,4 +1,6 @@
 export const WORKSPACE_NODE_LIMIT = 200;
+export const CANVAS_WORKSPACE_OWNER_LIMIT = 20;
+export const DEFAULT_CANVAS_WORKSPACE_TITLE = "Legacy Canvas";
 export const WORKSPACE_NODE_TAB_LIMIT = 12;
 export const WORKSPACE_TAB_BLOCK_LIMIT = 24;
 export const WORKSPACE_TASK_LIMIT = 100;
