@@ -15,6 +15,7 @@ import { orpc } from "@/lib/orpc";
 type Geometry = Pick<CanvasNodeModel, "x" | "y" | "width" | "height">;
 
 export function useCanvasKnowledgeBoard(input: {
+  canvasWorkspaceId: string;
   documents: CanvasNodeModel[];
   teamId?: string | null;
 }): {
@@ -31,6 +32,7 @@ export function useCanvasKnowledgeBoard(input: {
   }) => Promise<void>;
 } {
   const teamId = input.teamId ?? undefined;
+  const canvasWorkspaceId = input.canvasWorkspaceId;
   const captureKnowledge = useWorkspaceKnowledgeStore((state) => state.captureKnowledge);
   const captureError = useWorkspaceKnowledgeStore((state) => state.captureError);
   const [overlay, setOverlay] = useState<Record<string, Geometry>>({});
@@ -40,7 +42,10 @@ export function useCanvasKnowledgeBoard(input: {
   const overlayRef = useRef<Record<string, Geometry>>({});
 
   const boardQuery = useQuery({
-    ...orpc.workspace.knowledge.board.queryOptions({ input: { teamId } }),
+    ...orpc.workspace.knowledge.board.queryOptions({
+      input: { canvasWorkspaceId, teamId },
+    }),
+    enabled: Boolean(canvasWorkspaceId),
   });
 
   const cards = useMemo(() => {
@@ -73,7 +78,12 @@ export function useCanvasKnowledgeBoard(input: {
           width: node.width,
           height: node.height,
         };
-        await captureKnowledge({ action, teamId, silent: true });
+        await captureKnowledge({
+          action,
+          canvasWorkspaceId,
+          teamId,
+          silent: true,
+        });
         const folderId = findFolderDropTarget(board, node.id);
         if (folderId && node.parentId !== folderId) {
           await captureKnowledge({
@@ -85,11 +95,12 @@ export function useCanvasKnowledgeBoard(input: {
             },
             teamId,
             silent: true,
+            canvasWorkspaceId,
           });
         }
       }
     },
-    [captureKnowledge, teamId],
+    [captureKnowledge, canvasWorkspaceId, teamId],
   );
 
   const syncGeometry = useCallback(
@@ -160,6 +171,7 @@ export function useCanvasKnowledgeBoard(input: {
           height: unplacedCard?.height,
         },
         teamId,
+        canvasWorkspaceId,
         silent: true,
       });
       const board = cardsRef.current;
@@ -182,11 +194,12 @@ export function useCanvasKnowledgeBoard(input: {
             relationType: "in",
           },
           teamId,
+          canvasWorkspaceId,
           silent: true,
         });
       }
     },
-    [boardQuery.data?.unplaced, captureKnowledge, teamId],
+    [boardQuery.data?.unplaced, captureKnowledge, canvasWorkspaceId, teamId],
   );
 
   const removeCard = useCallback(
@@ -197,10 +210,11 @@ export function useCanvasKnowledgeBoard(input: {
       }
       await captureKnowledge({
         action: { type: "object.delete", objectId: nodeId, objectType: card.objectType },
+        canvasWorkspaceId,
         teamId,
       });
     },
-    [captureKnowledge, cards, teamId],
+    [captureKnowledge, canvasWorkspaceId, cards, teamId],
   );
 
   return {

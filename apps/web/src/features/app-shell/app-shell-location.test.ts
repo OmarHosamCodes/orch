@@ -96,9 +96,18 @@ describe("resolveShellLocation", () => {
     expect(location.parent).toEqual({ href: "/canvas", label: "Canvas" });
   });
 
-  test("keeps Canvas as the title on the board itself", () => {
+  test("keeps Canvas as the title on the CNS home", () => {
     expect(resolveShellLocation("/canvas", "").title).toBe("Canvas");
     expect(resolveShellLocation("/canvas", "").parent).toBeNull();
+  });
+
+  test("nests a named brain under Canvas", () => {
+    const location = resolveShellLocation("/canvas/cws-1", "", {
+      canvasWorkspaceTitle: "Client X",
+    });
+    expect(location.title).toBe("Client X");
+    expect(location.parent).toEqual({ href: "/canvas", label: "Canvas" });
+    expect(resolveShellLocation("/canvas/cws-1", "").title).toBe("Brain");
   });
 
   test("treats a tracker task overlay as nested under Tracker", () => {

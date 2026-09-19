@@ -13,7 +13,7 @@ import { useWorkspaceQuery } from "@/features/workspace/hooks/use-workspace-quer
 
 export function useWorkspaceNodePage() {
   const { id: nodeId = "" } = useParams<{ id: string }>();
-  const workspace = useWorkspaceQuery();
+  const workspace = useWorkspaceQuery({ nodeId });
   const {
     hasWorkspaceLoaded,
     isWorkspaceInitialLoading,

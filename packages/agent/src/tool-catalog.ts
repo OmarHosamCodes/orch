@@ -14,7 +14,13 @@ const TOOL_CATALOG: ToolCatalogDefinition[] = [
   {
     name: "query_knowledge",
     usage:
-      "Queries the team brain and live Agency projections (projects, tasks, members, clients, time).",
+      "Queries one brain or, without canvasWorkspaceId, every owned brain (CNS). Hits include canvasWorkspaceId and title.",
+    surface: ["canvas"],
+    modes: ALL_MODES,
+  },
+  {
+    name: "list_workspaces",
+    usage: "Lists your named Canvas brains (id, title, instructions).",
     surface: ["canvas"],
     modes: ALL_MODES,
   },

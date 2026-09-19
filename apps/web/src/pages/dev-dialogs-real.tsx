@@ -29,6 +29,7 @@ import { TeamSettingsModal } from "@/features/team/team-settings-modal";
 import { CanvasKnowledgeCreateDialog } from "@/features/workspace-knowledge/workspace-knowledge";
 import { WorkspaceEditorModal } from "@/features/workspace/workspace-editor-modal";
 import { WorkspaceOrchestratorSourcesModal } from "@/features/workspace/node/blocks/workspace-orchestrator-sources-modal";
+import { canvasBrainsListQueryOptions } from "@/features/workspace/hooks/use-canvas-brains";
 import { useWorkspaceQuery } from "@/features/workspace/hooks/use-workspace-query";
 import { useWorkspaceKnowledgeStore } from "@/features/workspace-knowledge/stores/workspace-knowledge";
 import { MoneySettingsDialog } from "@/features/money/agency-money-settings-dialog-view";
@@ -357,8 +358,14 @@ function RealSettingsEntry({ teamId }: { teamId: string }) {
   );
 }
 
+function useDevCanvasWorkspaceId() {
+  const brainsQuery = useQuery(canvasBrainsListQueryOptions());
+  return brainsQuery.data?.items[0]?.id ?? "";
+}
+
 function RealKnowledgeCreateEntry({ real }: { real: RealData }) {
   const requestCreateKind = useWorkspaceKnowledgeStore((s) => s.requestCreateKind);
+  const canvasWorkspaceId = useDevCanvasWorkspaceId();
   return (
     <GalleryCard
       title="Knowledge create"
@@ -367,6 +374,7 @@ function RealKnowledgeCreateEntry({ real }: { real: RealData }) {
       onOpen={() => requestCreateKind("note")}
     >
       <CanvasKnowledgeCreateDialog
+        canvasWorkspaceId={canvasWorkspaceId}
         teamId={real.teamId}
         resolveBoardPoint={() => ({ x: 0, y: 0 })}
         onCreateDocument={() => {}}
@@ -394,7 +402,8 @@ function findWorkspaceTaskContainer(
 }
 
 function RealWorkspaceEntries() {
-  const ws = useWorkspaceQuery();
+  const canvasWorkspaceId = useDevCanvasWorkspaceId();
+  const ws = useWorkspaceQuery({ canvasWorkspaceId });
   const navigate = useNavigate();
   const [sourcesOpen, setSourcesOpen] = useState(false);
 

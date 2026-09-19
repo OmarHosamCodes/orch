@@ -19,6 +19,8 @@ import {
   agencyManagementPaneTabId,
 } from "@/features/shared/agency-management-sections";
 import { agencySegmentFromPathname, agencySegmentTabId } from "@/features/shared/agency-segments";
+import { CanvasBrainsRailContainer } from "@/features/workspace/containers/canvas-brains-rail-container";
+import { canvasWorkspaceIdFromPath } from "@/features/workspace/canvas-workspace-path";
 
 type AppShellRailDestinationsProps = { onNavigate?: () => void };
 
@@ -45,8 +47,8 @@ export function AppShellRailDestinations({ onNavigate }: AppShellRailDestination
   const lastManagementPane = useAppShellStore((s) => s.lastManagementPane);
   useAgencyManagementPaneSync();
 
-  const onCanvas =
-    location.pathname.startsWith("/canvas") || location.pathname.startsWith("/node/");
+  const onCanvasHome = location.pathname === "/canvas" || location.pathname.startsWith("/node/");
+  const onCanvasBrain = Boolean(canvasWorkspaceIdFromPath(location.pathname));
   const currentSegment = agencySegmentFromPathname(location.pathname);
   const currentManagePane = agencyManagementPaneFromPathname(location.pathname);
 
@@ -60,10 +62,12 @@ export function AppShellRailDestinations({ onNavigate }: AppShellRailDestination
           to="/canvas"
           icon="i-lucide-layout-grid"
           label="Canvas"
-          selected={onCanvas}
+          selected={onCanvasHome}
+          parentActive={onCanvasBrain}
           navId="canvas"
           onNavigate={onNavigate}
         />
+        <CanvasBrainsRailContainer onNavigate={onNavigate} />
       </ShellRailSection>
 
       <ShellRailSection title="Track & analyze">

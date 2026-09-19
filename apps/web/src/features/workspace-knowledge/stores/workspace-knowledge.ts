@@ -40,6 +40,7 @@ type WorkspaceKnowledgeState = {
   }>;
   captureKnowledge: (input: {
     action: KnowledgeAction;
+    canvasWorkspaceId: string;
     teamId?: string | null;
     label?: string;
     silent?: boolean;

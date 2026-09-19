@@ -1,6 +1,6 @@
 # Golden File Source Inventory
 
-Generated on 2026-09-18 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
+Generated on 2026-09-19 by `scripts/generate-golden-file-inventory.mjs`. Every semantic field is recomputed from the current path and file content by `scripts/check-golden-file-inventory.mjs`.
 
 ## Scope policy
 
@@ -19,9 +19,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 
 | Classification | Artifacts |
 | --- | ---: |
-| golden-feature | 1102 |
-| server-operation | 16 |
-| shared-infrastructure | 446 |
+| golden-feature | 1116 |
+| server-operation | 17 |
+| shared-infrastructure | 447 |
 | static-presentation | 19 |
 
 ## Counts by domain
@@ -38,7 +38,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | clients | 23 |
 | configuration | 3 |
 | dashboard | 13 |
-| database-platform | 49 |
+| database-platform | 50 |
 | deployment | 6 |
 | environment | 7 |
 | integrations | 2 |
@@ -50,12 +50,12 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | reports | 55 |
 | repository | 13 |
 | resourcing | 46 |
-| server-platform | 27 |
+| server-platform | 28 |
 | task-management | 121 |
 | team | 55 |
 | time-tracking | 130 |
 | web-platform | 176 |
-| workspace | 140 |
+| workspace | 154 |
 
 ## Artifacts
 
@@ -95,6 +95,7 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/server/src/lib/web-push.ts` | notifications | domain-service | golden-feature | notifications-domain | Feature-owned notifications artifact in the canonical domain-service layer. | content: database access, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/ws-context.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: server runtime wiring, exported declarations; structure: source role and exported behavior |
 | `apps/server/src/lib/ws-handler.ts` | server-platform | server-runtime | shared-infrastructure | server-platform | Cross-cutting server-platform server-runtime support rather than a feature-owned business workflow. | content: server runtime wiring, exported declarations; structure: source role and exported behavior |
+| `apps/server/src/operations/backfills/backfill-canvas-named-brains.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/backfill-entity-icons.ts` | server-platform | server-operation | server-operation | server-platform | Deliberate server-platform operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/import-clockify-backfill.ts` | time-tracking | server-operation | server-operation | time-tracking-domain | Deliberate time-tracking operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
 | `apps/server/src/operations/backfills/verify-agency-clone.ts` | agency-shared | server-operation | server-operation | agency-platform | Deliberate agency-shared operation with isolated runtime side effects. | content: database access, process or filesystem tooling; structure: source role and exported behavior |
@@ -956,6 +957,12 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/workspace-knowledge/knowledge-object-page-view.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace-knowledge/stores/workspace-knowledge.ts` | workspace | client-state | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical client-state layer. | content: oRPC procedures or clients, Zustand client state, exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/workspace-knowledge/workspace-knowledge.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/canvas-brain-create-dialog-view.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/canvas-brains-index-view.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/canvas-brains-rail-view.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/canvas-brains.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/canvas-workspace-path.test.ts` | workspace | test | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
+| `apps/web/src/features/workspace/canvas-workspace-path.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/workspace/canvas/canvas-flow-context.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace/canvas/canvas-types.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/workspace/canvas/infinite-canvas.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -965,6 +972,11 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/features/workspace/canvas/workspace-flow-adapter.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
 | `apps/web/src/features/workspace/canvas/workspace-flow-edge.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/features/workspace/canvas/workspace-flow-node.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/features/workspace/containers/canvas-brains-index-container.tsx` | workspace | container | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
+| `apps/web/src/features/workspace/containers/canvas-brains-rail-container.tsx` | workspace | container | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical container layer. | content: React component or hook code, exported declarations; structure: container naming |
+| `apps/web/src/features/workspace/hooks/use-canvas-brains-index.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
+| `apps/web/src/features/workspace/hooks/use-canvas-brains-rail.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: exported declarations; structure: hook naming |
+| `apps/web/src/features/workspace/hooks/use-canvas-brains.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/workspace/hooks/use-workspace-node-page.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: React component or hook code, exported declarations; structure: hook naming |
 | `apps/web/src/features/workspace/hooks/use-workspace-node-sharing.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, React component or hook code; structure: hook naming |
 | `apps/web/src/features/workspace/hooks/use-workspace-query.ts` | workspace | feature-hook | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical feature-hook layer. | content: oRPC procedures or clients, TanStack Query orchestration, React component or hook code; structure: hook naming |
@@ -1127,6 +1139,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `apps/web/src/routes/_authenticated/agency.me.tsx` | agency-shared | presentational-view | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/agency.members.$userId.tsx` | agency-shared | presentational-view | golden-feature | agency-platform | Feature-owned agency-shared artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/billing.success.tsx` | billing | presentational-view | golden-feature | billing-domain | Feature-owned billing artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/routes/_authenticated/canvas.$workspaceId.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
+| `apps/web/src/routes/_authenticated/canvas.index.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/canvas.tsx` | workspace | presentational-view | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical presentational-view layer. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/node.$id.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
 | `apps/web/src/routes/_authenticated/object.$id.tsx` | web-platform | presentational-view | shared-infrastructure | web-platform | Cross-cutting web-platform presentational-view support rather than a feature-owned business workflow. | content: React component or hook code, exported declarations; structure: view or component role |
@@ -1469,6 +1483,9 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/api/src/routers/team/schemas.ts` | team | api-contract | golden-feature | team-domain | Feature-owned team artifact in the canonical api-contract layer. | content: exported declarations; structure: source role and exported behavior |
 | `packages/api/src/routers/team/service.integration.test.ts` | team | test | golden-feature | team-domain | Feature-owned team artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/team/service.ts` | team | api-service | golden-feature | team-domain | Feature-owned team artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
+| `packages/api/src/routers/workspace/canvas-brain-appearance.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
+| `packages/api/src/routers/workspace/canvas-workspace-service.ts` | workspace | api-service | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
+| `packages/api/src/routers/workspace/canvas-workspace.integration.test.ts` | workspace | test | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical test layer. | content: Bun test declarations, database access, environment contract; structure: test filename |
 | `packages/api/src/routers/workspace/knowledge-agency.test.ts` | workspace | test | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical test layer. | content: Bun test declarations; structure: test filename |
 | `packages/api/src/routers/workspace/knowledge-agency.ts` | workspace | api-service | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical api-service layer. | content: database access, exported declarations; structure: service role or data-access behavior |
 | `packages/api/src/routers/workspace/knowledge-capture.ts` | workspace | domain-logic | golden-feature | workspace-domain | Feature-owned workspace artifact in the canonical domain-logic layer. | content: exported declarations; structure: source role and exported behavior |
@@ -1580,6 +1597,8 @@ Unknown source roots and unrecognized extensions inside an included source, migr
 | `packages/db/src/migrations/0073_team_billing_credit_grants.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0074_user_onboarding_completed_at.sql` | auth | persistence-migration | golden-feature | identity-domain | Feature-owned auth artifact in the canonical persistence-migration layer. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/0075_workspace_team_invite.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
+| `packages/db/src/migrations/0076_canvas_named_brains.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
+| `packages/db/src/migrations/0077_legacy_canvas_title.sql` | database-platform | persistence-migration | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-migration support rather than a feature-owned business workflow. | content: SQL schema mutation statements; structure: ordered migration path |
 | `packages/db/src/migrations/meta/0000_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0001_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |
 | `packages/db/src/migrations/meta/0002_snapshot.json` | database-platform | persistence-metadata | shared-infrastructure | data-platform | Cross-cutting database-platform persistence-metadata support rather than a feature-owned business workflow. | content: Drizzle migration metadata, JSON configuration or metadata; structure: migration metadata path |

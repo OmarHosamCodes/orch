@@ -230,6 +230,10 @@ export function createWorkspaceId(prefix = "item") {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+export function legacyCanvasWorkspaceId(userId: string) {
+  return `cws-legacy-${userId}`;
+}
+
 export function createWorkspaceTask(partial: Partial<WorkspaceTask> = {}): WorkspaceTask {
   return workspaceTaskSchema.parse({
     id: partial.id ?? createWorkspaceId("task"),

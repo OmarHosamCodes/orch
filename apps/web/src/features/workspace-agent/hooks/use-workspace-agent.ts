@@ -11,6 +11,7 @@ import type { WorkspaceNode } from "@orch/workspace";
 import { useChat } from "@ai-sdk/react";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { orchCanvasWorkspaceIdFromPath } from "@/features/workspace/canvas-workspace-path";
 import { useLocation, useNavigate } from "@/lib/navigation";
 import { toast } from "sonner";
 
@@ -139,6 +140,7 @@ function buildOrchTurnSendContext(input: {
   conversationId: string | null;
   surface: AgentSurface;
   teamId: string | null;
+  canvasWorkspaceId?: string | null;
   scopeChips: AgentScopeRef[];
   workspaceNodes: WorkspaceNode[];
   toolPreset: DashboardAgentToolPreset;
@@ -151,6 +153,7 @@ function buildOrchTurnSendContext(input: {
   const scopedNodes = input.workspaceNodes.filter((node) =>
     input.scopeChips.some((chip) => chip.kind === "node" && chip.id === node.id),
   );
+  const scopedToBrain = Boolean(input.canvasWorkspaceId);
   return {
     conversationId: input.conversationId ?? undefined,
     surface: input.surface,
@@ -160,12 +163,15 @@ function buildOrchTurnSendContext(input: {
     scopeRefs: input.scopeChips,
     contextNodeTitles: input.scopeChips.map((chip) => chip.label),
     ...(agencyUnlocked && input.teamId ? { teamId: input.teamId } : {}),
-    ...(canvasUnlocked
+    ...(canvasUnlocked && scopedToBrain
       ? {
+          canvasWorkspaceId: input.canvasWorkspaceId ?? undefined,
           nodes: input.workspaceNodes,
           scopeNodes: scopedNodes.length > 0 ? scopedNodes : input.workspaceNodes,
         }
-      : {}),
+      : canvasUnlocked
+        ? {}
+        : {}),
     ...(input.model ? { model: input.model } : {}),
   };
 }
@@ -174,6 +180,7 @@ export function useWorkspaceAgent() {
   const location = useLocation();
   const navigate = useNavigate();
   const surface = resolveAgentSurface(location.pathname);
+  const canvasWorkspaceId = orchCanvasWorkspaceIdFromPath(location.pathname);
   const teamId = useCurrentAgencyTeamStore((s) => s.currentAgencyTeamId);
   const workspaceNodes = useWorkspaceStore((s) => s.nodes);
 
@@ -279,6 +286,7 @@ export function useWorkspaceAgent() {
     unlockedSurfaces,
     toolPreset: selectedToolPreset,
     toolsMenuOpen,
+    canvasWorkspaceId,
   });
 
   const {
@@ -619,6 +627,13 @@ export function useWorkspaceAgent() {
     modelPresetState.rememberResolvedModel,
     surface,
   ]);
+
+  useEffect(() => {
+    setActiveConversationId(null);
+    setMessages([]);
+    setError(null);
+    setStreamStopped(false);
+  }, [canvasWorkspaceId]);
 
   useEffect(() => {
     if (isStreaming) return;
@@ -965,6 +980,7 @@ export function useWorkspaceAgent() {
           conversationId: outboundConversationId,
           surface,
           teamId,
+          canvasWorkspaceId,
           scopeChips,
           workspaceNodes,
           toolPreset,
@@ -1605,6 +1621,7 @@ export function useWorkspaceAgent() {
     conversationId: activeConversationId,
     surface,
     teamId,
+    canvasWorkspaceId,
     scopeChips,
     workspaceNodes,
     toolPreset: selectedToolPreset,

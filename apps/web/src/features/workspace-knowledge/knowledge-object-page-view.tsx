@@ -2,13 +2,7 @@ import { Link } from "@/lib/navigation";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 
 type KnowledgeObjectBacklink = {
   id: string;

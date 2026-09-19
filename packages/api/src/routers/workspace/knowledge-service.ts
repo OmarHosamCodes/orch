@@ -38,12 +38,17 @@ import { and, desc, eq, ilike, inArray, ne, or } from "drizzle-orm";
 
 import { requireTeamMembership } from "../../lib/team-membership";
 import {
+  listCanvasWorkspaceTitleMap,
+  requireOwnedCanvasWorkspace,
+} from "./canvas-workspace-service";
+import {
   assertAgencyTargetExists,
   getAgencyKnowledgeView,
   listAgencyKnowledgeViews,
 } from "./knowledge-agency";
 
 type QueryInput = {
+  canvasWorkspaceId?: string | null;
   teamId?: string;
   objectType?: KnowledgeObjectType;
   query?: string;
@@ -63,6 +68,7 @@ function rowToObject(row: typeof workspaceObject.$inferSelect): KnowledgeObject 
     objectType: row.objectType,
     title: row.title,
     ownerUserId: row.ownerUserId,
+    canvasWorkspaceId: row.canvasWorkspaceId,
     visibility: row.visibility,
     teamId: row.teamId,
     properties: row.properties ?? {},
@@ -81,6 +87,7 @@ function rowToRelation(row: typeof workspaceRelation.$inferSelect): KnowledgeRel
     toObjectId: row.toObjectId,
     relationType: row.relationType,
     ownerUserId: row.ownerUserId,
+    canvasWorkspaceId: row.canvasWorkspaceId,
     teamId: row.teamId,
     properties: row.properties ?? {},
     createdAt: toIso(row.createdAt),
@@ -92,6 +99,7 @@ function rowToPlacement(row: typeof workspacePlacement.$inferSelect): KnowledgeP
   return {
     id: row.id,
     objectId: row.objectId,
+    canvasWorkspaceId: row.canvasWorkspaceId,
     objectType: row.objectType ? knowledgeObjectTypeSchema.parse(row.objectType) : undefined,
     teamId: row.teamId,
     viewId: row.viewId,
@@ -125,11 +133,21 @@ async function assertCanWriteObject(
   await requireTeamMembership(actorUserId, object.teamId, "editor");
 }
 
+async function attachWorkspaceTitles(actorUserId: string, items: KnowledgeObjectView[]) {
+  const ids = items.map((item) => item.canvasWorkspaceId).filter((id): id is string => Boolean(id));
+  const titles = await listCanvasWorkspaceTitleMap(actorUserId, { workspaceIds: ids });
+  return items.map((item) => ({
+    ...item,
+    canvasWorkspaceTitle: item.canvasWorkspaceId ? titles.get(item.canvasWorkspaceId) : undefined,
+  }));
+}
+
 export async function syncKnowledgeFromNodes(
   actorUserId: string,
-  input: { nodes: WorkspaceNode[] },
+  input: { canvasWorkspaceId: string; nodes: WorkspaceNode[] },
 ) {
   void actorUserId;
+  const canvasWorkspaceId = input.canvasWorkspaceId;
   await db.transaction(async (tx) => {
     for (const node of input.nodes) {
       const { object, placement, relations } = workspaceNodeToKnowledge(node);
@@ -138,6 +156,7 @@ export async function syncKnowledgeFromNodes(
         .values({
           id: object.id,
           ownerUserId: object.ownerUserId,
+          canvasWorkspaceId,
           objectType: object.objectType,
           title: object.title,
           visibility: object.visibility,
@@ -151,6 +170,7 @@ export async function syncKnowledgeFromNodes(
           target: workspaceObject.id,
           set: {
             title: object.title,
+            canvasWorkspaceId,
             visibility: object.visibility,
             teamId: object.teamId ?? null,
             properties: object.properties,
@@ -164,6 +184,7 @@ export async function syncKnowledgeFromNodes(
         .values({
           id: placement.id,
           objectId: placement.objectId,
+          canvasWorkspaceId,
           objectType: placement.objectType ?? object.objectType,
           teamId: placement.teamId ?? object.teamId ?? null,
           viewId: placement.viewId,
@@ -183,6 +204,7 @@ export async function syncKnowledgeFromNodes(
           ],
           set: {
             objectType: placement.objectType ?? object.objectType,
+            canvasWorkspaceId,
             teamId: placement.teamId ?? object.teamId ?? null,
             x: placement.x,
             y: placement.y,
@@ -213,6 +235,7 @@ export async function syncKnowledgeFromNodes(
           .values({
             id: relation.id,
             fromObjectId: relation.fromObjectId,
+            canvasWorkspaceId,
             fromObjectType: relation.fromObjectType,
             toObjectType: relation.toObjectType,
             toObjectId: relation.toObjectId,
@@ -231,6 +254,7 @@ export async function syncKnowledgeFromNodes(
               workspaceRelation.relationType,
             ],
             set: {
+              canvasWorkspaceId,
               teamId: relation.teamId ?? null,
               properties: relation.properties,
               updatedAt: new Date(relation.updatedAt),
@@ -266,7 +290,10 @@ export async function backfillWorkspaceKnowledge(
   void actorUserId;
   const rows = await db.select().from(dashboardWorkspace);
   for (const row of rows) {
-    await syncKnowledgeFromNodes(row.userId, { nodes: row.nodes as WorkspaceNode[] });
+    await syncKnowledgeFromNodes(row.ownerUserId, {
+      canvasWorkspaceId: row.workspaceId,
+      nodes: row.nodes as WorkspaceNode[],
+    });
   }
   return { workspaceCount: rows.length };
 }
@@ -278,6 +305,11 @@ export async function queryKnowledgeObjects(
   const limit = Math.min(50, Math.max(1, input.limit ?? 20));
   if (input.teamId) {
     await requireTeamMembership(actorUserId, input.teamId, "viewer");
+  }
+  if (input.canvasWorkspaceId) {
+    await requireOwnedCanvasWorkspace(actorUserId, {
+      canvasWorkspaceId: input.canvasWorkspaceId,
+    });
   }
 
   if (input.objectType && isAgencyObjectType(input.objectType)) {
@@ -324,6 +356,10 @@ export async function queryKnowledgeObjects(
         and(eq(workspaceObject.visibility, "team"), eq(workspaceObject.teamId, input.teamId)),
       )
     : eq(workspaceObject.ownerUserId, actorUserId);
+
+  if (input.canvasWorkspaceId) {
+    filters.push(eq(workspaceObject.canvasWorkspaceId, input.canvasWorkspaceId));
+  }
 
   const rows = await db
     .select()
@@ -376,19 +412,21 @@ export async function queryKnowledgeObjects(
     objectType: knowledgeObjectTypeSchema.parse(row.objectType),
     id: row.id,
     title: row.title,
+    canvasWorkspaceId: row.canvasWorkspaceId,
     teamId: row.teamId,
     properties: row.properties ?? {},
     placement: placementByObject.get(row.id) ?? null,
     relationCounts: counts.get(row.id) ?? { in: 0, out: 0 },
   }));
+  const titledCanvasItems = await attachWorkspaceTitles(actorUserId, canvasItems);
 
   if (!input.teamId || input.includeAgency === false || input.objectType || input.about) {
-    return { items: canvasItems.slice(0, limit) };
+    return { items: titledCanvasItems.slice(0, limit) };
   }
 
-  const remaining = limit - canvasItems.length;
+  const remaining = limit - titledCanvasItems.length;
   if (remaining <= 0) {
-    return { items: canvasItems.slice(0, limit) };
+    return { items: titledCanvasItems.slice(0, limit) };
   }
   const teamId = input.teamId;
   const agencyTypes = [
@@ -408,7 +446,7 @@ export async function queryKnowledgeObjects(
       }),
     ),
   );
-  return { items: [...canvasItems, ...agencyBatches.flat()].slice(0, limit) };
+  return { items: [...titledCanvasItems, ...agencyBatches.flat()].slice(0, limit) };
 }
 
 export async function getKnowledgeObject(
@@ -489,6 +527,7 @@ export async function getKnowledgeObject(
       objectType: object.objectType,
       id: object.id,
       title: object.title,
+      canvasWorkspaceId: object.canvasWorkspaceId ?? null,
       teamId: object.teamId ?? null,
       properties: object.properties,
       placement: placement ? rowToPlacement(placement) : null,
@@ -537,10 +576,12 @@ async function projectObjectIntoWorkspace(actorUserId: string, objectId: string)
     relations,
   );
   // ponytail: graph rows are uncapped; board cards still share WORKSPACE_NODE_LIMIT (200). Plan 2 lifts the board cap with clustering.
+  const workspaceId = object.canvasWorkspaceId;
+  if (!workspaceId) return;
   const [workspace] = await db
     .select()
     .from(dashboardWorkspace)
-    .where(eq(dashboardWorkspace.userId, object.ownerUserId))
+    .where(eq(dashboardWorkspace.workspaceId, workspaceId))
     .limit(1);
   const existing = (workspace?.nodes ?? []) as WorkspaceNode[];
   const replacing = existing.some((entry) => entry.id === node.id);
@@ -553,12 +594,13 @@ async function projectObjectIntoWorkspace(actorUserId: string, objectId: string)
   await db
     .insert(dashboardWorkspace)
     .values({
-      userId: object.ownerUserId,
+      workspaceId,
+      ownerUserId: object.ownerUserId,
       nodes: next,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
-      target: dashboardWorkspace.userId,
+      target: dashboardWorkspace.workspaceId,
       set: { nodes: next, updatedAt: new Date() },
     });
   void actorUserId;
@@ -583,10 +625,20 @@ async function insertRevision(input: {
 
 export async function applyKnowledgeAction(
   actorUserId: string,
-  input: { action: KnowledgeAction; proposalId?: string | null; teamId?: string | null },
+  input: {
+    action: KnowledgeAction;
+    proposalId?: string | null;
+    teamId?: string | null;
+    canvasWorkspaceId?: string | null;
+  },
 ) {
   const action = input.action;
   const teamId = input.teamId ?? null;
+  const canvasWorkspaceId = input.canvasWorkspaceId ?? null;
+  if (!canvasWorkspaceId) {
+    throw new ORPCError("BAD_REQUEST", { message: "Knowledge writes require a brain." });
+  }
+  await requireOwnedCanvasWorkspace(actorUserId, { canvasWorkspaceId });
   switch (action.type) {
     case "object.create": {
       if (!isCanvasNativeObjectType(action.objectType)) {
@@ -630,6 +682,7 @@ export async function applyKnowledgeAction(
         objectType: action.objectType,
         title: action.title,
         ownerUserId: actorUserId,
+        canvasWorkspaceId,
         visibility,
         teamId: objectTeamId,
         properties,
@@ -640,6 +693,7 @@ export async function applyKnowledgeAction(
       await db.insert(workspaceObject).values({
         id: object.id,
         ownerUserId: object.ownerUserId,
+        canvasWorkspaceId,
         objectType: object.objectType,
         title: object.title,
         visibility: object.visibility,
@@ -654,6 +708,7 @@ export async function applyKnowledgeAction(
         await db.insert(workspacePlacement).values({
           id: createWorkspaceId("kplc"),
           objectId: object.id,
+          canvasWorkspaceId,
           objectType: object.objectType,
           teamId: object.teamId ?? null,
           viewId: "board",
@@ -671,6 +726,7 @@ export async function applyKnowledgeAction(
         await db.insert(workspaceRelation).values({
           id: createWorkspaceId("krel"),
           fromObjectId: object.id,
+          canvasWorkspaceId,
           fromObjectType: object.objectType,
           toObjectType: action.about.objectType,
           toObjectId: action.about.id,
@@ -749,19 +805,21 @@ export async function applyKnowledgeAction(
         after: null,
       });
       await deleteKnowledgeForNode(actorUserId, { objectId: existing.id });
-      const [workspace] = await db
-        .select()
-        .from(dashboardWorkspace)
-        .where(eq(dashboardWorkspace.userId, existing.ownerUserId))
-        .limit(1);
-      const next = ((workspace?.nodes ?? []) as WorkspaceNode[]).filter(
-        (node) => node.id !== existing.id,
-      );
-      if (workspace) {
-        await db
-          .update(dashboardWorkspace)
-          .set({ nodes: next, updatedAt: new Date() })
-          .where(eq(dashboardWorkspace.userId, existing.ownerUserId));
+      if (existing.canvasWorkspaceId) {
+        const [workspace] = await db
+          .select()
+          .from(dashboardWorkspace)
+          .where(eq(dashboardWorkspace.workspaceId, existing.canvasWorkspaceId))
+          .limit(1);
+        const next = ((workspace?.nodes ?? []) as WorkspaceNode[]).filter(
+          (node) => node.id !== existing.id,
+        );
+        if (workspace) {
+          await db
+            .update(dashboardWorkspace)
+            .set({ nodes: next, updatedAt: new Date() })
+            .where(eq(dashboardWorkspace.workspaceId, existing.canvasWorkspaceId));
+        }
       }
       return { before: existing, after: null, objectId: existing.id };
     }
@@ -800,6 +858,7 @@ export async function applyKnowledgeAction(
         toObjectId: action.to.id,
         relationType: action.relationType,
         ownerUserId: actorUserId,
+        canvasWorkspaceId: from.canvasWorkspaceId ?? canvasWorkspaceId,
         teamId: relationTeamId,
         properties: {},
         createdAt: now.toISOString(),
@@ -810,6 +869,7 @@ export async function applyKnowledgeAction(
         .values({
           id: relation.id,
           fromObjectId: relation.fromObjectId,
+          canvasWorkspaceId: relation.canvasWorkspaceId ?? canvasWorkspaceId,
           fromObjectType: relation.fromObjectType,
           toObjectType: relation.toObjectType,
           toObjectId: relation.toObjectId,
@@ -863,6 +923,7 @@ export async function applyKnowledgeAction(
           .values({
             id: createWorkspaceId("kplc"),
             objectId: action.objectId,
+            canvasWorkspaceId,
             objectType: action.objectType,
             teamId: pinTeamId,
             viewId: "board",
@@ -882,6 +943,7 @@ export async function applyKnowledgeAction(
             ],
             set: {
               objectType: action.objectType,
+              canvasWorkspaceId,
               teamId: pinTeamId,
               x: action.x,
               y: action.y,
@@ -912,6 +974,7 @@ export async function applyKnowledgeAction(
         .values({
           id: createWorkspaceId("kplc"),
           objectId: action.objectId,
+          canvasWorkspaceId: existing.canvasWorkspaceId ?? canvasWorkspaceId,
           objectType: existing.objectType,
           teamId: existing.teamId ?? teamId,
           viewId: "board",
@@ -931,6 +994,7 @@ export async function applyKnowledgeAction(
           ],
           set: {
             objectType: existing.objectType,
+            canvasWorkspaceId: existing.canvasWorkspaceId ?? canvasWorkspaceId,
             teamId: existing.teamId ?? teamId,
             x: action.x,
             y: action.y,
@@ -1011,9 +1075,10 @@ function toBoardCard(input: {
 
 export async function listKnowledgeBoard(
   actorUserId: string,
-  input: { teamId?: string | null },
+  input: { canvasWorkspaceId: string; teamId?: string | null },
 ): Promise<{ items: KnowledgeBoardCard[]; unplaced: KnowledgeBoardCard[] }> {
   const teamId = input.teamId ?? null;
+  await requireOwnedCanvasWorkspace(actorUserId, { canvasWorkspaceId: input.canvasWorkspaceId });
   if (teamId) {
     await requireTeamMembership(actorUserId, teamId, "viewer");
   }
@@ -1027,7 +1092,13 @@ export async function listKnowledgeBoard(
   const rows = await db
     .select()
     .from(workspaceObject)
-    .where(and(visibilityFilter, ne(workspaceObject.objectType, "document")))
+    .where(
+      and(
+        visibilityFilter,
+        eq(workspaceObject.canvasWorkspaceId, input.canvasWorkspaceId),
+        ne(workspaceObject.objectType, "document"),
+      ),
+    )
     .orderBy(desc(workspaceObject.updatedAt))
     .limit(WORKSPACE_NODE_LIMIT);
 
@@ -1036,7 +1107,11 @@ export async function listKnowledgeBoard(
     .select()
     .from(workspacePlacement)
     .where(
-      and(eq(workspacePlacement.ownerUserId, actorUserId), eq(workspacePlacement.viewId, "board")),
+      and(
+        eq(workspacePlacement.ownerUserId, actorUserId),
+        eq(workspacePlacement.canvasWorkspaceId, input.canvasWorkspaceId),
+        eq(workspacePlacement.viewId, "board"),
+      ),
     );
   const placementByObject = new Map(placements.map((row) => [row.objectId, rowToPlacement(row)]));
 

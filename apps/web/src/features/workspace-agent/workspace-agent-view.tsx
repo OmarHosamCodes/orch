@@ -170,59 +170,59 @@ export function WorkspaceAgentView({ view }: WorkspaceAgentViewProps) {
 
         {view.expanded && !hideChrome ? (
           <OrchExpandableScreenView
-              title={
-                view.openThreads.find((thread) => thread.id === view.activeConversationId)?.title ??
-                view.settledThreads.find((thread) => thread.id === view.activeConversationId)
-                  ?.title ??
-                "Orch"
-              }
-              search={view.settleSearch}
-              onSearchChange={view.setSettleSearch}
-              canSettle
-              settlingThreadId={view.settlingThreadId}
-              openThreads={view.openThreads}
-              settledThreads={view.settledThreads}
-              settledOpen={view.settledOpen}
-              onSettledOpenChange={view.setSettledOpen}
-              activeConversationId={view.activeConversationId}
-              onSelectThread={view.onSelectCompactThread}
-              onSettleThread={(id) => void view.onSettleThread(id)}
-              onUnsettle={(id) => void view.onUnsettle(id)}
-              onNewThread={view.startNewConversation}
-              onCollapse={view.onCollapseExpanded}
-            >
-              {thread}
-              <AnimatePresence initial={false}>
-                {view.error ? (
-                  <motion.div
-                    key="workspace-agent-error"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden border-t border-border px-3 py-2"
-                  >
-                    <ErrorState
-                      title="Couldn't complete that turn"
-                      detail={view.error}
-                      retrying={view.isPending}
-                      onRetry={view.retryLastTurn}
-                      className="max-w-none"
-                    />
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
+            title={
+              view.openThreads.find((thread) => thread.id === view.activeConversationId)?.title ??
+              view.settledThreads.find((thread) => thread.id === view.activeConversationId)
+                ?.title ??
+              "Orch"
+            }
+            search={view.settleSearch}
+            onSearchChange={view.setSettleSearch}
+            canSettle
+            settlingThreadId={view.settlingThreadId}
+            openThreads={view.openThreads}
+            settledThreads={view.settledThreads}
+            settledOpen={view.settledOpen}
+            onSettledOpenChange={view.setSettledOpen}
+            activeConversationId={view.activeConversationId}
+            onSelectThread={view.onSelectCompactThread}
+            onSettleThread={(id) => void view.onSettleThread(id)}
+            onUnsettle={(id) => void view.onUnsettle(id)}
+            onNewThread={view.startNewConversation}
+            onCollapse={view.onCollapseExpanded}
+          >
+            {thread}
+            <AnimatePresence initial={false}>
+              {view.error ? (
+                <motion.div
+                  key="workspace-agent-error"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden border-t border-border px-3 py-2"
+                >
+                  <ErrorState
+                    title="Couldn't complete that turn"
+                    detail={view.error}
+                    retrying={view.isPending}
+                    onRetry={view.retryLastTurn}
+                    className="max-w-none"
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </OrchExpandableScreenView>
         ) : null}
 
         <AnimatePresence>
-        {view.canvasOpen && view.activeArtifact ? (
-          <AgentCanvasOverlayView
-            key="workspace-agent-canvas"
-            artifact={view.activeArtifact}
-            onClose={view.closeCanvas}
-            closeRef={view.canvasCloseRef}
-          />
-        ) : null}
+          {view.canvasOpen && view.activeArtifact ? (
+            <AgentCanvasOverlayView
+              key="workspace-agent-canvas"
+              artifact={view.activeArtifact}
+              onClose={view.closeCanvas}
+              closeRef={view.canvasCloseRef}
+            />
+          ) : null}
         </AnimatePresence>
       </MotionConfig>
     </LayoutGroup>

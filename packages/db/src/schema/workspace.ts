@@ -83,17 +83,47 @@ const EMPTY_DASHBOARD_CONVERSATION_USAGE_SUMMARY_RECORD: DashboardConversationUs
   },
 };
 
-export const dashboardWorkspace = pgTable("dashboard_workspace", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  nodes: jsonb("nodes").$type<WorkspaceNodeRecord[]>().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const canvasWorkspace = pgTable(
+  "canvas_workspace",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    instructions: text("instructions").notNull().default(""),
+    settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
+    archivedAt: timestamp("archived_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("canvas_workspace_owner_idx").on(table.ownerUserId),
+    index("canvas_workspace_owner_archived_idx").on(table.ownerUserId, table.archivedAt),
+  ],
+);
+
+export const dashboardWorkspace = pgTable(
+  "dashboard_workspace",
+  {
+    workspaceId: text("workspace_id")
+      .primaryKey()
+      .references(() => canvasWorkspace.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    nodes: jsonb("nodes").$type<WorkspaceNodeRecord[]>().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("dashboard_workspace_owner_idx").on(table.ownerUserId)],
+);
 
 export const workspaceMarketplaceItem = pgTable(
   "workspace_marketplace_item",
@@ -142,10 +172,14 @@ export const dashboardConversation = pgTable(
     lastReadAt: timestamp("last_read_at"),
     archivedAt: timestamp("archived_at"),
     taskId: text("task_id"),
+    canvasWorkspaceId: text("canvas_workspace_id").references(() => canvasWorkspace.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => [
     index("dashboard_conversation_user_updated_idx").on(table.userId, table.updatedAt),
     index("dashboard_conversation_user_last_message_idx").on(table.userId, table.lastMessageAt),
+    index("dashboard_conversation_user_workspace_idx").on(table.userId, table.canvasWorkspaceId),
     uniqueIndex("dashboard_conversation_user_task_unique")
       .on(table.userId, table.taskId)
       .where(sql`${table.taskId} is not null`),
